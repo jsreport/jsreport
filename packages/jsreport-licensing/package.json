@@ -29,7 +29,7 @@
     "axios": "1.6.7"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.2.1",
+    "@jsreport/jsreport-core": "4.2.2",
     "@jsreport/studio-dev": "4.0.0",
     "mocha": "10.1.0",
     "should": "13.2.3",

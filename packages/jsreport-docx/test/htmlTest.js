@@ -778,83 +778,91 @@ describe('docx html embed', () => {
 
   for (const headingLevel of ['1', '2', '3', '4', '5', '6']) {
     describe(`<h${headingLevel}> tag`, () => {
+      const headingParagraphAssert = (paragraphNode, templateParagraphNode, extra, checkHeading = true) => {
+        const mode = extra.mode
+
+        if (mode === 'block' && checkHeading) {
+          const [stylesDoc] = extra.outputDocuments
+          const pPrNode = findChildNode('w:pPr', paragraphNode)
+          const pStyleNode = findChildNode('w:pStyle', pPrNode)
+          const titleStyleId = pStyleNode.getAttribute('w:val')
+          const titleLevel = parseInt(titleStyleId.match(/\w+(\d)$/)[1], 10)
+
+          should(titleLevel).be.Number()
+          should(titleLevel).be.eql(parseInt(headingLevel, 10))
+          should(titleLevel).be.not.NaN()
+
+          const titleStyleNode = findChildNode((n) => (
+            n.nodeName === 'w:style' &&
+            n.getAttribute('w:type') === 'paragraph' &&
+            n.getAttribute('w:styleId') === titleStyleId
+          ), stylesDoc.documentElement)
+
+          should(titleStyleNode).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:name' &&
+            n.getAttribute('w:val') === `heading ${titleLevel}`
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:basedOn' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:next' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), titleStyleNode)).be.ok()
+
+          const linkNode = findChildNode((n) => (
+            n.nodeName === 'w:link' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), titleStyleNode)
+
+          should(linkNode).be.ok()
+
+          const titleCharStyleId = linkNode.getAttribute('w:val')
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:style' &&
+            n.getAttribute('w:type') === 'character' &&
+            n.getAttribute('w:styleId') === titleCharStyleId
+          ), stylesDoc.documentElement)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:uiPriority' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:qFormat'
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:pPr'
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:rPr'
+          ), titleStyleNode)).be.ok()
+        } else {
+          commonHtmlParagraphAssertions(paragraphNode, templateParagraphNode)
+        }
+      }
+
       const opts = {
         outputDocuments: ['word/styles.xml'],
+        // disable common paragraph assertions for headings
+        commonParagraphAssert: (paragraphNode, templateParagraphNode, extra) => {
+          headingParagraphAssert(paragraphNode, templateParagraphNode, extra, false)
+        },
         paragraphAssert: (paragraphNode, templateTextNodeForDocxHtml, extra) => {
-          const mode = extra.mode
-
-          if (mode === 'block') {
-            const [stylesDoc] = extra.outputDocuments
-            const pPrNode = findChildNode('w:pPr', paragraphNode)
-            const pStyleNode = findChildNode('w:pStyle', pPrNode)
-            const titleStyleId = pStyleNode.getAttribute('w:val')
-            const titleLevel = parseInt(titleStyleId.match(/\w+(\d)$/)[1], 10)
-
-            should(titleLevel).be.Number()
-            should(titleLevel).be.eql(parseInt(headingLevel, 10))
-            should(titleLevel).be.not.NaN()
-
-            const titleStyleNode = findChildNode((n) => (
-              n.nodeName === 'w:style' &&
-              n.getAttribute('w:type') === 'paragraph' &&
-              n.getAttribute('w:styleId') === titleStyleId
-            ), stylesDoc.documentElement)
-
-            should(titleStyleNode).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:name' &&
-              n.getAttribute('w:val') === `heading ${titleLevel}`
-            ), titleStyleNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:basedOn' &&
-              n.getAttribute('w:val') != null &&
-              n.getAttribute('w:val') !== ''
-            ), titleStyleNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:next' &&
-              n.getAttribute('w:val') != null &&
-              n.getAttribute('w:val') !== ''
-            ), titleStyleNode)).be.ok()
-
-            const linkNode = findChildNode((n) => (
-              n.nodeName === 'w:link' &&
-              n.getAttribute('w:val') != null &&
-              n.getAttribute('w:val') !== ''
-            ), titleStyleNode)
-
-            should(linkNode).be.ok()
-
-            const titleCharStyleId = linkNode.getAttribute('w:val')
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:style' &&
-              n.getAttribute('w:type') === 'character' &&
-              n.getAttribute('w:styleId') === titleCharStyleId
-            ), stylesDoc.documentElement)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:uiPriority' &&
-              n.getAttribute('w:val') != null &&
-              n.getAttribute('w:val') !== ''
-            ), titleStyleNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:qFormat'
-            ), titleStyleNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:pPr'
-            ), titleStyleNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:rPr'
-            ), titleStyleNode)).be.ok()
-          } else {
-            commonHtmlParagraphAssertions(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode)
-          }
+          headingParagraphAssert(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode, extra)
         }
       }
 
@@ -867,14 +875,140 @@ describe('docx html embed', () => {
       // for h1 we run full tests, for h2 to h6 we want to run less tests
       runCommonTests(() => reporter, `h${headingLevel}`, customOptsForText, commonWithText)
 
+      const customOptsForInlineBlockChildren = { ...opts }
+
+      // we want to validate that for children cases the heading is applied to all children
+      customOptsForInlineBlockChildren.commonParagraphAssert = (paragraphNode, templateParagraphNode, extra) => {
+        headingParagraphAssert(paragraphNode, templateParagraphNode, extra)
+      }
+
       if (headingLevel === '1') {
         runCommonTests(() => reporter, `h${headingLevel}`, opts, commonWithInlineAndBlockSiblings)
-        runCommonTests(() => reporter, `h${headingLevel}`, opts, commonWithInlineBlockChildren)
+        runCommonTests(() => reporter, `h${headingLevel}`, customOptsForInlineBlockChildren, commonWithInlineBlockChildren)
       }
     })
   }
 
   describe('<h1> - <h6> tags', () => {
+    it('block mode - wrapped <h1><p>...</p></h1>...<h2><p>...</p></h2>...<h3><p>...</p></h3>...<h4><p>...</p></h4>...<h5><p>...</p></h5>...<h6><p>...</p></h6>...', async () => {
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: docxTemplateBuf
+            }
+          }
+        },
+        data: {
+          html: [
+            '<h1><p>Testing title</p></h1>',
+            'another text',
+            '<h2><p>Testing title2</p></h2>',
+            'another text',
+            '<h3><p>Testing title3</p></h3>',
+            'another text',
+            '<h4><p>Testing title4</p></h4>',
+            'another text',
+            '<h5><p>Testing title5</p></h5>',
+            'another text',
+            '<h6><p>Testing title6</p></h6>',
+            'another text'
+          ].join('')
+        }
+      })
+
+      // Write document for easier debugging
+      fs.writeFileSync(outputPath, result.content)
+
+      const [doc, stylesDoc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/styles.xml'])
+
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(12)
+
+      for (const [paragraphIdx, paragraphNode] of paragraphNodes.entries()) {
+        const isOdd = paragraphIdx % 2 === 0
+        const textNodes = nodeListToArray(paragraphNode.getElementsByTagName('w:t'))
+        should(textNodes.length).eql(1)
+
+        if (isOdd) {
+          const pPrNode = findChildNode('w:pPr', paragraphNode)
+          const pStyleNode = findChildNode('w:pStyle', pPrNode)
+          const titleStyleId = pStyleNode.getAttribute('w:val')
+          const titleLevel = parseInt(titleStyleId.match(/\w+(\d)$/)[1], 10)
+
+          should(titleLevel).be.Number()
+          should(titleLevel).be.not.NaN()
+          should(textNodes[0].textContent).eql(`Testing title${titleLevel === 1 ? '' : titleLevel}`)
+
+          const titleStyleNode = findChildNode((n) => (
+            n.nodeName === 'w:style' &&
+            n.getAttribute('w:type') === 'paragraph' &&
+            n.getAttribute('w:styleId') === titleStyleId
+          ), stylesDoc.documentElement)
+
+          should(titleStyleNode).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:name' &&
+            n.getAttribute('w:val') === `heading ${titleLevel}`
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:basedOn' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:next' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), titleStyleNode)).be.ok()
+
+          const linkNode = findChildNode((n) => (
+            n.nodeName === 'w:link' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), titleStyleNode)
+
+          should(linkNode).be.ok()
+
+          const titleCharStyleId = linkNode.getAttribute('w:val')
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:style' &&
+            n.getAttribute('w:type') === 'character' &&
+            n.getAttribute('w:styleId') === titleCharStyleId
+          ), stylesDoc.documentElement)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:uiPriority' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:qFormat'
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:pPr'
+          ), titleStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:rPr'
+          ), titleStyleNode)).be.ok()
+        } else {
+          should(textNodes[0].textContent).eql('another text')
+        }
+      }
+    })
+
     it('block mode - combined <h1>...</h1>...<h2>...</h2>...<h3>...</h3>...<h4>...</h4>...<h5>...</h5>...<h6>...</h6>...', async () => {
       const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
@@ -10452,139 +10586,155 @@ describe('docx html embed', () => {
 
   for (const listTag of ['ul', 'ol']) {
     describe(`<${listTag}>, <li> tag`, () => {
+      const listParagraphAssert = (paragraphNode, templateParagraphNode, extra, checkList = true) => {
+        const mode = extra.mode
+
+        if (mode === 'block' && checkList) {
+          const [stylesDoc, numberingDoc] = extra.outputDocuments
+          const pPrNode = findChildNode('w:pPr', paragraphNode)
+          const pStyleNode = findChildNode('w:pStyle', pPrNode)
+          const listParagraphStyleId = pStyleNode.getAttribute('w:val')
+
+          const listParagraphStyleNode = findChildNode((n) => (
+            n.nodeName === 'w:style' &&
+            n.getAttribute('w:type') === 'paragraph' &&
+            n.getAttribute('w:styleId') === listParagraphStyleId
+          ), stylesDoc.documentElement)
+
+          should(listParagraphStyleNode).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:name' &&
+            n.getAttribute('w:val') === 'List Paragraph'
+          ), listParagraphStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:basedOn' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), listParagraphStyleNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:uiPriority' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), listParagraphStyleNode)).be.ok()
+
+          should(findChildNode('w:qFormat', listParagraphStyleNode)).be.ok()
+
+          should(findChildNode('w:pPr', listParagraphStyleNode)).be.ok()
+
+          const numPrNode = findChildNode('w:numPr', pPrNode)
+
+          should(numPrNode).be.ok()
+
+          const ilvlNode = findChildNode('w:ilvl', numPrNode)
+
+          should(ilvlNode).be.ok()
+
+          const ilvlVal = ilvlNode.getAttribute('w:val')
+
+          should(parseInt(ilvlVal, 10)).be.not.NaN()
+
+          const numIdNode = findChildNode('w:numId', numPrNode)
+
+          should(numIdNode).be.ok()
+
+          const numId = numIdNode.getAttribute('w:val')
+          should(parseInt(numId, 10)).be.not.NaN()
+
+          should(numberingDoc).be.ok()
+
+          const numberingNumNode = findChildNode((n) => (
+            n.nodeName === 'w:num' &&
+            n.getAttribute('w:numId') === numId
+          ), numberingDoc.documentElement)
+
+          should(numberingNumNode).be.ok()
+
+          const numberingAbstractNumIdNode = findChildNode('w:abstractNumId', numberingNumNode)
+
+          should(numberingAbstractNumIdNode).be.ok()
+          should(parseInt(numberingAbstractNumIdNode.getAttribute('w:val'), 10)).be.not.NaN()
+
+          const abstractNumId = numberingAbstractNumIdNode.getAttribute('w:val')
+
+          const numberingAbstractNumNode = findChildNode((n) => (
+            n.nodeName === 'w:abstractNum' &&
+            n.getAttribute('w:abstractNumId') === abstractNumId
+          ), numberingDoc.documentElement)
+
+          should(numberingAbstractNumNode).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:multiLevelType' &&
+            n.getAttribute('w:val') === 'hybridMultilevel'
+          ), numberingAbstractNumNode)).be.ok()
+
+          const lvlNode = findChildNode((n) => (
+            n.nodeName === 'w:lvl' &&
+            n.getAttribute('w:ilvl') === ilvlVal
+          ), numberingAbstractNumNode)
+
+          should(lvlNode).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:start' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), lvlNode)).be.ok()
+
+          const expectedFmt = listTag === 'ol' ? 'decimal' : 'bullet'
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:numFmt' &&
+            n.getAttribute('w:val') === expectedFmt
+          ), lvlNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:lvlText' &&
+            n.getAttribute('w:val') != null &&
+            n.getAttribute('w:val') !== ''
+          ), lvlNode)).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'w:lvlJc' &&
+            n.getAttribute('w:val') === 'left'
+          ), lvlNode)).be.ok()
+
+          should(findChildNode('w:pPr', lvlNode)).be.ok()
+
+          if (listTag === 'ul') {
+            should(findChildNode('w:rPr', lvlNode)).be.ok()
+          }
+        } else {
+          commonHtmlParagraphAssertions(paragraphNode, templateParagraphNode)
+        }
+      }
+
       const opts = {
         outputDocuments: ['word/styles.xml', 'word/numbering.xml'],
         getOpenCloseTags: () => [`<${listTag}><li>`, `</li></${listTag}>`],
+        // disable common paragraph assertions for lists
+        commonParagraphAssert: (paragraphNode, templateParagraphNode, extra) => {
+          listParagraphAssert(paragraphNode, templateParagraphNode, extra, false)
+        },
         paragraphAssert: (paragraphNode, templateTextNodeForDocxHtml, extra) => {
-          const mode = extra.mode
-
-          if (mode === 'block') {
-            const [stylesDoc, numberingDoc] = extra.outputDocuments
-            const pPrNode = findChildNode('w:pPr', paragraphNode)
-            const pStyleNode = findChildNode('w:pStyle', pPrNode)
-            const listParagraphStyleId = pStyleNode.getAttribute('w:val')
-
-            const listParagraphStyleNode = findChildNode((n) => (
-              n.nodeName === 'w:style' &&
-              n.getAttribute('w:type') === 'paragraph' &&
-              n.getAttribute('w:styleId') === listParagraphStyleId
-            ), stylesDoc.documentElement)
-
-            should(listParagraphStyleNode).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:name' &&
-              n.getAttribute('w:val') === 'List Paragraph'
-            ), listParagraphStyleNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:basedOn' &&
-              n.getAttribute('w:val') != null &&
-              n.getAttribute('w:val') !== ''
-            ), listParagraphStyleNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:uiPriority' &&
-              n.getAttribute('w:val') != null &&
-              n.getAttribute('w:val') !== ''
-            ), listParagraphStyleNode)).be.ok()
-
-            should(findChildNode('w:qFormat', listParagraphStyleNode)).be.ok()
-
-            should(findChildNode('w:pPr', listParagraphStyleNode)).be.ok()
-
-            const numPrNode = findChildNode('w:numPr', pPrNode)
-
-            should(numPrNode).be.ok()
-
-            const ilvlNode = findChildNode('w:ilvl', numPrNode)
-
-            should(ilvlNode).be.ok()
-
-            const ilvlVal = ilvlNode.getAttribute('w:val')
-
-            should(parseInt(ilvlVal, 10)).be.not.NaN()
-
-            const numIdNode = findChildNode('w:numId', numPrNode)
-
-            should(numIdNode).be.ok()
-
-            const numId = numIdNode.getAttribute('w:val')
-            should(parseInt(numId, 10)).be.not.NaN()
-
-            should(numberingDoc).be.ok()
-
-            const numberingNumNode = findChildNode((n) => (
-              n.nodeName === 'w:num' &&
-              n.getAttribute('w:numId') === numId
-            ), numberingDoc.documentElement)
-
-            should(numberingNumNode).be.ok()
-
-            const numberingAbstractNumIdNode = findChildNode('w:abstractNumId', numberingNumNode)
-
-            should(numberingAbstractNumIdNode).be.ok()
-            should(parseInt(numberingAbstractNumIdNode.getAttribute('w:val'), 10)).be.not.NaN()
-
-            const abstractNumId = numberingAbstractNumIdNode.getAttribute('w:val')
-
-            const numberingAbstractNumNode = findChildNode((n) => (
-              n.nodeName === 'w:abstractNum' &&
-              n.getAttribute('w:abstractNumId') === abstractNumId
-            ), numberingDoc.documentElement)
-
-            should(numberingAbstractNumNode).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:multiLevelType' &&
-              n.getAttribute('w:val') === 'hybridMultilevel'
-            ), numberingAbstractNumNode)).be.ok()
-
-            const lvlNode = findChildNode((n) => (
-              n.nodeName === 'w:lvl' &&
-              n.getAttribute('w:ilvl') === ilvlVal
-            ), numberingAbstractNumNode)
-
-            should(lvlNode).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:start' &&
-              n.getAttribute('w:val') != null &&
-              n.getAttribute('w:val') !== ''
-            ), lvlNode)).be.ok()
-
-            const expectedFmt = listTag === 'ol' ? 'decimal' : 'bullet'
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:numFmt' &&
-              n.getAttribute('w:val') === expectedFmt
-            ), lvlNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:lvlText' &&
-              n.getAttribute('w:val') != null &&
-              n.getAttribute('w:val') !== ''
-            ), lvlNode)).be.ok()
-
-            should(findChildNode((n) => (
-              n.nodeName === 'w:lvlJc' &&
-              n.getAttribute('w:val') === 'left'
-            ), lvlNode)).be.ok()
-
-            should(findChildNode('w:pPr', lvlNode)).be.ok()
-
-            if (listTag === 'ul') {
-              should(findChildNode('w:rPr', lvlNode)).be.ok()
-            }
-          } else {
-            commonHtmlParagraphAssertions(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode)
-          }
+          listParagraphAssert(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode, extra)
         }
       }
 
       runCommonTests(() => reporter, listTag, opts, commonWithText)
       runCommonTests(() => reporter, listTag, opts, commonWithInlineAndBlockSiblings)
-      runCommonTests(() => reporter, listTag, opts, commonWithInlineBlockChildren)
+
+      const customOptsForInlineBlockChildren = { ...opts }
+
+      // we want to validate that for children cases the list is applied to all children
+      customOptsForInlineBlockChildren.commonParagraphAssert = (paragraphNode, templateParagraphNode, extra) => {
+        listParagraphAssert(paragraphNode, templateParagraphNode, extra)
+      }
+
+      runCommonTests(() => reporter, listTag, customOptsForInlineBlockChildren, commonWithInlineBlockChildren)
 
       const outputDocuments = opts.outputDocuments
       const paragraphAssert = opts.paragraphAssert
@@ -10607,6 +10757,74 @@ describe('docx html embed', () => {
             },
             data: {
               html: createHtml(templateStr, ['item1', 'item2', 'item3'])
+            }
+          })
+
+          // Write document for easier debugging
+          fs.writeFileSync(outputPath, result.content)
+
+          const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+          const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+          const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+
+          const assertExtra = {
+            mode,
+            outputDocuments: restOfDocuments
+          }
+
+          const numberingDoc = restOfDocuments[1]
+
+          const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+          should(paragraphNodes.length).eql(mode === 'block' ? 3 : 1)
+
+          if (mode === 'block') {
+            paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
+
+            const numberingNumNodes = findChildNode((n) => (
+              n.nodeName === 'w:num'
+            ), numberingDoc.documentElement, true)
+
+            should(numberingNumNodes.length).eql(1)
+
+            const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+            should(textNodesInParagraph1.length).eql(1)
+            should(textNodesInParagraph1[0].textContent).eql('item1')
+            const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+            should(textNodesInParagraph2.length).eql(1)
+            should(textNodesInParagraph2[0].textContent).eql('item2')
+            const textNodesInParagraph3 = nodeListToArray(paragraphNodes[2].getElementsByTagName('w:t'))
+            should(textNodesInParagraph3.length).eql(1)
+            should(textNodesInParagraph3[0].textContent).eql('item3')
+          } else {
+            paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+            should(textNodes.length).eql(3)
+            should(textNodes[0].textContent).eql('item1')
+            should(textNodes[1].textContent).eql('item2')
+            should(textNodes[2].textContent).eql('item3')
+          }
+        })
+
+        const templateWrappedStr = `<${listTag}><li><p>...</p></li><li><p>...</p></li><li><p>...</p></li></${listTag}>`
+
+        it(`${mode} mode - <${listTag}> with multiple items ${templateWrappedStr}`, async () => {
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxTemplateBuf
+                }
+              }
+            },
+            data: {
+              html: createHtml(templateWrappedStr, ['item1', 'item2', 'item3'])
             }
           })
 
@@ -12990,6 +13208,7 @@ function commonWithText ({
   wrapWithLevel,
   createTagTemplate,
   IS_BLOCK_TAG,
+  commonParagraphAssert,
   outputDocuments,
   paragraphAssert,
   textAssert
@@ -13122,7 +13341,7 @@ function commonWithText ({
     should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 2 : 1)
 
     if (IS_BLOCK_TAG && mode === 'block') {
-      commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
       const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
       should(textNodesInParagraph1.length).eql(1)
@@ -13179,7 +13398,7 @@ function commonWithText ({
 
     if (IS_BLOCK_TAG && mode === 'block') {
       paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      commonHtmlParagraphAssertions(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
       should(textNodesInParagraph1.length).eql(1)
       textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
@@ -13234,9 +13453,9 @@ function commonWithText ({
     should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 3 : 1)
 
     if (IS_BLOCK_TAG && mode === 'block') {
-      commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-      commonHtmlParagraphAssertions(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
       should(textNodesInParagraph1.length).eql(1)
       commonHtmlTextAssertions(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0].parentNode)
@@ -13466,7 +13685,7 @@ function commonWithText ({
       should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 2 : 1)
 
       if (IS_BLOCK_TAG && mode === 'block') {
-        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
         paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
         const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
         should(textNodesInParagraph1.length).eql(1)
@@ -13555,7 +13774,7 @@ function commonWithText ({
       should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 2 : 1)
 
       if (IS_BLOCK_TAG && mode === 'block') {
-        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
         paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
         const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
         should(textNodesInParagraph1.length).eql(1)
@@ -13648,7 +13867,7 @@ function commonWithText ({
       should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 2 : 1)
 
       if (IS_BLOCK_TAG && mode === 'block') {
-        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
         paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
         const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
         should(textNodesInParagraph1.length).eql(1)
@@ -13680,6 +13899,7 @@ function commonWithInlineAndBlockSiblings ({
   createTagTemplate,
   IS_BLOCK_TAG,
   outputDocuments,
+  commonParagraphAssert,
   paragraphAssert,
   textAssert
 }) {
@@ -13718,7 +13938,7 @@ function commonWithInlineAndBlockSiblings ({
     should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 2 : 1)
 
     if (IS_BLOCK_TAG && mode === 'block') {
-      commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
       const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
       should(textNodesInParagraph1.length).eql(1)
@@ -13775,7 +13995,7 @@ function commonWithInlineAndBlockSiblings ({
 
     if (IS_BLOCK_TAG && mode === 'block') {
       paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      commonHtmlParagraphAssertions(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
       should(textNodesInParagraph1.length).eql(1)
       textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
@@ -13833,9 +14053,9 @@ function commonWithInlineAndBlockSiblings ({
       should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 3 : 1)
 
       if (IS_BLOCK_TAG && mode === 'block') {
-        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
         paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-        commonHtmlParagraphAssertions(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        commonParagraphAssert(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
         const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
         should(textNodesInParagraph1.length).eql(1)
         commonHtmlTextAssertions(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0].parentNode)
@@ -13897,7 +14117,7 @@ function commonWithInlineAndBlockSiblings ({
     should(paragraphNodes.length).eql(mode === 'block' ? 2 : 1)
 
     if (mode === 'block') {
-      commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
       const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
       should(textNodesInParagraph1.length).eql(1)
@@ -13954,7 +14174,7 @@ function commonWithInlineAndBlockSiblings ({
 
     if (mode === 'block') {
       paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      commonHtmlParagraphAssertions(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
       should(textNodesInParagraph1.length).eql(1)
       textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
@@ -14010,9 +14230,9 @@ function commonWithInlineAndBlockSiblings ({
       should(paragraphNodes.length).eql(mode === 'block' ? 3 : 1)
 
       if (mode === 'block') {
-        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
         paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-        commonHtmlParagraphAssertions(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        commonParagraphAssert(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
         const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
         should(textNodesInParagraph1.length).eql(1)
         commonHtmlTextAssertions(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0].parentNode)
@@ -14105,228 +14325,229 @@ function commonWithInlineBlockChildren ({
   wrapWithLevel,
   createTagTemplate,
   outputDocuments,
+  commonParagraphAssert,
   paragraphAssert,
   textAssert
 }) {
-  it(`${mode} mode - <${tag}> as ${level} with leading inline child ${wrapWithLevel(createTagTemplate(tag, '<span>...</span>...'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with leading inline child ${wrapWithLevel(createTagTemplate(tag, '<span>...</span>...'))}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '<span>...</span>...')), ['Hello', 'World'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '<span>...</span>...')), ['Hello', 'World'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(1)
+  //   should(paragraphNodes.length).eql(1)
 
-    paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-    should(textNodes.length).eql(2)
-    textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[0].textContent).eql('Hello')
-    textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[1].textContent).eql('World')
-  })
+  //   paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //   should(textNodes.length).eql(2)
+  //   textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[0].textContent).eql('Hello')
+  //   textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[1].textContent).eql('World')
+  // })
 
-  it(`${mode} mode - <${tag}> as ${level} with trailing inline child ${wrapWithLevel(createTagTemplate(tag, '...<span>...</span>'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with trailing inline child ${wrapWithLevel(createTagTemplate(tag, '...<span>...</span>'))}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '...<span>...</span>')), ['Hello', 'World'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '...<span>...</span>')), ['Hello', 'World'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(1)
+  //   should(paragraphNodes.length).eql(1)
 
-    paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-    should(textNodes.length).eql(2)
-    textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[0].textContent).eql('Hello')
-    textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[1].textContent).eql('World')
-  })
+  //   paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //   should(textNodes.length).eql(2)
+  //   textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[0].textContent).eql('Hello')
+  //   textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[1].textContent).eql('World')
+  // })
 
-  it(`${mode} mode - <${tag}> as ${level} with leading and trailing inline children ${wrapWithLevel(createTagTemplate(tag, '<span>...</span>...<span>...</span>'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with leading and trailing inline children ${wrapWithLevel(createTagTemplate(tag, '<span>...</span>...<span>...</span>'))}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '<span>...</span>...<span>...</span>')), ['Hello', 'World', 'Docx'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '<span>...</span>...<span>...</span>')), ['Hello', 'World', 'Docx'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(1)
+  //   should(paragraphNodes.length).eql(1)
 
-    paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-    should(textNodes.length).eql(3)
-    textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[0].textContent).eql('Hello')
-    textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[1].textContent).eql('World')
-    textAssert(textNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[2].textContent).eql('Docx')
-  })
+  //   paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //   should(textNodes.length).eql(3)
+  //   textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[0].textContent).eql('Hello')
+  //   textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[1].textContent).eql('World')
+  //   textAssert(textNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[2].textContent).eql('Docx')
+  // })
 
-  it(`${mode} mode - <${tag}> as ${level} with inline children ${wrapWithLevel(createTagTemplate(tag, '<span>...</span><span>...</span><span>...</span>'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with inline children ${wrapWithLevel(createTagTemplate(tag, '<span>...</span><span>...</span><span>...</span>'))}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '<span>...</span><span>...</span><span>...</span>')), ['Hello', 'World', 'Docx'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '<span>...</span><span>...</span><span>...</span>')), ['Hello', 'World', 'Docx'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(1)
+  //   should(paragraphNodes.length).eql(1)
 
-    paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-    should(textNodes.length).eql(3)
-    textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[0].textContent).eql('Hello')
-    textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[1].textContent).eql('World')
-    textAssert(textNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[2].textContent).eql('Docx')
-  })
+  //   paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //   should(textNodes.length).eql(3)
+  //   textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[0].textContent).eql('Hello')
+  //   textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[1].textContent).eql('World')
+  //   textAssert(textNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[2].textContent).eql('Docx')
+  // })
 
-  it(`${mode} mode - <${tag}> as ${level} with inline nested child ${wrapWithLevel(createTagTemplate(tag, '<span><span>...</span></span>'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with inline nested child ${wrapWithLevel(createTagTemplate(tag, '<span><span>...</span></span>'))}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '<span><span>...</span></span>')), ['Hello World'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '<span><span>...</span></span>')), ['Hello World'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(1)
+  //   should(paragraphNodes.length).eql(1)
 
-    paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
 
-    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //   const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
 
-    should(textNodes.length).eql(1)
+  //   should(textNodes.length).eql(1)
 
-    textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[0].textContent).eql('Hello World')
-  })
+  //   textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[0].textContent).eql('Hello World')
+  // })
 
   it(`${mode} mode - <${tag}> as ${level} with leading block child ${wrapWithLevel(createTagTemplate(tag, '<p>...</p>...'), parent === 'block' ? 'div' : null)}`, async () => {
     const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
@@ -14363,7 +14584,7 @@ function commonWithInlineBlockChildren ({
     should(paragraphNodes.length).eql(mode === 'block' ? 2 : 1)
 
     if (mode === 'block') {
-      commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+      commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
       paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
       const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
       should(textNodesInParagraph1.length).eql(1)
@@ -14384,231 +14605,231 @@ function commonWithInlineBlockChildren ({
     }
   })
 
-  it(`${mode} mode - <${tag}> as ${level} with trailing block child ${wrapWithLevel(createTagTemplate(tag, '...<p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with trailing block child ${wrapWithLevel(createTagTemplate(tag, '...<p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '...<p>...</p>'), parent === 'block' ? 'div' : null), ['Hello', 'World'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '...<p>...</p>'), parent === 'block' ? 'div' : null), ['Hello', 'World'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(mode === 'block' ? 2 : 1)
+  //   should(paragraphNodes.length).eql(mode === 'block' ? 2 : 1)
 
-    if (mode === 'block') {
-      paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      commonHtmlParagraphAssertions(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode)
-      const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-      should(textNodesInParagraph1.length).eql(1)
-      textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodesInParagraph1[0].textContent).eql('Hello')
-      const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
-      should(textNodesInParagraph2.length).eql(1)
-      textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodesInParagraph2[0].textContent).eql('World')
-    } else {
-      paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-      should(textNodes.length).eql(2)
-      textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodes[0].textContent).eql('Hello')
-      textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodes[1].textContent).eql('World')
-    }
-  })
+  //   if (mode === 'block') {
+  //     paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     commonParagraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
+  //     const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //     should(textNodesInParagraph1.length).eql(1)
+  //     textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodesInParagraph1[0].textContent).eql('Hello')
+  //     const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+  //     should(textNodesInParagraph2.length).eql(1)
+  //     textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodesInParagraph2[0].textContent).eql('World')
+  //   } else {
+  //     paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //     should(textNodes.length).eql(2)
+  //     textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodes[0].textContent).eql('Hello')
+  //     textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodes[1].textContent).eql('World')
+  //   }
+  // })
 
-  it(`${mode} mode - <${tag}> as ${level} with leading and trailing block children ${wrapWithLevel(createTagTemplate(tag, '<p>...</p>...<p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with leading and trailing block children ${wrapWithLevel(createTagTemplate(tag, '<p>...</p>...<p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '<p>...</p>...<p>...</p>'), parent === 'block' ? 'div' : null), ['Hello', 'World', 'Docx'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '<p>...</p>...<p>...</p>'), parent === 'block' ? 'div' : null), ['Hello', 'World', 'Docx'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(mode === 'inline' ? 1 : 3)
+  //   should(paragraphNodes.length).eql(mode === 'inline' ? 1 : 3)
 
-    if (mode === 'inline') {
-      paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-      should(textNodes.length).eql(3)
-      textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodes[0].textContent).eql('Hello')
-      textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodes[1].textContent).eql('World')
-      textAssert(textNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodes[2].textContent).eql('Docx')
-    } else {
-      commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
-      paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-      commonHtmlParagraphAssertions(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode)
-      const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-      should(textNodesInParagraph1.length).eql(1)
-      textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodesInParagraph1[0].textContent).eql('Hello')
-      const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
-      should(textNodesInParagraph2.length).eql(1)
-      textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodesInParagraph2[0].textContent).eql('World')
-      const textNodesInParagraph3 = nodeListToArray(paragraphNodes[2].getElementsByTagName('w:t'))
-      should(textNodesInParagraph3.length).eql(1)
-      textAssert(textNodesInParagraph3[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodesInParagraph3[0].textContent).eql('Docx')
-    }
-  })
+  //   if (mode === 'inline') {
+  //     paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //     should(textNodes.length).eql(3)
+  //     textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodes[0].textContent).eql('Hello')
+  //     textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodes[1].textContent).eql('World')
+  //     textAssert(textNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodes[2].textContent).eql('Docx')
+  //   } else {
+  //     commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
+  //     paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+  //     commonParagraphAssert(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
+  //     const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //     should(textNodesInParagraph1.length).eql(1)
+  //     textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodesInParagraph1[0].textContent).eql('Hello')
+  //     const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+  //     should(textNodesInParagraph2.length).eql(1)
+  //     textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodesInParagraph2[0].textContent).eql('World')
+  //     const textNodesInParagraph3 = nodeListToArray(paragraphNodes[2].getElementsByTagName('w:t'))
+  //     should(textNodesInParagraph3.length).eql(1)
+  //     textAssert(textNodesInParagraph3[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodesInParagraph3[0].textContent).eql('Docx')
+  //   }
+  // })
 
-  it(`${mode} mode - <${tag}> as ${level} with block children ${wrapWithLevel(createTagTemplate(tag, '<p>...</p><p>...</p><p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with block children ${wrapWithLevel(createTagTemplate(tag, '<p>...</p><p>...</p><p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '<p>...</p><p>...</p><p>...</p>'), parent === 'block' ? 'div' : null), ['Hello', 'World', 'Docx'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '<p>...</p><p>...</p><p>...</p>'), parent === 'block' ? 'div' : null), ['Hello', 'World', 'Docx'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(mode === 'inline' ? 1 : 3)
+  //   should(paragraphNodes.length).eql(mode === 'inline' ? 1 : 3)
 
-    if (mode === 'inline') {
-      paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-      should(textNodes.length).eql(3)
-      textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodes[0].textContent).eql('Hello')
-      textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodes[1].textContent).eql('World')
-      textAssert(textNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodes[2].textContent).eql('Docx')
-    } else {
-      commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
-      commonHtmlParagraphAssertions(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode)
-      commonHtmlParagraphAssertions(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode)
-      const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
-      should(textNodesInParagraph1.length).eql(1)
-      textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodesInParagraph1[0].textContent).eql('Hello')
-      const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
-      should(textNodesInParagraph2.length).eql(1)
-      textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodesInParagraph2[0].textContent).eql('World')
-      const textNodesInParagraph3 = nodeListToArray(paragraphNodes[2].getElementsByTagName('w:t'))
-      should(textNodesInParagraph3.length).eql(1)
-      textAssert(textNodesInParagraph3[0], templateTextNodesForDocxHtml[0], assertExtra)
-      should(textNodesInParagraph3[0].textContent).eql('Docx')
-    }
-  })
+  //   if (mode === 'inline') {
+  //     paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //     should(textNodes.length).eql(3)
+  //     textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodes[0].textContent).eql('Hello')
+  //     textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodes[1].textContent).eql('World')
+  //     textAssert(textNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodes[2].textContent).eql('Docx')
+  //   } else {
+  //     commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
+  //     commonParagraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
+  //     commonParagraphAssert(paragraphNodes[2], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
+  //     const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //     should(textNodesInParagraph1.length).eql(1)
+  //     textAssert(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodesInParagraph1[0].textContent).eql('Hello')
+  //     const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+  //     should(textNodesInParagraph2.length).eql(1)
+  //     textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodesInParagraph2[0].textContent).eql('World')
+  //     const textNodesInParagraph3 = nodeListToArray(paragraphNodes[2].getElementsByTagName('w:t'))
+  //     should(textNodesInParagraph3.length).eql(1)
+  //     textAssert(textNodesInParagraph3[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //     should(textNodesInParagraph3[0].textContent).eql('Docx')
+  //   }
+  // })
 
-  it(`${mode} mode - <${tag}> as ${level} with block nested child ${wrapWithLevel(createTagTemplate(tag, '<div><div>...</div></div>'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+  // it(`${mode} mode - <${tag}> as ${level} with block nested child ${wrapWithLevel(createTagTemplate(tag, '<div><div>...</div></div>'), parent === 'block' ? 'div' : null)}`, async () => {
+  //   const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
-    const result = await getReporter().render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxTemplateBuf
-          }
-        }
-      },
-      data: {
-        html: createHtml(wrapWithLevel(createTagTemplate(tag, '<div><div>...</div></div>'), parent === 'block' ? 'div' : null), ['Hello World'])
-      }
-    })
+  //   const result = await getReporter().render({
+  //     template: {
+  //       engine: 'handlebars',
+  //       recipe: 'docx',
+  //       docx: {
+  //         templateAsset: {
+  //           content: docxTemplateBuf
+  //         }
+  //       }
+  //     },
+  //     data: {
+  //       html: createHtml(wrapWithLevel(createTagTemplate(tag, '<div><div>...</div></div>'), parent === 'block' ? 'div' : null), ['Hello World'])
+  //     }
+  //   })
 
-    // Write document for easier debugging
-    fs.writeFileSync(outputPath, result.content)
+  //   // Write document for easier debugging
+  //   fs.writeFileSync(outputPath, result.content)
 
-    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
-    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
-    const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+  //   const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+  //   const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+  //   const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
 
-    const assertExtra = {
-      mode,
-      outputDocuments: restOfDocuments
-    }
+  //   const assertExtra = {
+  //     mode,
+  //     outputDocuments: restOfDocuments
+  //   }
 
-    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+  //   const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(paragraphNodes.length).eql(1)
+  //   should(paragraphNodes.length).eql(1)
 
-    commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+  //   commonParagraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode, assertExtra)
 
-    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+  //   const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
 
-    should(textNodes.length).eql(1)
+  //   should(textNodes.length).eql(1)
 
-    textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
-    should(textNodes[0].textContent).eql('Hello World')
-  })
+  //   textAssert(textNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+  //   should(textNodes[0].textContent).eql('Hello World')
+  // })
 }
 
 function commonWithSameNestedChildren ({
@@ -14776,6 +14997,7 @@ function runCommonTests (getReporter, tag, options = {}, testsSuiteFn) {
   const IS_BLOCK_TAG = BLOCK_ELEMENTS.includes(tag)
   const outputDocuments = options.outputDocuments || []
   const getOpenCloseTags = options.getOpenCloseTags || ((tag) => [`<${tag}>`, `</${tag}>`])
+  const commonParagraphAssert = options.commonParagraphAssert || commonHtmlParagraphAssertions
   // paragraphAssert, textAssert will be called for the nodes that are
   // containing the html tag evaluated and that are expected to contain the modified changes
   const paragraphAssert = options.paragraphAssert || (() => {})
@@ -14804,6 +15026,7 @@ function runCommonTests (getReporter, tag, options = {}, testsSuiteFn) {
         ELEMENT,
         IS_BLOCK_TAG,
         outputDocuments,
+        commonParagraphAssert,
         paragraphAssert,
         textAssert
       })

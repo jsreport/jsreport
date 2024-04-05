@@ -1085,18 +1085,20 @@ function applyTitleIfNeeded (parentMeta, data) {
     return
   }
 
-  const node = data.parentBlockElement
+  let node = data.parentBlockElement
 
   if (node.nodeType !== NODE_TYPES.ELEMENT) {
     return
   }
 
-  if (
+  node = getParentElementThatMatch(node, (currentNode) => (
     [
       'h1', 'h2', 'h3',
       'h4', 'h5', 'h6'
-    ].includes(node.tagName) === false
-  ) {
+    ].includes(currentNode.tagName)
+  ))
+
+  if (node == null) {
     return
   }
 
@@ -1115,17 +1117,19 @@ function applyListIfNeeded (parentMeta, data) {
     return
   }
 
-  if (data.parentBlockElement == null) {
+  if (data.parentBlockElement == null || data.list == null) {
     return
   }
 
-  const node = data.parentBlockElement
+  let node = data.parentBlockElement
 
   if (node.nodeType !== NODE_TYPES.ELEMENT) {
     return
   }
 
-  if (node.tagName !== 'li' || data.list == null) {
+  node = getParentElementThatMatch(node, (currentNode) => currentNode.tagName === 'li')
+
+  if (node == null) {
     return
   }
 
@@ -1223,6 +1227,22 @@ function isTableItemElement (node) {
     node.nodeType === NODE_TYPES.ELEMENT &&
     ['table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th'].includes(node.tagName)
   )
+}
+
+function getParentElementThatMatch (node, checkFn) {
+  let currentNode = node
+
+  do {
+    const result = checkFn(currentNode)
+
+    if (result) {
+      break
+    }
+
+    currentNode = currentNode.parentNode
+  } while (currentNode != null)
+
+  return currentNode
 }
 
 function transformMeta (fullMeta, sectionDetail) {

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 4.1.1
+
+- fix url in the async response text
+
 ### 4.1.0
 
 - internal changes to support new `response.output` api
