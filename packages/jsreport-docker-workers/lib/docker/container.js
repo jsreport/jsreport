@@ -2,6 +2,7 @@ const util = require('util')
 const axios = require('axios')
 const execAsync = util.promisify(require('child_process').exec)
 const serializator = require('@jsreport/serializator')
+const fs = require('fs/promises')
 
 module.exports = class Container {
   constructor ({
@@ -49,6 +50,12 @@ module.exports = class Container {
 
       await execAsync(`docker rm -f ${this.id}`)
     } catch (e) {}
+
+    try {
+      await fs.rm(`${this.sharedTempHostBindMountRootPath}/${this.id}`, { recursive: true, force: true })
+    } catch (e) {
+      // there can be collision with reaper
+    }
 
     let runCMD = `docker run -d -p ${this.port}:${this.exposedPort}`
 
@@ -115,6 +122,12 @@ module.exports = class Container {
     if (this.restartPolicy === false) {
       this.logger.debug('Restarting docker container was skipped because container restart policy is set to false')
       return Promise.resolve(this)
+    }
+
+    try {
+      await fs.rm(`${this.sharedTempHostBindMountRootPath}/${this.id}`, { recursive: true, force: true })
+    } catch (e) {
+      // there can be collision with reaper
     }
 
     this.logger.debug(`Restarting docker container ${this.id} (${this.url}) (in progress)`)

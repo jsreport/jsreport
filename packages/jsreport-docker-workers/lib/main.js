@@ -71,6 +71,10 @@ module.exports = (reporter, definition) => {
     }
   })
 
+  for (let i = 0; i < definition.options.numberOfWorkers; i++) {
+    reporter.addPathToWatchForAutoCleanup(`${definition.options.container.sharedTempHostBindMountRootPath}/${definition.options.container.namePrefix}${i + 1}/autocleanup`)
+  }
+
   const workerRequestMap = new Map()
 
   reporter.registerWorkersManagerFactory((options, systemOptions) => {
