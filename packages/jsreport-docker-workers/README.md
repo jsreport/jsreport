@@ -7,6 +7,10 @@ See https://jsreport.net/learn/docker-workers
 
 ## Changelog
 
+### 4.0.1
+
+- fix temp autocleanup
+
 ### 4.0.0
 
 - support response streaming introduced in jsreport 4.3.0
