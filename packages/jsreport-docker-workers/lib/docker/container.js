@@ -63,7 +63,7 @@ module.exports = class Container {
       runCMD += ` --expose 9229 -p ${this.debugPort}:9229`
     }
 
-    runCMD += ` --volume=${this.sharedTempHostBindMountRootPath}/${this.id}:/tmp/jsreport`
+    runCMD += ` --volume=${this.sharedTempHostBindMountRootPath}/${this.id}/autocleanup:/tmp/jsreport/autocleanup`
     runCMD += ' --tmpfs=/tmp'
 
     // the .config .local .cache are needed for unoconv, I wasn't able to find different way to configure libre office to use different location for temps
