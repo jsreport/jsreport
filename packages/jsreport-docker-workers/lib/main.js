@@ -4,6 +4,7 @@ const serializator = require('@jsreport/serializator')
 const _sendToWorker = require('./sendToWorker')
 const createDockerManager = require('./dockerManager')
 const express = require('express')
+const fs = require('fs/promises')
 
 module.exports = (reporter, definition) => {
   if (!definition.options.container.sharedTempRewriteRootPathTo) {
@@ -71,9 +72,12 @@ module.exports = (reporter, definition) => {
     }
   })
 
-  for (let i = 0; i < definition.options.numberOfWorkers; i++) {
-    reporter.addPathToWatchForAutoCleanup(`${definition.options.container.sharedTempHostBindMountRootPath}/${definition.options.container.namePrefix}${i + 1}/autocleanup`)
-  }
+  reporter.initializeListeners.add('docker-workers', async () => {
+    for (let i = 0; i < definition.options.numberOfWorkers; i++) {
+      await fs.mkdir(`${definition.options.container.sharedTempHostBindMountRootPath}/${definition.options.container.namePrefix}${i + 1}/autocleanup`, { recursive: true })
+      reporter.addPathToWatchForAutoCleanup(`${definition.options.container.sharedTempHostBindMountRootPath}/${definition.options.container.namePrefix}${i + 1}/autocleanup`)
+    }
+  })
 
   const workerRequestMap = new Map()
 
