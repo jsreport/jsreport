@@ -7,7 +7,7 @@ See https://jsreport.net/learn/docker-workers
 
 ## Changelog
 
-### 4.0.1
+### 4.0.2
 
 - fix temp autocleanup
 
