@@ -9,14 +9,6 @@ module.exports = async function (reporter, definition) {
     const chromePath = path.dirname(chromeExecutablePath)
     let chromeExecutableName = path.basename(chromeExecutablePath)
 
-    const localesPath = path.join(chromePath, 'locales')
-
-    if (fs.existsSync(localesPath)) {
-      fs.readdirSync(localesPath).forEach((f) => {
-        fs.unlinkSync(path.join(localesPath, f))
-      })
-    }
-
     if (fs.existsSync(path.join(chromePath, 'interactive_ui_tests.exe'))) {
       fs.unlinkSync(path.join(chromePath, 'interactive_ui_tests.exe'))
     }
