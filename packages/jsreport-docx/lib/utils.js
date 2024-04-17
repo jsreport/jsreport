@@ -452,8 +452,17 @@ function ptToTOAP (val) {
   return val * 20
 }
 
+// pt to eighths of a point
+function ptToEOAP (val) {
+  if (typeof val !== 'number') {
+    return null
+  }
+
+  return val * 8
+}
+
 function lengthToPx (value) {
-  if (!value) {
+  if (value == null) {
     return null
   }
 
@@ -676,6 +685,7 @@ module.exports.cmToEMU = cmToEMU
 module.exports.emuToTOAP = emuToTOAP
 module.exports.ptToHalfPoint = ptToHalfPoint
 module.exports.ptToTOAP = ptToTOAP
+module.exports.ptToEOAP = ptToEOAP
 module.exports.serializeXml = (doc) => new XMLSerializer().serializeToString(doc).replace(/ xmlns(:[a-z0-9]+)?=""/g, '')
 module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId

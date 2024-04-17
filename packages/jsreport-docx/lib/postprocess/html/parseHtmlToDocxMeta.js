@@ -6,8 +6,11 @@ const parseCssSides = require('parse-css-sides')
 const color = require('tinycolor2')
 const { lengthToPt, getDimension } = require('../../utils')
 const createHierarchyIterator = require('./createHierarchyIterator')
+const borderStyles = require('./borderStyles')
 const { HTML_NODE_TYPES, isTextElement, isInlineElement, isUnsupportedElement, getParentElementThatMatch } = require('./htmlNodeUtils')
 const transformTableMeta = require('./transformTableMeta')
+
+const VALID_CSS_BORDER_STYLES = [...borderStyles.keys()]
 
 module.exports = function parseHtmlToDocxMeta (html, mode, sectionDetail) {
   if (mode !== 'block' && mode !== 'inline') {
@@ -189,6 +192,66 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
         applyPreformattedDataIfNeeded(data, node)
 
         if (mode === 'block' && node.tagName === 'table') {
+          if (
+            data.static.border == null &&
+            (node.attribs?.border != null || node.attribs?.bordercolor != null)
+          ) {
+            data.static.border = data.static.border || {
+              base: {},
+              top: {},
+              right: {},
+              bottom: {},
+              left: {}
+            }
+
+            // if border width definition comes from style, we just use it, if not parse it from the attribute if present
+            if (node.attribs?.border != null) {
+              const borderWidth = parseBorder(node.attribs.border, 'border-width')?.width
+
+              if (borderWidth != null) {
+                data.static.border.base.width = borderWidth
+                data.static.border.top.width = borderWidth
+                data.static.border.right.width = borderWidth
+                data.static.border.bottom.width = borderWidth
+                data.static.border.left.width = borderWidth
+              }
+            }
+
+            // if border color definition comes from style, we just use it, if not parse it from the attribute if present
+            if (node.attribs?.bordercolor != null) {
+              const borderColor = parseBorder(node.attribs.bordercolor, 'border-color')?.color
+
+              if (borderColor != null) {
+                data.static.border.base.color = borderColor
+                data.static.border.top.color = borderColor
+                data.static.border.right.color = borderColor
+                data.static.border.bottom.color = borderColor
+                data.static.border.left.color = borderColor
+              }
+            }
+          }
+
+          data.static.border = data.static.border || {
+            top: {},
+            right: {},
+            bottom: {},
+            left: {}
+          }
+
+          for (const borderSide of ['top', 'right', 'bottom', 'left']) {
+            // default border width
+            if (data.static.border?.[borderSide]?.width == null) {
+              data.static.border[borderSide] = data.static.border[borderSide] || {}
+              data.static.border[borderSide].width = 0.5
+            }
+
+            // default border style
+            if (data.static.border?.[borderSide]?.style == null) {
+              data.static.border[borderSide] = data.static.border[borderSide] || {}
+              data.static.border[borderSide].style = 'solid'
+            }
+          }
+
           // if width comes from style, we just use it, if not parse it from the attribute if present
           if (data.static.width == null && node.attribs?.width) {
             // when parsing width from attribute, we only accept px, cm and % and default to px for other cases
@@ -310,9 +373,9 @@ function createTable (type, data) {
 
   if (data != null) {
     const allNotNullPropertiesMap = {
-      table: ['width'],
+      table: ['width', 'border'],
       row: ['height', 'group'],
-      cell: ['colspan', 'rowspan', 'width', 'height']
+      cell: ['colspan', 'rowspan', 'width', 'height', 'border']
     }
 
     const staticNotNullProperties = allNotNullPropertiesMap[type] || []
@@ -672,6 +735,55 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
     }
   }
 
+  const mainBorderPropMap = new Map([
+    ['border', 'base'],
+    ['border-top', 'top'],
+    ['border-right', 'right'],
+    ['border-bottom', 'bottom'],
+    ['border-left', 'left']
+  ])
+
+  const borderProps = [...mainBorderPropMap.keys()].flatMap((mainProp) => {
+    const target = mainBorderPropMap.get(mainProp)
+
+    return [
+      { key: mainProp, target },
+      { key: `${mainProp}-width`, target },
+      { key: `${mainProp}-style`, target },
+      { key: `${mainProp}-color`, target }
+    ]
+  })
+
+  for (const { key: borderProp, target } of borderProps) {
+    if (styles[borderProp] == null) {
+      continue
+    }
+
+    const value = styles[borderProp]
+    const parseArgs = [value]
+
+    if (!mainBorderPropMap.has(borderProp)) {
+      const borderPropParts = borderProp.split('-')
+      parseArgs.push(`border-${borderPropParts[borderPropParts.length - 1]}`)
+    }
+
+    const parsedValue = parseBorder(...parseArgs)
+
+    if (parsedValue == null) {
+      continue
+    }
+
+    data.static.border = data.static.border || {}
+    data.static.border[target] = Object.assign({}, data.static.border[target], parsedValue)
+
+    if (target === 'base') {
+      data.static.border.top = Object.assign({}, data.static.border[target], parsedValue)
+      data.static.border.right = Object.assign({}, data.static.border[target], parsedValue)
+      data.static.border.bottom = Object.assign({}, data.static.border[target], parsedValue)
+      data.static.border.left = Object.assign({}, data.static.border[target], parsedValue)
+    }
+  }
+
   if (styles.padding != null) {
     const parsedPadding = parseCssSides(styles.padding)
 
@@ -951,4 +1063,78 @@ function applySpacingIfNeeded (parentMeta, data) {
   }
 
   parentMeta.spacing = data.spacing
+}
+
+function parseBorder (borderStyle, targetType) {
+  if (borderStyle == null || borderStyle === '') {
+    return null
+  }
+
+  const isFull = targetType == null
+  const validTargets = ['border-width', 'border-style', 'border-color']
+  const targets = []
+
+  if (isFull) {
+    const inputParts = borderStyle.split(/\s+/)
+
+    if (inputParts.length < 2) {
+      return null
+    }
+
+    targets.push(...validTargets.map((t, idx) => [t, inputParts[idx]]))
+  } else {
+    targets.push([targetType, borderStyle])
+  }
+
+  const result = {}
+
+  for (const [target, value] of targets) {
+    if (!validTargets.includes(target)) {
+      throw new Error(`Invalid target "${target}" for border parsing`)
+    }
+
+    switch (target) {
+      case 'border-width': {
+        const parsedWidth = getDimension(value, {
+          validUnits: ['px'],
+          defaultUnit: 'px'
+        })
+
+        if (parsedWidth != null) {
+          result.width = parsedWidth.value
+        }
+
+        break
+      }
+
+      case 'border-style': {
+        if (!VALID_CSS_BORDER_STYLES.includes(value)) {
+          break
+        }
+
+        result.style = value
+        break
+      }
+
+      case 'border-color': {
+        const pColor = color(value)
+
+        if (!pColor.isValid()) {
+          break
+        }
+
+        result.color = pColor.toHexString().toUpperCase()
+        break
+      }
+
+      default:
+        break
+    }
+  }
+
+  if (Object.keys(result).length === 0) {
+    return null
+  }
+
+  return result
 }
