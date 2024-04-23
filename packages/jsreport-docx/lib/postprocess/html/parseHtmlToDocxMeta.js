@@ -252,6 +252,16 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
             }
           }
 
+          if (data.indent == null && data.spacing == null && node.attribs?.cellpadding != null) {
+            const cellPadding = parseMarginOrPadding(node.attribs.cellpadding, 'top')?.top
+            data.indent = data.indent || {}
+            data.indent.left = cellPadding
+            data.indent.right = cellPadding
+            data.spacing = data.spacing || {}
+            data.spacing.before = cellPadding
+            data.spacing.after = cellPadding
+          }
+
           // if width comes from style, we just use it, if not parse it from the attribute if present
           if (data.static.width == null && node.attribs?.width) {
             // when parsing width from attribute, we only accept px, cm and % and default to px for other cases
@@ -372,17 +382,32 @@ function createTable (type, data) {
   const props = {}
 
   if (data != null) {
-    const allNotNullPropertiesMap = {
+    const allNotNullStaticPropertiesMap = {
       table: ['width', 'border'],
       row: ['height', 'group'],
       cell: ['colspan', 'rowspan', 'width', 'height', 'border']
     }
 
-    const staticNotNullProperties = allNotNullPropertiesMap[type] || []
+    const allNotNullPropertiesMap = {
+      cell: ['indent', 'spacing']
+    }
+
+    const staticNotNullProperties = allNotNullStaticPropertiesMap[type] || []
 
     for (const prop of staticNotNullProperties) {
       if (data.static[prop] != null) {
         props[prop] = data.static[prop]
+      }
+    }
+
+    const normalNotNullProperties = allNotNullPropertiesMap[type] || []
+
+    for (const prop of normalNotNullProperties) {
+      if (data[prop] != null) {
+        props[prop] = data[prop]
+        // indent and spacing should be removed once applied to table item,
+        // so children does not inherit them
+        delete data[prop]
       }
     }
   }
@@ -785,30 +810,30 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles.padding != null) {
-    const parsedPadding = parseCssSides(styles.padding)
+    const parsedPadding = parseMarginOrPadding(styles.padding)
 
     data.indent = data.indent || {}
     data.spacing = data.spacing || {}
 
-    const parsedPaddingLeft = lengthToPt(parsedPadding.left)
+    const parsedPaddingLeft = parsedPadding.left
 
     if (parsedPaddingLeft != null) {
       data.indent.left = parsedPaddingLeft
     }
 
-    const parsedPaddingRight = lengthToPt(parsedPadding.right)
+    const parsedPaddingRight = parsedPadding.right
 
     if (parsedPaddingRight != null) {
       data.indent.right = parsedPaddingRight
     }
 
-    const parsedPaddingTop = lengthToPt(parsedPadding.top)
+    const parsedPaddingTop = parsedPadding.top
 
     if (parsedPaddingTop != null) {
       data.spacing.before = parsedPaddingTop
     }
 
-    const parsedPaddingBottom = lengthToPt(parsedPadding.bottom)
+    const parsedPaddingBottom = parsedPadding.bottom
 
     if (parsedPaddingBottom != null) {
       data.spacing.after = parsedPaddingBottom
@@ -816,7 +841,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['padding-left'] != null) {
-    const parsedPaddingLeft = lengthToPt(styles['padding-left'])
+    const parsedPaddingLeft = parseMarginOrPadding(styles['padding-left'], 'left')?.left
 
     if (parsedPaddingLeft != null) {
       data.indent = data.indent || {}
@@ -825,7 +850,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['padding-right'] != null) {
-    const parsedPaddingRight = lengthToPt(styles['padding-right'])
+    const parsedPaddingRight = parseMarginOrPadding(styles['padding-right'], 'right')?.right
 
     if (parsedPaddingRight != null) {
       data.indent = data.indent || {}
@@ -834,7 +859,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['padding-top'] != null) {
-    const parsedPaddingTop = lengthToPt(styles['padding-top'])
+    const parsedPaddingTop = parseMarginOrPadding(styles['padding-top'], 'top')?.top
 
     if (parsedPaddingTop != null) {
       data.spacing = data.spacing || {}
@@ -843,7 +868,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['padding-bottom'] != null) {
-    const parsedPaddingBottom = lengthToPt(styles['padding-bottom'])
+    const parsedPaddingBottom = parseMarginOrPadding(styles['padding-bottom'], 'bottom')?.bottom
 
     if (parsedPaddingBottom != null) {
       data.spacing = data.spacing || {}
@@ -852,30 +877,30 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles.margin != null) {
-    const parsedMargin = parseCssSides(styles.margin)
+    const parsedMargin = parseMarginOrPadding(styles.margin)
 
     data.indent = data.indent || {}
     data.spacing = data.spacing || {}
 
-    const parsedMarginLeft = lengthToPt(parsedMargin.left)
+    const parsedMarginLeft = parsedMargin.left
 
     if (parsedMarginLeft != null) {
       data.indent.left = parsedMarginLeft
     }
 
-    const parsedMarginRight = lengthToPt(parsedMargin.right)
+    const parsedMarginRight = parsedMargin.right
 
     if (parsedMarginRight != null) {
       data.indent.right = parsedMarginRight
     }
 
-    const parsedMarginTop = lengthToPt(parsedMargin.top)
+    const parsedMarginTop = parsedMargin.top
 
     if (parsedMarginTop != null) {
       data.spacing.before = parsedMarginTop
     }
 
-    const parsedMarginBottom = lengthToPt(parsedMargin.bottom)
+    const parsedMarginBottom = parsedMargin.bottom
 
     if (parsedMarginBottom != null) {
       data.spacing.after = parsedMarginBottom
@@ -883,7 +908,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['margin-left'] != null) {
-    const parsedMarginLeft = lengthToPt(styles['margin-left'])
+    const parsedMarginLeft = parseMarginOrPadding(styles['margin-left'], 'left')?.left
 
     if (parsedMarginLeft != null) {
       data.indent = data.indent || {}
@@ -892,7 +917,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['margin-right'] != null) {
-    const parsedMarginRight = lengthToPt(styles['margin-right'])
+    const parsedMarginRight = parseMarginOrPadding(styles['margin-right'], 'right')?.right
 
     if (parsedMarginRight != null) {
       data.indent = data.indent || {}
@@ -901,7 +926,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['margin-top'] != null) {
-    const parsedMarginTop = lengthToPt(styles['margin-top'])
+    const parsedMarginTop = parseMarginOrPadding(styles['margin-top'], 'top')?.top
 
     if (parsedMarginTop != null) {
       data.spacing = data.spacing || {}
@@ -910,7 +935,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['margin-bottom'] != null) {
-    const parsedMarginBottom = lengthToPt(styles['margin-bottom'])
+    const parsedMarginBottom = parseMarginOrPadding(styles['margin-bottom'], 'bottom')?.bottom
 
     if (parsedMarginBottom != null) {
       data.spacing = data.spacing || {}
@@ -1051,6 +1076,9 @@ function applyIndentIfNeeded (parentMeta, data) {
   }
 
   parentMeta.indent = data.indent
+  // indent should be removed once applied to paragraph item
+  //  so children does not inherit it
+  delete data.indent
 }
 
 function applySpacingIfNeeded (parentMeta, data) {
@@ -1063,6 +1091,9 @@ function applySpacingIfNeeded (parentMeta, data) {
   }
 
   parentMeta.spacing = data.spacing
+  // indent should be removed once applied to paragraph item
+  // so children does not inherit it
+  delete data.spacing
 }
 
 function parseBorder (borderStyle, targetType) {
@@ -1130,6 +1161,45 @@ function parseBorder (borderStyle, targetType) {
       default:
         break
     }
+  }
+
+  if (Object.keys(result).length === 0) {
+    return null
+  }
+
+  return result
+}
+
+function parseMarginOrPadding (marginOrPaddingStyle, sideType) {
+  if (marginOrPaddingStyle == null || marginOrPaddingStyle === '') {
+    return null
+  }
+
+  const isFull = sideType == null
+  const validTargets = ['top', 'right', 'bottom', 'left']
+  const targets = []
+
+  if (isFull) {
+    const parsePaddingMargin = parseCssSides(marginOrPaddingStyle)
+    targets.push(...validTargets.map((t, idx) => [t, parsePaddingMargin[t]]))
+  } else {
+    targets.push([sideType, marginOrPaddingStyle])
+  }
+
+  const result = {}
+
+  for (const [target, value] of targets) {
+    if (!validTargets.includes(target)) {
+      throw new Error(`Invalid target "${target}" for padding, margin parsing`)
+    }
+
+    const parsedValue = lengthToPt(value)
+
+    if (parsedValue == null) {
+      continue
+    }
+
+    result[target] = parsedValue
   }
 
   if (Object.keys(result).length === 0) {

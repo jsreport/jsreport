@@ -318,6 +318,38 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
           )
         }
 
+        if (currentDocxMeta.indent != null || currentDocxMeta.spacing != null) {
+          const tcMarEl = createNode(doc, 'w:tcMar', {
+            children: []
+          })
+
+          if (currentDocxMeta.spacing.before != null) {
+            tcMarEl.appendChild(
+              createNode(doc, 'w:top', { attributes: { 'w:w': ptToTOAP(currentDocxMeta.spacing.before).toString(), 'w:type': 'dxa' } })
+            )
+          }
+
+          if (currentDocxMeta.indent.left != null) {
+            tcMarEl.appendChild(
+              createNode(doc, 'w:left', { attributes: { 'w:w': ptToTOAP(currentDocxMeta.indent.left).toString(), 'w:type': 'dxa' } })
+            )
+          }
+
+          if (currentDocxMeta.spacing.after != null) {
+            tcMarEl.appendChild(
+              createNode(doc, 'w:bottom', { attributes: { 'w:w': ptToTOAP(currentDocxMeta.spacing.after).toString(), 'w:type': 'dxa' } })
+            )
+          }
+
+          if (currentDocxMeta.indent.right != null) {
+            tcMarEl.appendChild(
+              createNode(doc, 'w:right', { attributes: { 'w:w': ptToTOAP(currentDocxMeta.indent.right).toString(), 'w:type': 'dxa' } })
+            )
+          }
+
+          cellPrChildren.push(tcMarEl)
+        }
+
         if (currentDocxMeta.border != null) {
           const tcBordersEl = createNode(doc, 'w:tcBorders', {
             children: [

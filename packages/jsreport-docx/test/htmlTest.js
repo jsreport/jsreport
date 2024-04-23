@@ -11991,6 +11991,246 @@ describe('docx html embed', () => {
             }
           }
         })
+
+        it(`${mode} mode - <table> cellpadding attribute`, async () => {
+          const templateStr = [
+            '<table cellpadding="15">',
+            '<tr>',
+            '<td>col1-1</td>',
+            '<td>col1-2</td>',
+            '<td>col1-3</td>',
+            '</tr>',
+            '<tr>',
+            '<td>col2-1</td>',
+            '<td>col2-2</td>',
+            '<td>col2-3</td>',
+            '</tr>',
+            '<tr>',
+            '<td>col3-1</td>',
+            '<td>col3-2</td>',
+            '<td>col3-3</td>',
+            '</tr>',
+            '</table>'
+          ].join('')
+
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxTemplateBuf
+                }
+              }
+            },
+            data: {
+              html: createHtml(templateStr, [])
+            }
+          })
+
+          // Write document for easier debugging
+          fs.writeFileSync(outputPath, result.content)
+
+          const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+          const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+          should(paragraphAtRootNodes.length).be.eql(0)
+
+          const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+          should(tableAtRootNodes.length).be.eql(1)
+
+          const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+          const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+          should(gridColNodes.length).be.eql(3)
+
+          const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+          should(rowNodes.length).be.eql(3)
+
+          const findTcMar = (tcNode, side) => {
+            const tcMarNode = tcNode.getElementsByTagName('w:tcMar')[0]
+
+            if (tcMarNode == null) {
+              return
+            }
+
+            return nodeListToArray(tcMarNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+          }
+
+          for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+            const rowNode = rowNodes[rowIdx]
+            const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+            should(cellNodes.length).be.eql(3)
+
+            for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+              const topMarNode = findTcMar(cellNodes[cellIdx], 'top')
+              const rightMarNode = findTcMar(cellNodes[cellIdx], 'right')
+              const bottomMarNode = findTcMar(cellNodes[cellIdx], 'bottom')
+              const leftMarNode = findTcMar(cellNodes[cellIdx], 'left')
+
+              const pNode = cellNodes[cellIdx].getElementsByTagName('w:p')[0]
+              const pIndNode = pNode.getElementsByTagName('w:ind')[0]
+              const pSpacingNode = pNode.getElementsByTagName('w:spacing')[0]
+
+              should(pIndNode).be.not.ok()
+              should(pSpacingNode).be.not.ok()
+
+              should(topMarNode.getAttribute('w:w')).be.eql('225')
+              should(topMarNode.getAttribute('w:type')).be.eql('dxa')
+              should(rightMarNode.getAttribute('w:w')).be.eql('225')
+              should(rightMarNode.getAttribute('w:type')).be.eql('dxa')
+              should(bottomMarNode.getAttribute('w:w')).be.eql('225')
+              should(bottomMarNode.getAttribute('w:type')).be.eql('dxa')
+              should(leftMarNode.getAttribute('w:w')).be.eql('225')
+              should(leftMarNode.getAttribute('w:type')).be.eql('dxa')
+
+              const cellNode = cellNodes[cellIdx]
+              const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+              should(runNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes.length).be.eql(1)
+
+              should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+            }
+          }
+        })
+
+        it(`${mode} mode - <table> cell padding style`, async () => {
+          const templateStr = [
+            '<table>',
+            '<tr>',
+            '<td>col1-1</td>',
+            '<td style="padding: 15px">col1-2</td>',
+            '<td>col1-3</td>',
+            '</tr>',
+            '<tr>',
+            '<td>col2-1</td>',
+            '<td>col2-2</td>',
+            '<td>col2-3</td>',
+            '</tr>',
+            '<tr>',
+            '<td style="padding: 15px">col3-1</td>',
+            '<td>col3-2</td>',
+            '<td>col3-3</td>',
+            '</tr>',
+            '</table>'
+          ].join('')
+
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxTemplateBuf
+                }
+              }
+            },
+            data: {
+              html: createHtml(templateStr, [])
+            }
+          })
+
+          // Write document for easier debugging
+          fs.writeFileSync(outputPath, result.content)
+
+          const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+          const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+          should(paragraphAtRootNodes.length).be.eql(0)
+
+          const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+          should(tableAtRootNodes.length).be.eql(1)
+
+          const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+          const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+          should(gridColNodes.length).be.eql(3)
+
+          const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+          should(rowNodes.length).be.eql(3)
+
+          const findTcMar = (tcNode, side) => {
+            const tcMarNode = tcNode.getElementsByTagName('w:tcMar')[0]
+
+            if (tcMarNode == null) {
+              return
+            }
+
+            return nodeListToArray(tcMarNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+          }
+
+          for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+            const rowNode = rowNodes[rowIdx]
+            const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+            should(cellNodes.length).be.eql(3)
+
+            for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+              const topMarNode = findTcMar(cellNodes[cellIdx], 'top')
+              const rightMarNode = findTcMar(cellNodes[cellIdx], 'right')
+              const bottomMarNode = findTcMar(cellNodes[cellIdx], 'bottom')
+              const leftMarNode = findTcMar(cellNodes[cellIdx], 'left')
+
+              const pNode = cellNodes[cellIdx].getElementsByTagName('w:p')[0]
+              const pIndNode = pNode.getElementsByTagName('w:ind')[0]
+              const pSpacingNode = pNode.getElementsByTagName('w:spacing')[0]
+
+              should(pIndNode).be.not.ok()
+              should(pSpacingNode).be.not.ok()
+
+              if (
+                (rowIdx === 0 && cellIdx === 1) ||
+                (rowIdx === 2 && cellIdx === 0)
+              ) {
+                should(topMarNode.getAttribute('w:w')).be.eql('225')
+                should(topMarNode.getAttribute('w:type')).be.eql('dxa')
+                should(rightMarNode.getAttribute('w:w')).be.eql('225')
+                should(rightMarNode.getAttribute('w:type')).be.eql('dxa')
+                should(bottomMarNode.getAttribute('w:w')).be.eql('225')
+                should(bottomMarNode.getAttribute('w:type')).be.eql('dxa')
+                should(leftMarNode.getAttribute('w:w')).be.eql('225')
+                should(leftMarNode.getAttribute('w:type')).be.eql('dxa')
+              } else {
+                should(topMarNode).be.not.ok()
+                should(rightMarNode).be.not.ok()
+                should(bottomMarNode).be.not.ok()
+                should(leftMarNode).be.not.ok()
+              }
+
+              const cellNode = cellNodes[cellIdx]
+              const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+              should(runNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes.length).be.eql(1)
+
+              should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+            }
+          }
+        })
       }
     }
   })

@@ -411,6 +411,14 @@ function generateTableItems (tableItemMeta, tableWidth) {
         newCell.vMerge = cell.vMerge
       }
 
+      if (cell.indent != null) {
+        newCell.indent = cell.indent
+      }
+
+      if (cell.spacing != null) {
+        newCell.spacing = cell.spacing
+      }
+
       if (cellMeta?.width != null) {
         newCell.width = cellMeta.width
       } else {
