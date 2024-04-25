@@ -38,7 +38,7 @@ module.exports = function createSandboxRequire (safeExecution, isolateModules, m
 
   if (isolateModules) {
     const requireExtensions = Object.create(null)
-    isolatedRequire.setDefaultRequireExtensions(requireExtensions, modulesCache, compileScript)
+    isolatedRequire.setDefaultRequireExtensions(requireExtensions, requireFromRootDirectory, compileScript)
     modulesMeta.requireExtensions = requireExtensions
   }
 
