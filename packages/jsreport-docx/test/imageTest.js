@@ -1120,6 +1120,38 @@ describe('docx image', () => {
     fs.writeFileSync(outputPath, result.content)
   })
 
+  it('image error message should include url to image when src points to remote image', async () => {
+    const format = 'png'
+    const url = `https://some-server.com/some-image.${format}`
+
+    reporter.tests.beforeRenderEval((req, res, { require }) => {
+      require('nock')('https://some-server.com')
+        .get(`/some-image.${req.data.imageFormat}`)
+        .reply(500)
+    })
+
+    try {
+      await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+            }
+          }
+        },
+        data: {
+          src: url
+        }
+      })
+
+      throw new Error('should not reach here')
+    } catch (error) {
+      error.message.should.containEql(`unable to fetch remote image at ${url}`)
+    }
+  })
+
   it('image error message when no src provided', async () => {
     return reporter
       .render({
