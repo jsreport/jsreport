@@ -12834,6 +12834,263 @@ describe('docx html embed', () => {
           }
         })
 
+        const templateNestedWithBothListsStr = `<${listTag}><li>...<${listTag === 'ol' ? 'ul' : 'ol'}><li>...</li></${listTag === 'ol' ? 'ul' : 'ol'}></li><li>...</li><li>...<${listTag}><li>...</li></${listTag}></li></${listTag}>`
+
+        it(`${mode} mode - <${listTag}> with nested different list ${templateNestedWithBothListsStr}`, async () => {
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxTemplateBuf
+                }
+              }
+            },
+            data: {
+              html: createHtml(templateNestedWithBothListsStr, ['item1', 'item2', 'item3', 'item4', 'item5'])
+            }
+          })
+
+          // Write document for easier debugging
+          fs.writeFileSync(outputPath, result.content)
+
+          const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+          const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+          const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+
+          const assertExtra = {
+            mode,
+            outputDocuments: restOfDocuments
+          }
+
+          const numberingDoc = restOfDocuments[1]
+
+          const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+          should(paragraphNodes.length).eql(mode === 'block' ? 5 : 1)
+
+          if (mode === 'block') {
+            paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+            should(paragraphNodes[1].getElementsByTagName('w:numId')?.[0]?.getAttribute('w:val')).be.eql('2')
+            paragraphAssert(paragraphNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[3], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[4], templateTextNodesForDocxHtml[0], assertExtra)
+
+            const numberingNumNodes = findChildNode((n) => (
+              n.nodeName === 'w:num'
+            ), numberingDoc.documentElement, true)
+
+            should(numberingNumNodes.length).eql(3)
+
+            const expectedFmt = listTag === 'ol' ? 'decimal' : 'bullet'
+
+            const abstractNumIdNodeForN1 = findChildNode('w:abstractNumId', numberingNumNodes[0])
+
+            const numFmtNodeForN1 = findChildNode('w:numFmt', findChildNode((n) => (
+              n.nodeName === 'w:lvl' &&
+              n.getAttribute('w:ilvl') === '0'
+            ), findChildNode((n) => (
+              n.nodeName === 'w:abstractNum' &&
+              n.getAttribute('w:abstractNumId') === abstractNumIdNodeForN1.getAttribute('w:val')
+            ), numberingDoc.documentElement)))
+
+            should(numFmtNodeForN1).be.ok()
+            should(numFmtNodeForN1.getAttribute('w:val')).eql(expectedFmt)
+
+            const expectedFmt2 = listTag === 'ol' ? 'bullet' : 'decimal'
+
+            const abstractNumIdNodeForN2 = findChildNode('w:abstractNumId', numberingNumNodes[1])
+
+            const numFmtNodeForN2 = findChildNode('w:numFmt', findChildNode((n) => (
+              n.nodeName === 'w:lvl' &&
+              n.getAttribute('w:ilvl') === '0'
+            ), findChildNode((n) => (
+              n.nodeName === 'w:abstractNum' &&
+              n.getAttribute('w:abstractNumId') === abstractNumIdNodeForN2.getAttribute('w:val')
+            ), numberingDoc.documentElement)))
+
+            should(numFmtNodeForN2).be.ok()
+            should(numFmtNodeForN2.getAttribute('w:val')).eql(expectedFmt2)
+
+            const expectedFmt3 = listTag === 'ol' ? 'decimal' : 'bullet'
+
+            const abstractNumIdNodeForN3 = findChildNode('w:abstractNumId', numberingNumNodes[2])
+
+            const numFmtNodeForN3 = findChildNode('w:numFmt', findChildNode((n) => (
+              n.nodeName === 'w:lvl' &&
+              n.getAttribute('w:ilvl') === '0'
+            ), findChildNode((n) => (
+              n.nodeName === 'w:abstractNum' &&
+              n.getAttribute('w:abstractNumId') === abstractNumIdNodeForN3.getAttribute('w:val')
+            ), numberingDoc.documentElement)))
+
+            should(numFmtNodeForN3).be.ok()
+            should(numFmtNodeForN3.getAttribute('w:val')).eql(expectedFmt3)
+
+            should(findChildNode((n) => (
+              n.nodeName === 'w:ilvl' &&
+              n.getAttribute('w:val') === '0'
+            ), findChildNode('w:numPr', findChildNode('w:pPr', paragraphNodes[0])))).be.ok()
+
+            should(findChildNode((n) => (
+              n.nodeName === 'w:ilvl' &&
+              n.getAttribute('w:val') === '1'
+            ), findChildNode('w:numPr', findChildNode('w:pPr', paragraphNodes[1])))).be.ok()
+
+            should(findChildNode((n) => (
+              n.nodeName === 'w:ilvl' &&
+              n.getAttribute('w:val') === '0'
+            ), findChildNode('w:numPr', findChildNode('w:pPr', paragraphNodes[2])))).be.ok()
+
+            should(findChildNode((n) => (
+              n.nodeName === 'w:ilvl' &&
+              n.getAttribute('w:val') === '0'
+            ), findChildNode('w:numPr', findChildNode('w:pPr', paragraphNodes[3])))).be.ok()
+
+            should(findChildNode((n) => (
+              n.nodeName === 'w:ilvl' &&
+              n.getAttribute('w:val') === '1'
+            ), findChildNode('w:numPr', findChildNode('w:pPr', paragraphNodes[4])))).be.ok()
+
+            const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+            should(textNodesInParagraph1.length).eql(1)
+            should(textNodesInParagraph1[0].textContent).eql('item1')
+            const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+            should(textNodesInParagraph2.length).eql(1)
+            should(textNodesInParagraph2[0].textContent).eql('item2')
+            const textNodesInParagraph3 = nodeListToArray(paragraphNodes[2].getElementsByTagName('w:t'))
+            should(textNodesInParagraph3.length).eql(1)
+            should(textNodesInParagraph3[0].textContent).eql('item3')
+            const textNodesInParagraph4 = nodeListToArray(paragraphNodes[3].getElementsByTagName('w:t'))
+            should(textNodesInParagraph4.length).eql(1)
+            should(textNodesInParagraph4[0].textContent).eql('item4')
+            const textNodesInParagraph5 = nodeListToArray(paragraphNodes[4].getElementsByTagName('w:t'))
+            should(textNodesInParagraph5.length).eql(1)
+            should(textNodesInParagraph5[0].textContent).eql('item5')
+          } else {
+            paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+            should(textNodes.length).eql(5)
+            should(textNodes[0].textContent).eql('item1')
+            should(textNodes[1].textContent).eql('item2')
+            should(textNodes[2].textContent).eql('item3')
+            should(textNodes[3].textContent).eql('item4')
+            should(textNodes[4].textContent).eql('item5')
+          }
+        })
+
+        const templateGreaterThanMaxDepthStr = `<${listTag}><li>...<${listTag}><li>...<${listTag}><li>...<${listTag}><li>...<${listTag}><li>...<${listTag}><li>...<${listTag}><li>...<${listTag}><li>...<${listTag}><li>...<${listTag}><li>...</li></${listTag}></li></${listTag}></li></${listTag}></li></${listTag}></li></${listTag}></li></${listTag}></li></${listTag}></li></${listTag}></li></${listTag}></li></${listTag}>`
+
+        it(`${mode} mode - <${listTag}> with nested level greater than max depth ${templateGreaterThanMaxDepthStr}`, async () => {
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxTemplateBuf
+                }
+              }
+            },
+            data: {
+              html: createHtml(templateGreaterThanMaxDepthStr, [
+                'item1', 'item2', 'item3',
+                'item4', 'item5', 'item6',
+                'item7', 'item8', 'item9',
+                'item10'
+              ])
+            }
+          })
+
+          // Write document for easier debugging
+          fs.writeFileSync(outputPath, result.content)
+
+          const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+          const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+          const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+
+          const assertExtra = {
+            mode,
+            outputDocuments: restOfDocuments
+          }
+
+          const numberingDoc = restOfDocuments[1]
+
+          const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+          should(paragraphNodes.length).eql(mode === 'block' ? 10 : 1)
+
+          if (mode === 'block') {
+            paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[2], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[3], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[4], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[5], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[6], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[7], templateTextNodesForDocxHtml[0], assertExtra)
+            paragraphAssert(paragraphNodes[8], templateTextNodesForDocxHtml[0], assertExtra)
+
+            should(nodeListToArray(paragraphNodes[9].getElementsByTagName('w:nuPr')).length).be.eql(0)
+
+            const numberingNumNodes = findChildNode((n) => (
+              n.nodeName === 'w:num'
+            ), numberingDoc.documentElement, true)
+
+            should(numberingNumNodes.length).eql(9)
+
+            const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+            should(textNodesInParagraph1.length).eql(1)
+            should(textNodesInParagraph1[0].textContent).eql('item1')
+            const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+            should(textNodesInParagraph2.length).eql(1)
+            should(textNodesInParagraph2[0].textContent).eql('item2')
+            const textNodesInParagraph3 = nodeListToArray(paragraphNodes[2].getElementsByTagName('w:t'))
+            should(textNodesInParagraph3.length).eql(1)
+            should(textNodesInParagraph3[0].textContent).eql('item3')
+            const textNodesInParagraph4 = nodeListToArray(paragraphNodes[3].getElementsByTagName('w:t'))
+            should(textNodesInParagraph4.length).eql(1)
+            should(textNodesInParagraph4[0].textContent).eql('item4')
+            const textNodesInParagraph5 = nodeListToArray(paragraphNodes[4].getElementsByTagName('w:t'))
+            should(textNodesInParagraph5.length).eql(1)
+            should(textNodesInParagraph5[0].textContent).eql('item5')
+            const textNodesInParagraph6 = nodeListToArray(paragraphNodes[5].getElementsByTagName('w:t'))
+            should(textNodesInParagraph6.length).eql(1)
+            should(textNodesInParagraph6[0].textContent).eql('item6')
+            const textNodesInParagraph7 = nodeListToArray(paragraphNodes[6].getElementsByTagName('w:t'))
+            should(textNodesInParagraph7.length).eql(1)
+            should(textNodesInParagraph7[0].textContent).eql('item7')
+            const textNodesInParagraph8 = nodeListToArray(paragraphNodes[7].getElementsByTagName('w:t'))
+            should(textNodesInParagraph8.length).eql(1)
+            should(textNodesInParagraph8[0].textContent).eql('item8')
+            const textNodesInParagraph9 = nodeListToArray(paragraphNodes[8].getElementsByTagName('w:t'))
+            should(textNodesInParagraph9.length).eql(1)
+            should(textNodesInParagraph9[0].textContent).eql('item9')
+            const textNodesInParagraph10 = nodeListToArray(paragraphNodes[9].getElementsByTagName('w:t'))
+            should(textNodesInParagraph10.length).eql(1)
+            should(textNodesInParagraph10[0].textContent).eql('item10')
+          } else {
+            paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+            should(textNodes.length).eql(10)
+            should(textNodes[0].textContent).eql('item1')
+            should(textNodes[1].textContent).eql('item2')
+            should(textNodes[2].textContent).eql('item3')
+            should(textNodes[3].textContent).eql('item4')
+            should(textNodes[4].textContent).eql('item5')
+            should(textNodes[5].textContent).eql('item6')
+            should(textNodes[6].textContent).eql('item7')
+            should(textNodes[7].textContent).eql('item8')
+            should(textNodes[8].textContent).eql('item9')
+            should(textNodes[9].textContent).eql('item10')
+          }
+        })
+
         const templateTextChildStr = `<${listTag}>...<li>...</li><li>...</li></${listTag}>`
 
         it(`${mode} mode - <${listTag}> with text child directly in <${listTag}> ${templateTextChildStr}`, async () => {

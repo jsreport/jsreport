@@ -647,6 +647,10 @@ function applyListDataIfNeeded (data, node) {
     node.tagName === 'ul' ||
     node.tagName === 'ol'
   ) {
+    // we create a new id always and don't care about re-using same id for nested lists
+    // because we want to match output of html which allows a list to have both ordered
+    // and unordered lists at different levels,
+    // in docx this is not possible if you re-use the same id
     data.listContainerId = `list_${generateRandomId()}`
   } else if (node.tagName === 'li') {
     if (

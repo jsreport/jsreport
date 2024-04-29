@@ -91,16 +91,19 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
       }
 
       if (currentDocxMeta.list != null) {
-        const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
-        const pStyleEl = findOrCreateChildNode(doc, 'w:pStyle', pPrEl)
-        const listParagraphStyleId = addOrGetListParagraphStyle(stylesDoc, listParagraphStyleIdCache)
         const numId = await addOrGetNumbering(files, currentDocxMeta.list, numberingListsCache)
-        pStyleEl.setAttribute('w:val', listParagraphStyleId)
-        const numPrEl = findOrCreateChildNode(doc, 'w:numPr', pPrEl)
-        const iLvlEl = findOrCreateChildNode(doc, 'w:ilvl', numPrEl)
-        iLvlEl.setAttribute('w:val', currentDocxMeta.list.level - 1)
-        const numIdEl = findOrCreateChildNode(doc, 'w:numId', numPrEl)
-        numIdEl.setAttribute('w:val', numId)
+
+        if (numId != null) {
+          const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+          const pStyleEl = findOrCreateChildNode(doc, 'w:pStyle', pPrEl)
+          const listParagraphStyleId = addOrGetListParagraphStyle(stylesDoc, listParagraphStyleIdCache)
+          pStyleEl.setAttribute('w:val', listParagraphStyleId)
+          const numPrEl = findOrCreateChildNode(doc, 'w:numPr', pPrEl)
+          const iLvlEl = findOrCreateChildNode(doc, 'w:ilvl', numPrEl)
+          iLvlEl.setAttribute('w:val', currentDocxMeta.list.level - 1)
+          const numIdEl = findOrCreateChildNode(doc, 'w:numId', numPrEl)
+          numIdEl.setAttribute('w:val', numId)
+        }
       }
 
       if (currentDocxMeta.backgroundColor != null) {
@@ -1140,6 +1143,14 @@ async function addOrGetNumbering (files, listInfo, cache) {
   let numberingDoc
   let numId
 
+  // NOTE: Word does not accept more than 9 levels, when this happens we skip the list style
+  const MAX_LEVEL = 9
+  const currentLvl = listInfo.level - 1
+
+  if (currentLvl >= MAX_LEVEL) {
+    return
+  }
+
   const numberingFile = files.find(f => f.path === 'word/numbering.xml')
 
   if (cache.has(listInfo.id)) {
@@ -1260,8 +1271,14 @@ async function addOrGetNumbering (files, listInfo, cache) {
             numFmt = 'decimal'
           }
 
-          if (listInfo.type === 'ul' && [1, 4, 7].includes(cLvl)) {
-            text = 'o'
+          if (listInfo.type === 'ul') {
+            if ([1, 4, 7].includes(cLvl)) {
+              text = 'o'
+            } else if ([2, 5, 8].includes(cLvl)) {
+              // NOTE: be aware that this is a different symbol than the default
+              // they may look the same rendered in the editor but they are different
+              text = ''
+            }
           } else if (listInfo.type === 'ol') {
             text = `%${cLvl + 1}.`
           }
@@ -1324,7 +1341,7 @@ async function addOrGetNumbering (files, listInfo, cache) {
     n.getAttribute('w:abstractNumId') === currentAbstractNumIdEl.getAttribute('w:val')
   ), numberingDoc.documentElement)
 
-  const targetLvl = (listInfo.level - 1).toString()
+  const targetLvl = currentLvl.toString()
 
   const currentLvlEl = findChildNode((n) => (
     n.nodeName === 'w:lvl' &&
@@ -1374,12 +1391,12 @@ function createLvl (numberingDoc, listLevel, opts) {
     fontAttrs['w:hAnsi'] = opts.fontHansi
   }
 
-  if (opts.fontHint != null) {
-    fontAttrs['w:hint'] = opts.fontHansi
-  }
-
   if (opts.fontCs != null) {
     fontAttrs['w:cs'] = opts.fontCs
+  }
+
+  if (opts.fontHint != null) {
+    fontAttrs['w:hint'] = opts.fontHint
   }
 
   if (Object.keys(fontAttrs).length > 0) {
