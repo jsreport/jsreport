@@ -1,3 +1,4 @@
+import { toFile } from '../../../helpers/reportFileInfoPreview'
 
 function OpenNewTabAction ({ id, completed, data, closeMenu }) {
   const { template, reportFile } = data
@@ -20,9 +21,7 @@ function OpenNewTabAction ({ id, completed, data, closeMenu }) {
 }
 
 function openNewTab (id, templateName, reportFile) {
-  const file = new window.File([reportFile.rawData.buffer], reportFile.filename, {
-    type: reportFile.contentType
-  })
+  const file = toFile(reportFile)
 
   const fileURLBlob = URL.createObjectURL(file)
 

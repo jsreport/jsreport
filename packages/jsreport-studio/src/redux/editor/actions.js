@@ -11,6 +11,7 @@ import ErrorModal from '../../components/Modals/ErrorModal'
 import { openModal } from '../../helpers/openModal'
 import reformatter from '../../helpers/reformatter'
 import { openPreviewWindow, getPreviewWindowOptions } from '../../helpers/previewWindow'
+import { toFile, textAsHtmlParts } from '../../helpers/reportFileInfoPreview'
 import createTemplateRenderFilesHandler from '../../helpers/createTemplateRenderFilesHandler'
 import executeTemplateRender from '../../helpers/executeTemplateRender'
 import resolveUrl from '../../helpers/resolveUrl'
@@ -650,9 +651,10 @@ export function run (params = {}, opts = {}) {
             }
 
             const reportSrc = URL.createObjectURL(
-              new Blob([
-                `Report${templateName != null ? ` "${templateName}"` : ''} render failed.\n\n${errorInfo.message}\n${errorInfo.stack}`
-              ], { type: 'text/plain' })
+              new Blob(
+                textAsHtmlParts(`Report${templateName != null ? ` "${templateName}"` : ''} render failed.\n\n${errorInfo.message}\n${errorInfo.stack}`),
+                { type: 'text/html' }
+              )
             )
 
             if (targetType === 'window') {
@@ -672,11 +674,7 @@ export function run (params = {}, opts = {}) {
               return
             }
 
-            const reportSrc = URL.createObjectURL(
-              new window.File([reportFileInfo.rawData.buffer], reportFileInfo.filename, {
-                type: reportFileInfo.contentType
-              })
-            )
+            const reportSrc = URL.createObjectURL(toFile(reportFileInfo))
 
             if (targetType === 'window') {
               previewWindow.location.href = reportSrc
@@ -710,7 +708,10 @@ export function run (params = {}, opts = {}) {
           })
         }
 
-        const errorURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
+        const errorURLBlob = URL.createObjectURL(new Blob(
+          textAsHtmlParts(`${error.message}\n\n${error.stack}`),
+          { type: 'text/html' }
+        ))
 
         if (targetType === 'window') {
           previewWindow.location.href = errorURLBlob
