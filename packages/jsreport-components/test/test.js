@@ -241,6 +241,60 @@ describe('components', function () {
     res.meta.logs[firstLogIdx + 2].message.should.containEql('wait finished')
   })
 
+  it('should evaluate recursive component wrapped by async helper using handlebars', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'student',
+      content: 'name: {{name}}, {{#with address}}{{component "./address"}}{{/with}}',
+      engine: 'handlebars'
+    })
+
+    await reporter.documentStore.collection('components').insert({
+      name: 'address',
+      content: 'street: {{street}}, city: {{city}}',
+      engine: 'handlebars'
+    })
+
+    const students = [
+      {
+        name: 'John Lennon',
+        address: {
+          street: 'Abbey Road 23',
+          city: 'London'
+        }
+      },
+      {
+        name: 'Eddie Vedder',
+        address: {
+          street: 'Jeremy street',
+          city: 'Seatle'
+        }
+      }
+    ]
+
+    const res = await reporter.render({
+      template: {
+        content: '{{#each students}}{{#componentExists "./student"}}{{component "./student"}}{{/componentExists}}{{/each}}',
+        helpers: `
+          const jsreport = require('jsreport-proxy');
+
+          async function componentExists(componentName, options) {
+              const component = await jsreport.folders.resolveEntityFromPath(componentName, 'components');
+              return component ? options.fn(this): options.inverse(this);
+          }
+        `,
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        students
+      }
+    })
+
+    const expected = students.map((student) => `name: ${student.name}, street: ${student.address.street}, city: ${student.address.city}`).join('')
+
+    res.content.toString().should.be.eql(expected)
+  })
+
   it('should propagate logs from nested components', async () => {
     await reporter.documentStore.collection('components').insert({
       name: 'c1',

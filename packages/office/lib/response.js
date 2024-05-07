@@ -117,6 +117,6 @@ module.exports = async function response ({
   }
 
   res.meta.contentType = 'text/html'
-  res.meta.fileExtension = '.html'
+  res.meta.fileExtension = 'html'
   return result
 }

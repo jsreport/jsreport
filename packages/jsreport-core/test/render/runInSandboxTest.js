@@ -1581,6 +1581,47 @@ describe('sandbox', () => {
         should(content.require[prop]).be.eql(true)
       })
     })
+
+    it('jsdom module should work', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {
+            RESULT: null,
+            CONTENT: null
+          },
+          userCode: `
+            RESULT = false
+
+            try {
+              const pkg = require('moduleWithJSDOM')
+              RESULT = true
+              CONTENT = await pkg()
+            } catch (err) {}
+          `,
+          executionFn: ({ context }) => {
+            return JSON.stringify({
+              result: context.RESULT,
+              content: context.CONTENT
+            })
+          }
+        }, req)
+
+        res.content = Buffer.from(r)
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const { result, content } = JSON.parse(res.content)
+
+      should(result).be.True('expected module "moduleWithJSDOM" to be required normally')
+      should(typeof content).be.eql('string', 'expected content to be string')
+    })
   }
 
   function createReporterForRequireTests ({ safe, isolate } = {}) {
@@ -1607,6 +1648,7 @@ describe('sandbox', () => {
           'moduleWithBuiltin',
           'moduleWithNodeBuiltin',
           'moduleWithShebang',
+          'moduleWithJSDOM',
           'moduleWithJSON',
           'moduleWithMJS',
           'module-with-type-module/index.cjs',

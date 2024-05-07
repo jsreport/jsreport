@@ -35,7 +35,7 @@ function getTableMeta (tableItemMeta, sectionDetail) {
   // NOTE: the behavior we choose for the widths is that we assume table width: 100% when
   // width was not explicitly set, and when explicit table width is set the widths
   // calculation are executed like if table-layout: fixed was enabled
-  const { cols, rows } = generateTableItems(tableItemMeta.children, tableWidth)
+  const { cols, rows } = generateTableItems(tableItemMeta, tableWidth)
 
   return {
     tableWidth: tableWidth.source === 'custom' ? tableWidth.value : null,
@@ -44,10 +44,13 @@ function getTableMeta (tableItemMeta, sectionDetail) {
   }
 }
 
-function generateTableItems (tableRows, tableWidth) {
+function generateTableItems (tableItemMeta, tableWidth) {
+  const tableRows = tableItemMeta.children
   const rows = normalizeRowspanAndAddSlots(tableRows)
+  const rowsCount = rows.length
   const rowsMeta = new Map()
   const cols = []
+  const explicitCellWithBorders = new Map()
 
   const getCachedParse = (fn) => {
     const cache = new Map()
@@ -94,6 +97,30 @@ function generateTableItems (tableRows, tableWidth) {
     }
   }
 
+  const setCellMeta = (rIdx, cIdx, prop, value) => {
+    let rMeta
+    let cMeta
+
+    // we only set in the map if there is relevant information to store there
+    if (!rowsMeta.has(rIdx)) {
+      rMeta = {}
+      rowsMeta.set(rIdx, rMeta)
+    } else {
+      rMeta = rowsMeta.get(rIdx)
+    }
+
+    rMeta.cellsMeta = rMeta.cellsMeta || new Map()
+
+    if (!rMeta.cellsMeta.has(cIdx)) {
+      cMeta = {}
+      rMeta.cellsMeta.set(cIdx, cMeta)
+    } else {
+      cMeta = rMeta.cellsMeta.get(cIdx)
+    }
+
+    cMeta[prop] = value
+  }
+
   // scan table and extract data (cols, cell/row data) for use it later
   // to generate the new row items
   scanTableByCol(rows, {
@@ -118,6 +145,16 @@ function generateTableItems (tableRows, tableWidth) {
 
     if (cell == null) {
       return
+    }
+
+    if (cell.border != null) {
+      setCellMeta(rowIdx, colIdx, 'border', cell.border)
+
+      if (!explicitCellWithBorders.has(rowIdx)) {
+        explicitCellWithBorders.set(rowIdx, [])
+      }
+
+      explicitCellWithBorders.get(rowIdx).push(colIdx)
     }
 
     ctx.getOrInitializeColMeta(colIdx)
@@ -194,7 +231,100 @@ function generateTableItems (tableRows, tableWidth) {
     }
   }
 
-  // scan table to add normalized colspan and cell width to metadata
+  const explicitCellBordersRows = [...explicitCellWithBorders.keys()].sort()
+  const patchedCellBorders = new Set()
+
+  // check cell borders
+  for (const borderRowIdx of explicitCellBordersRows) {
+    const bordersCols = [...explicitCellWithBorders.get(borderRowIdx)].sort()
+
+    for (const borderColIdx of bordersCols) {
+      const currentBorder = rowsMeta.get(borderRowIdx).cellsMeta.get(borderColIdx).border
+
+      for (const currentSide of ['top', 'right', 'bottom', 'left']) {
+        if (currentBorder[currentSide] == null) {
+          continue
+        }
+
+        switch (currentSide) {
+          case 'top': {
+            const isCollapsed = borderRowIdx !== 0
+            const previousBorderRowIdx = borderRowIdx - 1
+            const previousBorder = rowsMeta.get(previousBorderRowIdx)?.cellsMeta?.get(borderColIdx)?.border || {}
+
+            if (
+              isCollapsed &&
+              (
+                previousBorder?.bottom != null &&
+                patchedCellBorders.has(`${borderRowIdx}-${borderColIdx}-top`)
+              )
+            ) {
+              delete currentBorder[currentSide]
+            }
+
+            break
+          }
+          case 'right': {
+            const isCollapsed = borderColIdx !== (colsCount - 1)
+
+            if (isCollapsed) {
+              const nextColIdx = borderColIdx + 1
+
+              if (nextColIdx > (colsCount - 1)) {
+                break
+              }
+
+              const nextBorder = rowsMeta.get(borderRowIdx)?.cellsMeta?.get(nextColIdx)?.border || {}
+              nextBorder.left = currentBorder[currentSide]
+              patchedCellBorders.add(`${borderRowIdx}-${nextColIdx}-left`)
+              setCellMeta(borderRowIdx, nextColIdx, 'border', nextBorder)
+            }
+
+            break
+          }
+          case 'bottom': {
+            const isCollapsed = borderRowIdx !== (rowsCount - 1)
+
+            if (isCollapsed) {
+              const nextRowIdx = borderRowIdx + 1
+
+              if (nextRowIdx > (rowsCount - 1)) {
+                break
+              }
+
+              const nextBorder = rowsMeta.get(nextRowIdx)?.cellsMeta?.get(borderColIdx)?.border || {}
+              nextBorder.top = currentBorder[currentSide]
+              patchedCellBorders.add(`${nextRowIdx}-${borderColIdx}-top`)
+              setCellMeta(nextRowIdx, borderColIdx, 'border', nextBorder)
+            }
+
+            break
+          }
+          case 'left': {
+            const isCollapsed = borderColIdx !== 0
+            const previousBorderColIdx = borderRowIdx - 1
+            const previousBorder = rowsMeta.get(borderRowIdx)?.cellsMeta?.get(previousBorderColIdx)?.border || {}
+
+            if (
+              isCollapsed &&
+              (
+                previousBorder?.right != null &&
+                patchedCellBorders.has(`${borderRowIdx}-${borderColIdx}-left`)
+              )
+            ) {
+              delete currentBorder[currentSide]
+            }
+
+            break
+          }
+          default:
+            throw new Error(`Unsupported border side: ${currentSide}`)
+        }
+      }
+    }
+  }
+
+  // scan table to add normalized colspan and cell width and borders to metadata
   scanTableByCol(rows, { colOffsetPerRow: [] }, ({ rowIdx, colIdx, row, ctx }) => {
     if (ctx.colOffsetPerRow[rowIdx] == null) {
       ctx.colOffsetPerRow[rowIdx] = 0
@@ -222,34 +352,19 @@ function generateTableItems (tableRows, tableWidth) {
 
     ctx.colOffsetPerRow[rowIdx] += colspan - 1
 
-    const rowMeta = rowsMeta.get(rowIdx) || {}
-    rowMeta.cellsMeta = rowMeta.cellsMeta || new Map()
-
-    const cellMeta = rowMeta.cellsMeta.get(colIdx) || {}
-
     if (finalColspan > 1 || cols[colIdx].width.value !== cellWidth) {
-      // we only set in the map if there is relevant information to store there
-      if (!rowsMeta.has(rowIdx)) {
-        rowsMeta.set(rowIdx, rowMeta)
-      }
-
-      if (!rowMeta.cellsMeta.has(colIdx)) {
-        rowMeta.cellsMeta.set(colIdx, cellMeta)
-      }
-
       if (finalColspan > 1) {
-        cellMeta.colspan = finalColspan
+        setCellMeta(rowIdx, colIdx, 'colspan', finalColspan)
       }
 
       if (cols[colIdx].width.value !== cellWidth) {
-        cellMeta.width = cellWidth
+        setCellMeta(rowIdx, colIdx, 'width', cellWidth)
       }
     }
   })
 
   // generate the rows normalized without unused attributes
   const newRows = []
-  const rowsCount = rows.length
 
   for (let rowIdx = 0; rowIdx < rowsCount; rowIdx++) {
     const row = rows[rowIdx]
@@ -296,10 +411,22 @@ function generateTableItems (tableRows, tableWidth) {
         newCell.vMerge = cell.vMerge
       }
 
+      if (cell.indent != null) {
+        newCell.indent = cell.indent
+      }
+
+      if (cell.spacing != null) {
+        newCell.spacing = cell.spacing
+      }
+
       if (cellMeta?.width != null) {
         newCell.width = cellMeta.width
       } else {
         newCell.width = cols[cellIdx].width.value
+      }
+
+      if (cellMeta?.border != null) {
+        newCell.border = cellMeta.border
       }
 
       newRow.children.push(newCell)

@@ -61,8 +61,17 @@ module.exports.resolveImageSrc = async function resolveImageSrc (reporter, src) 
       }
     }
   } catch (error) {
-    error.imageSource = imageSource
-    throw error
+    let wrappedError = error
+
+    if (imageSource === 'remote' && wrappedError?.config?.url != null) {
+      wrappedError = reporter.createError(`Unable to fetch remote image at ${wrappedError.config.url}`, {
+        original: error
+      })
+    }
+
+    wrappedError.imageSource = imageSource
+
+    throw wrappedError
   }
 
   return { imageSource, imageContent, imageExtension }

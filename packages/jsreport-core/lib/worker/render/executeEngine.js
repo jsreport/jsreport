@@ -259,16 +259,29 @@ module.exports = (reporter) => {
       const resolvedResultsMap = new Map()
 
       // we need to use the cloned map, because there can be a waitForAsyncHelper pending that needs the asyncResultMap values
-      const clonedMap = new Map(asyncResultMap)
+      let clonedMap = new Map(asyncResultMap)
+
       while (clonedMap.size > 0) {
-        await Promise.all([...clonedMap.keys()].map(async (k) => {
+        const keysEvaluated = [...clonedMap.keys()]
+
+        await Promise.all(keysEvaluated.map(async (k) => {
           const result = await clonedMap.get(k)
           asyncCallChainSet.delete(k)
           resolvedResultsMap.set(k, `${result}`)
           clonedMap.delete(k)
         }))
+
+        // we need to remove the keys processed from the original map at this point
+        // (after the await) because during the async work the asyncResultMap will be read
+        for (const k of keysEvaluated) {
+          asyncResultMap.delete(k)
+        }
+
+        // we want to process the new generated pending async results
+        if (asyncResultMap.size > 0) {
+          clonedMap = new Map(asyncResultMap)
+        }
       }
-      asyncResultMap.clear()
 
       while (contentResult.includes('{#asyncHelperResult')) {
         contentResult = contentResult.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
@@ -284,6 +297,7 @@ module.exports = (reporter) => {
           return `${resolvedResultsMap.get(asyncResultId)}`
         })
       }
+
       contentResult = contentResult.replace(/asyncUnresolvedHelperResult/g, 'asyncHelperResult')
 
       await executionFinishListenersMap.get(executionId).fire()

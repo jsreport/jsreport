@@ -4,8 +4,9 @@ const fsAsync = require('fs/promises')
 const { DOMParser } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
 const generateRandomSuffix = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
+const borderStyles = require('./borderStyles')
 const { resolveImageSrc, getImageSizeInEMU } = require('../../imageUtils')
-const { nodeListToArray, clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP } = require('../../utils')
+const { nodeListToArray, clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP, ptToEOAP } = require('../../utils')
 const xmlTemplatesCache = new Map()
 
 module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode } = {}) {
@@ -90,16 +91,19 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
       }
 
       if (currentDocxMeta.list != null) {
-        const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
-        const pStyleEl = findOrCreateChildNode(doc, 'w:pStyle', pPrEl)
-        const listParagraphStyleId = addOrGetListParagraphStyle(stylesDoc, listParagraphStyleIdCache)
         const numId = await addOrGetNumbering(files, currentDocxMeta.list, numberingListsCache)
-        pStyleEl.setAttribute('w:val', listParagraphStyleId)
-        const numPrEl = findOrCreateChildNode(doc, 'w:numPr', pPrEl)
-        const iLvlEl = findOrCreateChildNode(doc, 'w:ilvl', numPrEl)
-        iLvlEl.setAttribute('w:val', currentDocxMeta.list.level - 1)
-        const numIdEl = findOrCreateChildNode(doc, 'w:numId', numPrEl)
-        numIdEl.setAttribute('w:val', numId)
+
+        if (numId != null) {
+          const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+          const pStyleEl = findOrCreateChildNode(doc, 'w:pStyle', pPrEl)
+          const listParagraphStyleId = addOrGetListParagraphStyle(stylesDoc, listParagraphStyleIdCache)
+          pStyleEl.setAttribute('w:val', listParagraphStyleId)
+          const numPrEl = findOrCreateChildNode(doc, 'w:numPr', pPrEl)
+          const iLvlEl = findOrCreateChildNode(doc, 'w:ilvl', numPrEl)
+          iLvlEl.setAttribute('w:val', currentDocxMeta.list.level - 1)
+          const numIdEl = findOrCreateChildNode(doc, 'w:numId', numPrEl)
+          numIdEl.setAttribute('w:val', numId)
+        }
       }
 
       if (currentDocxMeta.backgroundColor != null) {
@@ -203,11 +207,14 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
           currentDocxMeta.children[0].children.length > 0 &&
           currentDocxMeta.children[0].children[0].type === 'cell'
         ) {
+          const tableWidth = currentDocxMeta.width != null ? currentDocxMeta.width : 0
+          const tableWidthType = currentDocxMeta.width != null ? 'dxa' : 'auto'
+
           containerEl = createNode(doc, 'w:tbl', {
             children: [
               createNode(doc, 'w:tblPr', {
                 children: [
-                  createNode(doc, 'w:tblW', { attributes: { 'w:w': currentDocxMeta.width != null ? currentDocxMeta.width : '0', 'w:type': currentDocxMeta.width != null ? 'dxa' : 'auto' } }),
+                  createNode(doc, 'w:tblW', { attributes: { 'w:w': tableWidth, 'w:type': tableWidthType } }),
                   createNode(doc, 'w:tblInd', { attributes: { 'w:w': '0', 'w:type': 'dxa' } }),
                   createNode(doc, 'w:tblCellMar', {
                     children: [
@@ -219,12 +226,54 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
                   }),
                   createNode(doc, 'w:tblBorders', {
                     children: [
-                      createNode(doc, 'w:top', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
-                      createNode(doc, 'w:left', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
-                      createNode(doc, 'w:bottom', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
-                      createNode(doc, 'w:right', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
-                      createNode(doc, 'w:insideH', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
-                      createNode(doc, 'w:insideV', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } })
+                      createNode(doc, 'w:top', {
+                        attributes: {
+                          'w:val': getBorderStyle(currentDocxMeta.border?.top?.style, getBorderWidth(currentDocxMeta.border?.top?.width)),
+                          'w:sz': getBorderWidth(currentDocxMeta.border?.top?.width),
+                          'w:space': '0',
+                          'w:color': getBorderColor(currentDocxMeta.border?.top?.color)
+                        }
+                      }),
+                      createNode(doc, 'w:left', {
+                        attributes: {
+                          'w:val': getBorderStyle(currentDocxMeta.border?.left?.style, getBorderWidth(currentDocxMeta.border?.left?.width)),
+                          'w:sz': getBorderWidth(currentDocxMeta.border?.left?.width),
+                          'w:space': '0',
+                          'w:color': getBorderColor(currentDocxMeta.border?.left?.color)
+                        }
+                      }),
+                      createNode(doc, 'w:bottom', {
+                        attributes: {
+                          'w:val': getBorderStyle(currentDocxMeta.border?.bottom?.style, getBorderWidth(currentDocxMeta.border?.bottom?.width)),
+                          'w:sz': getBorderWidth(currentDocxMeta.border?.bottom?.width),
+                          'w:space': '0',
+                          'w:color': getBorderColor(currentDocxMeta.border?.bottom?.color)
+                        }
+                      }),
+                      createNode(doc, 'w:right', {
+                        attributes: {
+                          'w:val': getBorderStyle(currentDocxMeta.border?.right?.style, getBorderWidth(currentDocxMeta.border?.right?.width)),
+                          'w:sz': getBorderWidth(currentDocxMeta.border?.right?.width),
+                          'w:space': '0',
+                          'w:color': getBorderColor(currentDocxMeta.border?.right?.color)
+                        }
+                      }),
+                      createNode(doc, 'w:insideH', {
+                        attributes: {
+                          'w:val': getBorderStyle(currentDocxMeta.border?.base?.style, getBorderWidth(currentDocxMeta.border?.base?.width)),
+                          'w:sz': getBorderWidth(currentDocxMeta.border?.base?.width),
+                          'w:space': '0',
+                          'w:color': getBorderColor(currentDocxMeta.border?.base?.color)
+                        }
+                      }),
+                      createNode(doc, 'w:insideV', {
+                        attributes: {
+                          'w:val': getBorderStyle(currentDocxMeta.border?.base?.style, getBorderWidth(currentDocxMeta.border?.base?.width)),
+                          'w:sz': getBorderWidth(currentDocxMeta.border?.base?.width),
+                          'w:space': '0',
+                          'w:color': getBorderColor(currentDocxMeta.border?.base?.color)
+                        }
+                      })
                     ]
                   }),
                   // the only required attr of this element is w:val which is a bitmask of
@@ -270,6 +319,99 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
           cellPrChildren.push(
             createNode(doc, 'w:vMerge', { attributes: { 'w:val': 'restart' } })
           )
+        }
+
+        if (currentDocxMeta.indent != null || currentDocxMeta.spacing != null) {
+          const tcMarEl = createNode(doc, 'w:tcMar', {
+            children: []
+          })
+
+          if (currentDocxMeta.spacing.before != null) {
+            tcMarEl.appendChild(
+              createNode(doc, 'w:top', { attributes: { 'w:w': ptToTOAP(currentDocxMeta.spacing.before).toString(), 'w:type': 'dxa' } })
+            )
+          }
+
+          if (currentDocxMeta.indent.left != null) {
+            tcMarEl.appendChild(
+              createNode(doc, 'w:left', { attributes: { 'w:w': ptToTOAP(currentDocxMeta.indent.left).toString(), 'w:type': 'dxa' } })
+            )
+          }
+
+          if (currentDocxMeta.spacing.after != null) {
+            tcMarEl.appendChild(
+              createNode(doc, 'w:bottom', { attributes: { 'w:w': ptToTOAP(currentDocxMeta.spacing.after).toString(), 'w:type': 'dxa' } })
+            )
+          }
+
+          if (currentDocxMeta.indent.right != null) {
+            tcMarEl.appendChild(
+              createNode(doc, 'w:right', { attributes: { 'w:w': ptToTOAP(currentDocxMeta.indent.right).toString(), 'w:type': 'dxa' } })
+            )
+          }
+
+          cellPrChildren.push(tcMarEl)
+        }
+
+        if (currentDocxMeta.border != null) {
+          const tcBordersEl = createNode(doc, 'w:tcBorders', {
+            children: [
+            ]
+          })
+
+          if (currentDocxMeta.border.top != null) {
+            tcBordersEl.appendChild(
+              createNode(doc, 'w:top', {
+                attributes: {
+                  'w:val': getBorderStyle(currentDocxMeta.border.top.style, getBorderWidth(currentDocxMeta.border.top.width)),
+                  'w:sz': getBorderWidth(currentDocxMeta.border.top.width),
+                  'w:space': '0',
+                  'w:color': getBorderColor(currentDocxMeta.border.top.color)
+                }
+              })
+            )
+          }
+
+          if (currentDocxMeta.border.left != null) {
+            tcBordersEl.appendChild(
+              createNode(doc, 'w:left', {
+                attributes: {
+                  'w:val': getBorderStyle(currentDocxMeta.border.left.style, getBorderWidth(currentDocxMeta.border.left.width)),
+                  'w:sz': getBorderWidth(currentDocxMeta.border.left.width),
+                  'w:space': '0',
+                  'w:color': getBorderColor(currentDocxMeta.border.left.color)
+                }
+              })
+            )
+          }
+
+          if (currentDocxMeta.border.bottom != null) {
+            tcBordersEl.appendChild(
+              createNode(doc, 'w:bottom', {
+                attributes: {
+                  'w:val': getBorderStyle(currentDocxMeta.border.bottom.style, getBorderWidth(currentDocxMeta.border.bottom.width)),
+                  'w:sz': getBorderWidth(currentDocxMeta.border.bottom.width),
+                  'w:space': '0',
+                  'w:color': getBorderColor(currentDocxMeta.border.bottom.color)
+                }
+              })
+            )
+          }
+
+          if (currentDocxMeta.border.right != null) {
+            tcBordersEl.appendChild(
+              createNode(doc, 'w:right', {
+                attributes: {
+                  'w:val': getBorderStyle(currentDocxMeta.border.right.style, getBorderWidth(currentDocxMeta.border.right.width)),
+                  'w:sz': getBorderWidth(currentDocxMeta.border.right.width),
+                  'w:space': '0',
+                  'w:color': getBorderColor(currentDocxMeta.border.right.color)
+                }
+              })
+            )
+          }
+
+          cellPrChildren.push(tcBordersEl)
         }
 
         containerEl = createNode(doc, 'w:tc', {
@@ -1001,6 +1143,14 @@ async function addOrGetNumbering (files, listInfo, cache) {
   let numberingDoc
   let numId
 
+  // NOTE: Word does not accept more than 9 levels, when this happens we skip the list style
+  const MAX_LEVEL = 9
+  const currentLvl = listInfo.level - 1
+
+  if (currentLvl >= MAX_LEVEL) {
+    return
+  }
+
   const numberingFile = files.find(f => f.path === 'word/numbering.xml')
 
   if (cache.has(listInfo.id)) {
@@ -1121,8 +1271,14 @@ async function addOrGetNumbering (files, listInfo, cache) {
             numFmt = 'decimal'
           }
 
-          if (listInfo.type === 'ul' && [1, 4, 7].includes(cLvl)) {
-            text = 'o'
+          if (listInfo.type === 'ul') {
+            if ([1, 4, 7].includes(cLvl)) {
+              text = 'o'
+            } else if ([2, 5, 8].includes(cLvl)) {
+              // NOTE: be aware that this is a different symbol than the default
+              // they may look the same rendered in the editor but they are different
+              text = ''
+            }
           } else if (listInfo.type === 'ol') {
             text = `%${cLvl + 1}.`
           }
@@ -1185,7 +1341,7 @@ async function addOrGetNumbering (files, listInfo, cache) {
     n.getAttribute('w:abstractNumId') === currentAbstractNumIdEl.getAttribute('w:val')
   ), numberingDoc.documentElement)
 
-  const targetLvl = (listInfo.level - 1).toString()
+  const targetLvl = currentLvl.toString()
 
   const currentLvlEl = findChildNode((n) => (
     n.nodeName === 'w:lvl' &&
@@ -1235,12 +1391,12 @@ function createLvl (numberingDoc, listLevel, opts) {
     fontAttrs['w:hAnsi'] = opts.fontHansi
   }
 
-  if (opts.fontHint != null) {
-    fontAttrs['w:hint'] = opts.fontHansi
-  }
-
   if (opts.fontCs != null) {
     fontAttrs['w:cs'] = opts.fontCs
+  }
+
+  if (opts.fontHint != null) {
+    fontAttrs['w:hint'] = opts.fontHint
   }
 
   if (Object.keys(fontAttrs).length > 0) {
@@ -1277,6 +1433,22 @@ function getStyleUiPriority (stylesDoc, name, defaultValue) {
   }
 
   return uiPriority
+}
+
+function getBorderWidth (value) {
+  return value != null ? ptToEOAP(value) : 4
+}
+
+function getBorderStyle (value, borderWidth) {
+  if (borderWidth === 0) {
+    return 'none'
+  }
+
+  return value != null && borderStyles.has(value) ? borderStyles.get(value) : 'single'
+}
+
+function getBorderColor (value) {
+  return value != null ? value : 'auto'
 }
 
 function ensureFontDefinition (fontTableDoc, fontName) {
