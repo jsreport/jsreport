@@ -454,6 +454,27 @@ describe('pdfjs', () => {
     last.properties.get('Prev').object.should.be.eql(first)
   })
 
+  it('append and merge outlined pdf shouldnt break', async () => {
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main.pdf'))))
+    document.merge(new External(fs.readFileSync(path.join(__dirname, 'outline.pdf'))))
+    const pdfBuffer = await document.asBuffer()
+    await validate(pdfBuffer)
+  })
+
+  it('append shouldnt duplicate outlines', async () => {
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'outline.pdf'))))
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'outline.pdf'))))
+    const pdfBuffer = await document.asBuffer()
+    const { catalog } = await validate(pdfBuffer)
+    const outlines = catalog.properties.get('Outlines').object
+    const first = outlines.properties.get('First').object
+    const last = outlines.properties.get('Last').object
+
+    first.should.be.eql(last)
+  })
+
   it('merge should union Dests', async () => {
     const document = new Document()
     document.append(new External(fs.readFileSync(path.join(__dirname, 'links.pdf'))))
@@ -1079,5 +1100,12 @@ describe('pdfjs', () => {
       ['/Artifact BMC',
         '/Artifact BMC'
       ].join('\n'))
+  })
+
+  it('external pdf with missing EOL at the end of the objectstream should be supported', async () => {
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'missingEOLobjectstream.pdf'))))
+    const buffer = await document.asBuffer()
+    await validate(buffer)
   })
 })

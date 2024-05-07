@@ -118,7 +118,7 @@ class PDFObject {
           throw new Error('Invalid stream: `endstream` not found')
         }
 
-        lexer.skipEOL(1)
+        lexer.skipEOL(1, true)
       }
     } else {
       obj.content = value

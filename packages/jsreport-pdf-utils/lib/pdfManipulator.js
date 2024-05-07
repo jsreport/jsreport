@@ -122,10 +122,6 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
         })
       }
 
-      if (outlines) {
-        doc.outlines(outlines)
-      }
-
       doc.processText({
         resolver: async (text, { remove, getPosition }) => {
           for (const mark of ['group', 'item', 'form', 'dest']) {
@@ -169,6 +165,11 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
         }
       })
 
+      if (outlines) {
+        // needs to be after the processText because it may need pdfDest processed
+        doc.outlines(outlines)
+      }
+
       if (pdfPassword) {
         doc.encrypt({
           password: pdfPassword.password,
@@ -208,6 +209,8 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
           e.message += '. Increase placeholder length using config extensions.pdfUtils.maxSignaturePlaceholderLength'
           throw e
         }
+
+        throw e
       }
     }
   }

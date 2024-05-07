@@ -75,8 +75,8 @@ function unionOutlines (ext, doc) {
   }
 
   if (docOutline.properties.get('First').object && extOutline.properties.get('Last').object) {
-    const docDests = doc.catalog.properties.get('Dests')?.object
-    const extDests = ext.catalog.properties.get('Dests')?.object
+    const docDests = doc.catalog.properties.get('Dests')?.object?.properties
+    const extDests = ext.catalog.properties.get('Dests')?.object?.properties
 
     if (!docDests || !extDests) {
     // something wrong, there needs to be dests when we want to union outlines
@@ -84,7 +84,8 @@ function unionOutlines (ext, doc) {
     }
 
     for (const key in extDests.dictionary) {
-      if (extDests.has(key)) {
+      if (docDests.has(key)) {
+        // when we unioned Dests, the outlines are likely merged as well
         return
       }
     }

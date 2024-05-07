@@ -10,18 +10,8 @@ module.exports = (ext, doc, { newPage, originalPage, xobj, copyAccessibilityTags
     doc.catalog.properties.get('AcroForm').object.prop('Fields', new PDF.Array([...doc.catalog.properties.get('AcroForm').object.properties.get('Fields'), ...fieldsToMerge]))
   }
 
-  if (ext.catalog.properties.get('Dests')) {
-    const docDests = doc.catalog.properties.get('Dests').object.properties
-    const extDests = ext.catalog.properties.get('Dests').object.properties
-
-    for (const key in extDests.dictionary) {
-      const dest = extDests.get(key)
-      if (originalPage) {
-        dest[0] = originalPage.toReference()
-      }
-      docDests.set(key, dest)
-    }
-  }
+  copyDests(ext, doc, newPage, originalPage)
+  updatePageInOutlineDests(doc, newPage, originalPage)
 
   if (originalPage) {
     const annots = newPage.properties.get('Annots')
@@ -117,4 +107,51 @@ function findStructsForPageAndReplaceOldPg (structTreeRoot, newPage, originalPag
     f(node)
   }
   return structsInPage
+}
+
+function copyDests (ext, doc, newPage, originalPage) {
+  if (ext.catalog.properties.get('Dests')) {
+    const docDests = doc.catalog.properties.get('Dests').object.properties
+    const extDests = ext.catalog.properties.get('Dests').object.properties
+
+    for (const key in extDests.dictionary) {
+      const dest = extDests.get(key)
+
+      if (dest[0].object !== newPage) {
+        // we skip dests that are not for this page
+        continue
+      }
+
+      if (originalPage) {
+        dest[0] = originalPage.toReference()
+      }
+
+      docDests.set(key, dest)
+    }
+  }
+}
+
+function updatePageInOutlineDests (doc, newPage, originalPage) {
+  if (!originalPage) {
+    return
+  }
+
+  const docOutline = doc.catalog.properties.get('Outlines')?.object
+
+  if (!docOutline) {
+    return
+  }
+
+  let currentNext = docOutline.properties.get('First')?.object
+
+  if (!currentNext) {
+    return
+  }
+
+  do {
+    const d = currentNext.properties.get('A')?.get('D')
+    if (Array.isArray(d) && d[0].object === newPage) {
+      d[0] = originalPage.toReference()
+    }
+  } while ((currentNext = currentNext?.properties.get('Next')?.object))
 }
