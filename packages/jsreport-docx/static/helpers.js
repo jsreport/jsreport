@@ -301,18 +301,35 @@ function docxTable (data, options) {
 function docxStyle (options) {
   const Handlebars = require('handlebars')
 
+  const styleId = options.hash.id
   const textColor = options.hash.textColor || ''
   const backgroundColor = options.hash.backgroundColor || ''
   const validTargets = ['text', 'paragraph', 'cell', 'row']
   const target = options.hash.target || 'text'
 
+  if (styleId == null) {
+    throw new Error('docxStyle helper invalid usage, style id not found')
+  }
+
   if (!validTargets.includes(target)) {
     throw new Error(`docxStyle helper "target" parameter must be any of these values: ${validTargets.join(', ')}, current: ${target}`)
   }
 
-  return new Handlebars.SafeString(
-    `<docxStyle id="${options.hash.id}" textColor="${textColor}" backgroundColor="${backgroundColor}" target="${target}" />`
-  )
+  if (options.data.styles != null) {
+    if (!options.data.styles.has(styleId)) {
+      options.data.styles.set(styleId, [])
+    }
+
+    const items = options.data.styles.get(styleId)
+
+    items.push({
+      textColor,
+      backgroundColor,
+      target
+    })
+  }
+
+  return new Handlebars.SafeString(`$docxStyleStart${styleId}$`)
 }
 
 function docxCheckbox (options) {
@@ -710,6 +727,23 @@ async function docxSData (data, options) {
     type === 'childCaller'
   ) {
     return new Handlebars.SafeString('')
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'styles'
+  ) {
+    const newData = Handlebars.createFrame(optionsToUse.data)
+
+    newData.styles = new Map()
+
+    let result = optionsToUse.fn(this, { data: newData })
+
+    const processStyles = require('docxProcessStyles')
+
+    result = processStyles(newData.styles, result)
+
+    return result
   }
 
   throw new Error(`invalid usage of docxSData helper${type != null ? ` (type: ${type})` : ''}`)

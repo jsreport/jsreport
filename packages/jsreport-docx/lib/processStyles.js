@@ -1,63 +1,12 @@
 const { DOMParser } = require('@xmldom/xmldom')
-const { nodeListToArray, serializeXml } = require('../utils')
-const { findCommonParent } = require('../styleUtils')
+const { nodeListToArray } = require('./utils')
+const { findCommonParent } = require('./styleUtils')
 
-// see the preprocess/styles.js for some explanation
+module.exports = function processStyles (stylesMap, xmlStr) {
+  const doc = new DOMParser().parseFromString(`<docxXml>${xmlStr}</docxXml>`)
+  const runEls = doc.getElementsByTagName('w:r')
 
-module.exports = (files, headerFooterRefs) => {
-  const documentFile = files.find(f => f.path === 'word/document.xml')
-
-  documentFile.data = documentFile.data.replace(/<docxStyles[^/]*\/>.*?(?=<docxStyleEnd\/>)<docxStyleEnd\/>/g, (val) => {
-    // no need to pass xml namespaces here because the nodes there are just used for reads,
-    // and are not inserted (re-used) somewhere else
-    const doc = new DOMParser().parseFromString(`<docxXml>${val}</docxXml>`)
-    const docxStylesEl = doc.getElementsByTagName('docxStyles')[0]
-    const docxStyleEndEl = doc.getElementsByTagName('docxStyleEnd')[0]
-    const runEls = doc.getElementsByTagName('w:r')
-
-    processDocxStylesEl(docxStylesEl, docxStyleEndEl, runEls, doc)
-
-    return serializeXml(doc).replace('<docxXml>', '').replace('</docxXml>', '')
-  })
-
-  for (const { doc: headerFooterDoc } of headerFooterRefs) {
-    const docxStylesEls = nodeListToArray(headerFooterDoc.getElementsByTagName('docxStyles'))
-
-    for (const docxStylesEl of docxStylesEls) {
-      let currentEl = docxStylesEl.nextSibling
-      let docxStyleEndEl
-      const middleEls = []
-      const runEls = []
-
-      if (currentEl != null) {
-        do {
-          if (currentEl.nodeName === 'docxStyleEnd') {
-            docxStyleEndEl = currentEl
-            currentEl = null
-          } else {
-            middleEls.push(currentEl)
-            currentEl = currentEl.nextSibling
-          }
-        } while (currentEl != null)
-      }
-
-      if (docxStyleEndEl == null) {
-        throw new Error('Could not find docxStyleEnd element for docxStyle processing')
-      }
-
-      for (const el of middleEls) {
-        const currentREls = nodeListToArray(el.getElementsByTagName('w:r'))
-        runEls.push(...currentREls)
-      }
-
-      processDocxStylesEl(docxStylesEl, docxStyleEndEl, runEls, headerFooterDoc)
-    }
-  }
-}
-
-function processDocxStylesEl (docxStylesEl, docxStyleEndEl, runEls, doc) {
   const activeStyles = []
-  const styleEls = nodeListToArray(docxStylesEl.childNodes)
 
   for (let i = 0; i < runEls.length; i++) {
     const wR = runEls[i]
@@ -76,30 +25,31 @@ function processDocxStylesEl (docxStylesEl, docxStyleEndEl, runEls, doc) {
       mainTextEl.textContent = mainTextEl.textContent.replace('$docxStyleStart', '')
       const id = mainTextEl.textContent.substring(startIdx, mainTextEl.textContent.indexOf('$'))
       mainTextEl.textContent = mainTextEl.textContent.replace(id + '$', '')
-      const currentStyleEl = styleEls.find(n => n.getAttribute('id') === id)
-      activeStyles.push(currentStyleEl)
+      const currentStyle = stylesMap.get(id).shift()
+      activeStyles.push(currentStyle)
     }
 
     if (mainTextEl.textContent.includes('$docxStyleEnd') && activeStyles.length > 0) {
       mainTextEl.setAttribute('xml:space', 'preserve')
       mainTextEl.textContent = mainTextEl.textContent.replace('$docxStyleEnd', '')
-      const currentStyleEl = activeStyles.pop()
-      color(doc, wR, currentStyleEl)
+      const currentStyle = activeStyles.pop()
+      color(doc, wR, currentStyle)
       continue
     }
 
     if (activeStyles.length > 0) {
-      const currentStyleEl = activeStyles[activeStyles.length - 1]
-      color(doc, wR, currentStyleEl)
+      const currentStyle = activeStyles[activeStyles.length - 1]
+      color(doc, wR, currentStyle)
     }
   }
 
-  docxStylesEl.parentNode.removeChild(docxStylesEl)
-  docxStyleEndEl.parentNode.removeChild(docxStyleEndEl)
+  const items = nodeListToArray(doc.documentElement.childNodes)
+
+  return items.map((el) => el.toString()).join('')
 }
 
-function color (doc, wR, currentStyleEl) {
-  const currentTarget = currentStyleEl.getAttribute('target')
+function color (doc, wR, currentStyle) {
+  const currentTarget = currentStyle.target
 
   const validParents = [
     { target: 'paragraph', tag: 'w:p' },
@@ -118,8 +68,8 @@ function color (doc, wR, currentStyleEl) {
     throw new Error(`Invalid target "${currentTarget}" for docxStyle`)
   }
 
-  const currentBackgroundColor = currentStyleEl.getAttribute('backgroundColor')
-  const currentTextColor = currentStyleEl.getAttribute('textColor')
+  const currentBackgroundColor = currentStyle.backgroundColor
+  const currentTextColor = currentStyle.textColor
 
   if (currentBackgroundColor == null && currentTextColor == null) {
     return

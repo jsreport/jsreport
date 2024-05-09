@@ -345,7 +345,7 @@ describe('docx style', () => {
     }
   })
 
-  it.skip('style - textColor target row with dynamic cells', async () => {
+  it('style - textColor target row with dynamic cells', async () => {
     const targetColors = {
       one: '0000FF',
       two: 'FF0000'
@@ -383,30 +383,39 @@ describe('docx style', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    // const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
-    // const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
 
-    // for (const wREl of wREls) {
-    //   const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
-    //   const wcolorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
-    //   const wTEl = wREl.getElementsByTagName('w:t')[0]
+    for (const wREl of wREls) {
+      const tcEL = wREl.parentNode.parentNode
 
-    //   if (wTEl.textContent === '') {
-    //     continue
-    //   }
+      should(tcEL.tagName).be.eql('w:tc')
 
-    //   switch (wTEl.textContent) {
-    //     case 'c':
-    //       should(wcolorEl).be.not.ok()
-    //       break
-    //     case 'a':
-    //     case 'b':
-    //       should(wcolorEl.getAttribute('w:val')).be.eql(targetColors.one)
-    //       break
-    //     default:
-    //       throw new Error(`Unexpected text "${wTEl.textContent}"`)
-    //   }
-    // }
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wcolorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
+      const wpEl = wREl.parentNode
+
+      if (wpEl.textContent === '') {
+        continue
+      }
+
+      switch (wpEl.textContent) {
+        case '0-0':
+        case '0-1':
+        case '2-0':
+        case '2-1':
+          should(wcolorEl.getAttribute('w:val')).be.eql(targetColors.one)
+          break
+        case '1-0':
+        case '1-1':
+        case '3-0':
+        case '3-1':
+          should(wcolorEl.getAttribute('w:val')).be.eql(targetColors.two)
+          break
+        default:
+          throw new Error(`Unexpected text "${wpEl.textContent}"`)
+      }
+    }
   })
 
   it('style - backgroundColor', async () => {
@@ -755,7 +764,78 @@ describe('docx style', () => {
     }
   })
 
-  it('style - backgroundColor target row with dynamic cells')
+  it('style - backgroundColor target row with dynamic cells', async () => {
+    const targetColors = {
+      one: '0000FF',
+      two: 'FF0000'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-backgroundcolor-target-row-dynamic-cells.docx'))
+          }
+        },
+        helpers: `
+          function getColor (rowIndex, colors) {
+            if (rowIndex % 2 === 0) {
+              return colors.one
+            }
+
+            return colors.two
+          }
+        `
+      },
+      data: {
+        rowsItems: [
+          ['Jan', 'jan.blaha@foo.com'],
+          ['Boris', 'boris@foo.met'],
+          ['Pavel', 'pavel@foo.met']
+        ],
+        columnsItems: ['Name', 'Email'],
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const tcEL = wREl.parentNode.parentNode
+
+      should(tcEL.tagName).be.eql('w:tc')
+
+      const tcPrEl = nodeListToArray(tcEL.childNodes).find((node) => node.tagName === 'w:tcPr')
+      const wshdEl = tcPrEl != null ? nodeListToArray(tcPrEl.childNodes).find(node => node.tagName === 'w:shd') : undefined
+      const wpEl = wREl.parentNode
+
+      if (wpEl.textContent === '') {
+        continue
+      }
+
+      switch (wpEl.textContent) {
+        case '0-0':
+        case '0-1':
+        case '2-0':
+        case '2-1':
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetColors.one)
+          break
+        case '1-0':
+        case '1-1':
+        case '3-0':
+        case '3-1':
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetColors.two)
+          break
+        default:
+          throw new Error(`Unexpected text "${wpEl.textContent}"`)
+      }
+    }
+  })
 
   it('style in document header', async () => {
     const targetColors = {

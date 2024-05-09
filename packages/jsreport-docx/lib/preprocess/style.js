@@ -49,6 +49,7 @@ module.exports = (files) => {
 
     const opened = []
     let docxStylesEl = null
+    const docxStylesStartMap = new WeakMap()
 
     for (let i = 0; i < textElements.length; i++) {
       const el = textElements[i]
@@ -62,10 +63,10 @@ module.exports = (files) => {
           remainingText = remainingText.slice(foundEndIdx + endStyleCall.length)
           const opening = opened.pop()
           const ending = { el, start: foundEndIdx }
-          // we ensure that there is single docxStyleEnd element created
+          // we ensure that there is single docxStyles close element created
           // for all nested docxStyle calls
           const createStyleEnd = opened.length === 0
-          processClosingTag(doc, opening, ending, docxStylesEl, createStyleEnd)
+          processClosingTag(doc, opening, ending, docxStylesEl, docxStylesStartMap, createStyleEnd)
         }
 
         const foundStartIdx = remainingText.indexOf(startStyleCall)
@@ -94,17 +95,19 @@ module.exports = (files) => {
 function processOpeningTag (doc, el) {
   const commonParentEl = findCommonParent(el.parentNode, validParents)
 
-  let docxStylesEl = commonParentEl.previousSibling
+  let stylesEl = commonParentEl.previousSibling
+  const isDocxStylesTag = stylesEl?.tagName === 'docxRemove' && stylesEl?.textContent.startsWith("{{#docxSData type='styles'")
 
-  if (!docxStylesEl || docxStylesEl.tagName !== 'docxStyles') {
-    docxStylesEl = doc.createElement('docxStyles')
-    commonParentEl.parentNode.insertBefore(docxStylesEl, commonParentEl)
+  if (!isDocxStylesTag) {
+    stylesEl = doc.createElement('docxRemove')
+    stylesEl.textContent = "{{#docxSData type='styles'}}"
+    commonParentEl.parentNode.insertBefore(stylesEl, commonParentEl)
   }
 
-  return docxStylesEl
+  return stylesEl
 }
 
-function processClosingTag (doc, opening, ending, stylesEl, createStyleEnd) {
+function processClosingTag (doc, opening, ending, docxStyleStartEl, docxStylesStartMap, createStyleEnd) {
   const startIdx = opening.start
   const styleId = opening.id
   const openingEl = opening.el
@@ -117,23 +120,24 @@ function processClosingTag (doc, opening, ending, stylesEl, createStyleEnd) {
   const leftEndText = endingEl.textContent.slice(0, endIdx)
   const targetEndText = endingEl.textContent.slice(endIdx)
 
-  const fakeElement = doc.createElement('docxRemove')
-  fakeElement.textContent = helperCall.replace('{{#docxStyle', `{{docxStyle id="${styleId}"`)
-  stylesEl.appendChild(fakeElement)
-
-  openingEl.textContent = leftStartText + targetStartText.replace(docxStyleCallRegExp, `$docxStyleStart${styleId}$`)
+  openingEl.textContent = leftStartText + targetStartText.replace(docxStyleCallRegExp, helperCall.replace('{{#docxStyle', `{{docxStyle id="${styleId}"`))
   endingEl.textContent = leftEndText + targetEndText.replace('{{/docxStyle}}', '$docxStyleEnd')
 
   if (!createStyleEnd) {
     return
   }
 
-  const commonParentEl = findCommonParent(endingEl.parentNode, validParents)
+  const hasEndStyles = docxStylesStartMap.get(docxStyleStartEl) != null
 
-  if (!commonParentEl.nextSibling || commonParentEl.nextSibling.tagName !== 'docxStyleEnd') {
-    const docxStyleEnd = doc.createElement('docxStyleEnd')
-    commonParentEl.parentNode.insertBefore(docxStyleEnd, commonParentEl.nextSibling)
+  if (hasEndStyles) {
+    return
   }
+
+  const commonParentEl = findCommonParent(endingEl.parentNode, validParents)
+  const docxStylesEndEl = doc.createElement('docxRemove')
+  docxStylesEndEl.textContent = '{{/docxSData}}'
+  commonParentEl.parentNode.insertBefore(docxStylesEndEl, commonParentEl.nextSibling)
+  docxStylesStartMap.set(docxStyleStartEl, docxStylesEndEl)
 }
 
 function getDocxStyleCallRegexp () {
