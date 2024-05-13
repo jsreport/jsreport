@@ -253,6 +253,23 @@ function applyPropertiesConfig (context, hierarchyPropertiesConfig, {
     shouldStoreOriginal = false
   }
 
+  // allow configuring parent as hidden, but child props as readonly so we expose
+  // just part of the parent
+  // const ignoreParentHidden = false
+  const ignoreParentHidden = (
+    isHidden &&
+    isGrouped &&
+    (hierarchyPropertiesConfig.inner != null || hierarchyPropertiesConfig.standalone != null)
+  )
+
+  if (parentOpts?.originalSandboxHidden !== true && ignoreParentHidden) {
+    // we store the original value for the top parent with hidden value
+    shouldStoreOriginal = true
+  } else if (parentOpts && parentOpts.originalSandboxHidden === true) {
+    // we don't store original value when parent was configured as hidden
+    shouldStoreOriginal = false
+  }
+
   // saving original value
   if (shouldStoreOriginal) {
     let exists = true
@@ -284,6 +301,19 @@ function applyPropertiesConfig (context, hierarchyPropertiesConfig, {
     Object.keys(c.standalone).forEach((standaloneKey) => {
       const standaloneConfig = c.standalone[standaloneKey]
 
+      const newParentOpts = {
+        sandboxHidden: ignoreParentHidden ? false : isHidden,
+        sandboxReadOnly: isReadOnly
+      }
+
+      // set and inherit originalSandboxHidden if needed
+      if (
+        parentOpts?.originalSandboxHidden === true ||
+        (ignoreParentHidden && isHidden)
+      ) {
+        newParentOpts.originalSandboxHidden = true
+      }
+
       applyPropertiesConfig(context, standaloneConfig, {
         original,
         customProxies,
@@ -291,7 +321,7 @@ function applyPropertiesConfig (context, hierarchyPropertiesConfig, {
         isRoot: false,
         isGrouped: false,
         onlyReadOnlyTopLevel,
-        parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: isReadOnly }
+        parentOpts: newParentOpts
       }, readOnlyConfigured)
     })
   }
@@ -300,19 +330,65 @@ function applyPropertiesConfig (context, hierarchyPropertiesConfig, {
     Object.keys(c.inner).forEach((innerKey) => {
       const innerConfig = c.inner[innerKey]
 
+      const newParentOpts = {
+        sandboxHidden: ignoreParentHidden ? false : isHidden,
+        sandboxReadOnly: isReadOnly
+      }
+
+      // set and inherit originalSandboxHidden if needed
+      if (
+        parentOpts?.originalSandboxHidden === true ||
+        (ignoreParentHidden && isHidden)
+      ) {
+        newParentOpts.originalSandboxHidden = true
+      }
+
       applyPropertiesConfig(context, innerConfig, {
         original,
         customProxies,
         prop: innerKey,
         isRoot: false,
         isGrouped: true,
-        parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: isReadOnly }
+        parentOpts: newParentOpts
       }, readOnlyConfigured)
     })
   }
 
   if (isHidden) {
-    omitProp(context, prop)
+    if (ignoreParentHidden) {
+      // when parent is hidden but there are configuration for child properties we just copy
+      // the properties listed there, we do this because we want to work with just the configured
+      // properties, the other properties should not be exposed
+      const currentValue = get(context, prop)
+
+      if (currentValue != null && typeof currentValue === 'object') {
+        let newValue
+
+        if (Array.isArray(currentValue)) {
+          newValue = []
+        } else {
+          newValue = {}
+        }
+
+        for (const config of [hierarchyPropertiesConfig.standalone, hierarchyPropertiesConfig.inner]) {
+          if (config == null) {
+            continue
+          }
+
+          for (const childProp of Object.keys(config)) {
+            if (hasOwn(context, childProp)) {
+              const childValue = get(context, childProp)
+              const targetProp = childProp.replace(`${prop}.`, '')
+              set(newValue, targetProp, childValue)
+            }
+          }
+        }
+
+        set(context, prop, newValue)
+      }
+    } else {
+      omitProp(context, prop)
+    }
   } else if (isReadOnly) {
     readOnlyProp(context, prop, readOnlyConfigured, customProxies, {
       onlyTopLevel: false,

@@ -531,6 +531,53 @@ describe('sandbox', () => {
       res.content.toString().should.be.eql('object')
     })
 
+    it('should allow configure property as hidden but inner level as readonly deeply (produces exposing just inner level properties)', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {
+            a: {
+              b: {
+                c: 'foo',
+                d: 'bar',
+                e: 'baz'
+              }
+            }
+          },
+          userCode: 'globalThis.result = JSON.stringify(a.b)',
+          executionFn: ({ context }) => {
+            return context.result
+          },
+          propertiesConfig: {
+            'a.b': {
+              sandboxHidden: true
+            },
+            'a.b.c': {
+              sandboxReadOnly: true
+            },
+            'a.b.d': {
+              sandboxReadOnly: true
+            }
+          }
+        }, req)
+
+        res.content = Buffer.from(r)
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const obj = JSON.parse(res.content.toString())
+
+      should(Object.keys(obj).length).be.eql(2)
+      should(obj.c).be.eql('foo')
+      should(obj.d).be.eql('bar')
+    })
+
     it('restore should reveal hidden props', async () => {
       reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
         const sandboxManager = {}
@@ -564,6 +611,65 @@ describe('sandbox', () => {
         }
       })
       res.content.toString().should.be.eql('undefinedstring')
+    })
+
+    it('restore should bring back property marked as hidden but with inner level as readonly deeply', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const sandboxManager = {}
+        const r = await reporter.runInSandbox({
+          manager: sandboxManager,
+          context: {
+            a: {
+              b: {
+                c: 'foo',
+                d: 'bar',
+                e: 'baz'
+              }
+            }
+          },
+          userCode: '',
+          executionFn: ({ context }) => {
+            const beforeRestore = JSON.stringify(context.a.b)
+            const restoredContext = sandboxManager.restore()
+            const afterRestore = JSON.stringify(restoredContext.a.b)
+
+            return beforeRestore + '\n' + afterRestore
+          },
+          propertiesConfig: {
+            'a.b': {
+              sandboxHidden: true
+            },
+            'a.b.c': {
+              sandboxReadOnly: true
+            },
+            'a.b.d': {
+              sandboxReadOnly: true
+            }
+          }
+        }, req)
+        res.content = Buffer.from(r)
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const output = res.content.toString().split('\n')
+      const first = JSON.parse(output[0])
+      const second = JSON.parse(output[1])
+
+      should(Object.keys(first).length).be.eql(2)
+      should(first.c).be.eql('foo')
+      should(first.d).be.eql('bar')
+
+      should(Object.keys(second).length).be.eql(3)
+      should(second.c).be.eql('foo')
+      should(second.d).be.eql('bar')
+      should(second.e).be.eql('baz')
     })
 
     it('be able to stringify object when non-existent properties are configured', async () => {
