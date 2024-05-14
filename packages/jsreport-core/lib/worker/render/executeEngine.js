@@ -14,7 +14,7 @@ module.exports = (reporter) => {
 
   reporter.templatingEngines = { cache: templatesCache }
 
-  const contextExecutionChainMap = new WeakMap()
+  const contextExecutionChainMap = new Map()
   const executionFnParsedParamsMap = new Map()
   const executionAsyncResultsMap = new Map()
   const executionAsyncCallChainMap = new Map()
@@ -69,7 +69,7 @@ module.exports = (reporter) => {
         return templatingEnginesEvaluate(false, executionInfo, entityInfo, req)
       },
       waitForAsyncHelper: async (maybeAsyncContent) => {
-        const executionChain = contextExecutionChainMap.get(context) || []
+        const executionChain = contextExecutionChainMap.get(context.__sandboxId) || []
         const executionId = executionChain[executionChain.length - 1]
 
         if (
@@ -99,7 +99,7 @@ module.exports = (reporter) => {
         return content
       },
       waitForAsyncHelpers: async () => {
-        const executionChain = contextExecutionChainMap.get(context) || []
+        const executionChain = contextExecutionChainMap.get(context.__sandboxId) || []
         const executionId = executionChain[executionChain.length - 1]
 
         if (executionId != null && executionAsyncResultsMap.has(executionId)) {
@@ -115,7 +115,7 @@ module.exports = (reporter) => {
         }
       },
       addFinishListener: (fn) => {
-        const executionChain = contextExecutionChainMap.get(context) || []
+        const executionChain = contextExecutionChainMap.get(context.__sandboxId) || []
         const executionId = executionChain[executionChain.length - 1]
 
         if (executionId && executionFinishListenersMap.has(executionId)) {
@@ -123,7 +123,7 @@ module.exports = (reporter) => {
         }
       },
       createAsyncHelperResult: (v) => {
-        const executionChain = contextExecutionChainMap.get(context) || []
+        const executionChain = contextExecutionChainMap.get(context.__sandboxId) || []
         const executionId = executionChain[executionChain.length - 1]
 
         const asyncResultMap = executionAsyncResultsMap.get(executionId)
@@ -170,6 +170,7 @@ module.exports = (reporter) => {
 
     const normalizedHelpers = `${helpers || ''}`
     const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${normalizedHelpers}`
+    let sandboxId
 
     const initFn = async (getTopLevelFunctions, compileScript) => {
       if (systemHelpersCache != null) {
@@ -213,14 +214,15 @@ module.exports = (reporter) => {
     }
 
     const executionFn = async ({ require, console, topLevelFunctions, context }) => {
+      sandboxId = context.__sandboxId
       const asyncResultMap = new Map()
       const asyncCallChainSet = new Set()
 
-      if (!contextExecutionChainMap.has(context)) {
-        contextExecutionChainMap.set(context, [])
+      if (!contextExecutionChainMap.has(sandboxId)) {
+        contextExecutionChainMap.set(sandboxId, [])
       }
 
-      contextExecutionChainMap.get(context).push(executionId)
+      contextExecutionChainMap.get(sandboxId).push(executionId)
 
       executionAsyncResultsMap.set(executionId, asyncResultMap)
       executionAsyncCallChainMap.set(executionId, asyncCallChainSet)
@@ -302,7 +304,7 @@ module.exports = (reporter) => {
 
       await executionFinishListenersMap.get(executionId).fire()
 
-      contextExecutionChainMap.set(context, contextExecutionChainMap.get(context).filter((id) => id !== executionId))
+      contextExecutionChainMap.set(sandboxId, contextExecutionChainMap.get(sandboxId).filter((id) => id !== executionId))
 
       return {
         // handlebars escapes single brackets before execution to prevent errors on {#asset}
@@ -387,6 +389,10 @@ module.exports = (reporter) => {
       }
 
       throw newError
+    } finally {
+      if (sandboxId != null) {
+        contextExecutionChainMap.delete(sandboxId)
+      }
     }
   }
 

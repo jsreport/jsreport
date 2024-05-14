@@ -2,19 +2,20 @@ require('should')
 const Reporter = require('@jsreport/jsreport-core')
 
 describe('components', function () {
+  describe('default trustUserCode', function () {
+    common()
+  })
+
+  describe('trustUserCode: true', function () {
+    common({ trustUserCode: true })
+  })
+})
+
+function common (options) {
   let reporter
 
-  beforeEach(() => {
-    reporter = Reporter({
-      rootDirectory: process.cwd()
-    })
-      .use(require('@jsreport/jsreport-assets')())
-      .use(require('@jsreport/jsreport-jsrender')())
-      .use(require('@jsreport/jsreport-handlebars')())
-      .use(require('../')())
-      .use(Reporter.tests.listeners())
-
-    return reporter.init()
+  beforeEach(async () => {
+    reporter = await initReporter(options)
   })
 
   afterEach(() => reporter.close())
@@ -515,4 +516,20 @@ describe('components', function () {
     res.content.toString().should.be.eql('hellohello')
     counter.should.be.eql(1)
   })
-})
+}
+
+async function initReporter (options) {
+  const reporter = Reporter({
+    ...options,
+    rootDirectory: process.cwd()
+  })
+    .use(require('@jsreport/jsreport-assets')())
+    .use(require('@jsreport/jsreport-jsrender')())
+    .use(require('@jsreport/jsreport-handlebars')())
+    .use(require('../')())
+    .use(Reporter.tests.listeners())
+
+  await reporter.init()
+
+  return reporter
+}

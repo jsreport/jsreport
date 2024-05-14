@@ -25,6 +25,9 @@ module.exports = function createRunInSandbox (reporter) {
     // it may turn out it is a bad approach in assets so we gonna delete it here
     const executionFnName = `${nanoid()}_executionFn`
 
+    // creating new id different than execution to ensure user code can not get access to
+    // internal functions by using the __sandboxId
+    context.__sandboxId = nanoid()
     context[executionFnName] = executionFn
     context.__appDirectory = reporter.options.appDirectory
     context.__rootDirectory = reporter.options.rootDirectory
