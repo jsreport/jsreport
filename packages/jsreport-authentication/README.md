@@ -7,11 +7,16 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.2.0
+
+- expose safe properties of req.context.user in sandbox
+- update ejs to fix deps audit
+
 ### 4.1.1
 
 - update express, body-parser to fix npm audit
 
-### 4.1.0
+### 4.1.0
 
 - internal changes to support new `response.output` api
 - auth with authorization server logs more errors from http request to remote server

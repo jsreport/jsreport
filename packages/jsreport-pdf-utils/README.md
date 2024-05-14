@@ -7,7 +7,12 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
-### 4.1.1
+### 4.2.0
+
+- stop using pdfjs-dist for test parsing and use our implementation
+- support external pdf with missing EOL after endstream improve merging pdf outlines
+
+### 4.1.1
 
 - dont set lang when it was already filled, fixes compatibility with newer chrome
 

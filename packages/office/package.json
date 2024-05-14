@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/office",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Some helpers for office based jsreport recipes",
   "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/office#readme",
   "repository": {

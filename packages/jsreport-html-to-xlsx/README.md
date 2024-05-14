@@ -7,7 +7,11 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
-### 4.1.1
+### 4.1.2
+
+- update @jsreport/office to fix set `res.meta.fileExtension` without starting `.`
+
+### 4.1.1
 
 - update chrome-page-eval to fix compatibility with newer chrome
 

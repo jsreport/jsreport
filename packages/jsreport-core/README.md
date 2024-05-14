@@ -256,7 +256,7 @@ jsreport currently support these main listeners
 - `closeListeners()` called when jsreport is about to be closed, you will usually put here some code that clean up some resource
 
 ## Studio
-jsreport includes also visual html studio and rest API. This is provided through two extensions, [@jsreport/jsreport-express](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-express) extension to have a web server available and [@jsreport/jsreport-studio](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-studio) for the web UI, both extensions should be installed in order to have the studio ready. See the documentation of each extension for the details.
+jsreport includes also visual html studio and rest API. This is provided through two extensions, [@jsreport/jsreport-express](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-express) extension to have a web server available and [@jsreport/jsreport-studio](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-studio) for the web UI, both extensions should be installed in order to have the studio ready. See the documentation of each extension for the details
 
 ## Template store
 `jsreport-core` includes API for persisting and accessing report templates. This API is then used by extensions mainly in combination with jsreport [studio](#studio). `jsreport-core` implements just in-memory persistence, but you can add other persistence methods through extensions, see the [template stores](https://jsreport.net/learn/template-stores) docummentation
@@ -282,11 +282,21 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.3.1
+
+- fix `waitForAsyncHelper`, `waitForAsyncHelpers` not working with trustUserCode: true
+
+### 4.3.0
+
+- expose safe properties of `req.context.user` in sandbox
+- fix component execution when wrapped with async helper
+- fix jsdom require in sandbox
+
 ### 4.2.2
 
 - fix recursive component rendering
 
-### 4.2.1
+### 4.2.1
 
 - response.output.update now accepts Web ReadableStream (which is what new version of puppeteer returns)
 

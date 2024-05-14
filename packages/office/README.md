@@ -5,6 +5,10 @@ Some helpers for officed based jsreport recipes
 
 ## Changelog
 
+### 4.1.1
+
+- fix res.meta.fileExtension should not start with "."
+
 ### 4.1.0
 
 - fix snyk audit

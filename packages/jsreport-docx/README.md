@@ -7,11 +7,20 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.3.0
+
+- add support for using docxStyle in loop
+- docxHtml: fix icon used in third level of lists and don't break when rendering list with level greater than max level (9)
+- improve error message when fetching images, include url to image in the message
+- docxHtml: add padding, margin support for cells
+- docxHtml: add border support for table, cell
+- docxHtml: fix rendering multiple paragraphs in single cell
+
 ### 4.2.1
 
 - docxHtml: fix title and list not working when having a wrapping <p> tag
 
-### 4.2.0
+### 4.2.0
 
 - add support for docxStyle to target paragraph, cell, row so styles can be applied to container instead of just text
 - docxHtml: fix case when nested ul/li not rendering in the correct order

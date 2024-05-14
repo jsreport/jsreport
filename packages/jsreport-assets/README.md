@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 4.1.1
+
+- update @jsreport/office to fix set `res.meta.fileExtension` without starting `.`
+
 ### 4.1.0
 
 - internal changes to support new `response.output` api

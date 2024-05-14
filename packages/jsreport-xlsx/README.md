@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.1.1
+
+- update @jsreport/office to fix set `res.meta.fileExtension` without starting `.`
+
 ### 4.1.0
 
 - performance optimizations

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.2.1
+
+- update @jsreport/office to fix set `res.meta.fileExtension` without starting `.`
+
 ### 4.2.0
 
 - fix concat tags logic

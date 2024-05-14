@@ -7,6 +7,10 @@ See https://jsreport.net/learn/components
 
 ## Changelog
 
+### 4.0.1
+
+- fix recursive components async rendering when wrapped in async helper
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

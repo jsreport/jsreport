@@ -24,13 +24,13 @@
     "test": "mocha test --timeout 15000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "4.1.0",
+    "@jsreport/office": "4.1.1",
     "html-docx-js-typescript": "0.1.5",
     "juice": "9.0.0",
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.2.2",
+    "@jsreport/jsreport-core": "4.3.1",
     "@jsreport/studio-dev": "4.0.0",
     "mocha": "10.1.0",
     "should": "13.2.3",

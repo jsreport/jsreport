@@ -7,6 +7,10 @@ see the documentation https://jsreport.net/learn/text
 
 ## Changelog
 
+### 4.0.1
+
+- fix res.meta.fileExtension should not start with "."
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

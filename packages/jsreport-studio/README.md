@@ -18,6 +18,10 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.1.1
+
+- fix getting studio preview as dark theme when using light theme
+
 ### 4.1.0
 
 - internal changes to support new `response.output` api
