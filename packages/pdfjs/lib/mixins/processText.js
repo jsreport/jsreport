@@ -1,6 +1,6 @@
-const CMapFactory = require('pdfjs-dist/lib/core/cmap.js').CMapFactory
-const StringStream = require('pdfjs-dist/lib/core/stream.js').StringStream
-const unicode = require('pdfjs-dist/lib/core/unicode')
+const CMapFactory = require('../pdfjs-ext/core/cmap.js').CMapFactory
+const StringStream = require('../pdfjs-ext/core/stream.js').StringStream
+const unicode = require('../pdfjs-ext/core/unicode.js')
 const normalizedUnicodes = unicode.getNormalizedUnicodes()
 const zlib = require('zlib')
 
@@ -8,15 +8,20 @@ module.exports = (doc) => {
   doc.processText = (options) => doc.finalizers.push(() => processText(doc, options))
 }
 
+module.exports.external = (ext) => {
+  ext.parseText = () => parseText(ext)
+}
+
 async function processText (doc, { resolver }) {
   let pageIndex = 0
-  for (const pageObject of doc.pages) {
+  const pages = doc.pages
+  for (const pageObject of pages) {
     const streamObject = pageObject.properties.get('Contents').object.content
     await processStream({
       doc,
       streamObject,
       page: pageObject,
-      pages: doc.pages,
+      pages,
       pageIndex,
       cmapCache: new Map(),
       resolver
@@ -26,21 +31,28 @@ async function processText (doc, { resolver }) {
 }
 
 async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapCache, resolver, currentMatrix }) {
-  // we just support known structures chrome produces
-  if (streamObject == null || !streamObject.object.properties.get('Filter')) {
+  if (streamObject == null) {
     return
   }
 
-  if (streamObject.object.properties.get('Filter').name !== 'FlateDecode') {
-    return
-  }
-
-  // optimize and don't go into images
   if (streamObject.object.properties.get('Subtype') && streamObject.object.properties.get('Subtype').name === 'Image') {
     return
   }
 
-  const lines = zlib.unzipSync(streamObject.content).toString('latin1').split('\n')
+  const filterProp = streamObject.object.properties.get('Filter')
+  let lines = null
+
+  if (filterProp && filterProp.name === 'FlateDecode') {
+    lines = zlib.unzipSync(streamObject.content).toString('latin1').split('\n')
+  }
+
+  if (!filterProp) {
+    lines = Buffer.from(streamObject.content).toString('latin1').split('\n')
+  }
+
+  if (lines == null) {
+    return
+  }
 
   const matrixesStack = []
   let currentPosition
@@ -257,4 +269,24 @@ const groupBy = function (xs, key) {
     (rv[x[key]] = rv[x[key]] || []).push(x)
     return rv
   }, {})
+}
+
+async function parseText (ext) {
+  const result = []
+  const pages = ext.pages
+  for (let i = 0; i < pages.length; i++) {
+    result[i] = ''
+    const pageObject = pages[i]
+    const streamObject = pageObject.properties.get('Contents').object.content
+    await processStream({
+      ext,
+      streamObject,
+      page: pageObject,
+      pages: pages,
+      pageIndex: i,
+      cmapCache: new Map(),
+      resolver: (v) => { result[i] += v }
+    })
+  }
+  return result
 }

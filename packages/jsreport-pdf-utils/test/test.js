@@ -1,5 +1,5 @@
 const JsReport = require('@jsreport/jsreport-core')
-const parsePdf = require('../lib/utils/parsePdf')
+const parsePdf = require('./parsePdf')
 const fs = require('fs')
 const path = require('path')
 const { External } = require('@jsreport/pdfjs')

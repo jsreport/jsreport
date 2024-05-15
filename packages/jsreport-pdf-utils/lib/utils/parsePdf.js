@@ -1,4 +1,4 @@
-const pdfjs = require('pdfjs-dist/legacy/build/pdf.js')
+const { External } = require('@jsreport/pdfjs')
 
 function parseGroup (text, hiddenPageFields) {
   let id = null
@@ -63,27 +63,17 @@ function parseItems (text, hiddenPageFields) {
   return items
 }
 
-async function getPageText (pageNum, doc) {
-  const page = await doc.getPage(pageNum)
-  const textContent = await page.getTextContent()
-  return textContent.items.reduce((a, v) => a + v.str, '')
-}
-
 module.exports = async (contentBuffer, {
   hiddenPageFields = {},
   includeText = false,
   password = null
 }) => {
-  let doc
+  let pages = null
   try {
-    const loadTask = pdfjs.getDocument(contentBuffer)
-    if (password != null) {
-      loadTask.onPassword = (updatePassword) => updatePassword(password)
-    }
-    doc = await loadTask.promise
+    const ext = new External(contentBuffer)
+    pages = await ext.parseText()
   } catch (e) {
-    // pdf.js fails on empty pdfs even it is valid
-    // seems better to just log warning than crash completely
+    // keep the back compatibility and avoid hard crash on pdf parse
     console.warn('Failed to parse pdf. Items, groups and text isn\'t filled: ' + e)
 
     return {
@@ -96,8 +86,7 @@ module.exports = async (contentBuffer, {
   let lastGroup
 
   const result = { pages: [] }
-  for (let i = 1; i < doc.numPages + 1; i++) {
-    const text = await getPageText(i, doc)
+  for (const text of pages) {
     const parsedGroup = parseGroup(text, hiddenPageFields)
     const page = {
       group: parsedGroup == null ? lastGroup : parsedGroup,

@@ -1108,4 +1108,11 @@ describe('pdfjs', () => {
     const buffer = await document.asBuffer()
     await validate(buffer)
   })
+
+  it('external text parsing', async () => {
+    const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    const pages = await external.parseText()
+    pages.should.have.length(1)
+    pages[0].should.be.eql('main')
+  })
 })

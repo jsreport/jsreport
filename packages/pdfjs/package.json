@@ -13,11 +13,11 @@
   "dependencies": {
     "@jsreport/node-signpdf": "1.4.2",
     "crypto-js": "4.2.0",
-    "parse-color": "1.0.0",
-    "pdfjs-dist": "2.16.105"
+    "parse-color": "1.0.0"    
   },
   "devDependencies": {
     "mocha": "10.1.0",
+    "pdfjs-dist": "2.16.105",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
@@ -26,7 +26,8 @@
       "mocha": true
     },
     "ignore": [
-      "lib/mixins/encrypt/security"
+      "lib/mixins/encrypt/security",
+      "lib/pdfjs-ext"
     ]
   }
 }
