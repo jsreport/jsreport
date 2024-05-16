@@ -1,4 +1,3 @@
-const path = require('path')
 
 const missingSecretMessage = 'pdf-sign extension uses encryption to store sensitive data and needs secret key to be defined. Please fill "encryption.secretKey" at the root of the config or disable encryption using "encryption.enabled=false".'
 
@@ -48,11 +47,6 @@ module.exports = (reporter, definition) => {
     certificateAssetShortid: { type: 'Edm.String', referenceTo: 'assets', schema: { type: 'null' } },
     reason: { type: 'Edm.String' }
   })
-
-  if (reporter.compilation) {
-    reporter.compilation.resource('pdfjs-dist-lib-files', path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'lib'))
-    reporter.compilation.resource('pdfjs-dist-legacy-build-files', path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'legacy/build'))
-  }
 
   if (reporter.documentStore.model.entityTypes.TemplateType) {
     reporter.documentStore.model.entityTypes.TemplateType.pdfOperations = { type: 'Collection(jsreport.PdfOperationType)' }

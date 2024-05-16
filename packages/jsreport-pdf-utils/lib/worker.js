@@ -7,16 +7,6 @@ const proxyExtend = require('./proxyExtend')
 const missingSecretMessage = 'pdf-sign extension uses encryption to store sensitive data and needs secret key to be defined. Please fill "encryption.secretKey" at the root of the config or disable encryption using "encryption.enabled=false".'
 
 module.exports = (reporter, definition) => {
-  // warm up of deps to make it work in trustUserCode: false (SES),
-  // this also allows to not require early when it is not needed. (trustUserCode: true)
-  // usage of try catch was done to prevent the app to fail here, instead it will fail
-  // at the same later time in which the dep is used
-  if (reporter.options.trustUserCode === false) {
-    try {
-      require('pdfjs-dist/legacy/build/pdf.js').getDocument(Buffer.from([])).promise.catch(() => {})
-    } catch {}
-  }
-
   let helpersScript
 
   reporter.addRequestContextMetaConfig('pdfUtilsForms', { sandboxHidden: true })
