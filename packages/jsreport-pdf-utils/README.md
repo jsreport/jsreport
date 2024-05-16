@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.2.1
+
+- remove references to pdfjs-dist
+
 ### 4.2.0
 
 - stop using pdfjs-dist for test parsing and use our implementation
