@@ -13,15 +13,61 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 
 class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  render() {
+  constructor(props) {
+    super(props);
+    this.applyDefaultsToEntity = this.applyDefaultsToEntity.bind(this);
+    this.changeHtmlToText = this.changeHtmlToText.bind(this);
+  }
+  componentDidMount() {
+    this.applyDefaultsToEntity(this.props);
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.entity._id !== this.props.entity._id) {
+      this.applyDefaultsToEntity(this.props);
+    }
+  }
+  applyDefaultsToEntity(props) {
+    const {
+      entity
+    } = props;
+    let entityNeedsDefault = false;
+    if (entity.__isNew || entity.htmlToText == null || entity.htmlToText.decodeEntities == null || entity.htmlToText.uppercaseHeadings == null || entity.htmlToText.returnDomByDefault == null) {
+      entityNeedsDefault = true;
+    }
+    if (entityNeedsDefault) {
+      const newProps = {};
+      if (entity.htmlToText == null || entity.htmlToText.decodeEntities == null) {
+        newProps.decodeEntities = true;
+      }
+      if (entity.htmlToText == null || entity.htmlToText.uppercaseHeadings == null) {
+        newProps.uppercaseHeadings = true;
+      }
+      if (entity.htmlToText == null || entity.htmlToText.returnDomByDefault == null) {
+        newProps.returnDomByDefault = true;
+      }
+      this.changeHtmlToText(props, newProps);
+    }
+  }
+  changeHtmlToText(props, change) {
     const {
       entity,
       onChange
+    } = props;
+    const htmlToText = entity.htmlToText || {};
+    onChange({
+      ...entity,
+      htmlToText: {
+        ...htmlToText,
+        ...change
+      }
+    });
+  }
+  render() {
+    const {
+      entity
     } = this.props;
     const recipeProps = entity.htmlToText || {};
-    const changeProps = change => onChange(Object.assign({}, entity, {
-      htmlToText: Object.assign({}, entity.htmlToText, change)
-    }));
+    const changeHtmlToText = this.changeHtmlToText;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "properties-section"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -30,7 +76,7 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
       title: "Comma separated css selectors of tables to pick",
       placeholder: "#invoice, .address",
       value: recipeProps.tables,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         tables: v.target.value
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -38,8 +84,8 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "select all tables"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       title: "Select all tables",
       type: "checkbox",
-      value: recipeProps.tablesSelectAll,
-      onChange: v => changeProps({
+      checked: recipeProps.tablesSelectAll === true,
+      onChange: v => changeHtmlToText(this.props, {
         tablesSelectAll: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -47,20 +93,23 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "word wrap"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       title: "Wrap the line after x characters",
       type: "number",
-      placeholder: "130",
+      placeholder: "80",
       min: "0",
       max: "1000",
-      value: recipeProps.wordwrap,
-      onChange: v => changeProps({
-        wordwrap: parseInt(v.target.value)
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      value: recipeProps.wordWrap != null && recipeProps.wordWrap !== '' ? recipeProps.wordWrap : '',
+      onChange: v => {
+        const targetValue = parseInt(v.target.value);
+        changeHtmlToText(this.props, {
+          wordWrap: isNaN(targetValue) ? null : targetValue
+        });
+      }
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", null, "when set to 0 word wrap is disabled"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "form-group"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "linkHrefBaseUrl"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       title: "linkHrefBaseUrl",
       placeholder: "/",
       value: recipeProps.linkHrefBaseUrl,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         linkHrefBaseUrl: v.target.value
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -68,7 +117,7 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "hideLinkHrefIfSameAsText"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: recipeProps.hideLinkHrefIfSameAsText === true,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         hideLinkHrefIfSameAsText: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -76,7 +125,7 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "ignoreHref"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: recipeProps.ignoreHref === true,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         ignoreHref: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -84,7 +133,7 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "ignoreImage"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: recipeProps.ignoreImage === true,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         ignoreImage: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -92,23 +141,24 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "preserveNewlines"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: recipeProps.preserveNewlines === true,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         preserveNewlines: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "decodeOptions"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      title: "decodeOptions",
-      value: recipeProps.decodeOptions,
-      onChange: v => changeProps({
-        decodeOptions: v.target.value
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "decodeEntities"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      title: "decodeEntities",
+      checked: recipeProps.decodeEntities === true,
+      onChange: v => changeHtmlToText(this.props, {
+        decodeEntities: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "form-group"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "uppercaseHeadings"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: recipeProps.uppercaseHeadings !== false,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         uppercaseHeadings: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -116,15 +166,16 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "singleNewLineParagraphs"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: recipeProps.singleNewLineParagraphs === true,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         singleNewLineParagraphs: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "form-group"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "baseElement"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      title: "baseElement",
+      title: "Comma separated css selectors of element to pick content",
+      placeholder: "#content, #content2",
       value: recipeProps.baseElement,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         baseElement: v.target.value
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -132,7 +183,7 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "returnDomByDefault"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: recipeProps.returnDomByDefault === true,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         returnDomByDefault: v.target.checked
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -140,7 +191,7 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "longWordSplitWrapCharacters"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       title: "Comma separated characters that may be wrapped on, these are used in order",
       value: recipeProps.longWordSplitWrapCharacters,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         longWordSplitWrapCharacters: v.target.value
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -148,7 +199,7 @@ class HtmlToTextProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component 
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "longWordSplitForceWrapOnLimit"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: recipeProps.longWordSplitForceWrapOnLimit === true,
-      onChange: v => changeProps({
+      onChange: v => changeHtmlToText(this.props, {
         longWordSplitForceWrapOnLimit: v.target.checked
       })
     })));
