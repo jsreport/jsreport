@@ -37,7 +37,7 @@
     "@jsreport/jsreport-express": "4.1.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "mocha": "10.1.0",
-    "puppeteer": "22.4.1",
+    "puppeteer": "22.8.2",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
