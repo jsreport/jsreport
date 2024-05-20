@@ -5,7 +5,7 @@ ARG TARGETPLATFORM
 ARG UID=2500
 ARG GID=2500
 
-ENV GOSU_VERSION 1.12
+ENV GOSU_VERSION 1.17
 RUN set -eux; \
     \
     apk add --no-cache --virtual .gosu-deps \
@@ -55,7 +55,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
-    git \
+    libcurl@edge=8.7.1-r0 \
+    git@edge=2.45.1-r0 \
     # so user can docker exec -it test /bin/bash
     bash
 
@@ -78,8 +79,23 @@ WORKDIR /app
 
 ENV PUPPETEER_SKIP_DOWNLOAD true
 
+RUN npm install -g npm
+# ====== COMMENT THIS WHEN CHECKING trivy audit ======
 RUN npm i -g @jsreport/jsreport-cli
 RUN jsreport init
+# =====================================================
+
+# ====== UNCOMMENT THIS WHEN CHECKING trivy audit ======
+# trivy checks should be done with this image default/Dockerfile,
+# because it does not add the whole yarn workspace
+# (which makes it report vulnerabilities for other packages in the workspace that are not relevant here)
+# (we need to build with latest package.json in workspace)
+# COPY ./packages/jsreport/server.js server.js
+# COPY ./packages/jsreport/index.js index.js
+# COPY ./packages/jsreport/package.json package.json
+# COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json
+# RUN npm install
+# =====================================================
 
 RUN npm cache clean -f && rm -rf /tmp/*
 

@@ -54,8 +54,22 @@ RUN apt-get install -y nodejs
 WORKDIR /app
 ENV PUPPETEER_CACHE_DIR /app/.puppeteer-cache
 
+# ====== COMMENT THIS WHEN CHECKING trivy audit ======
 RUN npm i -g @jsreport/jsreport-cli
 RUN jsreport init
+# =====================================================
+
+# ====== UNCOMMENT THIS WHEN CHECKING trivy audit ======
+# trivy checks should be done with this image default/Dockerfile,
+# because it does not add the whole yarn workspace
+# (which makes it report vulnerabilities for other packages in the workspace that are not relevant here)
+# (we need to build with latest package.json in workspace)
+# COPY ./packages/jsreport/server.js server.js
+# COPY ./packages/jsreport/index.js index.js
+# COPY ./packages/jsreport/package.json package.json
+# COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json
+# RUN npm install
+# =====================================================
 
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.0.0 \
     @jsreport/jsreport-pug@5.0.0 \
