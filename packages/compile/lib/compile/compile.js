@@ -316,6 +316,9 @@ async function compileExe (label, config, options) {
     'tslint.json'
   ]
 
+  filesToIgnore.push('**/node_modules/typescript/**')
+  filesToIgnore.push('**/node_modules/phantomjs/**')
+  filesToIgnore.push('**/node_modules/phantomjs-prebuilt/**')
   filesToIgnore.push('packages/**/.DS_Store')
   filesToIgnore.push(`**/node_modules/**/{${ignoredConfigFiles.join(',')}}`)
   filesToIgnore.push('**/node_modules/**/*.{markdown,md,mkd,ts,d.ts,js.flow,coffee,swp,tgz,sh}')
