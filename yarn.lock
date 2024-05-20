@@ -2755,10 +2755,10 @@
   resolved "https://registry.npmjs.org/@polka/url/-/url-1.0.0-next.21.tgz"
   integrity sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==
 
-"@puppeteer/browsers@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.1.0.tgz#2683d3c908ecfc9af6b63111b5037679d3cebfd8"
-  integrity sha512-xloWvocjvryHdUjDam/ZuGMh7zn4Sn3ZAaV4Ah2e2EwEt90N3XphZlSsU3n0VDc1F7kggCjMuH0UuxfPQ5mD9w==
+"@puppeteer/browsers@2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.2.3.tgz#ad6b79129c50825e77ddaba082680f4dad0b674e"
+  integrity sha512-bJ0UBsk0ESOs6RFcLXOt99a3yTDcOKlzfjad+rhFwdaG1Lu/Wzq58GHYCDTlZ9z6mldf4g+NTb+TXEfe0PpnsQ==
   dependencies:
     debug "4.3.4"
     extract-zip "2.0.1"
@@ -5361,13 +5361,14 @@ chrome-trace-event@^1.0.2:
   resolved "https://registry.npmjs.org/chrome-trace-event/-/chrome-trace-event-1.0.3.tgz"
   integrity sha512-p3KULyQg4S7NIHixdwbGX+nFHkoBiA4YQmyWtjb8XngSKV124nJmRysgAeujbUVb15vh+RvFUfCPqU7rXk+hZg==
 
-chromium-bidi@0.5.12:
-  version "0.5.12"
-  resolved "https://registry.yarnpkg.com/chromium-bidi/-/chromium-bidi-0.5.12.tgz#19f8576b5284169a340b7c38c9cd1e01f74fc695"
-  integrity sha512-sZMgEBWKbupD0Q7lyFu8AWkrE+rs5ycE12jFkGwIgD/VS8lDPtelPlXM7LYaq4zrkZ/O2L3f4afHUHL0ICdKog==
+chromium-bidi@0.5.19:
+  version "0.5.19"
+  resolved "https://registry.yarnpkg.com/chromium-bidi/-/chromium-bidi-0.5.19.tgz#e4f4951b7d9b20d668d6b387839f7b7bf2d69ef4"
+  integrity sha512-UA6zL77b7RYCjJkZBsZ0wlvCTD+jTjllZ8f6wdO4buevXgTZYjV+XLB9CiEa2OuuTGGTLnI7eN9I60YxuALGQg==
   dependencies:
     mitt "3.0.1"
     urlpattern-polyfill "10.0.0"
+    zod "3.22.4"
 
 circular-json@^0.3.1:
   version "0.3.3"
@@ -6079,13 +6080,6 @@ cross-env@6.0.3:
   dependencies:
     cross-spawn "^7.0.0"
 
-cross-fetch@4.0.0:
-  version "4.0.0"
-  resolved "https://registry.npmjs.org/cross-fetch/-/cross-fetch-4.0.0.tgz"
-  integrity sha512-e4a5N8lVvuLgAWgnCrLr2PP0YyDOTHa9H/Rj54dirp61qXnNq46m82bRhNqIA5VccJtWBvPTFRV3TtvHUKPB1g==
-  dependencies:
-    node-fetch "^2.6.12"
-
 cross-spawn@^5.1.0:
   version "5.1.0"
   resolved "https://registry.npmjs.org/cross-spawn/-/cross-spawn-5.1.0.tgz"
@@ -6749,10 +6743,10 @@ detect-node@^2.0.4:
   resolved "https://registry.npmjs.org/detect-node/-/detect-node-2.1.0.tgz"
   integrity sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==
 
-devtools-protocol@0.0.1249869:
-  version "0.0.1249869"
-  resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.1249869.tgz#000c3cf1afc189a18db98135a50d4a8f95a47d29"
-  integrity sha512-Ctp4hInA0BEavlUoRy9mhGq0i+JSo/AwVyX2EFgZmV1kYB+Zq+EMBAn52QWu6FbRr10hRb6pBl420upbp4++vg==
+devtools-protocol@0.0.1273771:
+  version "0.0.1273771"
+  resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.1273771.tgz#46aeb5db41417e2c2ad3d8367c598c975290b1a5"
+  integrity sha512-QDbb27xcTVReQQW/GHJsdQqGKwYBE7re7gxehj467kKP2DKuYBUj6i2k5LRiAC66J1yZG/9gsxooz/s9pcm0Og==
 
 diff-match-patch@1.0.5:
   version "1.0.5"
@@ -12964,7 +12958,7 @@ node-fetch@^2.6.0, node-fetch@^2.6.7:
   dependencies:
     whatwg-url "^5.0.0"
 
-node-fetch@^2.6.12, node-fetch@^2.6.6:
+node-fetch@^2.6.6:
   version "2.7.0"
   resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.7.0.tgz"
   integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
@@ -14960,26 +14954,26 @@ punycode@^2.3.0:
   resolved "https://registry.npmjs.org/punycode/-/punycode-2.3.0.tgz"
   integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
 
-puppeteer-core@22.4.1:
-  version "22.4.1"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-22.4.1.tgz#b7c8b4041dac8d49e409a6130f3fa2a39395298a"
-  integrity sha512-l9nf8NcirYOHdID12CIMWyy7dqcJCVtgVS+YAiJuUJHg8+9yjgPiG2PcNhojIEEpCkvw3FxvnyITVfKVmkWpjA==
+puppeteer-core@22.8.2:
+  version "22.8.2"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-22.8.2.tgz#ef40d7de4f17b28b2c34144170d2bf02a520aaff"
+  integrity sha512-Gg9jUdJeF+UDbYPhwD602ky1LeS+AXDksl6sludrti1b7Sv/U4ZGY1LFyejarkIBCSHiPWL9SngXKCNcdZWBgQ==
   dependencies:
-    "@puppeteer/browsers" "2.1.0"
-    chromium-bidi "0.5.12"
-    cross-fetch "4.0.0"
+    "@puppeteer/browsers" "2.2.3"
+    chromium-bidi "0.5.19"
     debug "4.3.4"
-    devtools-protocol "0.0.1249869"
-    ws "8.16.0"
+    devtools-protocol "0.0.1273771"
+    ws "8.17.0"
 
-puppeteer@22.4.1:
-  version "22.4.1"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-22.4.1.tgz#00ce84a05d644d891657943d4f4c6669914a2f8b"
-  integrity sha512-Mag1wRLanzwS4yEUyrDRBUgsKlH3dpL6oAfVwNHG09oxd0+ySsatMvYj7HwjynWy/S+Hg+XHLgjyC/F6CsL/lg==
+puppeteer@22.8.2:
+  version "22.8.2"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-22.8.2.tgz#1b7d34b1e428bb83d7d723908381f8a99d215d49"
+  integrity sha512-yNZmKZHhCtBAjwuzonMyzgXLYxnvR+tbpatuyMffK+zmag84xyqE2EvPEWV1FvDXwW3m+/PT4Zp4KLerWWydQQ==
   dependencies:
-    "@puppeteer/browsers" "2.1.0"
+    "@puppeteer/browsers" "2.2.3"
     cosmiconfig "9.0.0"
-    puppeteer-core "22.4.1"
+    devtools-protocol "0.0.1273771"
+    puppeteer-core "22.8.2"
 
 qs@6.11.0, qs@^6.5.1, qs@^6.5.2, qs@^6.7.0, qs@^6.9.4:
   version "6.11.0"
@@ -19117,15 +19111,20 @@ write@^0.2.1:
   dependencies:
     mkdirp "^0.5.1"
 
-ws@8.16.0, ws@^8.0.0:
-  version "8.16.0"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.16.0.tgz#d1cd774f36fbc07165066a60e40323eab6446fd4"
-  integrity sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==
+ws@8.17.0:
+  version "8.17.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.17.0.tgz#d145d18eca2ed25aaf791a183903f7be5e295fea"
+  integrity sha512-uJq6108EgZMAl20KagGkzCKfMEjxmKvZHG7Tlq0Z6nOky7YF7aq4mOx6xK8TJ/i1LeK4Qus7INktacctDgY8Ow==
 
 ws@^7.3.1:
   version "7.5.9"
   resolved "https://registry.npmjs.org/ws/-/ws-7.5.9.tgz"
   integrity sha512-F+P9Jil7UiSKSkppIiD94dN07AwvFixvLIj1Og1Rl9GGMuNipJnV9JzjD6XuqmAeiswGvUmNLjr5cFuXwNS77Q==
+
+ws@^8.0.0:
+  version "8.16.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.16.0.tgz#d1cd774f36fbc07165066a60e40323eab6446fd4"
+  integrity sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==
 
 ws@^8.13.0:
   version "8.13.0"
@@ -19534,3 +19533,8 @@ zip@1.2.0:
   integrity sha512-8B4Z9BXJKkI8BkHhKvQan4rwCzUENnj95YHFYrI7F1NbqKCIdW86kujctzEB+kJ6XapHPiAhiZ9xi5GbW5SPdw==
   dependencies:
     bops "~0.1.1"
+
+zod@3.22.4:
+  version "3.22.4"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.4.tgz#f31c3a9386f61b1f228af56faa9255e845cf3fff"
+  integrity sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==
