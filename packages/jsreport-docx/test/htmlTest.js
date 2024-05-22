@@ -12231,6 +12231,133 @@ describe('docx html embed', () => {
             }
           }
         })
+
+        it(`${mode} mode - <table> table, row and cell background and color style`, async () => {
+          const templateStr = [
+            '<table style="background-color: green; color: blue">',
+            '<tr style="background-color: red; color: white">',
+            '<td>col1-1</td>',
+            '<td>col1-2</td>',
+            '<td style="background-color: yellow; color: green">col1-3</td>',
+            '</tr>',
+            '<tr>',
+            '<td>col2-1</td>',
+            '<td>col2-2</td>',
+            '<td>col2-3</td>',
+            '</tr>',
+            '<tr>',
+            '<td>col3-1</td>',
+            '<td>col3-2</td>',
+            '<td>col3-3</td>',
+            '</tr>',
+            '</table>'
+          ].join('')
+
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxTemplateBuf
+                }
+              }
+            },
+            data: {
+              html: createHtml(templateStr, [])
+            }
+          })
+
+          // Write document for easier debugging
+          fs.writeFileSync(outputPath, result.content)
+
+          const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+          const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+          should(paragraphAtRootNodes.length).be.eql(0)
+
+          const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+          should(tableAtRootNodes.length).be.eql(1)
+
+          const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+          const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+          should(gridColNodes.length).be.eql(3)
+
+          const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+          should(rowNodes.length).be.eql(3)
+
+          const findShd = (tcNode) => {
+            const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+            if (tcShd == null) {
+              return
+            }
+
+            return tcShd
+          }
+
+          const findColor = (paragraphNode) => {
+            const rEl = paragraphNode.getElementsByTagName('w:r')[0]
+
+            if (rEl == null) {
+              return
+            }
+
+            const rPrEl = nodeListToArray(rEl.childNodes).find((el) => el.nodeName === 'w:rPr')
+
+            if (rPrEl == null) {
+              return
+            }
+
+            return nodeListToArray(rPrEl.childNodes).find((el) => el.nodeName === 'w:color')
+          }
+
+          for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+            const rowNode = rowNodes[rowIdx]
+            const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+            should(cellNodes.length).be.eql(3)
+
+            for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+              const paragraphEls = cellNodes[cellIdx].getElementsByTagName('w:p')
+
+              should(paragraphEls.length).be.eql(1)
+
+              if (rowIdx === 0) {
+                if (cellIdx === 0 || cellIdx === 1) {
+                  should(findShd(cellNodes[cellIdx])?.getAttribute('w:fill')).be.eql('FF0000')
+                  should(findColor(paragraphEls[0])?.getAttribute('w:val')).be.eql('FFFFFF')
+                } else {
+                  should(findShd(cellNodes[cellIdx])?.getAttribute('w:fill')).be.eql('FFFF00')
+                  should(findColor(paragraphEls[0])?.getAttribute('w:val')).be.eql('008000')
+                }
+              } else {
+                should(findShd(cellNodes[cellIdx])?.getAttribute('w:fill')).be.eql('008000')
+                should(findColor(paragraphEls[0])?.getAttribute('w:val')).be.eql('0000FF')
+              }
+
+              const cellNode = cellNodes[cellIdx]
+              const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+              should(runNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes.length).be.eql(1)
+
+              should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+            }
+          }
+        })
       }
     }
   })

@@ -305,6 +305,20 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
           createNode(doc, 'w:tcW', { attributes: { 'w:w': currentDocxMeta.width, 'w:type': 'dxa' } })
         ]
 
+        if (currentDocxMeta.backgroundColor != null) {
+          const backgroundColor = currentDocxMeta.backgroundColor.slice(1)
+
+          cellPrChildren.push(
+            createNode(doc, 'w:shd', {
+              attributes: {
+                'w:val': 'clear',
+                'w:color': 'auto',
+                'w:fill': backgroundColor
+              }
+            })
+          )
+        }
+
         if (currentDocxMeta.colspan != null) {
           cellPrChildren.push(
             createNode(doc, 'w:gridSpan', { attributes: { 'w:val': currentDocxMeta.colspan } })

@@ -388,8 +388,11 @@ function createTable (type, data) {
       cell: ['colspan', 'rowspan', 'width', 'height', 'border']
     }
 
+    // properties here will be removed once applied to table item,
+    // so children does not inherit them, if some exception needs to be made
+    // then be aware and add logic for it here
     const allNotNullPropertiesMap = {
-      cell: ['indent', 'spacing']
+      cell: ['backgroundColor', 'indent', 'spacing']
     }
 
     const staticNotNullProperties = allNotNullStaticPropertiesMap[type] || []
@@ -405,8 +408,6 @@ function createTable (type, data) {
     for (const prop of normalNotNullProperties) {
       if (data[prop] != null) {
         props[prop] = data[prop]
-        // indent and spacing should be removed once applied to table item,
-        // so children does not inherit them
         delete data[prop]
       }
     }

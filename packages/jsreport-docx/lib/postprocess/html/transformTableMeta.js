@@ -411,6 +411,10 @@ function generateTableItems (tableItemMeta, tableWidth) {
         newCell.vMerge = cell.vMerge
       }
 
+      if (cell.backgroundColor != null) {
+        newCell.backgroundColor = cell.backgroundColor
+      }
+
       if (cell.indent != null) {
         newCell.indent = cell.indent
       }
