@@ -3,7 +3,7 @@
 When the time comes to update the ses dependency we should follow these steps:
 
 - update the  package.json to new version, install it.
-- copy the file specified in `node_modules/ses/package.json#exports` at entry "./lockdown" -> "require" to `./index.js`,
+- copy the file specified in `node_modules/ses/package.json#exports` at entry "./lockdown" -> "require" -> "default" to `./index.js`,
   if there was not a bigger architecture in the sources files this file should be `node_modules/ses/dist/ses.cjs`.
 - inspect the diff in git to give some insight of the changes introduced by the ses
 - add a commit with format `add @jsreport/ses (ses@x.x.x)` replace `x.x.x` with the new ses version.
