@@ -88,7 +88,7 @@ class WorkerReporter extends Reporter {
       require('@jsreport/ses')
 
       // eslint-disable-next-line
-      lockdown({
+      repairIntrinsics({
         // don't change locale based methods which users may be using in their templates
         localeTaming: 'unsafe',
         errorTaming: 'unsafe',
@@ -108,6 +108,8 @@ class WorkerReporter extends Reporter {
         overrideTaming: 'severe'
       })
 
+      // NOTE: we need to add these overrides between repairIntrinsics and hardenIntrinsics
+      // for them to be valid.
       // in this mode we alias the unsafe methods to safe ones
       Buffer.allocUnsafe = function allocUnsafe (size) {
         return Buffer.alloc(size)
@@ -116,6 +118,9 @@ class WorkerReporter extends Reporter {
       Buffer.allocUnsafeSlow = function allocUnsafeSlow (size) {
         return Buffer.alloc(size)
       }
+
+      // eslint-disable-next-line
+      hardenIntrinsics()
 
       // we also harden Buffer because we expose it to sandbox
       // eslint-disable-next-line
