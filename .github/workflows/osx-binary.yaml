@@ -25,4 +25,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: jsreport-osx.tar.gz
+          files: |
+            exe-output/jsreport-osx-x64.tar.gz
+            exe-output/jsreport-osx-arm64.tar.gz

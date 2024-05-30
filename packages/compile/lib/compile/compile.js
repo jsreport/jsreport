@@ -201,7 +201,13 @@ async function compileExe (label, config, options) {
   }
 
   execArgs.push('--target')
-  execArgs.push(`node${options.nodeVersion}`)
+
+  if (options.multitarget && process.platform === 'darwin' && process.arch === 'arm64') {
+    // for macos we build two versions of executable (x86 and arm)
+    execArgs.push(`node${options.nodeVersion}-macos-x64,node${options.nodeVersion}-macos-arm64`)
+  } else {
+    execArgs.push(`node${options.nodeVersion}`)
+  }
 
   // we start with the worker part of core, because it is not required from source code
   // explicitly, it needs to be done this way
@@ -423,7 +429,7 @@ async function compileExe (label, config, options) {
 
   await pkg.exec(execArgs)
 
-  debug(`Compile ${label} successful, the output can be found at ${path.join(process.cwd(), options.output)}`)
+  debug(`Compile ${label} successful, the output file(s) can be found at ${path.dirname(path.join(process.cwd(), options.output))}`)
 }
 
 async function prepareJsreport (id, options) {
