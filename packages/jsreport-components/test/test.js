@@ -118,6 +118,46 @@ function common (options) {
     res.content.toString().should.be.eql('johnpeter')
   })
 
+  it('should evaluate recursive component using handlebars with helpers', async () => {
+    const barcodes = [
+      { barcode: '1234' },
+      { barcode: '9898' }
+    ]
+
+    await reporter.documentStore.collection('components').insert({
+      name: 'barcodeComponent',
+      content: '{{getBarcode128 barcode}}',
+      helpers: `
+        async function getBarcode128 (sCode) {
+          return await new Promise((resolve) => {
+            // force a delay to reproduce the order a specific order in which
+            // components are evaluated
+            setTimeout(() => resolve('barcode' + sCode), 200)
+          })
+        }
+      `,
+      engine: 'handlebars'
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 't1',
+      content: '{{#each barcodes}}{{component "barcodeComponent"}}{{/each}}',
+      engine: 'handlebars',
+      recipe: 'html'
+    })
+
+    const res = await reporter.render({
+      template: {
+        name: 't1'
+      },
+      data: {
+        barcodes
+      }
+    })
+
+    res.content.toString().should.be.eql(barcodes.map((b) => `barcode${b.barcode}`).join(''))
+  })
+
   it('should evaluate recursive component using handlebars and waitForAsyncHelper should work ', async () => {
     await reporter.documentStore.collection('components').insert({
       name: 'c1',

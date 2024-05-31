@@ -229,98 +229,103 @@ module.exports = (reporter) => {
       executionFinishListenersMap.set(executionId, reporter.createListenerCollection())
       executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions, context })
 
-      const key = engine.buildTemplateCacheKey
-        ? engine.buildTemplateCacheKey({ content }, req)
-        : `template:${content}:${engine.name}`
+      try {
+        const key = engine.buildTemplateCacheKey
+          ? engine.buildTemplateCacheKey({ content }, req)
+          : `template:${content}:${engine.name}`
 
-      if (!templatesCache.has(key)) {
-        try {
-          templatesCache.set(key, engine.compile(content, { require }))
-        } catch (e) {
-          e.property = 'content'
-          throw e
-        }
-      }
-
-      const compiledTemplate = templatesCache.get(key)
-      const wrappedTopLevelFunctions = {}
-
-      for (const h of Object.keys(topLevelFunctions)) {
-        // extra wrapping for enhance the error with the helper name
-        wrappedTopLevelFunctions[h] = wrapHelperForHelperNameWhenError(topLevelFunctions[h], h, () => executionFnParsedParamsMap.has(req.context.id))
-
-        if (engine.getWrappingHelpersEnabled && engine.getWrappingHelpersEnabled(req) === false) {
-          wrappedTopLevelFunctions[h] = engine.wrapHelper(wrappedTopLevelFunctions[h], { context })
-        } else {
-          wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(wrappedTopLevelFunctions[h], asyncResultMap, asyncCallChainSet)
-        }
-      }
-
-      let contentResult = await engine.execute(compiledTemplate, wrappedTopLevelFunctions, data, { require })
-
-      const resolvedResultsMap = new Map()
-
-      // we need to use the cloned map, because there can be a waitForAsyncHelper pending that needs the asyncResultMap values
-      let clonedMap = new Map(asyncResultMap)
-
-      while (clonedMap.size > 0) {
-        const keysEvaluated = [...clonedMap.keys()]
-
-        await Promise.all(keysEvaluated.map(async (k) => {
-          const result = await clonedMap.get(k)
-          asyncCallChainSet.delete(k)
-          resolvedResultsMap.set(k, `${result}`)
-          clonedMap.delete(k)
-        }))
-
-        // we need to remove the keys processed from the original map at this point
-        // (after the await) because during the async work the asyncResultMap will be read
-        for (const k of keysEvaluated) {
-          asyncResultMap.delete(k)
-        }
-
-        // we want to process the new generated pending async results
-        if (asyncResultMap.size > 0) {
-          clonedMap = new Map(asyncResultMap)
-        }
-      }
-
-      while (contentResult.includes('{#asyncHelperResult')) {
-        contentResult = contentResult.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
-          const asyncResultId = p1
-          // this can happen if a child jsreport.templatingEngines.evaluate receives an async value from outer scope
-          // because every evaluate uses a unique map of async results
-          // example is the case when component receives as a value async thing
-          // instead of returning "undefined" we let the outer eval to do the replace
-          if (!resolvedResultsMap.has(asyncResultId)) {
-            // returning asyncUnresolvedHelperResult just to avoid endless loop, after replace we put it back to asyncHelperResult
-            return `{#asyncUnresolvedHelperResult ${asyncResultId}}`
+        if (!templatesCache.has(key)) {
+          try {
+            templatesCache.set(key, engine.compile(content, { require }))
+          } catch (e) {
+            e.property = 'content'
+            throw e
           }
-          return `${resolvedResultsMap.get(asyncResultId)}`
-        })
-      }
+        }
 
-      contentResult = contentResult.replace(/asyncUnresolvedHelperResult/g, 'asyncHelperResult')
+        const compiledTemplate = templatesCache.get(key)
+        const wrappedTopLevelFunctions = {}
 
-      await executionFinishListenersMap.get(executionId).fire()
+        for (const h of Object.keys(topLevelFunctions)) {
+          // extra wrapping for enhance the error with the helper name
+          wrappedTopLevelFunctions[h] = wrapHelperForHelperNameWhenError(topLevelFunctions[h], h, () => executionFnParsedParamsMap.has(req.context.id))
 
-      contextExecutionChainMap.set(sandboxId, contextExecutionChainMap.get(sandboxId).filter((id) => id !== executionId))
+          if (engine.getWrappingHelpersEnabled && engine.getWrappingHelpersEnabled(req) === false) {
+            wrappedTopLevelFunctions[h] = engine.wrapHelper(wrappedTopLevelFunctions[h], { context })
+          } else {
+            wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(wrappedTopLevelFunctions[h], asyncResultMap, asyncCallChainSet)
+          }
+        }
 
-      return {
-        // handlebars escapes single brackets before execution to prevent errors on {#asset}
-        // we need to unescape them later here, because at the moment the engine.execute finishes
-        // the async helpers aren't executed yet
-        content: engine.unescape ? engine.unescape(contentResult) : contentResult
+        let contentResult = await engine.execute(compiledTemplate, wrappedTopLevelFunctions, data, { require })
+
+        const resolvedResultsMap = new Map()
+
+        // we need to use the cloned map, because there can be a waitForAsyncHelper pending that needs the asyncResultMap values
+        let clonedMap = new Map(asyncResultMap)
+
+        while (clonedMap.size > 0) {
+          const keysEvaluated = [...clonedMap.keys()]
+
+          await Promise.all(keysEvaluated.map(async (k) => {
+            const result = await clonedMap.get(k)
+            asyncCallChainSet.delete(k)
+            resolvedResultsMap.set(k, `${result}`)
+            clonedMap.delete(k)
+          }))
+
+          // we need to remove the keys processed from the original map at this point
+          // (after the await) because during the async work the asyncResultMap will be read
+          for (const k of keysEvaluated) {
+            asyncResultMap.delete(k)
+          }
+
+          // we want to process the new generated pending async results
+          if (asyncResultMap.size > 0) {
+            clonedMap = new Map(asyncResultMap)
+          }
+        }
+
+        while (contentResult.includes('{#asyncHelperResult')) {
+          contentResult = contentResult.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
+            const asyncResultId = p1
+            // this can happen if a child jsreport.templatingEngines.evaluate receives an async value from outer scope
+            // because every evaluate uses a unique map of async results
+            // example is the case when component receives as a value async thing
+            // instead of returning "undefined" we let the outer eval to do the replace
+            if (!resolvedResultsMap.has(asyncResultId)) {
+              // returning asyncUnresolvedHelperResult just to avoid endless loop, after replace we put it back to asyncHelperResult
+              return `{#asyncUnresolvedHelperResult ${asyncResultId}}`
+            }
+            return `${resolvedResultsMap.get(asyncResultId)}`
+          })
+        }
+
+        contentResult = contentResult.replace(/asyncUnresolvedHelperResult/g, 'asyncHelperResult')
+
+        await executionFinishListenersMap.get(executionId).fire()
+
+        return {
+          // handlebars escapes single brackets before execution to prevent errors on {#asset}
+          // we need to unescape them later here, because at the moment the engine.execute finishes
+          // the async helpers aren't executed yet
+          content: engine.unescape ? engine.unescape(contentResult) : contentResult
+        }
+      } finally {
+        // ensure we clean the execution from the chain always, even on errors
+        contextExecutionChainMap.set(sandboxId, contextExecutionChainMap.get(sandboxId).filter((id) => id !== executionId))
       }
     }
 
-    // executionFnParsedParamsMap is there to cache parsed components helpers to speed up longer loops
-    // we store there for the particular request and component a promise and only the first component gets compiled
-    if (executionFnParsedParamsMap.get(req.context.id).has(executionFnParsedParamsKey)) {
-      const { require, console, topLevelFunctions, context } = await (executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).promise)
+    try {
+      // executionFnParsedParamsMap is there to cache parsed components helpers to speed up longer loops
+      // we store there for the particular request and component a promise and only the first component gets compiled
+      if (executionFnParsedParamsMap.get(req.context.id).has(executionFnParsedParamsKey)) {
+        const { require, console, topLevelFunctions, context } = await (executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).promise)
 
-      return executionFn({ require, console, topLevelFunctions, context })
-    } else {
+        return await executionFn({ require, console, topLevelFunctions, context })
+      }
+
       const awaiter = {}
 
       awaiter.promise = new Promise((resolve) => {
@@ -328,69 +333,69 @@ module.exports = (reporter) => {
       })
 
       executionFnParsedParamsMap.get(req.context.id).set(executionFnParsedParamsKey, awaiter)
-    }
 
-    if (reporter.options.sandbox.cache && reporter.options.sandbox.cache.enabled === false) {
-      templatesCache.reset()
-    }
+      if (reporter.options.sandbox.cache && reporter.options.sandbox.cache.enabled === false) {
+        templatesCache.reset()
+      }
 
-    try {
-      return await reporter.runInSandbox({
-        context: {
-          ...(engine.createContext ? engine.createContext(req) : {})
-        },
-        userCode: normalizedHelpers,
-        initFn,
-        executionFn,
-        currentPath: entityPath,
-        onRequire: (moduleName, { context }) => {
-          if (engine.onRequire) {
-            return engine.onRequire(moduleName, { context })
+      try {
+        return await reporter.runInSandbox({
+          context: {
+            ...(engine.createContext ? engine.createContext(req) : {})
+          },
+          userCode: normalizedHelpers,
+          initFn,
+          executionFn,
+          currentPath: entityPath,
+          onRequire: (moduleName, { context }) => {
+            if (engine.onRequire) {
+              return engine.onRequire(moduleName, { context })
+            }
+          }
+        }, req)
+      } catch (e) {
+        if (!handleErrors) {
+          throw e
+        }
+
+        const nestedErrorWithEntity = e.entity != null
+
+        const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
+
+        const newError = reporter.createError(`Error when evaluating engine ${engine.name} for template ${templatePath}`, { original: e })
+
+        if (templatePath !== 'anonymous' && !nestedErrorWithEntity) {
+          const templateFound = await reporter.folders.resolveEntityFromPath(templatePath, 'templates', req)
+
+          if (templateFound != null) {
+            newError.entity = {
+              shortid: templateFound.entity.shortid,
+              name: templateFound.entity.name,
+              content
+            }
           }
         }
-      }, req)
-    } catch (e) {
-      if (!handleErrors) {
-        throw e
-      }
 
-      const nestedErrorWithEntity = e.entity != null
-
-      const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
-
-      const newError = reporter.createError(`Error when evaluating engine ${engine.name} for template ${templatePath}`, { original: e })
-
-      if (templatePath !== 'anonymous' && !nestedErrorWithEntity) {
-        const templateFound = await reporter.folders.resolveEntityFromPath(templatePath, 'templates', req)
-
-        if (templateFound != null) {
-          newError.entity = {
-            shortid: templateFound.entity.shortid,
-            name: templateFound.entity.name,
-            content
-          }
+        if (!nestedErrorWithEntity && e.property !== 'content') {
+          newError.property = 'helpers'
         }
-      }
 
-      if (!nestedErrorWithEntity && e.property !== 'content') {
-        newError.property = 'helpers'
-      }
+        if (nestedErrorWithEntity) {
+          // errors from nested assets evals needs an unwrap for some reason
+          newError.entity = { ...e.entity }
+        }
 
-      if (nestedErrorWithEntity) {
-        // errors from nested assets evals needs an unwrap for some reason
-        newError.entity = { ...e.entity }
-      }
+        // we remove the decoratedSuffix (created from sandbox) from the stack trace (if it is there) because it
+        // just creates noise and duplication when printing the error,
+        // we just want the decoration on the message not in the stack trace
+        if (e.decoratedSuffix != null && newError.stack.includes(e.decoratedSuffix)) {
+          newError.stack = newError.stack.replace(e.decoratedSuffix, '')
+        }
 
-      // we remove the decoratedSuffix (created from sandbox) from the stack trace (if it is there) because it
-      // just creates noise and duplication when printing the error,
-      // we just want the decoration on the message not in the stack trace
-      if (e.decoratedSuffix != null && newError.stack.includes(e.decoratedSuffix)) {
-        newError.stack = newError.stack.replace(e.decoratedSuffix, '')
+        throw newError
       }
-
-      throw newError
     } finally {
-      if (sandboxId != null) {
+      if (sandboxId != null && contextExecutionChainMap.get(sandboxId)?.length === 0) {
         contextExecutionChainMap.delete(sandboxId)
       }
     }
