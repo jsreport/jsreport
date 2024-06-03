@@ -86,7 +86,7 @@ async function exportToStream (reporter, selection, req) {
       entities.folders = serializedEntities
     }
 
-    await reporter.documentStore.commitTransaction(req)
+    await reporter.documentStore.rollbackTransaction(req)
   } catch (e) {
     await reporter.documentStore.rollbackTransaction(req)
 
