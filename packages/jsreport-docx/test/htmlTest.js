@@ -12231,7 +12231,579 @@ describe('docx html embed', () => {
             }
           }
         })
+
+        it(`${mode} mode - <table> table, row and cell background and color style`, async () => {
+          const templateStr = [
+            '<table style="background-color: green; color: blue">',
+            '<tr style="background-color: red; color: white">',
+            '<td>col1-1</td>',
+            '<td>col1-2</td>',
+            '<td style="background-color: yellow; color: green">col1-3</td>',
+            '</tr>',
+            '<tr>',
+            '<td>col2-1</td>',
+            '<td>col2-2</td>',
+            '<td>col2-3</td>',
+            '</tr>',
+            '<tr>',
+            '<td>col3-1</td>',
+            '<td>col3-2</td>',
+            '<td>col3-3</td>',
+            '</tr>',
+            '</table>'
+          ].join('')
+
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxTemplateBuf
+                }
+              }
+            },
+            data: {
+              html: createHtml(templateStr, [])
+            }
+          })
+
+          // Write document for easier debugging
+          fs.writeFileSync(outputPath, result.content)
+
+          const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+          const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+          should(paragraphAtRootNodes.length).be.eql(0)
+
+          const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+          should(tableAtRootNodes.length).be.eql(1)
+
+          const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+          const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+          should(gridColNodes.length).be.eql(3)
+
+          const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+          should(rowNodes.length).be.eql(3)
+
+          const findShd = (tcNode) => {
+            const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+            if (tcShd == null) {
+              return
+            }
+
+            return tcShd
+          }
+
+          const findColor = (paragraphNode) => {
+            const rEl = paragraphNode.getElementsByTagName('w:r')[0]
+
+            if (rEl == null) {
+              return
+            }
+
+            const rPrEl = nodeListToArray(rEl.childNodes).find((el) => el.nodeName === 'w:rPr')
+
+            if (rPrEl == null) {
+              return
+            }
+
+            return nodeListToArray(rPrEl.childNodes).find((el) => el.nodeName === 'w:color')
+          }
+
+          for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+            const rowNode = rowNodes[rowIdx]
+            const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+            should(cellNodes.length).be.eql(3)
+
+            for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+              const paragraphEls = cellNodes[cellIdx].getElementsByTagName('w:p')
+
+              should(paragraphEls.length).be.eql(1)
+
+              if (rowIdx === 0) {
+                if (cellIdx === 0 || cellIdx === 1) {
+                  should(findShd(cellNodes[cellIdx])?.getAttribute('w:fill')).be.eql('FF0000')
+                  should(findColor(paragraphEls[0])?.getAttribute('w:val')).be.eql('FFFFFF')
+                } else {
+                  should(findShd(cellNodes[cellIdx])?.getAttribute('w:fill')).be.eql('FFFF00')
+                  should(findColor(paragraphEls[0])?.getAttribute('w:val')).be.eql('008000')
+                }
+              } else {
+                should(findShd(cellNodes[cellIdx])?.getAttribute('w:fill')).be.eql('008000')
+                should(findColor(paragraphEls[0])?.getAttribute('w:val')).be.eql('0000FF')
+              }
+
+              const cellNode = cellNodes[cellIdx]
+              const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+              should(runNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes.length).be.eql(1)
+
+              should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+            }
+          }
+        })
       }
+
+      it(`${mode} mode - <table> with nested table`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2',
+          '<table>',
+          '<tr>',
+          '<td>coln1-1</td>',
+          '<td>coln1-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>coln2-1</td>',
+          '<td>coln2-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>coln3-1</td>',
+          '<td>coln3-2</td>',
+          '</tr>',
+          '</table>',
+          '</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '<td>col3-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(15)
+
+          const expectedTexts = [
+            'col1-1', 'col1-2',
+            'coln1-1', 'coln1-2', 'coln2-1', 'coln2-2', 'coln3-1', 'coln3-2',
+            'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col3-1', 'col3-2', 'col3-3'
+          ]
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const textNode = runNodes[runIdx].getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(expectedTexts[runIdx])
+          }
+
+          return
+        }
+
+        checkTable(tableAtRootNodes[0], 3, 3, ({ rowIdx, cellIdx, cellNode }) => {
+          const paragraphNodes = nodeListToArray(cellNode.childNodes).filter((n) => n.nodeName === 'w:p')
+
+          if (rowIdx === 0 && cellIdx === 1) {
+            should(paragraphNodes.length).be.eql(2)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+
+            const tableNodes = nodeListToArray(cellNode.childNodes).filter((n) => n.nodeName === 'w:tbl')
+
+            should(tableNodes.length).be.eql(1)
+
+            const childTableNode = tableNodes[0]
+
+            checkTable(childTableNode, 2, 3, ({
+              rowIdx: childRowIdx,
+              cellIdx: childCellIdx,
+              cellNode: childCellNode
+            }) => {
+              const paragraphNodes = nodeListToArray(childCellNode.childNodes).filter((n) => n.nodeName === 'w:p')
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes[0].textContent).be.eql(`coln${childRowIdx + 1}-${childCellIdx + 1}`)
+            })
+
+            const bottomTextNodes = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+
+            should(bottomTextNodes[0].textContent).be.eql('')
+          } else {
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        })
+      })
+
+      it(`${mode} mode - <table> with nested table in middle of cell content`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2',
+          '<table>',
+          '<tr>',
+          '<td>coln1-1</td>',
+          '<td>coln1-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>coln2-1</td>',
+          '<td>coln2-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>coln3-1</td>',
+          '<td>coln3-2</td>',
+          '</tr>',
+          '</table>',
+          'extra',
+          '</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '<td>col3-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(16)
+
+          const expectedTexts = [
+            'col1-1', 'col1-2',
+            'coln1-1', 'coln1-2', 'coln2-1', 'coln2-2', 'coln3-1', 'coln3-2',
+            'extra',
+            'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col3-1', 'col3-2', 'col3-3'
+          ]
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const textNode = runNodes[runIdx].getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(expectedTexts[runIdx])
+          }
+
+          return
+        }
+
+        checkTable(tableAtRootNodes[0], 3, 3, ({ rowIdx, cellIdx, cellNode }) => {
+          const paragraphNodes = nodeListToArray(cellNode.childNodes).filter((n) => n.nodeName === 'w:p')
+
+          if (rowIdx === 0 && cellIdx === 1) {
+            should(paragraphNodes.length).be.eql(2)
+
+            const topTextNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(topTextNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+
+            const tableNodes = nodeListToArray(cellNode.childNodes).filter((n) => n.nodeName === 'w:tbl')
+
+            should(tableNodes.length).be.eql(1)
+
+            const childTableNode = tableNodes[0]
+
+            checkTable(childTableNode, 2, 3, ({
+              rowIdx: childRowIdx,
+              cellIdx: childCellIdx,
+              cellNode: childCellNode
+            }) => {
+              const paragraphNodes = nodeListToArray(childCellNode.childNodes).filter((n) => n.nodeName === 'w:p')
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes[0].textContent).be.eql(`coln${childRowIdx + 1}-${childCellIdx + 1}`)
+            })
+
+            const bottomTextNodes = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+
+            should(bottomTextNodes[0].textContent).be.eql('extra')
+          } else {
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        })
+      })
+
+      it(`${mode} mode - <table> with more nested tables`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2',
+          '<table>',
+          '<tr>',
+          '<td>coln1-1</td>',
+          '<td>coln1-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>coln2-1</td>',
+          '<td>coln2-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>coln3-1</td>',
+          '<td>coln3-2',
+          '<table>',
+          '<tr>',
+          '<td>colnn1-1</td>',
+          '<td>colnn1-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>colnn2-1</td>',
+          '<td>colnn2-2</td>',
+          '</tr>',
+          '</table>',
+          '</td>',
+          '</tr>',
+          '</table>',
+          '</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '<td>col3-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(19)
+
+          const expectedTexts = [
+            'col1-1', 'col1-2',
+            'coln1-1', 'coln1-2', 'coln2-1', 'coln2-2', 'coln3-1', 'coln3-2',
+            'colnn1-1', 'colnn1-2', 'colnn2-1', 'colnn2-2',
+            'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col3-1', 'col3-2', 'col3-3'
+          ]
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const textNode = runNodes[runIdx].getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(expectedTexts[runIdx])
+          }
+
+          return
+        }
+
+        checkTable(tableAtRootNodes[0], 3, 3, ({ rowIdx, cellIdx, cellNode }) => {
+          const paragraphNodes = nodeListToArray(cellNode.childNodes).filter((n) => n.nodeName === 'w:p')
+
+          if (rowIdx === 0 && cellIdx === 1) {
+            should(paragraphNodes.length).be.eql(2)
+
+            const topTextNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(topTextNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+
+            const tableNodes = nodeListToArray(cellNode.childNodes).filter((n) => n.nodeName === 'w:tbl')
+
+            should(tableNodes.length).be.eql(1)
+
+            const childTableNode = tableNodes[0]
+
+            checkTable(childTableNode, 2, 3, ({
+              rowIdx: childRowIdx,
+              cellIdx: childCellIdx,
+              cellNode: childCellNode
+            }) => {
+              const paragraphNodes = nodeListToArray(childCellNode.childNodes).filter((n) => n.nodeName === 'w:p')
+
+              if (childRowIdx === 2 && childCellIdx === 1) {
+                should(paragraphNodes.length).be.eql(2)
+
+                const topTextNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                should(topTextNodes[0].textContent).be.eql(`coln${childRowIdx + 1}-${childCellIdx + 1}`)
+
+                const tableNodes = nodeListToArray(childCellNode.childNodes).filter((n) => n.nodeName === 'w:tbl')
+
+                should(tableNodes.length).be.eql(1)
+
+                const childTableNode = tableNodes[0]
+
+                checkTable(childTableNode, 2, 2, ({
+                  rowIdx: childRowIdx,
+                  cellIdx: childCellIdx,
+                  cellNode: childCellNode
+                }) => {
+                  const paragraphNodes = nodeListToArray(childCellNode.childNodes).filter((n) => n.nodeName === 'w:p')
+
+                  should(paragraphNodes.length).be.eql(1)
+
+                  const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                  should(textNodes[0].textContent).be.eql(`colnn${childRowIdx + 1}-${childCellIdx + 1}`)
+                })
+
+                const bottomTextNodes = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+
+                should(bottomTextNodes[0].textContent).be.eql('')
+              } else {
+                should(paragraphNodes.length).be.eql(1)
+
+                const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                should(textNodes[0].textContent).be.eql(`coln${childRowIdx + 1}-${childCellIdx + 1}`)
+              }
+            })
+
+            const bottomTextNodes = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+
+            should(bottomTextNodes[0].textContent).be.eql('')
+          } else {
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        })
+      })
     }
   })
 
@@ -15106,6 +15678,33 @@ describe('<img> tag', () => {
     })
   }
 })
+
+function checkTable (targetTableNode, expectedColsCount, expectedRowsCount, onCell) {
+  const tblGridNode = nodeListToArray(targetTableNode.childNodes).filter((n) => n.nodeName === 'w:tblGrid')[0]
+  const gridColNodes = nodeListToArray(tblGridNode.childNodes).filter((n) => n.nodeName === 'w:gridCol')
+
+  should(gridColNodes.length).be.eql(expectedColsCount)
+
+  const rowNodes = nodeListToArray(targetTableNode.childNodes).filter((el) => el.nodeName === 'w:tr')
+
+  should(rowNodes.length).be.eql(expectedRowsCount)
+
+  for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+    const rowNode = rowNodes[rowIdx]
+    const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+    should(cellNodes.length).be.eql(expectedColsCount)
+
+    for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+      onCell({
+        rowIdx,
+        cellIdx,
+        rowNode: rowNodes[rowIdx],
+        cellNode: cellNodes[cellIdx]
+      })
+    }
+  }
+}
 
 function commonWithText ({
   getReporter,

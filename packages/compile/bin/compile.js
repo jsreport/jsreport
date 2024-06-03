@@ -13,6 +13,12 @@ const argv = require('yargs')
     default: false,
     desc: 'Enables debugging mode which includes more logs and does not delete intermediate startup script'
   })
+  .options('m', {
+    alias: 'multitarget',
+    type: 'boolean',
+    default: false,
+    desc: 'Enables building for multiple different CPU architectures'
+  })
   .options('i', {
     demandOption: true,
     alias: 'input',

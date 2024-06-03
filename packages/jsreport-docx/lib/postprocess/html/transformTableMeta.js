@@ -391,8 +391,13 @@ function generateTableItems (tableItemMeta, tableWidth) {
         children: [...cell.children]
       }
 
-      // we normalize here and add default paragraph and empty text for empty cell
-      if (newCell.children.length === 0) {
+      // we normalize the following cases to prevent producing broken document:
+      // - cell can not be empty
+      // - if cell contain nested table and it is last child then we need to add an empty paragraph after it
+      if (
+        newCell.children.length === 0 ||
+        newCell.children[newCell.children.length - 1].type === 'table'
+      ) {
         newCell.children.push({
           type: 'paragraph',
           children: [{ type: 'text', value: '' }]
@@ -409,6 +414,10 @@ function generateTableItems (tableItemMeta, tableWidth) {
 
       if (cell.vMerge != null) {
         newCell.vMerge = cell.vMerge
+      }
+
+      if (cell.backgroundColor != null) {
+        newCell.backgroundColor = cell.backgroundColor
       }
 
       if (cell.indent != null) {

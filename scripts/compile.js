@@ -44,9 +44,16 @@ async function run () {
   fs.copyFileSync(path.join(__dirname, '../', `${packageManager === 'npm' ? 'node_modules' : 'packages'}/jsreport-cli/example.config.json`), configFile.path)
   fs.copyFileSync(path.join(__dirname, '../', 'executable-license.txt'), licenseFile.path)
 
+  const outputDirectory = path.join(__dirname, '../', 'exe-output')
+  const exeBasename = 'jsreport'
+
+  fs.rmSync(outputDirectory, { recursive: true, force: true })
+
+  fs.mkdirSync(outputDirectory)
+
   console.log('running compilation "npx jsreport-compile"..')
 
-  childProcess.execSync('npx jsreport-compile', {
+  childProcess.execSync(`npx jsreport-compile --multitarget --output "${path.join(outputDirectory, process.platform === 'win32' ? `${exeBasename}.exe` : exeBasename)}"`, {
     stdio: 'inherit',
     env: {
       ...process.env,
@@ -55,48 +62,56 @@ async function run () {
     }
   })
 
-  const exeFile = {
-    name: process.platform === 'win32' ? 'jsreport.exe' : 'jsreport',
-    path: path.join(__dirname, '../', process.platform === 'win32' ? 'jsreport.exe' : 'jsreport')
-  }
-
   const compressionTarget = process.platform === 'win32' ? 'zip' : 'tar'
 
-  const outputFile = path.join(__dirname, '../', process.platform === 'win32' ? 'jsreport-win.zip' : `jsreport-${process.platform === 'darwin' ? 'osx' : 'linux'}.tar.gz`)
+  const exeFiles = fs.readdirSync(outputDirectory, { withFileTypes: true }).filter((dirent) => dirent.isFile() && dirent.name.startsWith(exeBasename))
 
-  console.log(`creating ${compressionTarget} file "${outputFile}"..`)
+  for (const exeFile of exeFiles) {
+    const exeFilePath = path.join(outputDirectory, exeFile.name)
+    const nameWithoutExt = exeFile.name.split('.')[0]
+    const suffix = exeFile.name.includes('-') ? `-${nameWithoutExt.split('-')[1]}` : ''
+    let outputFilePath
 
-  const outputStream = fs.createWriteStream(outputFile)
+    if (process.platform === 'win32') {
+      outputFilePath = path.join(outputDirectory, `jsreport-win${suffix}.zip`)
+    } else {
+      outputFilePath = path.join(outputDirectory, `jsreport-${process.platform === 'darwin' ? 'osx' : 'linux'}${suffix}.tar.gz`)
+    }
 
-  let archive
+    console.log(`creating ${compressionTarget} file "${outputFilePath}"..`)
 
-  if (compressionTarget === 'zip') {
-    archive = archiver('zip')
-  } else {
-    archive = archiver('tar', {
-      gzip: true,
-      gzipOptions: {
-        level: 1
-      }
+    const outputStream = fs.createWriteStream(outputFilePath)
+
+    let archive
+
+    if (compressionTarget === 'zip') {
+      archive = archiver('zip')
+    } else {
+      archive = archiver('tar', {
+        gzip: true,
+        gzipOptions: {
+          level: 1
+        }
+      })
+    }
+
+    await new Promise((resolve, reject) => {
+      outputStream.on('close', () => {
+        resolve()
+      })
+
+      archive.on('error', (err) => {
+        reject(err)
+      })
+
+      archive.pipe(outputStream)
+
+      archive
+        .append(fs.createReadStream(exeFilePath), { name: exeFile.name, mode: 0o777 })
+        .append(fs.createReadStream(licenseFile.path), { name: licenseFile.name })
+        .finalize()
     })
   }
-
-  await new Promise((resolve, reject) => {
-    outputStream.on('close', () => {
-      resolve()
-    })
-
-    archive.on('error', (err) => {
-      reject(err)
-    })
-
-    archive.pipe(outputStream)
-
-    archive
-      .append(fs.createReadStream(exeFile.path), { name: exeFile.name, mode: 0o777 })
-      .append(fs.createReadStream(licenseFile.path), { name: licenseFile.name })
-      .finalize()
-  })
 
   console.log(`discarding ${licenseFile.path} file..`)
 
