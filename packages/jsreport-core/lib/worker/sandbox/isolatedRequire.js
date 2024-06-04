@@ -12,7 +12,7 @@ const ISOLATED_PACKAGE_JSON_CACHE = new Map()
 // to bring isolated modules across renders and without memory leaks.
 // most of the code is copied from node.js source code and adapted a bit
 // (you will see in some parts specific links to node.js source code counterpart for reference)
-function isolatedRequire (_moduleId, modulesMeta, requireFromRootDirectory) {
+function isolatedRequire (_moduleId, modulesMeta, resolveModule) {
   const parentModule = typeof _moduleId !== 'string' ? _moduleId.parent : null
   const moduleId = parentModule ? _moduleId.moduleId : _moduleId
 
@@ -32,10 +32,14 @@ function isolatedRequire (_moduleId, modulesMeta, requireFromRootDirectory) {
   }
 
   const { rootModule, modulesCache, requireExtensions } = modulesMeta
-
-  const fullModulePath = resolveFilename(ISOLATED_REQUIRE_RESOLVE_CACHE, requireFromRootDirectory.resolve, moduleId, { parentModulePath: parentModule?.path })
+  const fullModulePath = resolveFilename(ISOLATED_REQUIRE_RESOLVE_CACHE, resolveModule, moduleId, { parentModulePath: parentModule?.path })
 
   if (modulesCache[fullModulePath]) {
+    // if module was already tried to be loaded and ended with error we rethrow the error
+    if (modulesCache[fullModulePath].loadingError != null) {
+      throw modulesCache[fullModulePath].loadingError
+    }
+
     return modulesCache[fullModulePath].exports
   }
 
@@ -50,29 +54,33 @@ function isolatedRequire (_moduleId, modulesMeta, requireFromRootDirectory) {
   // https://github.com/nodejs/node/blob/v18.14.2/lib/internal/modules/cjs/loader.js#L1133
   // we can not add this to the IsolatedModule.prototype because we need access to other variables
   mod.require = function (id) {
-    return isolatedRequire({ parent: this, moduleId: id }, modulesMeta, requireFromRootDirectory)
+    return isolatedRequire({ parent: this, moduleId: id }, modulesMeta, resolveModule)
   }
 
   modulesCache[fullModulePath] = mod
 
-  mod.filename = fullModulePath
-  mod.paths = Module._nodeModulePaths(path.dirname(fullModulePath))
+  try {
+    mod.filename = fullModulePath
+    mod.paths = Module._nodeModulePaths(path.dirname(fullModulePath))
 
-  const extension = findLongestRegisteredExtension(fullModulePath, requireExtensions)
+    const extension = findLongestRegisteredExtension(fullModulePath, requireExtensions)
 
-  // https://github.com/nodejs/node/blob/v18.14.2/lib/internal/modules/cjs/loader.js#L1113
-  // allow .mjs to be overridden
-  if (fullModulePath.endsWith('.mjs') && !requireExtensions['.mjs']) {
-    throw createRequireESMError(fullModulePath)
+    // https://github.com/nodejs/node/blob/v18.14.2/lib/internal/modules/cjs/loader.js#L1113
+    // allow .mjs to be overridden
+    if (fullModulePath.endsWith('.mjs') && !requireExtensions['.mjs']) {
+      throw createRequireESMError(fullModulePath)
+    }
+
+    const moduleResolver = requireExtensions[extension]
+
+    moduleResolver(mod, fullModulePath)
+
+    mod.loaded = true
+    return mod.exports
+  } catch (error) {
+    mod.loadingError = error
+    throw error
   }
-
-  const moduleResolver = requireExtensions[extension]
-
-  moduleResolver(mod, fullModulePath)
-
-  mod.loaded = true
-
-  return mod.exports
 }
 
 function setDefaultRequireExtensions (currentExtensions, requireFromRootDirectory, compileScript) {

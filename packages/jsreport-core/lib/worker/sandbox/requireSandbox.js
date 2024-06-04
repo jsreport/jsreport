@@ -80,11 +80,24 @@ function doRequire (moduleId, requireFromRootDirectory, _requirePaths, modulesMe
   const _require = isolateModules ? isolatedRequire : requireFromRootDirectory
   const extraRequireParams = []
 
-  if (isolateModules) {
-    extraRequireParams.push(modulesMeta, requireFromRootDirectory)
+  const resolveModule = (mId, ...args) => {
+    let normalizedModuleId = mId
+
+    if (normalizedModuleId === '..' || normalizedModuleId === '.') {
+      // NOTE: we need to manually normalize because node has a bug
+      // https://github.com/nodejs/node/issues/47000
+      // when using require.resolve and using options.paths, it does not recognize for "..", "."
+      // to be relative, just other cases work like "../", "..\\",
+      // so when we detect this case we normalize it in order for node to resolve correctly
+      normalizedModuleId = normalizedModuleId + path.sep
+    }
+
+    return requireFromRootDirectory.resolve(normalizedModuleId, ...args)
   }
 
-  const resolveModule = requireFromRootDirectory.resolve
+  if (isolateModules) {
+    extraRequireParams.push(modulesMeta, resolveModule)
+  }
 
   let result = executeRequire(_require, resolveModule, moduleId, searchedPaths, ...extraRequireParams)
 

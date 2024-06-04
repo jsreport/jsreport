@@ -1236,6 +1236,89 @@ describe('sandbox', () => {
       should(paths.dirname).be.eql(reporter.options.rootDirectory)
     })
 
+    it('relative module ".." should work', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {
+            RESULT: null,
+            CONTENT: null
+          },
+          userCode: `
+            RESULT = false
+
+            try {
+              const pkg = require('module-double-dot-relative/lib/main.js')
+              RESULT = true
+              CONTENT = pkg()
+            } catch (err) {}
+
+          `,
+          executionFn: ({ context }) => {
+            return JSON.stringify({
+              result: context.RESULT,
+              content: context.CONTENT
+            })
+          }
+        }, req)
+
+        res.content = Buffer.from(r)
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const { result, content } = JSON.parse(res.content)
+
+      should(result).be.True('expected module "module-double-dot-relative" to be found')
+      should(content).be.eql('module-double-dot-relative')
+    })
+
+    it('relative module "." should work', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {
+            RESULT: null,
+            CONTENT: null
+          },
+          userCode: `
+            RESULT = false
+
+            try {
+              const pkg = require('module-dot-relative/main.js')
+              RESULT = true
+              CONTENT = pkg()
+            } catch (err) {}
+          `,
+          executionFn: ({ context }) => {
+            return JSON.stringify({
+              result: context.RESULT,
+              content: context.CONTENT
+            })
+          }
+        }, req)
+
+        res.content = Buffer.from(r)
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const { result, content } = JSON.parse(res.content)
+
+      should(result).be.True('expected module "module-dot-relative" to be found')
+      should(content).be.eql('module-dot-relative')
+    })
+
     it('module that has #shebang in code should work', async () => {
       reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
         const r = await reporter.runInSandbox({
@@ -1757,6 +1840,8 @@ describe('sandbox', () => {
           'moduleWithJSDOM',
           'moduleWithJSON',
           'moduleWithMJS',
+          'module-dot-relative/main.js',
+          'module-double-dot-relative/lib/main.js',
           'module-with-type-module/index.cjs',
           'module-with-circular-dependencies/main.js',
           'moduleWithCJS',
