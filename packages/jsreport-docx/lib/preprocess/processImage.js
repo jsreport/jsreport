@@ -1,4 +1,4 @@
-const { nodeListToArray, getPictureElInfo } = require('../utils')
+const { nodeListToArray, getPictureElInfo, decodeURIComponentRecursive } = require('../utils')
 
 module.exports = function processImage (files, doc, drawingEl, relsDoc) {
   const pictureElInfo = getPictureElInfo(drawingEl)
@@ -93,7 +93,7 @@ module.exports = function processImage (files, doc, drawingEl, relsDoc) {
 
   const hyperlinkRelElClone = hyperlinkRelEl.cloneNode()
 
-  const decodedTarget = decodeURIComponent(hyperlinkRelElClone.getAttribute('Target'))
+  const decodedTarget = decodeURIComponentRecursive(hyperlinkRelElClone.getAttribute('Target'))
 
   hyperlinkRelElClone.setAttribute('originalTarget', decodedTarget)
 

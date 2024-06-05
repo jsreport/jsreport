@@ -1,4 +1,4 @@
-const { nodeListToArray, getPictureElInfo } = require('../utils')
+const { nodeListToArray, getPictureElInfo, decodeURIComponentRecursive } = require('../utils')
 
 module.exports = (files, headerFooterRefs) => {
   const documentDoc = files.find(f => f.path === 'word/document.xml').doc
@@ -86,7 +86,7 @@ function processBookmarks (doc, relsDoc, refs) {
 
       docxImageCount++
 
-      const decodedTarget = decodeURIComponent(hyperlinkRelEl.getAttribute('Target'))
+      const decodedTarget = decodeURIComponentRecursive(hyperlinkRelEl.getAttribute('Target'))
       // we ensure to create a bookmark always:
       // - even if the image is not linked to a bookmark (linked to a url)
       // - in the weird case the image is linked to the special bookmark "_GoBack" which Word creates

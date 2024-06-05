@@ -229,6 +229,31 @@ function createNewRAndTextNode (textOrOptions, templateRNode, doc) {
   return [newRNode, textEl]
 }
 
+/**
+ * decodes a URI from a value that was encoded multiple times
+ *
+ * MS programs (PowerPoint, etc) in some cases can encode a string multiple times,
+ * the final value stored in xml can be a string that was encoded multiple times.
+ * for example `{{linkURL}}` string is encoded as `%25252525257B%25252525257BlinkURL%25252525257D%25252525257D` which indicates
+ * that the value was encoded multiple times, so as a workaround in this function we decode
+ * recursively until the decode no longer returns different string
+ */
+function decodeURIComponentRecursive (str) {
+  let decoded = decodeURIComponent(str)
+
+  // return fast if the string is not encoded
+  if (decoded === str) {
+    return str
+  }
+
+  while (decoded !== str) {
+    str = decoded
+    decoded = decodeURIComponent(str)
+  }
+
+  return decoded
+}
+
 module.exports.normalizeSingleTextElInRun = (textEl, doc) => {
   const rEl = getClosestEl(textEl, 'a:r')
 
@@ -369,3 +394,4 @@ module.exports.getChartEl = getChartEl
 module.exports.clearEl = clearEl
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
+module.exports.decodeURIComponentRecursive = decodeURIComponentRecursive

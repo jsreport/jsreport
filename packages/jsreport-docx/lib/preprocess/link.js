@@ -1,5 +1,5 @@
 const path = require('path')
-const { nodeListToArray } = require('../utils')
+const { nodeListToArray, decodeURIComponentRecursive } = require('../utils')
 
 // the endnotes/footnotes/hyperlinks are defined at two places, in the endnotes|footnotes.xml
 // where is the definition and in document where is just the reference.
@@ -75,7 +75,7 @@ function processHyperlinks (files, currentFile) {
     const clonedRelationshipEl = relationshipEl.cloneNode()
 
     // word stores link's value encoded
-    const decodedTarget = decodeURIComponent(clonedRelationshipEl.getAttribute('Target'))
+    const decodedTarget = decodeURIComponentRecursive(clonedRelationshipEl.getAttribute('Target'))
 
     if (decodedTarget.includes('{{')) {
       clonedRelationshipEl.setAttribute('Target', decodedTarget)
