@@ -12,27 +12,27 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.15.x]
+        node-version: [22.2.x]
 
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-version }}
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
 
-      - name: Restore yarn workspaces
-        id: yarn-cache
-        uses: pat-s/always-upload-cache@v2.1.5
-        with:
-          path: |
-            node_modules
-            **/node_modules
-            ~/.cache/puppeteer
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - name: Install dependencies
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: rm yarn.lock && yarn install --no-progress --non-interactive
+    - name: Restore yarn workspaces
+      id: yarn-cache
+      uses: pat-s/always-upload-cache@v2.1.5
+      with:
+        path: |
+          node_modules
+          **/node_modules
+          ~/.cache/puppeteer
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+    - name: Install dependencies
+      if: steps.yarn-cache.outputs.cache-hit != 'true'
+      run: rm yarn.lock && yarn install --no-progress --non-interactive
 
-      - run: yarn test
+    - run: yarn test
