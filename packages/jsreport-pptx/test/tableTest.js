@@ -62,6 +62,55 @@ describe('pptx table', () => {
     }
   })
 
+  it('table and links', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(pptxDirPath, 'table-and-links.pptx')
+            )
+          }
+        }
+      },
+      data: {
+        courses: [
+          {
+            name: 'The Open University',
+            description:
+              'Distance and online courses. Qualifications range from certificates, diplomas and short courses to undergraduate and postgraduate degrees.',
+            linkName: 'Go to the site1',
+            linkURL: 'http://www.openuniversity.edu/courses'
+          },
+          {
+            name: 'Coursera',
+            description:
+              'Online courses from top universities like Yale, Michigan, Stanford, and leading companies like Google and IBM.',
+            linkName: 'Go to the site2',
+            linkURL: 'https://plato.stanford.edu/'
+          },
+          {
+            name: 'edX',
+            description:
+              'Flexible learning on your schedule. Access more than 1900 online courses from 100+ leading institutions including Harvard, MIT, Microsoft, and more.',
+            linkName: 'Go to the site3',
+            linkURL: 'https://www.edx.org/'
+          }
+        ]
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const text = await extractTextResponse(result)
+
+    text.should.containEql('Go to the site1')
+    text.should.containEql('Go to the site2')
+    text.should.containEql('Go to the site3')
+  })
+
   it('table vertical', async () => {
     const result = await reporter.render({
       template: {
