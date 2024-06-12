@@ -63,7 +63,7 @@ module.exports = ({
         })
       }
 
-      logger.debug(`Reusing existing docker container ${container.id} (${container.url}) (discriminator: ${tenant})`)
+      logger.debug(`Reusing existing docker container ${container.id} (${container.url}) (discriminator: ${tenant}; numberOfRequests: ${container.numberOfRequests})`)
 
       if (container.restartPromise) {
         await waitForContainerRestart(container, tenant, logger)
@@ -83,7 +83,7 @@ module.exports = ({
     logger.debug(`Oldest available container is ${container.id} (discriminator: ${tenant})`)
 
     if (container.numberOfRequests > 0) {
-      logger.debug(`All docker containers are busy, queuing work and waiting for a worker to be available (discriminator: ${tenant})`)
+      logger.debug(`All docker containers are busy, queuing work and waiting for a worker to be available (discriminator: ${tenant}; numberOfRequests: ${container.numberOfRequests})`)
 
       return new Promise((resolve, reject) => {
         busyQueue.push({
@@ -105,7 +105,7 @@ module.exports = ({
     if (!originalTenant) {
       container.numberOfRequests++
 
-      logger.debug(`No need to restart unassigned docker container ${container.id} (discriminator: ${tenant})`)
+      logger.debug(`No need to restart unassigned docker container ${container.id} (discriminator: ${tenant}; numberOfRequests: ${container.numberOfRequests})`)
       return container
     }
 
@@ -128,7 +128,7 @@ module.exports = ({
     return container
   }
 
-  function getNextOldContainer (containers) {
+  function  getNextOldContainer (containers) {
     // the logic here to pick the oldest available container is to consider two criteria, in order:
     // 1.- filter the containers that are not in use or are the ones with the least number of requests
     // 2.- from the filtered container obtained from previous step find the oldest used
@@ -214,7 +214,8 @@ module.exports = ({
 
   async function release (container) {
     container.numberOfRequests--
-    busyQueue.flush()
+    logger.debug(`Container released ${container.id} (discriminator: ${tenant}; numberOfRequests: ${container.numberOfRequests})`)
+    busyQueue.flush()    
 
     warmupNextOldContainer().catch((err) => {
       logger.error(`Error while trying to warm up next old container: ${err.stack}`)
