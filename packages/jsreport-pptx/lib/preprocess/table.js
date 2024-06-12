@@ -5,7 +5,7 @@ const regexp = /{{#?pptxTable [^{}]{0,500}}}/
 module.exports = (files) => {
   for (const f of files.filter(f => f.path.endsWith('.xml'))) {
     const doc = f.doc
-    const elements = doc.getElementsByTagName('a:t')
+    const elements = nodeListToArray(doc.getElementsByTagName('a:t'))
     const openTags = []
 
     for (let i = 0; i < elements.length; i++) {
@@ -40,7 +40,7 @@ module.exports = (files) => {
         let newElement = doc.createElement('pptxRemove')
         newElement.textContent = '{{#if @placeholderCell}}'
 
-        paragraphNode.parentNode.parentNode.insertBefore(newElement, paragraphNode)
+        paragraphNode.parentNode.parentNode.insertBefore(newElement, paragraphNode.parentNode)
 
         const emptyParagraphNode = paragraphNode.cloneNode(true)
 
@@ -49,70 +49,33 @@ module.exports = (files) => {
           emptyParagraphNode.removeAttribute('__block_helper_container__')
         }
 
-        paragraphNode.parentNode.parentNode.insertBefore(emptyParagraphNode, paragraphNode)
+        if (emptyParagraphNode.childNodes.length === 0) {
+          emptyParagraphNode.appendChild(doc.createElement('a:endParaRPr'))
+        }
+
+        const newTxBodyEl = doc.createElement('a:txBody')
+        newTxBodyEl.appendChild(doc.createElement('a:bodyPr'))
+        newTxBodyEl.appendChild(doc.createElement('a:lstStyle'))
+        newTxBodyEl.appendChild(emptyParagraphNode)
+
+        paragraphNode.parentNode.parentNode.insertBefore(newTxBodyEl, paragraphNode.parentNode)
 
         newElement = doc.createElement('pptxRemove')
         newElement.textContent = '{{else}}'
 
-        paragraphNode.parentNode.parentNode.insertBefore(newElement, paragraphNode)
+        paragraphNode.parentNode.parentNode.insertBefore(newElement, paragraphNode.parentNode)
 
         newElement = doc.createElement('pptxRemove')
         newElement.textContent = '{{/if}}'
 
-        paragraphNode.parentNode.parentNode.insertBefore(newElement, paragraphNode.nextSibling)
+        paragraphNode.parentNode.parentNode.insertBefore(newElement, paragraphNode.parentNode.nextSibling)
 
         const cellNode = paragraphNode.parentNode.parentNode
-        const cellPropertiesNode = nodeListToArray(cellNode.childNodes).find((node) => node.nodeName === 'a:tcPr')
 
-        // insert conditional logic for colspan and rowspan
-        newElement = doc.createElement('pptxRemove')
-        newElement.textContent = '{{#pptxTable check="colspan"}}'
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('a:gridSpan')
-        newElement.setAttribute('a:val', '{{this}}')
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('pptxRemove')
-        newElement.textContent = '{{/pptxTable}}'
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('pptxRemove')
-        newElement.textContent = '{{#pptxTable check="rowspan"}}'
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('pptxRemove')
-        newElement.textContent = '{{#if @empty}}'
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('a:vMerge')
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('pptxRemove')
-        newElement.textContent = '{{else}}'
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('a:vMerge')
-        newElement.setAttribute('a:val', 'restart')
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('pptxRemove')
-        newElement.textContent = '{{/if}}'
-
-        cellPropertiesNode.appendChild(newElement)
-
-        newElement = doc.createElement('pptxRemove')
-        newElement.textContent = '{{/pptxTable}}'
-
-        cellPropertiesNode.appendChild(newElement)
+        cellNode.setAttribute('gridSpan', '{{@colspan}}')
+        cellNode.setAttribute('rowSpan', '{{@rowspan}}')
+        cellNode.setAttribute('hMerge', '{{#pptxTable check="colspan"}}{{#if @empty}}1{{/if}}{{/pptxTable}}')
+        cellNode.setAttribute('vMerge', '{{#pptxTable check="rowspan"}}{{#if @empty}}1{{/if}}{{/pptxTable}}')
 
         const rowNode = cellNode.parentNode
         const tableNode = rowNode.parentNode
@@ -165,6 +128,19 @@ module.exports = (files) => {
 
         processOpeningTag(doc, newRowNode, helperCall)
         processClosingTag(doc, newRowNode)
+
+        const tableGridNode = tableNode.getElementsByTagName('a:tblGrid')[0]
+        const tableGridColNodes = nodeListToArray(tableGridNode.getElementsByTagName('a:gridCol'))
+
+        const baseColsWidth = tableGridColNodes[0].getAttribute('w')
+
+        if (baseColsWidth != null && baseColsWidth !== '' && !isNaN(parseInt(baseColsWidth, 10))) {
+          tableNode.setAttribute('needsColWidthNormalization', baseColsWidth)
+        }
+
+        // add loop for colum definitions (pptx table requires this to show the newly created columns)
+        processOpeningTag(doc, tableGridColNodes[0], helperCall.replace('rows=', 'ignore='))
+        processClosingTag(doc, tableGridColNodes[0])
       } else if (el.textContent.includes('{{#pptxTable')) {
         const helperCall = el.textContent.match(regexp)[0]
         const isVertical = el.textContent.includes('vertical=')
@@ -186,6 +162,25 @@ module.exports = (files) => {
           const tableNode = cellNode.parentNode.parentNode
           const tableGridNode = tableNode.getElementsByTagName('a:tblGrid')[0]
           const tableGridColNodes = nodeListToArray(tableGridNode.getElementsByTagName('a:gridCol'))
+
+          const baseColsWidth = tableGridColNodes.reduce((acu, colNode) => {
+            const colWidth = colNode.getAttribute('w')
+            let parsed
+
+            if (colWidth != null && colWidth !== '') {
+              parsed = parseInt(colWidth, 10)
+            }
+
+            if (parsed != null && !isNaN(parsed)) {
+              acu += parsed
+            }
+
+            return acu
+          }, 0)
+
+          if (baseColsWidth !== 0) {
+            tableNode.setAttribute('needsColWidthNormalization', baseColsWidth)
+          }
 
           // add loop for colum definitions (pptx table requires this to show the newly created columns)
           processOpeningTag(doc, tableGridColNodes[cellIndex], helperCall, isVertical)

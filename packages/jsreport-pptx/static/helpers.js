@@ -46,10 +46,15 @@ function pptxTable (data, options) {
     Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'check')
   ) {
     if (
-      optionsToUse.hash.check === 'colspan' &&
-      optionsToUse.data.colspan > 1
+      optionsToUse.hash.check === 'colspan'
     ) {
-      return optionsToUse.fn(optionsToUse.data.colspan)
+      const matchedMergedCell = getMatchedMergedCell(optionsToUse.data.rowIndex, optionsToUse.data.columnIndex, optionsToUse.data.activeMergedCellsItems)
+
+      if (matchedMergedCell != null && matchedMergedCell.colStart !== matchedMergedCell.colEnd) {
+        const data = Handlebars.createFrame({})
+        data.empty = matchedMergedCell.colStart !== optionsToUse.data.columnIndex
+        return optionsToUse.fn({}, { data })
+      }
     }
 
     if (
@@ -153,27 +158,38 @@ function pptxTable (data, options) {
       // if all cells in current row have the same rowspan then
       // assume there is no rowspan applied
       const cellsInRow = isInsideRowHelper ? optionsToUse.data.rows[rowIndex] : currentData
+      const pendingCells = [...cellsInRow].map((item, idx) => ({ idx, item }))
+      let lastColumnIdx
 
-      for (const [idx, item] of cellsInRow.entries()) {
+      while (pendingCells.length > 0) {
+        const savedLastColumnIdx = lastColumnIdx
+        const { idx, item, placeholder } = pendingCells.shift()
+
         // rowIndex + 1 because this is technically the second row on table after the row of table headers
         newData.rowIndex = isInsideRowHelper ? rowIndex + 1 : 0
 
-        newData.columnIndex = cellsInRow.reduce((acu, cell, cellIdx) => {
-          if (cellIdx >= idx) {
-            return acu
-          }
+        if (placeholder) {
+          newData.columnIndex = idx
+        } else {
+          newData.columnIndex = cellsInRow.reduce((acu, cell, cellIdx) => {
+            if (cellIdx >= idx) {
+              return acu
+            }
 
-          const matchedMergedCell = getMatchedMergedCell(newData.rowIndex, acu, newData.activeMergedCellsItems)
+            const matchedMergedCell = getMatchedMergedCell(newData.rowIndex, acu, newData.activeMergedCellsItems)
 
-          if (matchedMergedCell != null && matchedMergedCell.colStart !== matchedMergedCell.colEnd) {
-            return acu + (matchedMergedCell.colEnd - matchedMergedCell.colStart) + 1
-          }
+            if (matchedMergedCell != null && matchedMergedCell.colStart !== matchedMergedCell.colEnd) {
+              return acu + (matchedMergedCell.colEnd - matchedMergedCell.colStart) + 1
+            }
 
-          const cellInfo = getCellInfo(cell)
-          return acu + cellInfo.colspan
-        }, 0)
+            const cellInfo = getCellInfo(cell)
+            return acu + cellInfo.colspan
+          }, 0)
 
-        const currentItem = isInsideRowHelper ? optionsToUse.data.rows[rowIndex][idx] : item
+          lastColumnIdx = newData.columnIndex
+        }
+
+        const currentItem = isInsideRowHelper && !placeholder ? optionsToUse.data.rows[rowIndex][idx] : item
         const cellInfo = getCellInfo(currentItem)
 
         const allCellsInRowHaveSameRowspan = cellsInRow.every((cell) => {
@@ -187,6 +203,33 @@ function pptxTable (data, options) {
 
         newData.colspan = cellInfo.colspan
         newData.rowspan = cellInfo.rowspan
+
+        const colsDiff = (savedLastColumnIdx == null || placeholder === true) ? 0 : newData.columnIndex - savedLastColumnIdx
+
+        if (colsDiff > 1) {
+          const activeMergedCell = getMatchedMergedCell(newData.rowIndex, savedLastColumnIdx + 1, newData.activeMergedCellsItems)
+
+          // this means that it is merged cell created from a definition that has both rowspan and colspan
+          if (
+            activeMergedCell != null &&
+            activeMergedCell.rowStart !== activeMergedCell.rowEnd &&
+            activeMergedCell.colStart !== activeMergedCell.colEnd &&
+            activeMergedCell.rowStart !== newData.rowIndex
+          ) {
+            const cellsToAdd = []
+
+            for (let i = 1; i < colsDiff; i++) {
+              cellsToAdd.push({ idx: savedLastColumnIdx + i, item: { value: '' }, placeholder: true })
+            }
+
+            if (cellsToAdd.length > 0) {
+              // adding the current item so it is not lost
+              cellsToAdd.push({ idx, item, placeholder })
+              pendingCells.unshift(...cellsToAdd)
+              continue
+            }
+          }
+        }
 
         if (newData.rowspan > 1 || newData.colspan > 1) {
           newData.activeMergedCellsItems.push({
@@ -205,12 +248,34 @@ function pptxTable (data, options) {
           matchedMergedCell.rowStart !== newData.rowIndex
         ) {
           newData.placeholderCell = true
-          newData.colspan = (matchedMergedCell.colEnd - matchedMergedCell.colStart) + 1
+
+          if (matchedMergedCell.colStart === newData.columnIndex) {
+            newData.colspan = (matchedMergedCell.colEnd - matchedMergedCell.colStart) + 1
+          }
+        } else if (
+          matchedMergedCell != null &&
+          matchedMergedCell.colStart !== matchedMergedCell.colEnd &&
+          matchedMergedCell.colStart !== newData.columnIndex
+        ) {
+          newData.placeholderCell = true
+          newData.rowspan = (matchedMergedCell.rowEnd - matchedMergedCell.rowStart) + 1
         } else {
           newData.placeholderCell = false
         }
 
         chunks.push(optionsToUse.fn(cellInfo.value, { data: newData }))
+
+        if (item?.colspan > 1) {
+          const placeholderCells = []
+
+          for (let i = 1; i < item.colspan; i++) {
+            placeholderCells.push({ idx: lastColumnIdx + i, item: { value: '' }, placeholder: true })
+          }
+
+          if (placeholderCells.length > 0) {
+            pendingCells.unshift(...placeholderCells)
+          }
+        }
       }
 
       return new Handlebars.SafeString(chunks.join(''))

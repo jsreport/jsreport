@@ -78,8 +78,11 @@ function concatTextNodes (doc, elements) {
     ) {
       tag = ''
 
+      let tNodeToEvaluate
+
       if (concatenating) {
         const affectedTextNode = elements[startIndex]
+        tNodeToEvaluate = affectedTextNode
         affectedTextNode.textContent = toEvaluate
 
         if (
@@ -105,6 +108,42 @@ function concatTextNodes (doc, elements) {
 
         startIndex = -1
         toRemove.push(i)
+      } else {
+        tNodeToEvaluate = elements[i]
+      }
+
+      let remainingText = tNodeToEvaluate.textContent
+
+      // we execute it in a while because there can be multiple block helpers in one text no
+      // (like the end of a block helper and the start of another one)
+      // example: {{/if}}{{#if ...}}
+      do {
+        // detect if the text node only contain a block helper call
+        // if yes then we mark this node to later remove it if its parent paragraph turns
+        // to be empty
+        if (remainingText.startsWith('{{#')) {
+          remainingText = remainingText.replace(/^{{#[^{}]{0,500}}}/, '')
+        } else if (remainingText.startsWith('{{else')) {
+          remainingText = remainingText.replace(/^{{else ?[^{}]{0,500}}}/, '')
+        } else if (remainingText.startsWith('{{/')) {
+          remainingText = remainingText.replace(/^{{\/[^{}]{0,500}}}/, '')
+        }
+      } while (remainingText.startsWith('{{#'))
+
+      if (remainingText === '') {
+        tNodeToEvaluate.setAttribute('__block_helper__', true)
+        tNodeToEvaluate.parentNode.parentNode.setAttribute('__block_helper_container__', true)
+
+        const lastChildIsBlockHelperComment = (
+          tNodeToEvaluate.parentNode.parentNode.lastChild.nodeName === '#comment' &&
+          tNodeToEvaluate.parentNode.parentNode.lastChild.nodeValue === '__block_helper_container__'
+        )
+
+        // insert the comment just once
+        if (!lastChildIsBlockHelperComment) {
+          const commentNode = doc.createComment('__block_helper_container__')
+          tNodeToEvaluate.parentNode.parentNode.appendChild(commentNode)
+        }
       }
 
       shouldPreserveSpace = false
