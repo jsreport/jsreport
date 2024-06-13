@@ -128,7 +128,7 @@ module.exports = ({
     return container
   }
 
-  function  getNextOldContainer (containers) {
+  function getNextOldContainer (containers) {
     // the logic here to pick the oldest available container is to consider two criteria, in order:
     // 1.- filter the containers that are not in use or are the ones with the least number of requests
     // 2.- from the filtered container obtained from previous step find the oldest used
@@ -214,8 +214,8 @@ module.exports = ({
 
   async function release (container) {
     container.numberOfRequests--
-    logger.debug(`Container released ${container.id} (discriminator: ${tenant}; numberOfRequests: ${container.numberOfRequests})`)
-    busyQueue.flush()    
+    logger.debug(`Container released ${container.id} (discriminator: ${container.tenant}; numberOfRequests: ${container.numberOfRequests})`)
+    busyQueue.flush()
 
     warmupNextOldContainer().catch((err) => {
       logger.error(`Error while trying to warm up next old container: ${err.stack}`)

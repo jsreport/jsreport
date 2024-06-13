@@ -22,11 +22,11 @@ module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } =
     }
 
     options.httpOptions = newHttpOptions
-    
+
     options.timeoutWithMargin = options.timeout
     if (options.timeout != null && reportTimeoutMargin != null) {
       options.timeoutWithMargin = options.timeout + reportTimeoutMargin
-    }    
+    }
 
     options.remote = remote
     options.reporter = reporter
@@ -35,7 +35,7 @@ module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } =
   }
 }
 
-async function _sendToWorker (url, _data, { executeMain, reporter, timeout, timeoutWithMargin, originUrl, containerId, systemAction, httpOptions = {}, remote, signal }) {  
+async function _sendToWorker (url, _data, { executeMain, reporter, timeout, timeoutWithMargin, originUrl, containerId, systemAction, httpOptions = {}, remote, signal }) {
   const sharedTempRewriteRootPathTo = reporter.options.extensions['docker-workers'].container.sharedTempRewriteRootPathTo
 
   let data = { ..._data, timeout, systemAction }
@@ -57,7 +57,7 @@ async function _sendToWorker (url, _data, { executeMain, reporter, timeout, time
       }
       const stringBody = serializator.serialize(data)
       let res
-      
+
       try {
         const requestConfig = {
           method: 'POST',
@@ -212,7 +212,7 @@ async function _sendToWorker (url, _data, { executeMain, reporter, timeout, time
   if (!timeout) {
     return run()
   }
-  
+
   // we handle the timeout using promises to avoid loosing stack in case of error
   // mixing new Promise with async await leads to loosing it. we ensure that when run ends
   // we clean the timeout to avoid keeping handlers in memory longer than needed and allow
