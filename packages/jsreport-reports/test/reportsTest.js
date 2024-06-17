@@ -464,6 +464,40 @@ describe('with reports extension', () => {
       break
     }
   })
+
+  it('should return immediate response with link to status when http header jsreport-Options-Reports-Async=true', async () => {
+    const request = {
+      template: { content: 'foo', recipe: 'html', engine: 'none' },
+      context: {
+        http: {
+          baseUrl: 'http://localhost',
+          headers: {
+            'jsreport-options-reports-async': 'true',
+            'jsreport-options-reports-public': 'true'
+          }
+        }
+      }
+    }
+
+    let asyncResponse
+    const waitForAsyncFinishPromise = new Promise((resolve) => {
+      reporter.afterRenderListeners.add('test', (req, res) => {
+        asyncResponse = res
+        resolve()
+      })
+    })
+
+    const response = await reporter.render(request)
+    response.content.toString().should.containEql('Async rendering in progress')
+    response.content.toString().should.containEql('http://localhost/reports/public')
+    response.meta.headers.Location.should.be.ok()
+    await waitForAsyncFinishPromise
+    asyncResponse.content.toString().should.be.eql('foo')
+    const report = await reporter.documentStore.collection('reports').findOne({})
+    report.public.should.be.true()
+    const blob = await reporter.blobStorage.read(report.blobName)
+    blob.toString().should.be.eql('foo')
+  })
 })
 
 describe('with reports extension and clean enabled', () => {

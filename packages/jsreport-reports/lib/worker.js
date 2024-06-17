@@ -84,4 +84,18 @@ module.exports = (reporter, definition) => {
       }, request)
     })
   })
+
+  reporter.renderErrorListeners.add(definition.name, async (req, res) => {
+    if (res.meta.reportsOptions?._id == null) {
+      return
+    }
+
+    await reporter.documentStore.collection('reports').update({
+      _id: res.meta.reportsOptions?._id
+    }, {
+      $set: {
+        reportName: res.meta.reportName
+      }
+    }, req)
+  })
 }

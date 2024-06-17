@@ -3,6 +3,8 @@
  *
  * Reports extension allows to store rendering output into storage for later use.
  */
+const _omit = require('lodash.omit')
+const extend = require('node.extend.without.arrays')
 
 class Reports {
   constructor (reporter, definition) {
@@ -15,6 +17,9 @@ class Reports {
     this._defineEntities()
 
     this.reporter.initializeListeners.add(definition.name, () => {
+      // this should be before profiler, so we dont keep pending things in maps until the rendering starts
+      this.reporter.beforeRenderWorkerAllocatedListeners.insert({ after: 'express' }, 'reports', this._handleBeforeRenderWorkerAllocate.bind(this))
+
       if (this.reporter.authentication) {
         this.reporter.emit('export-public-route', '/reports/public')
       }
@@ -246,7 +251,14 @@ class Reports {
     }
   }
 
-  async _handleBeforeRender (request, response, options) {
+  async _handleBeforeRender (request, response) {
+    if (request.context.reports) {
+      request.options.reports = request.options.reports || {}
+      Object.assign(request.options.reports, request.context.reports)
+      delete request.context.reports
+      return
+    }
+
     if (request.options.reports == null || request.options.reports.async !== true) {
       return
     }
@@ -278,6 +290,66 @@ class Reports {
     request.options.reports.save = true
     request.options.reports.async = false
     request.options.reports._id = r._id
+  }
+
+  async _handleBeforeRenderWorkerAllocate (request, response) {
+    if (request.context.http?.headers?.['jsreport-options-reports-async'] !== 'true') {
+      return
+    }
+
+    // we disable profiler in this request, so we don't have hanging tasks in map
+    request.context.profiling = { enabled: false }
+
+    delete request.context.http?.headers?.['jsreport-options-reports-async']
+
+    const isPublic = request.context.http?.headers?.['jsreport-options-reports-public'] === 'true'
+    delete request.context.http?.headers?.['jsreport-options-reports-public']
+
+    const r = await this.reporter.documentStore.collection('reports').insert({
+      reportName: 'unresolved',
+      state: 'planned',
+      public: isPublic
+    }, request)
+
+    const clientNotification = request.context.clientNotification = this.reporter.Response(request.context.id, response)
+
+    clientNotification.meta.contentType = 'text/html'
+    clientNotification.meta.fileExtension = 'html'
+
+    if (request.context.http) {
+      if (isPublic) {
+        clientNotification.meta.headers.Location = `${request.context.http.baseUrl}/reports/public/${r._id}/status`
+      } else {
+        clientNotification.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
+      }
+      await clientNotification.output.update(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${clientNotification.meta.headers.Location}'>here</a>`))
+    } else {
+      await clientNotification.output.update(Buffer.from('Async rendering in progress.'))
+    }
+
+    this.reporter.logger.info('Responding with async report location and continue with async report generation', request)
+
+    const asyncRequest = extend(true, {}, _omit(request, 'data'))
+    asyncRequest.data = request.data
+
+    // start a fresh context so we don't inherit logs, etc
+    asyncRequest.context = extend(true, {}, _omit(asyncRequest.context, 'logs', 'clientNotification', 'profiling'))
+    asyncRequest.context.reports = {
+      async: false,
+      save: true,
+      _id: r._id,
+      public: isPublic
+    }
+
+    process.nextTick(() => {
+      this.reporter.logger.info(`Async report is starting to render ${asyncRequest.context.reports._id}`)
+
+      this.reporter.render(asyncRequest).then(() => {
+        this.reporter.logger.info(`Async report render finished ${asyncRequest.context.reports._id}`)
+      }).catch((e) => {
+        this.reporter.logger.error(`Async report render failed ${asyncRequest.context.reports._id}: ${e.stack}`)
+      })
+    })
   }
 }
 

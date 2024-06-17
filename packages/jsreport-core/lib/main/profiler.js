@@ -159,6 +159,10 @@ module.exports = (reporter) => {
   reporter.beforeRenderWorkerAllocatedListeners.add('profiler', async (req) => {
     req.context.profiling = req.context.profiling || {}
 
+    if (req.context.profiling.enabled === false) {
+      return
+    }
+
     if (req.context.profiling.mode == null) {
       const profilerSettings = await reporter.settings.findValue('profiler', req)
       const defaultMode = reporter.options.profiler.defaultMode || 'standard'

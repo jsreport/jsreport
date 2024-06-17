@@ -281,7 +281,7 @@ module.exports = function (reporter, definition) {
   })
 
   reporter.initializeListeners.add(definition.name, this, async () => {
-    reporter.beforeRenderListeners.insert(0, 'express', (req, res) => {
+    reporter.beforeRenderWorkerAllocatedListeners.insert(0, 'express', (req, res) => {
       res.meta.headers = {}
     })
 

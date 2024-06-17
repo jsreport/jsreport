@@ -382,7 +382,12 @@ class MainReporter extends Reporter {
     const res = Response(this, req.context.id)
 
     try {
-      await this.beforeRenderWorkerAllocatedListeners.fire(req)
+      await this.beforeRenderWorkerAllocatedListeners.fire(req, res)
+      if (req.context.clientNotification) {
+        const r = req.context.clientNotification
+        delete req.context.clientNotification
+        return r
+      }
 
       worker = await this._workersManager.allocate(req, {
         timeout: this.getReportTimeout(req)
