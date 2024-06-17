@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-reports",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "jsreport extension adding support for storing rendering outputs for later use",
   "keywords": [
     "jsreport"
@@ -32,9 +32,9 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.3.1",
+    "@jsreport/jsreport-core": "4.4.0",
     "@jsreport/jsreport-data": "4.1.0",
-    "@jsreport/jsreport-express": "4.1.1",
+    "@jsreport/jsreport-express": "4.1.2",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-scripts": "4.1.0",
     "@jsreport/studio-dev": "4.0.0",

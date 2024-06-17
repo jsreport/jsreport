@@ -7,6 +7,12 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.3.0
+
+- support for dynamic rows, columns generation
+- add support for hyperlinks in loop
+- use decodeURIComponentRecursive helper to handle better different cases of MS Programs storing encoding target urls
+
 ### 4.2.1
 
 - update @jsreport/office to fix set `res.meta.fileExtension` without starting `.`

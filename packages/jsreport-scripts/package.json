@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.1.1",
-    "@jsreport/jsreport-core": "4.3.1",
+    "@jsreport/jsreport-core": "4.4.0",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",
     "bluebird": "3.7.2",

@@ -282,6 +282,13 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.4.0
+
+- trigger async report using header to avoid allocating worker
+- fix require('..') and require('.') in sandbox
+- fix component rendering in loop with async work on helpers
+- update @jsreport/ses to 1.1.0
+
 ### 4.3.1
 
 - fix `waitForAsyncHelper`, `waitForAsyncHelpers` not working with trustUserCode: true

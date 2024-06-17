@@ -7,6 +7,12 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.4.0
+
+- use decodeURIComponentRecursive helper to handle better different cases of MS Programs storing target urls encoded multiple times
+- docxHtml: add support for generating nested tables
+- docxHtml: support for table, row, cell background color and color styles
+
 ### 4.3.0
 
 - add support for using docxStyle in loop

@@ -41,8 +41,8 @@
     "strip-bom-buf": "2.0.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.3.1",
-    "@jsreport/jsreport-express": "4.1.1",
+    "@jsreport/jsreport-core": "4.4.0",
+    "@jsreport/jsreport-express": "4.1.2",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/jsreport-scripts": "4.1.0",

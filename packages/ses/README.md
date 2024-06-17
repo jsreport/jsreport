@@ -5,6 +5,10 @@
 
 ## Changelog
 
+### 1.1.0
+
+- fix running on node.js 22 by updating to ses@1.5.0
+
 ### 1.0.1
 
 - fix running on node.js 21 by updating to ses@0.18.8

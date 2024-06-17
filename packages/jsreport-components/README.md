@@ -7,6 +7,10 @@ See https://jsreport.net/learn/components
 
 ## Changelog
 
+### 4.0.2
+
+- fix component rendering in loop with async helpers
+
 ### 4.0.1
 
 - fix recursive components async rendering when wrapped in async helper

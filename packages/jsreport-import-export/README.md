@@ -7,6 +7,10 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 4.0.4
+
+- make export to not commit transaction to improve performance in stores
+
 ### 4.0.3
 
 - fix snyk audit

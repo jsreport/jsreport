@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 4.1.2
+
+- trigger async report using header to avoid allocating worker
+
 ### 4.1.1
 
 - fix url in the async response text

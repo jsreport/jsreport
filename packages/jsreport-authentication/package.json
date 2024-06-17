@@ -41,8 +41,8 @@
     "password-hash": "1.2.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.3.1",
-    "@jsreport/jsreport-express": "4.1.1",
+    "@jsreport/jsreport-core": "4.4.0",
+    "@jsreport/jsreport-express": "4.1.2",
     "@jsreport/studio-dev": "4.0.0",
     "express": "4.19.2",
     "lodash.clonedeep": "4.5.0",

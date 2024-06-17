@@ -47,8 +47,8 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.1.1",
-    "@jsreport/jsreport-components": "4.0.1",
-    "@jsreport/jsreport-core": "4.3.1",
+    "@jsreport/jsreport-components": "4.0.2",
+    "@jsreport/jsreport-core": "4.4.0",
     "@jsreport/jsreport-data": "4.1.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-jsrender": "4.0.0",

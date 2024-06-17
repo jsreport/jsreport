@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-components",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "jsreport extension for dynamic creating dynamic templating engine components",
   "keywords": [
     "jsreport",
@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.1.1",
-    "@jsreport/jsreport-core": "4.3.1",
+    "@jsreport/jsreport-core": "4.4.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",
