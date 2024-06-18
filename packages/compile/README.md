@@ -15,6 +15,10 @@ jsreport.exe start
 
 ## Changelog
 
+### 4.1.0
+
+- add support for generating both arm64 and x64 from machine with macos arm64
+
 ### 4.0.1
 
 - fix compilation with axios
