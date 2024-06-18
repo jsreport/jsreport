@@ -22,7 +22,7 @@
     "test": "standard"
   },
   "dependencies": {
-    "aws-sdk": "2.437.0",
+    "aws-sdk": "2.1644.0",
     "uuid": "8.3.2"
   },
   "devDependencies": {

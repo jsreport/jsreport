@@ -23,7 +23,7 @@
     "test": "standard"
   },
   "dependencies": {
-    "aws-sdk": "2.611.0"
+    "aws-sdk": "2.1644.0"
   },
   "devDependencies": {
     "standard": "16.0.4"
