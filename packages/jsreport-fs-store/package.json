@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@jsreport/mingo": "2.4.1",
+    "@jsreport/serializator": "1.0.0",
     "chokidar": "3.5.3",
     "lockfile": "1.0.4",
     "lodash.debounce": "4.0.8",
@@ -38,8 +39,7 @@
     "node.extend.without.arrays": "1.1.6",
     "p-map": "4.0.0",
     "rimraf": "5.0.5",
-    "socket.io": "4.6.2",
-    "@jsreport/serializator": "1.0.0"
+    "socket.io": "4.7.5"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "4.4.0",
@@ -51,7 +51,7 @@
     "ncp": "2.0.0",
     "should": "13.2.3",
     "sinon": "9.2.2",
-    "socket.io-client": "4.5.4",
+    "socket.io-client": "4.7.5",
     "standard": "16.0.4"
   },
   "engines": {
