@@ -18,7 +18,11 @@ Then alter jsreport configuration
 
 ## Changelog
 
-### 4.0.3
+### 4.0.4
+
+- update socket.io, socket.io-client deps to fix audit
+
+### 4.0.3
 
 - fix bug with transactions that takes long and locks
 

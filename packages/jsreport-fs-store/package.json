@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-fs-store",
-  "version": "4.0.3",
+  "version": "4.0.4",
   "description": "File system based templates store",
   "keywords": [
     "jsreport",

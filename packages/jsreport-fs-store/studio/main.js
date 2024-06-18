@@ -189,7 +189,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   installTimerFunctions: () => (/* binding */ installTimerFunctions),
 /* harmony export */   pick: () => (/* binding */ pick)
 /* harmony export */ });
-/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
 
 function pick(obj, ...attr) {
     return attr.reduce((acc, k) => {
@@ -200,16 +200,16 @@ function pick(obj, ...attr) {
     }, {});
 }
 // Keep a reference to the real timeout functions so they can be used when overridden
-const NATIVE_SET_TIMEOUT = setTimeout;
-const NATIVE_CLEAR_TIMEOUT = clearTimeout;
+const NATIVE_SET_TIMEOUT = _globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim.setTimeout;
+const NATIVE_CLEAR_TIMEOUT = _globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim.clearTimeout;
 function installTimerFunctions(obj, opts) {
     if (opts.useNativeTimers) {
         obj.setTimeoutFn = NATIVE_SET_TIMEOUT.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim);
         obj.clearTimeoutFn = NATIVE_CLEAR_TIMEOUT.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim);
     }
     else {
-        obj.setTimeoutFn = setTimeout.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim);
-        obj.clearTimeoutFn = clearTimeout.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim);
+        obj.setTimeoutFn = _globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim.setTimeout.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim);
+        obj.clearTimeoutFn = _globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim.clearTimeout.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim);
     }
 }
 // base64 encoded buffers are about 33% bigger (https://en.wikipedia.org/wiki/Base64)
@@ -250,14 +250,18 @@ function utf8Length(str) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   decodePacket: () => (/* reexport safe */ _decodePacket_js__WEBPACK_IMPORTED_MODULE_1__["default"]),
+/* harmony export */   createPacketDecoderStream: () => (/* binding */ createPacketDecoderStream),
+/* harmony export */   createPacketEncoderStream: () => (/* binding */ createPacketEncoderStream),
+/* harmony export */   decodePacket: () => (/* reexport safe */ _decodePacket_js__WEBPACK_IMPORTED_MODULE_1__.decodePacket),
 /* harmony export */   decodePayload: () => (/* binding */ decodePayload),
-/* harmony export */   encodePacket: () => (/* reexport safe */ _encodePacket_js__WEBPACK_IMPORTED_MODULE_0__["default"]),
+/* harmony export */   encodePacket: () => (/* reexport safe */ _encodePacket_js__WEBPACK_IMPORTED_MODULE_0__.encodePacket),
 /* harmony export */   encodePayload: () => (/* binding */ encodePayload),
 /* harmony export */   protocol: () => (/* binding */ protocol)
 /* harmony export */ });
 /* harmony import */ var _encodePacket_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(17);
 /* harmony import */ var _decodePacket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(18);
+/* harmony import */ var _commons_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+
 
 
 const SEPARATOR = String.fromCharCode(30); // see https://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
@@ -268,7 +272,7 @@ const encodePayload = (packets, callback) => {
     let count = 0;
     packets.forEach((packet, i) => {
         // force base64 encoding for binary packets
-        (0,_encodePacket_js__WEBPACK_IMPORTED_MODULE_0__["default"])(packet, false, encodedPacket => {
+        (0,_encodePacket_js__WEBPACK_IMPORTED_MODULE_0__.encodePacket)(packet, false, (encodedPacket) => {
             encodedPackets[i] = encodedPacket;
             if (++count === length) {
                 callback(encodedPackets.join(SEPARATOR));
@@ -280,7 +284,7 @@ const decodePayload = (encodedPayload, binaryType) => {
     const encodedPackets = encodedPayload.split(SEPARATOR);
     const packets = [];
     for (let i = 0; i < encodedPackets.length; i++) {
-        const decodedPacket = (0,_decodePacket_js__WEBPACK_IMPORTED_MODULE_1__["default"])(encodedPackets[i], binaryType);
+        const decodedPacket = (0,_decodePacket_js__WEBPACK_IMPORTED_MODULE_1__.decodePacket)(encodedPackets[i], binaryType);
         packets.push(decodedPacket);
         if (decodedPacket.type === "error") {
             break;
@@ -288,12 +292,320 @@ const decodePayload = (encodedPayload, binaryType) => {
     }
     return packets;
 };
+function createPacketEncoderStream() {
+    // @ts-expect-error
+    return new TransformStream({
+        transform(packet, controller) {
+            (0,_encodePacket_js__WEBPACK_IMPORTED_MODULE_0__.encodePacketToBinary)(packet, (encodedPacket) => {
+                const payloadLength = encodedPacket.length;
+                let header;
+                // inspired by the WebSocket format: https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#decoding_payload_length
+                if (payloadLength < 126) {
+                    header = new Uint8Array(1);
+                    new DataView(header.buffer).setUint8(0, payloadLength);
+                }
+                else if (payloadLength < 65536) {
+                    header = new Uint8Array(3);
+                    const view = new DataView(header.buffer);
+                    view.setUint8(0, 126);
+                    view.setUint16(1, payloadLength);
+                }
+                else {
+                    header = new Uint8Array(9);
+                    const view = new DataView(header.buffer);
+                    view.setUint8(0, 127);
+                    view.setBigUint64(1, BigInt(payloadLength));
+                }
+                // first bit indicates whether the payload is plain text (0) or binary (1)
+                if (packet.data && typeof packet.data !== "string") {
+                    header[0] |= 0x80;
+                }
+                controller.enqueue(header);
+                controller.enqueue(encodedPacket);
+            });
+        },
+    });
+}
+let TEXT_DECODER;
+function totalLength(chunks) {
+    return chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+}
+function concatChunks(chunks, size) {
+    if (chunks[0].length === size) {
+        return chunks.shift();
+    }
+    const buffer = new Uint8Array(size);
+    let j = 0;
+    for (let i = 0; i < size; i++) {
+        buffer[i] = chunks[0][j++];
+        if (j === chunks[0].length) {
+            chunks.shift();
+            j = 0;
+        }
+    }
+    if (chunks.length && j < chunks[0].length) {
+        chunks[0] = chunks[0].slice(j);
+    }
+    return buffer;
+}
+function createPacketDecoderStream(maxPayload, binaryType) {
+    if (!TEXT_DECODER) {
+        TEXT_DECODER = new TextDecoder();
+    }
+    const chunks = [];
+    let state = 0 /* READ_HEADER */;
+    let expectedLength = -1;
+    let isBinary = false;
+    // @ts-expect-error
+    return new TransformStream({
+        transform(chunk, controller) {
+            chunks.push(chunk);
+            while (true) {
+                if (state === 0 /* READ_HEADER */) {
+                    if (totalLength(chunks) < 1) {
+                        break;
+                    }
+                    const header = concatChunks(chunks, 1);
+                    isBinary = (header[0] & 0x80) === 0x80;
+                    expectedLength = header[0] & 0x7f;
+                    if (expectedLength < 126) {
+                        state = 3 /* READ_PAYLOAD */;
+                    }
+                    else if (expectedLength === 126) {
+                        state = 1 /* READ_EXTENDED_LENGTH_16 */;
+                    }
+                    else {
+                        state = 2 /* READ_EXTENDED_LENGTH_64 */;
+                    }
+                }
+                else if (state === 1 /* READ_EXTENDED_LENGTH_16 */) {
+                    if (totalLength(chunks) < 2) {
+                        break;
+                    }
+                    const headerArray = concatChunks(chunks, 2);
+                    expectedLength = new DataView(headerArray.buffer, headerArray.byteOffset, headerArray.length).getUint16(0);
+                    state = 3 /* READ_PAYLOAD */;
+                }
+                else if (state === 2 /* READ_EXTENDED_LENGTH_64 */) {
+                    if (totalLength(chunks) < 8) {
+                        break;
+                    }
+                    const headerArray = concatChunks(chunks, 8);
+                    const view = new DataView(headerArray.buffer, headerArray.byteOffset, headerArray.length);
+                    const n = view.getUint32(0);
+                    if (n > Math.pow(2, 53 - 32) - 1) {
+                        // the maximum safe integer in JavaScript is 2^53 - 1
+                        controller.enqueue(_commons_js__WEBPACK_IMPORTED_MODULE_2__.ERROR_PACKET);
+                        break;
+                    }
+                    expectedLength = n * Math.pow(2, 32) + view.getUint32(4);
+                    state = 3 /* READ_PAYLOAD */;
+                }
+                else {
+                    if (totalLength(chunks) < expectedLength) {
+                        break;
+                    }
+                    const data = concatChunks(chunks, expectedLength);
+                    controller.enqueue((0,_decodePacket_js__WEBPACK_IMPORTED_MODULE_1__.decodePacket)(isBinary ? data : TEXT_DECODER.decode(data), binaryType));
+                    state = 0 /* READ_HEADER */;
+                }
+                if (expectedLength === 0 || expectedLength > maxPayload) {
+                    controller.enqueue(_commons_js__WEBPACK_IMPORTED_MODULE_2__.ERROR_PACKET);
+                    break;
+                }
+            }
+        },
+    });
+}
 const protocol = 4;
 
 
 
 /***/ }),
 /* 3 */
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Transport: () => (/* binding */ Transport),
+/* harmony export */   TransportError: () => (/* binding */ TransportError)
+/* harmony export */ });
+/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var _contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
+
+
+
+
+class TransportError extends Error {
+    constructor(reason, description, context) {
+        super(reason);
+        this.description = description;
+        this.context = context;
+        this.type = "TransportError";
+    }
+}
+class Transport extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1__.Emitter {
+    /**
+     * Transport abstract constructor.
+     *
+     * @param {Object} opts - options
+     * @protected
+     */
+    constructor(opts) {
+        super();
+        this.writable = false;
+        (0,_util_js__WEBPACK_IMPORTED_MODULE_2__.installTimerFunctions)(this, opts);
+        this.opts = opts;
+        this.query = opts.query;
+        this.socket = opts.socket;
+    }
+    /**
+     * Emits an error.
+     *
+     * @param {String} reason
+     * @param description
+     * @param context - the error context
+     * @return {Transport} for chaining
+     * @protected
+     */
+    onError(reason, description, context) {
+        super.emitReserved("error", new TransportError(reason, description, context));
+        return this;
+    }
+    /**
+     * Opens the transport.
+     */
+    open() {
+        this.readyState = "opening";
+        this.doOpen();
+        return this;
+    }
+    /**
+     * Closes the transport.
+     */
+    close() {
+        if (this.readyState === "opening" || this.readyState === "open") {
+            this.doClose();
+            this.onClose();
+        }
+        return this;
+    }
+    /**
+     * Sends multiple packets.
+     *
+     * @param {Array} packets
+     */
+    send(packets) {
+        if (this.readyState === "open") {
+            this.write(packets);
+        }
+        else {
+            // this might happen if the transport was silently closed in the beforeunload event handler
+        }
+    }
+    /**
+     * Called upon open
+     *
+     * @protected
+     */
+    onOpen() {
+        this.readyState = "open";
+        this.writable = true;
+        super.emitReserved("open");
+    }
+    /**
+     * Called with data.
+     *
+     * @param {String} data
+     * @protected
+     */
+    onData(data) {
+        const packet = (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_0__.decodePacket)(data, this.socket.binaryType);
+        this.onPacket(packet);
+    }
+    /**
+     * Called with a decoded packet.
+     *
+     * @protected
+     */
+    onPacket(packet) {
+        super.emitReserved("packet", packet);
+    }
+    /**
+     * Called upon close.
+     *
+     * @protected
+     */
+    onClose(details) {
+        this.readyState = "closed";
+        super.emitReserved("close", details);
+    }
+    /**
+     * Pauses the transport, in order not to lose packets during an upgrade.
+     *
+     * @param onPause
+     */
+    pause(onPause) { }
+    createUri(schema, query = {}) {
+        return (schema +
+            "://" +
+            this._hostname() +
+            this._port() +
+            this.opts.path +
+            this._query(query));
+    }
+    _hostname() {
+        const hostname = this.opts.hostname;
+        return hostname.indexOf(":") === -1 ? hostname : "[" + hostname + "]";
+    }
+    _port() {
+        if (this.opts.port &&
+            ((this.opts.secure && Number(this.opts.port !== 443)) ||
+                (!this.opts.secure && Number(this.opts.port) !== 80))) {
+            return ":" + this.opts.port;
+        }
+        else {
+            return "";
+        }
+    }
+    _query(query) {
+        const encodedQuery = (0,_contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_3__.encode)(query);
+        return encodedQuery.length ? "?" + encodedQuery : "";
+    }
+}
+
+
+/***/ }),
+/* 4 */
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   WebSocket: () => (/* binding */ WebSocket),
+/* harmony export */   defaultBinaryType: () => (/* binding */ defaultBinaryType),
+/* harmony export */   nextTick: () => (/* binding */ nextTick),
+/* harmony export */   usingBrowserWebSocket: () => (/* binding */ usingBrowserWebSocket)
+/* harmony export */ });
+/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
+
+const nextTick = (() => {
+    const isPromiseAvailable = typeof Promise === "function" && typeof Promise.resolve === "function";
+    if (isPromiseAvailable) {
+        return (cb) => Promise.resolve().then(cb);
+    }
+    else {
+        return (cb, setTimeoutFn) => setTimeoutFn(cb, 0);
+    }
+})();
+const WebSocket = _globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim.WebSocket || _globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim.MozWebSocket;
+const usingBrowserWebSocket = true;
+const defaultBinaryType = "arraybuffer";
+
+
+/***/ }),
+/* 5 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -314,136 +626,7 @@ const globalThisShim = (() => {
 
 
 /***/ }),
-/* 4 */
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Transport: () => (/* binding */ Transport)
-/* harmony export */ });
-/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
-
-
-
-class TransportError extends Error {
-    constructor(reason, description, context) {
-        super(reason);
-        this.description = description;
-        this.context = context;
-        this.type = "TransportError";
-    }
-}
-class Transport extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1__.Emitter {
-    /**
-     * Transport abstract constructor.
-     *
-     * @param {Object} options.
-     * @api private
-     */
-    constructor(opts) {
-        super();
-        this.writable = false;
-        (0,_util_js__WEBPACK_IMPORTED_MODULE_2__.installTimerFunctions)(this, opts);
-        this.opts = opts;
-        this.query = opts.query;
-        this.readyState = "";
-        this.socket = opts.socket;
-    }
-    /**
-     * Emits an error.
-     *
-     * @param {String} reason
-     * @param description
-     * @param context - the error context
-     * @return {Transport} for chaining
-     * @api protected
-     */
-    onError(reason, description, context) {
-        super.emitReserved("error", new TransportError(reason, description, context));
-        return this;
-    }
-    /**
-     * Opens the transport.
-     *
-     * @api public
-     */
-    open() {
-        if ("closed" === this.readyState || "" === this.readyState) {
-            this.readyState = "opening";
-            this.doOpen();
-        }
-        return this;
-    }
-    /**
-     * Closes the transport.
-     *
-     * @api public
-     */
-    close() {
-        if ("opening" === this.readyState || "open" === this.readyState) {
-            this.doClose();
-            this.onClose();
-        }
-        return this;
-    }
-    /**
-     * Sends multiple packets.
-     *
-     * @param {Array} packets
-     * @api public
-     */
-    send(packets) {
-        if ("open" === this.readyState) {
-            this.write(packets);
-        }
-        else {
-            // this might happen if the transport was silently closed in the beforeunload event handler
-        }
-    }
-    /**
-     * Called upon open
-     *
-     * @api protected
-     */
-    onOpen() {
-        this.readyState = "open";
-        this.writable = true;
-        super.emitReserved("open");
-    }
-    /**
-     * Called with data.
-     *
-     * @param {String} data
-     * @api protected
-     */
-    onData(data) {
-        const packet = (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_0__.decodePacket)(data, this.socket.binaryType);
-        this.onPacket(packet);
-    }
-    /**
-     * Called with a decoded packet.
-     *
-     * @api protected
-     */
-    onPacket(packet) {
-        super.emitReserved("packet", packet);
-    }
-    /**
-     * Called upon close.
-     *
-     * @api protected
-     */
-    onClose(details) {
-        this.readyState = "closed";
-        super.emitReserved("close", details);
-    }
-}
-
-
-/***/ }),
-/* 5 */
+/* 6 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -454,11 +637,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   protocol: () => (/* binding */ protocol)
 /* harmony export */ });
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
-/* harmony import */ var _binary_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(29);
+/* harmony import */ var _binary_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(30);
 /* harmony import */ var _is_binary_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(14);
 
 
 
+/**
+ * These strings must not be used as event names, as they have a special meaning.
+ */
+const RESERVED_EVENTS = [
+    "connect",
+    "connect_error",
+    "disconnect",
+    "disconnecting",
+    "newListener",
+    "removeListener", // used by the Node.js EventEmitter
+];
 /**
  * Protocol version.
  *
@@ -496,11 +690,14 @@ class Encoder {
     encode(obj) {
         if (obj.type === PacketType.EVENT || obj.type === PacketType.ACK) {
             if ((0,_is_binary_js__WEBPACK_IMPORTED_MODULE_2__.hasBinary)(obj)) {
-                obj.type =
-                    obj.type === PacketType.EVENT
+                return this.encodeAsBinary({
+                    type: obj.type === PacketType.EVENT
                         ? PacketType.BINARY_EVENT
-                        : PacketType.BINARY_ACK;
-                return this.encodeAsBinary(obj);
+                        : PacketType.BINARY_ACK,
+                    nsp: obj.nsp,
+                    data: obj.data,
+                    id: obj.id,
+                });
             }
         }
         return [this.encodeAsString(obj)];
@@ -544,6 +741,10 @@ class Encoder {
         return buffers; // write all the buffers
     }
 }
+// see https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
+function isObject(value) {
+    return Object.prototype.toString.call(value) === "[object Object]";
+}
 /**
  * A socket.io Decoder instance
  *
@@ -571,8 +772,9 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__.
                 throw new Error("got plaintext data when reconstructing a packet");
             }
             packet = this.decodeString(obj);
-            if (packet.type === PacketType.BINARY_EVENT ||
-                packet.type === PacketType.BINARY_ACK) {
+            const isBinaryEvent = packet.type === PacketType.BINARY_EVENT;
+            if (isBinaryEvent || packet.type === PacketType.BINARY_ACK) {
+                packet.type = isBinaryEvent ? PacketType.EVENT : PacketType.ACK;
                 // binary packet's json
                 this.reconstructor = new BinaryReconstructor(packet);
                 // no attachments, labeled binary but no binary data to follow
@@ -682,14 +884,17 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__.
     static isPayloadValid(type, payload) {
         switch (type) {
             case PacketType.CONNECT:
-                return typeof payload === "object";
+                return isObject(payload);
             case PacketType.DISCONNECT:
                 return payload === undefined;
             case PacketType.CONNECT_ERROR:
-                return typeof payload === "string" || typeof payload === "object";
+                return typeof payload === "string" || isObject(payload);
             case PacketType.EVENT:
             case PacketType.BINARY_EVENT:
-                return Array.isArray(payload) && payload.length > 0;
+                return (Array.isArray(payload) &&
+                    (typeof payload[0] === "number" ||
+                        (typeof payload[0] === "string" &&
+                            RESERVED_EVENTS.indexOf(payload[0]) === -1)));
             case PacketType.ACK:
             case PacketType.BINARY_ACK:
                 return Array.isArray(payload);
@@ -701,6 +906,7 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__.
     destroy() {
         if (this.reconstructor) {
             this.reconstructor.finishedReconstruction();
+            this.reconstructor = null;
         }
     }
 }
@@ -747,66 +953,29 @@ class BinaryReconstructor {
 
 
 /***/ }),
-/* 6 */
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   decode: () => (/* binding */ decode),
-/* harmony export */   encode: () => (/* binding */ encode)
-/* harmony export */ });
-// imported from https://github.com/galkn/querystring
-/**
- * Compiles a querystring
- * Returns string representation of the object
- *
- * @param {Object}
- * @api private
- */
-function encode(obj) {
-    let str = '';
-    for (let i in obj) {
-        if (obj.hasOwnProperty(i)) {
-            if (str.length)
-                str += '&';
-            str += encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]);
-        }
-    }
-    return str;
-}
-/**
- * Parses a simple querystring into an object
- *
- * @param {String} qs
- * @api private
- */
-function decode(qs) {
-    let qry = {};
-    let pairs = qs.split('&');
-    for (let i = 0, l = pairs.length; i < l; i++) {
-        let pair = pairs[i].split('=');
-        qry[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
-    }
-    return qry;
-}
-
-
-/***/ }),
 /* 7 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   transports: () => (/* binding */ transports)
+/* harmony export */   ERROR_PACKET: () => (/* binding */ ERROR_PACKET),
+/* harmony export */   PACKET_TYPES: () => (/* binding */ PACKET_TYPES),
+/* harmony export */   PACKET_TYPES_REVERSE: () => (/* binding */ PACKET_TYPES_REVERSE)
 /* harmony export */ });
-/* harmony import */ var _polling_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(24);
-/* harmony import */ var _websocket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(28);
+const PACKET_TYPES = Object.create(null); // no Map = no polyfill
+PACKET_TYPES["open"] = "0";
+PACKET_TYPES["close"] = "1";
+PACKET_TYPES["ping"] = "2";
+PACKET_TYPES["pong"] = "3";
+PACKET_TYPES["message"] = "4";
+PACKET_TYPES["upgrade"] = "5";
+PACKET_TYPES["noop"] = "6";
+const PACKET_TYPES_REVERSE = Object.create(null);
+Object.keys(PACKET_TYPES).forEach((key) => {
+    PACKET_TYPES_REVERSE[PACKET_TYPES[key]] = key;
+});
+const ERROR_PACKET = { type: "error", data: "parser error" };
 
-
-const transports = {
-    websocket: _websocket_js__WEBPACK_IMPORTED_MODULE_1__.WS,
-    polling: _polling_js__WEBPACK_IMPORTED_MODULE_0__.Polling
-};
 
 
 /***/ }),
@@ -815,25 +984,19 @@ const transports = {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   WebSocket: () => (/* binding */ WebSocket),
-/* harmony export */   defaultBinaryType: () => (/* binding */ defaultBinaryType),
-/* harmony export */   nextTick: () => (/* binding */ nextTick),
-/* harmony export */   usingBrowserWebSocket: () => (/* binding */ usingBrowserWebSocket)
+/* harmony export */   transports: () => (/* binding */ transports)
 /* harmony export */ });
-/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _polling_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(24);
+/* harmony import */ var _websocket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(28);
+/* harmony import */ var _webtransport_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(29);
 
-const nextTick = (() => {
-    const isPromiseAvailable = typeof Promise === "function" && typeof Promise.resolve === "function";
-    if (isPromiseAvailable) {
-        return cb => Promise.resolve().then(cb);
-    }
-    else {
-        return (cb, setTimeoutFn) => setTimeoutFn(cb, 0);
-    }
-})();
-const WebSocket = _globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim.WebSocket || _globalThis_js__WEBPACK_IMPORTED_MODULE_0__.globalThisShim.MozWebSocket;
-const usingBrowserWebSocket = true;
-const defaultBinaryType = "arraybuffer";
+
+
+const transports = {
+    websocket: _websocket_js__WEBPACK_IMPORTED_MODULE_1__.WS,
+    webtransport: _webtransport_js__WEBPACK_IMPORTED_MODULE_2__.WT,
+    polling: _polling_js__WEBPACK_IMPORTED_MODULE_0__.Polling,
+};
 
 
 /***/ }),
@@ -846,16 +1009,31 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 // imported from https://github.com/galkn/parseuri
 /**
- * Parses an URI
+ * Parses a URI
+ *
+ * Note: we could also have used the built-in URL object, but it isn't supported on all platforms.
+ *
+ * See:
+ * - https://developer.mozilla.org/en-US/docs/Web/API/URL
+ * - https://caniuse.com/url
+ * - https://www.rfc-editor.org/rfc/rfc3986#appendix-B
+ *
+ * History of the parse() method:
+ * - first commit: https://github.com/socketio/socket.io-client/commit/4ee1d5d94b3906a9c052b459f1a818b15f38f91c
+ * - export into its own module: https://github.com/socketio/engine.io-client/commit/de2c561e4564efeb78f1bdb1ba39ef81b2822cb3
+ * - reimport: https://github.com/socketio/engine.io-client/commit/df32277c3f6d622eec5ed09f493cae3f3391d242
  *
  * @author Steven Levithan <stevenlevithan.com> (MIT license)
  * @api private
  */
-const re = /^(?:(?![^:@]+:[^:@\/]*@)(http|https|ws|wss):\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?((?:[a-f0-9]{0,4}:){2,7}[a-f0-9]{0,4}|[^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/;
+const re = /^(?:(?![^:@\/?#]+:[^:@\/]*@)(http|https|ws|wss):\/\/)?((?:(([^:@\/?#]*)(?::([^:@\/?#]*))?)?@)?((?:[a-f0-9]{0,4}:){2,7}[a-f0-9]{0,4}|[^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/;
 const parts = [
     'source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'
 ];
 function parse(str) {
+    if (str.length > 2000) {
+        throw "URI too long";
+    }
     const src = str, b = str.indexOf('['), e = str.indexOf(']');
     if (b != -1 && e != -1) {
         str = str.substring(0, b) + str.substring(b, e).replace(/:/g, ';') + str.substring(e, str.length);
@@ -903,7 +1081,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Socket: () => (/* binding */ Socket)
 /* harmony export */ });
-/* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
+/* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
 /* harmony import */ var _on_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(15);
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
 
@@ -968,6 +1146,11 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
          */
         this.connected = false;
         /**
+         * Whether the connection state was recovered after a temporary disconnection. In that case, any missed packets will
+         * be transmitted by the server.
+         */
+        this.recovered = false;
+        /**
          * Buffer for packets received before the CONNECT packet
          */
         this.receiveBuffer = [];
@@ -975,7 +1158,42 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
          * Buffer for packets that will be sent once the socket is connected
          */
         this.sendBuffer = [];
+        /**
+         * The queue of packets to be sent with retry in case of failure.
+         *
+         * Packets are sent one by one, each waiting for the server acknowledgement, in order to guarantee the delivery order.
+         * @private
+         */
+        this._queue = [];
+        /**
+         * A sequence to generate the ID of the {@link QueuedPacket}.
+         * @private
+         */
+        this._queueSeq = 0;
         this.ids = 0;
+        /**
+         * A map containing acknowledgement handlers.
+         *
+         * The `withError` attribute is used to differentiate handlers that accept an error as first argument:
+         *
+         * - `socket.emit("test", (err, value) => { ... })` with `ackTimeout` option
+         * - `socket.timeout(5000).emit("test", (err, value) => { ... })`
+         * - `const value = await socket.emitWithAck("test")`
+         *
+         * From those that don't:
+         *
+         * - `socket.emit("test", (value) => { ... });`
+         *
+         * In the first case, the handlers will be called with an error when:
+         *
+         * - the timeout is reached
+         * - the socket gets disconnected
+         *
+         * In the second case, the handlers will be simply discarded upon disconnection, since the client will never receive
+         * an acknowledgement from the server.
+         *
+         * @private
+         */
         this.acks = {};
         this.flags = {};
         this.io = io;
@@ -983,6 +1201,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
         if (opts && opts.auth) {
             this.auth = opts.auth;
         }
+        this._opts = Object.assign({}, opts);
         if (this.io._autoConnect)
             this.open();
     }
@@ -1107,6 +1326,10 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
             throw new Error('"' + ev.toString() + '" is a reserved event name');
         }
         args.unshift(ev);
+        if (this._opts.retries && !this.flags.fromQueue && !this.flags.volatile) {
+            this._addToQueue(args);
+            return this;
+        }
         const packet = {
             type: socket_io_parser__WEBPACK_IMPORTED_MODULE_0__.PacketType.EVENT,
             data: args,
@@ -1140,7 +1363,8 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
      * @private
      */
     _registerAckCallback(id, ack) {
-        const timeout = this.flags.timeout;
+        var _a;
+        const timeout = (_a = this.flags.timeout) !== null && _a !== void 0 ? _a : this._opts.ackTimeout;
         if (timeout === undefined) {
             this.acks[id] = ack;
             return;
@@ -1155,11 +1379,101 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
             }
             ack.call(this, new Error("operation has timed out"));
         }, timeout);
-        this.acks[id] = (...args) => {
+        const fn = (...args) => {
             // @ts-ignore
             this.io.clearTimeoutFn(timer);
-            ack.apply(this, [null, ...args]);
+            ack.apply(this, args);
         };
+        fn.withError = true;
+        this.acks[id] = fn;
+    }
+    /**
+     * Emits an event and waits for an acknowledgement
+     *
+     * @example
+     * // without timeout
+     * const response = await socket.emitWithAck("hello", "world");
+     *
+     * // with a specific timeout
+     * try {
+     *   const response = await socket.timeout(1000).emitWithAck("hello", "world");
+     * } catch (err) {
+     *   // the server did not acknowledge the event in the given delay
+     * }
+     *
+     * @return a Promise that will be fulfilled when the server acknowledges the event
+     */
+    emitWithAck(ev, ...args) {
+        return new Promise((resolve, reject) => {
+            const fn = (arg1, arg2) => {
+                return arg1 ? reject(arg1) : resolve(arg2);
+            };
+            fn.withError = true;
+            args.push(fn);
+            this.emit(ev, ...args);
+        });
+    }
+    /**
+     * Add the packet to the queue.
+     * @param args
+     * @private
+     */
+    _addToQueue(args) {
+        let ack;
+        if (typeof args[args.length - 1] === "function") {
+            ack = args.pop();
+        }
+        const packet = {
+            id: this._queueSeq++,
+            tryCount: 0,
+            pending: false,
+            args,
+            flags: Object.assign({ fromQueue: true }, this.flags),
+        };
+        args.push((err, ...responseArgs) => {
+            if (packet !== this._queue[0]) {
+                // the packet has already been acknowledged
+                return;
+            }
+            const hasError = err !== null;
+            if (hasError) {
+                if (packet.tryCount > this._opts.retries) {
+                    this._queue.shift();
+                    if (ack) {
+                        ack(err);
+                    }
+                }
+            }
+            else {
+                this._queue.shift();
+                if (ack) {
+                    ack(null, ...responseArgs);
+                }
+            }
+            packet.pending = false;
+            return this._drainQueue();
+        });
+        this._queue.push(packet);
+        this._drainQueue();
+    }
+    /**
+     * Send the first packet of the queue, and wait for an acknowledgement from the server.
+     * @param force - whether to resend a packet that has not been acknowledged yet
+     *
+     * @private
+     */
+    _drainQueue(force = false) {
+        if (!this.connected || this._queue.length === 0) {
+            return;
+        }
+        const packet = this._queue[0];
+        if (packet.pending && !force) {
+            return;
+        }
+        packet.pending = true;
+        packet.tryCount++;
+        this.flags = packet.flags;
+        this.emit.apply(this, packet.args);
     }
     /**
      * Sends a packet.
@@ -1179,12 +1493,26 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
     onopen() {
         if (typeof this.auth == "function") {
             this.auth((data) => {
-                this.packet({ type: socket_io_parser__WEBPACK_IMPORTED_MODULE_0__.PacketType.CONNECT, data });
+                this._sendConnectPacket(data);
             });
         }
         else {
-            this.packet({ type: socket_io_parser__WEBPACK_IMPORTED_MODULE_0__.PacketType.CONNECT, data: this.auth });
+            this._sendConnectPacket(this.auth);
         }
+    }
+    /**
+     * Sends a CONNECT packet to initiate the Socket.IO session.
+     *
+     * @param data
+     * @private
+     */
+    _sendConnectPacket(data) {
+        this.packet({
+            type: socket_io_parser__WEBPACK_IMPORTED_MODULE_0__.PacketType.CONNECT,
+            data: this._pid
+                ? Object.assign({ pid: this._pid, offset: this._lastOffset }, data)
+                : data,
+        });
     }
     /**
      * Called upon engine or manager `error`.
@@ -1208,6 +1536,26 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
         this.connected = false;
         delete this.id;
         this.emitReserved("disconnect", reason, description);
+        this._clearAcks();
+    }
+    /**
+     * Clears the acknowledgement handlers upon disconnection, since the client will never receive an acknowledgement from
+     * the server.
+     *
+     * @private
+     */
+    _clearAcks() {
+        Object.keys(this.acks).forEach((id) => {
+            const isBuffered = this.sendBuffer.some((packet) => String(packet.id) === id);
+            if (!isBuffered) {
+                // note: handlers that do not accept an error as first argument are ignored here
+                const ack = this.acks[id];
+                delete this.acks[id];
+                if (ack.withError) {
+                    ack.call(this, new Error("socket has been disconnected"));
+                }
+            }
+        });
     }
     /**
      * Called with socket packet.
@@ -1222,8 +1570,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
         switch (packet.type) {
             case socket_io_parser__WEBPACK_IMPORTED_MODULE_0__.PacketType.CONNECT:
                 if (packet.data && packet.data.sid) {
-                    const id = packet.data.sid;
-                    this.onconnect(id);
+                    this.onconnect(packet.data.sid, packet.data.pid);
                 }
                 else {
                     this.emitReserved("connect_error", new Error("It seems you are trying to reach a Socket.IO server in v2.x with a v3.x client, but they are not compatible (more information here: https://socket.io/docs/v3/migrating-from-2-x-to-3-0/)"));
@@ -1275,6 +1622,9 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
             }
         }
         super.emit.apply(this, args);
+        if (this._pid && args.length && typeof args[args.length - 1] === "string") {
+            this._lastOffset = args[args.length - 1];
+        }
     }
     /**
      * Produces an ack callback to emit with an event.
@@ -1297,30 +1647,37 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__.E
         };
     }
     /**
-     * Called upon a server acknowlegement.
+     * Called upon a server acknowledgement.
      *
      * @param packet
      * @private
      */
     onack(packet) {
         const ack = this.acks[packet.id];
-        if ("function" === typeof ack) {
-            ack.apply(this, packet.data);
-            delete this.acks[packet.id];
+        if (typeof ack !== "function") {
+            return;
         }
-        else {
+        delete this.acks[packet.id];
+        // @ts-ignore FIXME ack is incorrectly inferred as 'never'
+        if (ack.withError) {
+            packet.data.unshift(null);
         }
+        // @ts-ignore
+        ack.apply(this, packet.data);
     }
     /**
      * Called upon server connect.
      *
      * @private
      */
-    onconnect(id) {
+    onconnect(id, pid) {
         this.id = id;
+        this.recovered = pid && this._pid === pid;
+        this._pid = pid; // defined only if connection state recovery is enabled
         this.connected = true;
         this.emitBuffered();
         this.emitReserved("connect");
+        this._drainQueue(true);
     }
     /**
      * Emit buffered events (received and emitted).
@@ -1619,6 +1976,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Socket: () => (/* reexport safe */ _socket_js__WEBPACK_IMPORTED_MODULE_0__.Socket),
 /* harmony export */   Transport: () => (/* reexport safe */ _transport_js__WEBPACK_IMPORTED_MODULE_1__.Transport),
+/* harmony export */   TransportError: () => (/* reexport safe */ _transport_js__WEBPACK_IMPORTED_MODULE_1__.TransportError),
 /* harmony export */   installTimerFunctions: () => (/* reexport safe */ _util_js__WEBPACK_IMPORTED_MODULE_3__.installTimerFunctions),
 /* harmony export */   nextTick: () => (/* reexport safe */ _transports_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_5__.nextTick),
 /* harmony export */   parse: () => (/* reexport safe */ _contrib_parseuri_js__WEBPACK_IMPORTED_MODULE_4__.parse),
@@ -1626,11 +1984,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   transports: () => (/* reexport safe */ _transports_index_js__WEBPACK_IMPORTED_MODULE_2__.transports)
 /* harmony export */ });
 /* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(16);
-/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
 /* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
 /* harmony import */ var _contrib_parseuri_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(9);
-/* harmony import */ var _transports_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8);
+/* harmony import */ var _transports_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(4);
 
 
 const protocol = _socket_js__WEBPACK_IMPORTED_MODULE_0__.Socket.protocol;
@@ -1647,24 +2005,43 @@ const protocol = _socket_js__WEBPACK_IMPORTED_MODULE_0__.Socket.protocol;
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   ERROR_PACKET: () => (/* binding */ ERROR_PACKET),
-/* harmony export */   PACKET_TYPES: () => (/* binding */ PACKET_TYPES),
-/* harmony export */   PACKET_TYPES_REVERSE: () => (/* binding */ PACKET_TYPES_REVERSE)
+/* harmony export */   decode: () => (/* binding */ decode),
+/* harmony export */   encode: () => (/* binding */ encode)
 /* harmony export */ });
-const PACKET_TYPES = Object.create(null); // no Map = no polyfill
-PACKET_TYPES["open"] = "0";
-PACKET_TYPES["close"] = "1";
-PACKET_TYPES["ping"] = "2";
-PACKET_TYPES["pong"] = "3";
-PACKET_TYPES["message"] = "4";
-PACKET_TYPES["upgrade"] = "5";
-PACKET_TYPES["noop"] = "6";
-const PACKET_TYPES_REVERSE = Object.create(null);
-Object.keys(PACKET_TYPES).forEach(key => {
-    PACKET_TYPES_REVERSE[PACKET_TYPES[key]] = key;
-});
-const ERROR_PACKET = { type: "error", data: "parser error" };
-
+// imported from https://github.com/galkn/querystring
+/**
+ * Compiles a querystring
+ * Returns string representation of the object
+ *
+ * @param {Object}
+ * @api private
+ */
+function encode(obj) {
+    let str = '';
+    for (let i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            if (str.length)
+                str += '&';
+            str += encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]);
+        }
+    }
+    return str;
+}
+/**
+ * Parses a simple querystring into an object
+ *
+ * @param {String} qs
+ * @api private
+ */
+function decode(qs) {
+    let qry = {};
+    let pairs = qs.split('&');
+    for (let i = 0, l = pairs.length; i < l; i++) {
+        let pair = pairs[i].split('=');
+        qry[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+    }
+    return qry;
+}
 
 
 /***/ }),
@@ -1814,12 +2191,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Socket: () => (/* binding */ Socket)
 /* harmony export */ });
-/* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
+/* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
 /* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
-/* harmony import */ var _contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
+/* harmony import */ var _contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(12);
 /* harmony import */ var _contrib_parseuri_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(0);
 /* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2);
+/* harmony import */ var _transports_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(4);
+
 
 
 
@@ -1830,12 +2209,13 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Socket constructor.
      *
-     * @param {String|Object} uri or options
+     * @param {String|Object} uri - uri or options
      * @param {Object} opts - options
-     * @api public
      */
     constructor(uri, opts = {}) {
         super();
+        this.binaryType = _transports_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_6__.defaultBinaryType;
+        this.writeBuffer = [];
         if (uri && "object" === typeof uri) {
             opts = uri;
             uri = null;
@@ -1870,8 +2250,11 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
                     : this.secure
                         ? "443"
                         : "80");
-        this.transports = opts.transports || ["polling", "websocket"];
-        this.readyState = "";
+        this.transports = opts.transports || [
+            "polling",
+            "websocket",
+            "webtransport",
+        ];
         this.writeBuffer = [];
         this.prevBufferLen = 0;
         this.opts = Object.assign({
@@ -1881,14 +2264,17 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
             upgrade: true,
             timestampParam: "t",
             rememberUpgrade: false,
+            addTrailingSlash: true,
             rejectUnauthorized: true,
             perMessageDeflate: {
-                threshold: 1024
+                threshold: 1024,
             },
             transportOptions: {},
-            closeOnBeforeunload: true
+            closeOnBeforeunload: false,
         }, opts);
-        this.opts.path = this.opts.path.replace(/\/$/, "") + "/";
+        this.opts.path =
+            this.opts.path.replace(/\/$/, "") +
+                (this.opts.addTrailingSlash ? "/" : "");
         if (typeof this.opts.query === "string") {
             this.opts.query = (0,_contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__.decode)(this.opts.query);
         }
@@ -1916,7 +2302,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
             if (this.hostname !== "localhost") {
                 this.offlineEventListener = () => {
                     this.onClose("transport close", {
-                        description: "network connection lost"
+                        description: "network connection lost",
                     });
                 };
                 addEventListener("offline", this.offlineEventListener, false);
@@ -1927,9 +2313,9 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Creates transport of the given type.
      *
-     * @param {String} transport name
+     * @param {String} name - transport name
      * @return {Transport}
-     * @api private
+     * @private
      */
     createTransport(name) {
         const query = Object.assign({}, this.opts.query);
@@ -1940,19 +2326,19 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
         // session id if we already have one
         if (this.id)
             query.sid = this.id;
-        const opts = Object.assign({}, this.opts.transportOptions[name], this.opts, {
+        const opts = Object.assign({}, this.opts, {
             query,
             socket: this,
             hostname: this.hostname,
             secure: this.secure,
-            port: this.port
-        });
+            port: this.port,
+        }, this.opts.transportOptions[name]);
         return new _transports_index_js__WEBPACK_IMPORTED_MODULE_0__.transports[name](opts);
     }
     /**
      * Initializes transport to use and starts probe.
      *
-     * @api private
+     * @private
      */
     open() {
         let transport;
@@ -1987,7 +2373,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Sets the current transport. Disables the existing one (if any).
      *
-     * @api private
+     * @private
      */
     setTransport(transport) {
         if (this.transport) {
@@ -2000,13 +2386,13 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
             .on("drain", this.onDrain.bind(this))
             .on("packet", this.onPacket.bind(this))
             .on("error", this.onError.bind(this))
-            .on("close", reason => this.onClose("transport close", reason));
+            .on("close", (reason) => this.onClose("transport close", reason));
     }
     /**
      * Probes a transport.
      *
-     * @param {String} transport name
-     * @api private
+     * @param {String} name - transport name
+     * @private
      */
     probe(name) {
         let transport = this.createTransport(name);
@@ -2016,7 +2402,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
             if (failed)
                 return;
             transport.send([{ type: "ping", data: "probe" }]);
-            transport.once("packet", msg => {
+            transport.once("packet", (msg) => {
                 if (failed)
                     return;
                 if ("pong" === msg.type && "probe" === msg.data) {
@@ -2057,7 +2443,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
             transport = null;
         }
         // Handle any error that happens while probing
-        const onerror = err => {
+        const onerror = (err) => {
             const error = new Error("probe error: " + err);
             // @ts-ignore
             error.transport = transport.name;
@@ -2090,12 +2476,23 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
         transport.once("close", onTransportClose);
         this.once("close", onclose);
         this.once("upgrading", onupgrade);
-        transport.open();
+        if (this.upgrades.indexOf("webtransport") !== -1 &&
+            name !== "webtransport") {
+            // favor WebTransport
+            this.setTimeoutFn(() => {
+                if (!failed) {
+                    transport.open();
+                }
+            }, 200);
+        }
+        else {
+            transport.open();
+        }
     }
     /**
      * Called when connection is deemed open.
      *
-     * @api private
+     * @private
      */
     onOpen() {
         this.readyState = "open";
@@ -2104,9 +2501,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
         this.flush();
         // we check for `readyState` in case an `open`
         // listener already closed the socket
-        if ("open" === this.readyState &&
-            this.opts.upgrade &&
-            this.transport.pause) {
+        if ("open" === this.readyState && this.opts.upgrade) {
             let i = 0;
             const l = this.upgrades.length;
             for (; i < l; i++) {
@@ -2117,7 +2512,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Handles a packet.
      *
-     * @api private
+     * @private
      */
     onPacket(packet) {
         if ("opening" === this.readyState ||
@@ -2126,12 +2521,12 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
             this.emitReserved("packet", packet);
             // Socket is live - any packet counts
             this.emitReserved("heartbeat");
+            this.resetPingTimeout();
             switch (packet.type) {
                 case "open":
                     this.onHandshake(JSON.parse(packet.data));
                     break;
                 case "ping":
-                    this.resetPingTimeout();
                     this.sendPacket("pong");
                     this.emitReserved("ping");
                     this.emitReserved("pong");
@@ -2155,7 +2550,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
      * Called upon handshake completion.
      *
      * @param {Object} data - handshake obj
-     * @api private
+     * @private
      */
     onHandshake(data) {
         this.emitReserved("handshake", data);
@@ -2174,7 +2569,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Sets and resets ping timeout timer based on server pings.
      *
-     * @api private
+     * @private
      */
     resetPingTimeout() {
         this.clearTimeoutFn(this.pingTimeoutTimer);
@@ -2188,7 +2583,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Called on `drain` event
      *
-     * @api private
+     * @private
      */
     onDrain() {
         this.writeBuffer.splice(0, this.prevBufferLen);
@@ -2206,7 +2601,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Flush write buffers.
      *
-     * @api private
+     * @private
      */
     flush() {
         if ("closed" !== this.readyState &&
@@ -2250,11 +2645,10 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Sends a message.
      *
-     * @param {String} message.
-     * @param {Function} callback function.
+     * @param {String} msg - message.
      * @param {Object} options.
+     * @param {Function} callback function.
      * @return {Socket} for chaining.
-     * @api public
      */
     write(msg, options, fn) {
         this.sendPacket("message", msg, options, fn);
@@ -2267,11 +2661,11 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Sends a packet.
      *
-     * @param {String} packet type.
+     * @param {String} type: packet type.
      * @param {String} data.
      * @param {Object} options.
-     * @param {Function} callback function.
-     * @api private
+     * @param {Function} fn - callback function.
+     * @private
      */
     sendPacket(type, data, options, fn) {
         if ("function" === typeof data) {
@@ -2290,7 +2684,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
         const packet = {
             type: type,
             data: data,
-            options: options
+            options: options,
         };
         this.emitReserved("packetCreate", packet);
         this.writeBuffer.push(packet);
@@ -2300,8 +2694,6 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     }
     /**
      * Closes the connection.
-     *
-     * @api public
      */
     close() {
         const close = () => {
@@ -2342,7 +2734,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Called upon transport error
      *
-     * @api private
+     * @private
      */
     onError(err) {
         Socket.priorWebsocketSuccess = false;
@@ -2352,7 +2744,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Called upon transport close.
      *
-     * @api private
+     * @private
      */
     onClose(reason, description) {
         if ("opening" === this.readyState ||
@@ -2385,9 +2777,8 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.E
     /**
      * Filters upgrades, returning only those matching client transports.
      *
-     * @param {Array} server upgrades
-     * @api private
-     *
+     * @param {Array} upgrades - server upgrades
+     * @private
      */
     filterUpgrades(upgrades) {
         const filteredUpgrades = [];
@@ -2409,16 +2800,17 @@ Socket.protocol = engine_io_parser__WEBPACK_IMPORTED_MODULE_5__.protocol;
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   encodePacket: () => (/* binding */ encodePacket),
+/* harmony export */   encodePacketToBinary: () => (/* binding */ encodePacketToBinary)
 /* harmony export */ });
-/* harmony import */ var _commons_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(12);
+/* harmony import */ var _commons_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
 
 const withNativeBlob = typeof Blob === "function" ||
     (typeof Blob !== "undefined" &&
         Object.prototype.toString.call(Blob) === "[object BlobConstructor]");
 const withNativeArrayBuffer = typeof ArrayBuffer === "function";
 // ArrayBuffer.isView method is not defined in IE10
-const isView = obj => {
+const isView = (obj) => {
     return typeof ArrayBuffer.isView === "function"
         ? ArrayBuffer.isView(obj)
         : obj && obj.buffer instanceof ArrayBuffer;
@@ -2448,11 +2840,38 @@ const encodeBlobAsBase64 = (data, callback) => {
     const fileReader = new FileReader();
     fileReader.onload = function () {
         const content = fileReader.result.split(",")[1];
-        callback("b" + content);
+        callback("b" + (content || ""));
     };
     return fileReader.readAsDataURL(data);
 };
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (encodePacket);
+function toArray(data) {
+    if (data instanceof Uint8Array) {
+        return data;
+    }
+    else if (data instanceof ArrayBuffer) {
+        return new Uint8Array(data);
+    }
+    else {
+        return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    }
+}
+let TEXT_ENCODER;
+function encodePacketToBinary(packet, callback) {
+    if (withNativeBlob && packet.data instanceof Blob) {
+        return packet.data.arrayBuffer().then(toArray).then(callback);
+    }
+    else if (withNativeArrayBuffer &&
+        (packet.data instanceof ArrayBuffer || isView(packet.data))) {
+        return callback(toArray(packet.data));
+    }
+    encodePacket(packet, false, (encoded) => {
+        if (!TEXT_ENCODER) {
+            TEXT_ENCODER = new TextEncoder();
+        }
+        callback(TEXT_ENCODER.encode(encoded));
+    });
+}
+
 
 
 /***/ }),
@@ -2461,9 +2880,9 @@ const encodeBlobAsBase64 = (data, callback) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   decodePacket: () => (/* binding */ decodePacket)
 /* harmony export */ });
-/* harmony import */ var _commons_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(12);
+/* harmony import */ var _commons_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
 /* harmony import */ var _contrib_base64_arraybuffer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(25);
 
 
@@ -2472,14 +2891,14 @@ const decodePacket = (encodedPacket, binaryType) => {
     if (typeof encodedPacket !== "string") {
         return {
             type: "message",
-            data: mapBinary(encodedPacket, binaryType)
+            data: mapBinary(encodedPacket, binaryType),
         };
     }
     const type = encodedPacket.charAt(0);
     if (type === "b") {
         return {
             type: "message",
-            data: decodeBase64Packet(encodedPacket.substring(1), binaryType)
+            data: decodeBase64Packet(encodedPacket.substring(1), binaryType),
         };
     }
     const packetType = _commons_js__WEBPACK_IMPORTED_MODULE_0__.PACKET_TYPES_REVERSE[type];
@@ -2489,10 +2908,10 @@ const decodePacket = (encodedPacket, binaryType) => {
     return encodedPacket.length > 1
         ? {
             type: _commons_js__WEBPACK_IMPORTED_MODULE_0__.PACKET_TYPES_REVERSE[type],
-            data: encodedPacket.substring(1)
+            data: encodedPacket.substring(1),
         }
         : {
-            type: _commons_js__WEBPACK_IMPORTED_MODULE_0__.PACKET_TYPES_REVERSE[type]
+            type: _commons_js__WEBPACK_IMPORTED_MODULE_0__.PACKET_TYPES_REVERSE[type],
         };
 };
 const decodeBase64Packet = (data, binaryType) => {
@@ -2507,13 +2926,26 @@ const decodeBase64Packet = (data, binaryType) => {
 const mapBinary = (data, binaryType) => {
     switch (binaryType) {
         case "blob":
-            return data instanceof ArrayBuffer ? new Blob([data]) : data;
+            if (data instanceof Blob) {
+                // from WebSocket + binaryType "blob"
+                return data;
+            }
+            else {
+                // from HTTP long-polling or WebTransport
+                return new Blob([data]);
+            }
         case "arraybuffer":
         default:
-            return data; // assuming the data is already an ArrayBuffer
+            if (data instanceof ArrayBuffer) {
+                // from HTTP long-polling (base64) or WebSocket + binaryType "arraybuffer"
+                return data;
+            }
+            else {
+                // from WebTransport (Uint8Array)
+                return data.buffer;
+            }
     }
 };
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (decodePacket);
 
 
 /***/ }),
@@ -2526,9 +2958,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var engine_io_client__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
 /* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
-/* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 /* harmony import */ var _on_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(15);
-/* harmony import */ var _contrib_backo2_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(30);
+/* harmony import */ var _contrib_backo2_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(31);
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(0);
 
 
@@ -2647,36 +3079,33 @@ class Manager extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
             self.onopen();
             fn && fn();
         });
-        // emit `error`
-        const errorSub = (0,_on_js__WEBPACK_IMPORTED_MODULE_3__.on)(socket, "error", (err) => {
-            self.cleanup();
-            self._readyState = "closed";
+        const onError = (err) => {
+            this.cleanup();
+            this._readyState = "closed";
             this.emitReserved("error", err);
             if (fn) {
                 fn(err);
             }
             else {
                 // Only do this if there is no fn to handle the error
-                self.maybeReconnectOnOpen();
+                this.maybeReconnectOnOpen();
             }
-        });
+        };
+        // emit `error`
+        const errorSub = (0,_on_js__WEBPACK_IMPORTED_MODULE_3__.on)(socket, "error", onError);
         if (false !== this._timeout) {
             const timeout = this._timeout;
-            if (timeout === 0) {
-                openSubDestroy(); // prevents a race condition with the 'open' event
-            }
             // set timer
             const timer = this.setTimeoutFn(() => {
                 openSubDestroy();
+                onError(new Error("timeout"));
                 socket.close();
-                // @ts-ignore
-                socket.emit("error", new Error("timeout"));
             }, timeout);
             if (this.opts.autoUnref) {
                 timer.unref();
             }
-            this.subs.push(function subDestroy() {
-                clearTimeout(timer);
+            this.subs.push(() => {
+                this.clearTimeoutFn(timer);
             });
         }
         this.subs.push(openSubDestroy);
@@ -2758,6 +3187,9 @@ class Manager extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
         if (!socket) {
             socket = new _socket_js__WEBPACK_IMPORTED_MODULE_1__.Socket(this, nsp, opts);
             this.nsps[nsp] = socket;
+        }
+        else if (this._autoConnect && !socket.active) {
+            socket.connect();
         }
         return socket;
     }
@@ -2871,8 +3303,8 @@ class Manager extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
             if (this.opts.autoUnref) {
                 timer.unref();
             }
-            this.subs.push(function subDestroy() {
-                clearTimeout(timer);
+            this.subs.push(() => {
+                this.clearTimeoutFn(timer);
             });
         }
     }
@@ -2913,7 +3345,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(23);
 /* harmony import */ var _manager_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(19);
 /* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
-/* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
+/* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
 
 
 
@@ -3052,15 +3484,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Polling: () => (/* binding */ Polling),
 /* harmony export */   Request: () => (/* binding */ Request)
 /* harmony export */ });
-/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
 /* harmony import */ var _contrib_yeast_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
-/* harmony import */ var _contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
-/* harmony import */ var _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(26);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(0);
-/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1);
-/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3);
-
+/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(26);
+/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(0);
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1);
+/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(5);
 
 
 
@@ -3070,8 +3500,8 @@ __webpack_require__.r(__webpack_exports__);
 
 function empty() { }
 const hasXHR2 = (function () {
-    const xhr = new _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_4__.XHR({
-        xdomain: false
+    const xhr = new _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_3__.XHR({
+        xdomain: false,
     });
     return null != xhr.responseType;
 })();
@@ -3080,7 +3510,7 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
      * XHR Polling constructor.
      *
      * @param {Object} opts
-     * @api public
+     * @package
      */
     constructor(opts) {
         super(opts);
@@ -3096,17 +3526,16 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
                 (typeof location !== "undefined" &&
                     opts.hostname !== location.hostname) ||
                     port !== opts.port;
-            this.xs = opts.secure !== isSSL;
         }
         /**
          * XHR supports binary
          */
         const forceBase64 = opts && opts.forceBase64;
         this.supportsBinary = hasXHR2 && !forceBase64;
+        if (this.opts.withCredentials) {
+            this.cookieJar = (0,_xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_3__.createCookieJar)();
+        }
     }
-    /**
-     * Transport name.
-     */
     get name() {
         return "polling";
     }
@@ -3114,7 +3543,7 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
      * Opens the socket (triggers polling). We write a PING message to determine
      * when the transport is open.
      *
-     * @api private
+     * @protected
      */
     doOpen() {
         this.poll();
@@ -3122,8 +3551,8 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * Pauses polling.
      *
-     * @param {Function} callback upon buffers are flushed and transport is paused
-     * @api private
+     * @param {Function} onPause - callback upon buffers are flushed and transport is paused
+     * @package
      */
     pause(onPause) {
         this.readyState = "pausing";
@@ -3153,7 +3582,7 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * Starts polling cycle.
      *
-     * @api public
+     * @private
      */
     poll() {
         this.polling = true;
@@ -3163,10 +3592,10 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * Overloads onData to detect payloads.
      *
-     * @api private
+     * @protected
      */
     onData(data) {
-        const callback = packet => {
+        const callback = (packet) => {
             // if its the first message we consider the transport open
             if ("opening" === this.readyState && packet.type === "open") {
                 this.onOpen();
@@ -3180,7 +3609,7 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
             this.onPacket(packet);
         };
         // decode payload
-        (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_3__.decodePayload)(data, this.socket.binaryType).forEach(callback);
+        (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_2__.decodePayload)(data, this.socket.binaryType).forEach(callback);
         // if an event did not trigger closing
         if ("closed" !== this.readyState) {
             // if we got data we're not polling
@@ -3196,7 +3625,7 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * For polling, send a close packet.
      *
-     * @api private
+     * @protected
      */
     doClose() {
         const close = () => {
@@ -3214,13 +3643,12 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * Writes a packets payload.
      *
-     * @param {Array} data packets
-     * @param {Function} drain callback
-     * @api private
+     * @param {Array} packets - data packets
+     * @protected
      */
     write(packets) {
         this.writable = false;
-        (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_3__.encodePayload)(packets, data => {
+        (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_2__.encodePayload)(packets, (data) => {
             this.doWrite(data, () => {
                 this.writable = true;
                 this.emitReserved("drain");
@@ -3230,12 +3658,11 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * Generates uri for connection.
      *
-     * @api private
+     * @private
      */
     uri() {
-        let query = this.query || {};
         const schema = this.opts.secure ? "https" : "http";
-        let port = "";
+        const query = this.query || {};
         // cache busting is forced
         if (false !== this.opts.timestampRequests) {
             query[this.opts.timestampParam] = (0,_contrib_yeast_js__WEBPACK_IMPORTED_MODULE_1__.yeast)();
@@ -3243,29 +3670,16 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
         if (!this.supportsBinary && !query.sid) {
             query.b64 = 1;
         }
-        // avoid port if default for schema
-        if (this.opts.port &&
-            (("https" === schema && Number(this.opts.port) !== 443) ||
-                ("http" === schema && Number(this.opts.port) !== 80))) {
-            port = ":" + this.opts.port;
-        }
-        const encodedQuery = (0,_contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__.encode)(query);
-        const ipv6 = this.opts.hostname.indexOf(":") !== -1;
-        return (schema +
-            "://" +
-            (ipv6 ? "[" + this.opts.hostname + "]" : this.opts.hostname) +
-            port +
-            this.opts.path +
-            (encodedQuery.length ? "?" + encodedQuery : ""));
+        return this.createUri(schema, query);
     }
     /**
      * Creates a request.
      *
      * @param {String} method
-     * @api private
+     * @private
      */
     request(opts = {}) {
-        Object.assign(opts, { xd: this.xd, xs: this.xs }, this.opts);
+        Object.assign(opts, { xd: this.xd, cookieJar: this.cookieJar }, this.opts);
         return new Request(this.uri(), opts);
     }
     /**
@@ -3273,12 +3687,12 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
      *
      * @param {String} data to send.
      * @param {Function} called upon flush.
-     * @api private
+     * @private
      */
     doWrite(data, fn) {
         const req = this.request({
             method: "POST",
-            data: data
+            data: data,
         });
         req.on("success", fn);
         req.on("error", (xhrStatus, context) => {
@@ -3288,7 +3702,7 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * Starts a poll cycle.
      *
-     * @api private
+     * @private
      */
     doPoll() {
         const req = this.request();
@@ -3299,35 +3713,34 @@ class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
         this.pollXhr = req;
     }
 }
-class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.Emitter {
+class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.Emitter {
     /**
      * Request constructor
      *
      * @param {Object} options
-     * @api public
+     * @package
      */
     constructor(uri, opts) {
         super();
-        (0,_util_js__WEBPACK_IMPORTED_MODULE_6__.installTimerFunctions)(this, opts);
+        (0,_util_js__WEBPACK_IMPORTED_MODULE_5__.installTimerFunctions)(this, opts);
         this.opts = opts;
         this.method = opts.method || "GET";
         this.uri = uri;
-        this.async = false !== opts.async;
         this.data = undefined !== opts.data ? opts.data : null;
         this.create();
     }
     /**
      * Creates the XHR object and sends the request.
      *
-     * @api private
+     * @private
      */
     create() {
-        const opts = (0,_util_js__WEBPACK_IMPORTED_MODULE_6__.pick)(this.opts, "agent", "pfx", "key", "passphrase", "cert", "ca", "ciphers", "rejectUnauthorized", "autoUnref");
+        var _a;
+        const opts = (0,_util_js__WEBPACK_IMPORTED_MODULE_5__.pick)(this.opts, "agent", "pfx", "key", "passphrase", "cert", "ca", "ciphers", "rejectUnauthorized", "autoUnref");
         opts.xdomain = !!this.opts.xd;
-        opts.xscheme = !!this.opts.xs;
-        const xhr = (this.xhr = new _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_4__.XHR(opts));
+        const xhr = (this.xhr = new _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_3__.XHR(opts));
         try {
-            xhr.open(this.method, this.uri, this.async);
+            xhr.open(this.method, this.uri, true);
             try {
                 if (this.opts.extraHeaders) {
                     xhr.setDisableHeaderCheck && xhr.setDisableHeaderCheck(true);
@@ -3349,6 +3762,7 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
                 xhr.setRequestHeader("Accept", "*/*");
             }
             catch (e) { }
+            (_a = this.opts.cookieJar) === null || _a === void 0 ? void 0 : _a.addCookies(xhr);
             // ie6 check
             if ("withCredentials" in xhr) {
                 xhr.withCredentials = this.opts.withCredentials;
@@ -3357,6 +3771,10 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
                 xhr.timeout = this.opts.requestTimeout;
             }
             xhr.onreadystatechange = () => {
+                var _a;
+                if (xhr.readyState === 3) {
+                    (_a = this.opts.cookieJar) === null || _a === void 0 ? void 0 : _a.parseCookies(xhr);
+                }
                 if (4 !== xhr.readyState)
                     return;
                 if (200 === xhr.status || 1223 === xhr.status) {
@@ -3389,7 +3807,7 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
     /**
      * Called upon error.
      *
-     * @api private
+     * @private
      */
     onError(err) {
         this.emitReserved("error", err, this.xhr);
@@ -3398,7 +3816,7 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
     /**
      * Cleans up house.
      *
-     * @api private
+     * @private
      */
     cleanup(fromError) {
         if ("undefined" === typeof this.xhr || null === this.xhr) {
@@ -3419,7 +3837,7 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
     /**
      * Called upon load.
      *
-     * @api private
+     * @private
      */
     onLoad() {
         const data = this.xhr.responseText;
@@ -3432,7 +3850,7 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__.
     /**
      * Aborts the request.
      *
-     * @api public
+     * @package
      */
     abort() {
         this.cleanup();
@@ -3452,7 +3870,7 @@ if (typeof document !== "undefined") {
         attachEvent("onunload", unloadHandler);
     }
     else if (typeof addEventListener === "function") {
-        const terminationEvent = "onpagehide" in _globalThis_js__WEBPACK_IMPORTED_MODULE_7__.globalThisShim ? "pagehide" : "unload";
+        const terminationEvent = "onpagehide" in _globalThis_js__WEBPACK_IMPORTED_MODULE_6__.globalThisShim ? "pagehide" : "unload";
         addEventListener(terminationEvent, unloadHandler, false);
     }
 }
@@ -3474,6 +3892,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   decode: () => (/* binding */ decode),
 /* harmony export */   encode: () => (/* binding */ encode)
 /* harmony export */ });
+// imported from https://github.com/socketio/base64-arraybuffer
 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 // Use a lookup table to find the index.
 const lookup = typeof Uint8Array === 'undefined' ? [] : new Uint8Array(256);
@@ -3524,10 +3943,11 @@ const decode = (base64) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   XHR: () => (/* binding */ XHR)
+/* harmony export */   XHR: () => (/* binding */ XHR),
+/* harmony export */   createCookieJar: () => (/* binding */ createCookieJar)
 /* harmony export */ });
 /* harmony import */ var _contrib_has_cors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(27);
-/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 // browser shim for xmlhttprequest module
 
 
@@ -3547,6 +3967,7 @@ function XHR(opts) {
         catch (e) { }
     }
 }
+function createCookieJar() { }
 
 
 /***/ }),
@@ -3578,13 +3999,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   WS: () => (/* binding */ WS)
 /* harmony export */ });
-/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
-/* harmony import */ var _contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
-/* harmony import */ var _contrib_yeast_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(13);
-/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
-/* harmony import */ var _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8);
-/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2);
-
+/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _contrib_yeast_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4);
+/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
 
 
 
@@ -3598,26 +4017,16 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * WebSocket transport constructor.
      *
-     * @api {Object} connection options
-     * @api public
+     * @param {Object} opts - connection options
+     * @protected
      */
     constructor(opts) {
         super(opts);
         this.supportsBinary = !opts.forceBase64;
     }
-    /**
-     * Transport name.
-     *
-     * @api public
-     */
     get name() {
         return "websocket";
     }
-    /**
-     * Opens socket.
-     *
-     * @api private
-     */
     doOpen() {
         if (!this.check()) {
             // let probe timeout
@@ -3628,28 +4037,28 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
         // React Native only supports the 'headers' option, and will print a warning if anything else is passed
         const opts = isReactNative
             ? {}
-            : (0,_util_js__WEBPACK_IMPORTED_MODULE_3__.pick)(this.opts, "agent", "perMessageDeflate", "pfx", "key", "passphrase", "cert", "ca", "ciphers", "rejectUnauthorized", "localAddress", "protocolVersion", "origin", "maxPayload", "family", "checkServerIdentity");
+            : (0,_util_js__WEBPACK_IMPORTED_MODULE_2__.pick)(this.opts, "agent", "perMessageDeflate", "pfx", "key", "passphrase", "cert", "ca", "ciphers", "rejectUnauthorized", "localAddress", "protocolVersion", "origin", "maxPayload", "family", "checkServerIdentity");
         if (this.opts.extraHeaders) {
             opts.headers = this.opts.extraHeaders;
         }
         try {
             this.ws =
-                _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.usingBrowserWebSocket && !isReactNative
+                _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__.usingBrowserWebSocket && !isReactNative
                     ? protocols
-                        ? new _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.WebSocket(uri, protocols)
-                        : new _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.WebSocket(uri)
-                    : new _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.WebSocket(uri, protocols, opts);
+                        ? new _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__.WebSocket(uri, protocols)
+                        : new _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__.WebSocket(uri)
+                    : new _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__.WebSocket(uri, protocols, opts);
         }
         catch (err) {
             return this.emitReserved("error", err);
         }
-        this.ws.binaryType = this.socket.binaryType || _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.defaultBinaryType;
+        this.ws.binaryType = this.socket.binaryType;
         this.addEventListeners();
     }
     /**
      * Adds event listeners to the socket
      *
-     * @api private
+     * @private
      */
     addEventListeners() {
         this.ws.onopen = () => {
@@ -3658,19 +4067,13 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
             }
             this.onOpen();
         };
-        this.ws.onclose = closeEvent => this.onClose({
+        this.ws.onclose = (closeEvent) => this.onClose({
             description: "websocket connection closed",
-            context: closeEvent
+            context: closeEvent,
         });
-        this.ws.onmessage = ev => this.onData(ev.data);
-        this.ws.onerror = e => this.onError("websocket error", e);
+        this.ws.onmessage = (ev) => this.onData(ev.data);
+        this.ws.onerror = (e) => this.onError("websocket error", e);
     }
-    /**
-     * Writes data to socket.
-     *
-     * @param {Array} array of packets.
-     * @api private
-     */
     write(packets) {
         this.writable = false;
         // encodePacket efficient as it uses WS framing
@@ -3678,10 +4081,10 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
         for (let i = 0; i < packets.length; i++) {
             const packet = packets[i];
             const lastPacket = i === packets.length - 1;
-            (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_5__.encodePacket)(packet, this.supportsBinary, data => {
+            (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_4__.encodePacket)(packet, this.supportsBinary, (data) => {
                 // always create a new object (GH-437)
                 const opts = {};
-                if (!_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.usingBrowserWebSocket) {
+                if (!_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__.usingBrowserWebSocket) {
                     if (packet.options) {
                         opts.compress = packet.options.compress;
                     }
@@ -3698,7 +4101,7 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
                 // have a chance of informing us about it yet, in that case send will
                 // throw an error
                 try {
-                    if (_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.usingBrowserWebSocket) {
+                    if (_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__.usingBrowserWebSocket) {
                         // TypeError is thrown when passing the second argument on Safari
                         this.ws.send(data);
                     }
@@ -3711,7 +4114,7 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
                 if (lastPacket) {
                     // fake drain
                     // defer to next tick to allow Socket to clear writeBuffer
-                    (0,_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.nextTick)(() => {
+                    (0,_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__.nextTick)(() => {
                         this.writable = true;
                         this.emitReserved("drain");
                     }, this.setTimeoutFn);
@@ -3719,11 +4122,6 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
             });
         }
     }
-    /**
-     * Closes socket.
-     *
-     * @api private
-     */
     doClose() {
         if (typeof this.ws !== "undefined") {
             this.ws.close();
@@ -3733,49 +4131,119 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
     /**
      * Generates uri for connection.
      *
-     * @api private
+     * @private
      */
     uri() {
-        let query = this.query || {};
         const schema = this.opts.secure ? "wss" : "ws";
-        let port = "";
-        // avoid port if default for schema
-        if (this.opts.port &&
-            (("wss" === schema && Number(this.opts.port) !== 443) ||
-                ("ws" === schema && Number(this.opts.port) !== 80))) {
-            port = ":" + this.opts.port;
-        }
+        const query = this.query || {};
         // append timestamp to URI
         if (this.opts.timestampRequests) {
-            query[this.opts.timestampParam] = (0,_contrib_yeast_js__WEBPACK_IMPORTED_MODULE_2__.yeast)();
+            query[this.opts.timestampParam] = (0,_contrib_yeast_js__WEBPACK_IMPORTED_MODULE_1__.yeast)();
         }
         // communicate binary support capabilities
         if (!this.supportsBinary) {
             query.b64 = 1;
         }
-        const encodedQuery = (0,_contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_1__.encode)(query);
-        const ipv6 = this.opts.hostname.indexOf(":") !== -1;
-        return (schema +
-            "://" +
-            (ipv6 ? "[" + this.opts.hostname + "]" : this.opts.hostname) +
-            port +
-            this.opts.path +
-            (encodedQuery.length ? "?" + encodedQuery : ""));
+        return this.createUri(schema, query);
     }
     /**
      * Feature detection for WebSocket.
      *
      * @return {Boolean} whether this transport is available.
-     * @api public
+     * @private
      */
     check() {
-        return !!_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__.WebSocket;
+        return !!_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_3__.WebSocket;
     }
 }
 
 
 /***/ }),
 /* 29 */
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   WT: () => (/* binding */ WT)
+/* harmony export */ });
+/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
+/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+
+
+
+class WT extends _transport_js__WEBPACK_IMPORTED_MODULE_0__.Transport {
+    get name() {
+        return "webtransport";
+    }
+    doOpen() {
+        // @ts-ignore
+        if (typeof WebTransport !== "function") {
+            return;
+        }
+        // @ts-ignore
+        this.transport = new WebTransport(this.createUri("https"), this.opts.transportOptions[this.name]);
+        this.transport.closed
+            .then(() => {
+            this.onClose();
+        })
+            .catch((err) => {
+            this.onError("webtransport error", err);
+        });
+        // note: we could have used async/await, but that would require some additional polyfills
+        this.transport.ready.then(() => {
+            this.transport.createBidirectionalStream().then((stream) => {
+                const decoderStream = (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_2__.createPacketDecoderStream)(Number.MAX_SAFE_INTEGER, this.socket.binaryType);
+                const reader = stream.readable.pipeThrough(decoderStream).getReader();
+                const encoderStream = (0,engine_io_parser__WEBPACK_IMPORTED_MODULE_2__.createPacketEncoderStream)();
+                encoderStream.readable.pipeTo(stream.writable);
+                this.writer = encoderStream.writable.getWriter();
+                const read = () => {
+                    reader
+                        .read()
+                        .then(({ done, value }) => {
+                        if (done) {
+                            return;
+                        }
+                        this.onPacket(value);
+                        read();
+                    })
+                        .catch((err) => {
+                    });
+                };
+                read();
+                const packet = { type: "open" };
+                if (this.query.sid) {
+                    packet.data = `{"sid":"${this.query.sid}"}`;
+                }
+                this.writer.write(packet).then(() => this.onOpen());
+            });
+        });
+    }
+    write(packets) {
+        this.writable = false;
+        for (let i = 0; i < packets.length; i++) {
+            const packet = packets[i];
+            const lastPacket = i === packets.length - 1;
+            this.writer.write(packet).then(() => {
+                if (lastPacket) {
+                    (0,_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_1__.nextTick)(() => {
+                        this.writable = true;
+                        this.emitReserved("drain");
+                    }, this.setTimeoutFn);
+                }
+            });
+        }
+    }
+    doClose() {
+        var _a;
+        (_a = this.transport) === null || _a === void 0 ? void 0 : _a.close();
+    }
+}
+
+
+/***/ }),
+/* 30 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -3836,7 +4304,7 @@ function _deconstructPacket(data, buffers) {
  */
 function reconstructPacket(packet, buffers) {
     packet.data = _reconstructPacket(packet.data, buffers);
-    packet.attachments = undefined; // no longer useful
+    delete packet.attachments; // no longer useful
     return packet;
 }
 function _reconstructPacket(data, buffers) {
@@ -3870,7 +4338,7 @@ function _reconstructPacket(data, buffers) {
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
