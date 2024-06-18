@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-pug",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Use pug templating engine in jsreport",
   "keywords": [
     "jsreport",
