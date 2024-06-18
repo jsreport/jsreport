@@ -1,4 +1,4 @@
-FROM node:18.19-alpine3.19
+FROM node:18.20-alpine3.19
 EXPOSE 5488
 USER root
 ARG TARGETPLATFORM
@@ -55,8 +55,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
-    libcurl@edge=8.7.1-r0 \
-    git@edge=2.45.1-r0 \
+    libcurl@edge=8.8.0-r0 \
+    git@edge=2.45.2-r1 \
     # so user can docker exec -it test /bin/bash
     bash
 
