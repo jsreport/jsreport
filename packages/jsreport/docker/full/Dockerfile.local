@@ -23,6 +23,8 @@ RUN apt-get update && \
     # this ppa has builds available for architectures amd64, arm64 (which we care because we produce arm64 builds)
     # the default puppeteer download does not work for arm, because there is no arm version for chromium
     # https://github.com/puppeteer/puppeteer/issues/7740
+    # IMPORTANT: when we stop supporting ubuntu focal we can switch to this https://launchpad.net/~xtradeb/+archive/ubuntu/apps
+    # which also support amd64, arm64 and latest versions of chrome
     add-apt-repository ppa:phd/chromium-browser && \
     apt-get update && \
     apt install -y chromium-browser=112.0.5615.49-0ubuntu0.18.04.1 chromium-codecs-ffmpeg=112.0.5615.49-0ubuntu0.18.04.1 && \
