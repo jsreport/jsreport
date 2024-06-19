@@ -107,7 +107,7 @@ async function run () {
       archive.pipe(outputStream)
 
       archive
-        .append(fs.createReadStream(exeFilePath), { name: exeFile.name, mode: 0o777 })
+        .append(fs.createReadStream(exeFilePath), { name: process.platform === 'win32' ? exeFile.name : 'jsreport', mode: 0o777 })
         .append(fs.createReadStream(licenseFile.path), { name: licenseFile.name })
         .finalize()
     })
