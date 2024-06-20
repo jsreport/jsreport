@@ -13,6 +13,11 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.options.sandbox.modules.push({
+    alias: 'xlsxProcessCalcChain',
+    path: path.join(__dirname, './processCalcChain.js')
+  })
+
+  reporter.options.sandbox.modules.push({
     alias: 'lodash',
     path: require.resolve('lodash')
   })

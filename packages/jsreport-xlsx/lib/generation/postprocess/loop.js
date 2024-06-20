@@ -8,7 +8,6 @@ module.exports = async (files) => {
   const workbookPath = 'xl/workbook.xml'
   const workbookDoc = files.find((f) => f.path === workbookPath).doc
   const workbookRelsDoc = files.find((file) => file.path === 'xl/_rels/workbook.xml.rels').doc
-  const calcChainDoc = files.find((f) => f.path === 'xl/calcChain.xml')?.doc
   const workbookSheetsEls = nodeListToArray(workbookDoc.getElementsByTagName('sheet'))
   const workbookRelsEls = nodeListToArray(workbookRelsDoc.getElementsByTagName('Relationship'))
 
@@ -19,59 +18,7 @@ module.exports = async (files) => {
       throw new Error(`Could not find sheet info for sheet at ${sheetFile.path}`)
     }
 
-    const updatedCalcChainCountMap = new Map()
 
-    // update the calcChain.xml to the new updated cells
-    sheetFile.data = await recursiveStringReplaceAsync(
-      sheetFile.data.toString(),
-      '<calcChainCellUpdated>',
-      '</calcChainCellUpdated>',
-      'g',
-      async (val, content, hasNestedMatch) => {
-        if (hasNestedMatch) {
-          return val
-        }
-
-        const doc = new DOMParser().parseFromString(val)
-        const calcChainCellRefUpdatedEl = doc.documentElement.firstChild
-        const calcChainEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
-
-        const matches = calcChainEls.filter((c) => (
-          c.getAttribute('i') === sheetInfo.id &&
-          c.getAttribute('oldR') === calcChainCellRefUpdatedEl.getAttribute('oldR')
-        ))
-
-        const calcChainCellRefEl = matches[matches.length - 1]
-
-        if (calcChainCellRefEl != null) {
-          const oldRef = calcChainCellRefEl.getAttribute('oldR')
-          const newRef = calcChainCellRefUpdatedEl.getAttribute('r')
-          const existingCount = updatedCalcChainCountMap.get(oldRef) || 0
-
-          if (oldRef !== newRef) {
-            if (existingCount === 0) {
-              calcChainCellRefEl.setAttribute('r', newRef)
-            } else {
-              const newCalcChainCellRefEl = calcChainCellRefEl.cloneNode(true)
-              newCalcChainCellRefEl.setAttribute('r', newRef)
-              calcChainCellRefEl.parentNode.insertBefore(newCalcChainCellRefEl, calcChainCellRefEl.nextSibling)
-            }
-          }
-
-          updatedCalcChainCountMap.set(oldRef, existingCount + 1)
-        }
-
-        return ''
-      }
-    )
-
-    if (calcChainDoc != null) {
-      const newCalcChainEls = nodeListToArray(calcChainDoc.getElementsByTagName('c')).filter((c) => c.getAttribute('i') === sheetInfo.id)
-
-      // we clean the oldR attribute that we used for the conditions
-      for (const calcChainEl of newCalcChainEls) {
-        calcChainEl.removeAttribute('oldR')
-      }
     }
 
     let dimensionUpdatedRef

@@ -1,6 +1,8 @@
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
+const { customAlphabet } = require('nanoid')
 const { decode } = require('html-entities')
 const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
+const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const preprocess = require('./preprocess/preprocess')
 const postprocess = require('./postprocess/postprocess')
 const { contentIsXML, isWorksheetFile } = require('../utils')
@@ -33,7 +35,21 @@ module.exports = (reporter) => async (inputs, req) => {
 
     const filesToRender = files.filter(f => contentIsXML(f.data))
 
-    const contentToRender = filesToRender.map(f => {
+    // ensure calcChain.xml comes after sheet files,
+    // this is required in child render for our handlebars logic to correctly update the calcChain
+    filesToRender.sort((a, b) => {
+      if (a.path === 'xl/calcChain.xml') {
+        return 1
+      }
+
+      if (b.path === 'xl/calcChain.xml') {
+        return -1
+      }
+
+      return 0
+    })
+
+    let contentToRender = filesToRender.map(f => {
       const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
         // we need to decode the xml entities for the attributes for handlebars to work ok
         if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
@@ -56,6 +72,8 @@ module.exports = (reporter) => async (inputs, req) => {
 
       return xmlStr.replace(/<xlsxRemove>/g, '').replace(/<\/xlsxRemove>/g, '')
     }).join('$$$xlsxFile$$$')
+
+    contentToRender = `{{#xlsxContext type="global" evalId="${generateRandomId()}"}}${contentToRender}{{/xlsxContext}}`
 
     reporter.logger.debug('Starting child request to render xlsx dynamic parts for generation step', req)
 

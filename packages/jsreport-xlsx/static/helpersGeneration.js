@@ -33,10 +33,29 @@ function xlsxChart (options) {
         Array.isArray(options.hash.options)
       )
   ) {
-    throw new Error('docxChart helper when options parameter is set, it should be an object')
+    throw new Error('xlsxChart helper when options parameter is set, it should be an object')
   }
 
   return new Handlebars.SafeString(`$xlsxChart${Buffer.from(JSON.stringify(options.hash)).toString('base64')}$`)
+}
+
+function xlsxContext (options) {
+  const Handlebars = require('handlebars')
+  let data
+
+  if (options.hash.type === 'global') {
+    data = Handlebars.createFrame(options.data)
+    data.evalId = options.hash.evalId
+    data.calcChainUpdatesMap = new Map()
+  }
+
+  const context = {}
+
+  if (data) {
+    context.data = data
+  }
+
+  return options.fn(this, context)
 }
 
 function xlsxSData (data, options) {
@@ -59,7 +78,7 @@ function xlsxSData (data, options) {
     arguments.length === 1 &&
     type === 'root'
   ) {
-    const newData = Handlebars.createFrame({})
+    const newData = Handlebars.createFrame(optionsToUse.data)
     let nonExistingCellRefs = optionsToUse.hash.nonExistingCellRefs != null ? optionsToUse.hash.nonExistingCellRefs.split(',') : []
     const autofit = optionsToUse.hash.autofit != null ? optionsToUse.hash.autofit.split(',') : []
     const trackedCells = {}
@@ -576,7 +595,7 @@ function xlsxSData (data, options) {
     }
 
     if (originalCellRef == null) {
-      throw new Error('xlsxSData type="cellRef" helper originalCellRef arg is required')
+      throw new Error(`xlsxSData type="${type}" helper originalCellRef arg is required`)
     }
 
     const parsedOriginalCellRef = parseCellRef(originalCellRef)
@@ -761,6 +780,51 @@ function xlsxSData (data, options) {
     }
 
     return new Handlebars.SafeString(result)
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'calcChainCellUpdate'
+  ) {
+    const sheetId = optionsToUse.hash.sheetId
+    const originalCellRef = optionsToUse.hash.originalCellRef
+    const newCellRef = optionsToUse.hash.cellRef
+
+    if (sheetId == null) {
+      throw new Error(`xlsxSData type="${type}" helper, sheetId arg is required`)
+    }
+
+    if (originalCellRef == null) {
+      throw new Error(`xlsxSData type="${type}" helper, originalCellRef arg is required`)
+    }
+
+    if (newCellRef == null) {
+      throw new Error(`xlsxSData type="${type}" helper, cellRef arg is required`)
+    }
+
+    const cellRefKey = `${sheetId}-${originalCellRef}`
+
+    let calcChainUpdatesForCellRef = optionsToUse.data.calcChainUpdatesMap.get(cellRefKey)
+
+    if (calcChainUpdatesForCellRef == null) {
+      calcChainUpdatesForCellRef = []
+      optionsToUse.data.calcChainUpdatesMap.set(cellRefKey, calcChainUpdatesForCellRef)
+    }
+
+    calcChainUpdatesForCellRef.push(newCellRef)
+
+    return ''
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'calcChain'
+  ) {
+    const processCalcChain = require('xlsxProcessCalcChain')
+
+    const existingCalcChainXml = optionsToUse.fn(this)
+
+    return processCalcChain(optionsToUse.data.calcChainUpdatesMap, existingCalcChainXml)
   }
 
   if (

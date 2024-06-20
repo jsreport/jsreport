@@ -17,7 +17,7 @@ module.exports = (files) => {
   let workbookSheetsEls = []
   let workbookRelsEls = []
   let sharedStringsEls = []
-  let calcChainEls = []
+  const calcChainMap = new Map()
 
   if (workbookDoc) {
     workbookSheetsEls = nodeListToArray(workbookDoc.getElementsByTagName('sheet'))
@@ -45,13 +45,13 @@ module.exports = (files) => {
   }
 
   if (calcChainDoc != null) {
-    calcChainEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
+    const calcChainCellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
     // we store the existing cell ref into other attribute
     // because later the attribute that contains the cell ref
     // is going to be updated
-    for (const calcChainEl of calcChainEls) {
-      calcChainEl.setAttribute('oldR', calcChainEl.getAttribute('r'))
+    for (const calcChainEl of calcChainCellEls) {
+      calcChainMap.set(`${calcChainEl.getAttribute('i')}-${calcChainEl.getAttribute('r')}`, calcChainEl)
     }
   }
 
@@ -231,7 +231,7 @@ module.exports = (files) => {
         cellEl.setAttribute('r', `{{xlsxSData type='cellRef' originalCellRef='${cellRef}'}}`)
 
         // search if we need to update some calc cell
-        const calcCellEl = findCellElInCalcChain(sheetInfo.id, cellRef, calcChainEls)
+        const calcCellEl = calcChainMap.get(`${sheetInfo.id}-${cellRef}`)
 
         if (calcCellEl != null) {
           calcCellElsToHandle.push({
@@ -518,17 +518,13 @@ module.exports = (files) => {
         cellEl.parentNode.insertBefore(cellValueWrapperEndEl, cellEl.nextSibling)
       }
 
-      for (const { calcCellEl, cellRef, cellEl } of calcCellElsToHandle) {
-        // we add the referenced cell in the calcChain in the cell
-        // to be able to update the ref by the handlebars
-        const newCalcCellEl = calcCellEl.cloneNode(true)
 
-        newCalcCellEl.setAttribute('r', `{{xlsxSData type='cellRef' originalCellRef='${cellRef}' shadow=true}}`)
-        newCalcCellEl.setAttribute('oldR', cellRef)
 
-        const wrapperElement = sheetDoc.createElement('calcChainCellUpdated')
+      for (const { cellRef, cellEl } of calcCellElsToHandle) {
+        const wrapperElement = sheetDoc.createElement('xlsxRemove')
 
-        wrapperElement.appendChild(newCalcCellEl)
+        wrapperElement.textContent = `{{xlsxSData type="calcChainCellUpdate" sheetId=${sheetInfo.id} cellRef=(xlsxSData type="cellRef" originalCellRef="${cellRef}" shadow=true) originalCellRef="${cellRef}"}}`
+
         // on the contrary with the merge cells case, the calcChainCellUpdated is inserted
         // in the cell, so there is no need for a wrapper that only renders it
         // for the first item in loop
@@ -754,6 +750,12 @@ module.exports = (files) => {
     if (tEl.textContent.includes('{{') && tEl.textContent.includes('}}')) {
       tEl.textContent = `{{{{xlsxSData type='raw'}}}}${tEl.textContent}{{{{/xlsxSData}}}}`
     }
+  }
+
+  // place handlebars call that handle updating the calcChain
+  if (calcChainDoc != null) {
+    processOpeningTag(calcChainDoc, calcChainDoc.documentElement.firstChild, "{{#xlsxSData type='calcChain'}}")
+    processClosingTag(calcChainDoc, calcChainDoc.documentElement.lastChild, '{{/xlsxSData}}')
   }
 }
 
@@ -1139,20 +1141,6 @@ function findCellFontSize (cellEl, styleInfo) {
 
   // size stored in xlsx is in pt
   return parseFloat(sizeEl.getAttribute('val'))
-}
-
-function findCellElInCalcChain (sheetId, cellRef, calcChainEls) {
-  const foundIndex = calcChainEls.findIndex((el) => {
-    return el.getAttribute('r') === cellRef && el.getAttribute('i') === sheetId
-  })
-
-  if (foundIndex === -1) {
-    return
-  }
-
-  const cellEl = calcChainEls[foundIndex]
-
-  return cellEl
 }
 
 function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {

@@ -1,11 +1,11 @@
-const { v1: uuidv1 } = require('uuid')
 const path = require('path')
 const fs = require('fs')
 const mkdirp = require('mkdirp')
+const { nanoid } = require('nanoid')
 const zlib = require('zlib')
 
 module.exports.write = (tmp, data) => {
-  const file = path.join(tmp, uuidv1() + '.xml')
+  const file = path.join(tmp, `${nanoid()}.xml'`)
 
   mkdirp.sync(tmp)
 
