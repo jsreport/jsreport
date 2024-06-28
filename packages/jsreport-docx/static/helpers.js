@@ -110,7 +110,7 @@ function docxTable (data, options) {
     Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'wrapper') &&
     optionsToUse.hash.wrapper === 'main'
   ) {
-    const newData = Handlebars.createFrame({})
+    const newData = Handlebars.createFrame(optionsToUse.data)
     newData.rows = optionsToUse.hash.rows
     newData.columns = optionsToUse.hash.columns
     newData.activeMergedCellsItems = []
@@ -134,7 +134,7 @@ function docxTable (data, options) {
       const matchedMergedCell = getMatchedMergedCell(optionsToUse.data.rowIndex, optionsToUse.data.columnIndex, optionsToUse.data.activeMergedCellsItems)
 
       if (matchedMergedCell != null && matchedMergedCell.rowStart !== matchedMergedCell.rowEnd) {
-        const data = Handlebars.createFrame({})
+        const data = Handlebars.createFrame(optionsToUse.data)
         data.empty = matchedMergedCell.rowStart !== optionsToUse.data.rowIndex
         return optionsToUse.fn({}, { data })
       }
