@@ -104,7 +104,6 @@ COPY ./packages/jsreport/docker/default/run.sh run.sh
 RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
-USER jsreport:jsreport
 
 ENV chrome_launchOptions_executablePath /usr/lib/chromium/chrome
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage

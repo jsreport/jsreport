@@ -21,8 +21,15 @@ if [ "$(ls -A /jsreport)" ]; then
   rm -f "/app/jsreport.config.json"
   ln -s "/jsreport/jsreport.config.json" "/app/jsreport.config.json"
 
-  chown -R jsreport:jsreport /jsreport
+  # this is better performing chown - taken from mongo dockerfile
+  find /jsreport \! -user jsreport -exec chown jsreport '{}' +  
 fi
+
+if [ -d "/app/data" ]; then
+  # ensure that if someone maps volume to /app/data, we still have jsreport perms there
+  find /app/data \! -user jsreport -exec chown jsreport '{}' +
+fi
+
 
 if [ "$(id -u)" = '0' ]; then
   # If we are root, run the app as the lower-privilege `jsreport` user
