@@ -120,7 +120,7 @@ function evaluateCellRefsFromExpression (valueExpr, replacer) {
   }
 }
 
-function getNewFormula (helperType, originalFormula, parsedOriginCellRef, meta) {
+function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
   let newFormula
   const result = {}
 

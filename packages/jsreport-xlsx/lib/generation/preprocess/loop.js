@@ -87,24 +87,31 @@ module.exports = (files) => {
     const autoFitColLettersStr = resultAutofitConfigured.map((r) => num2col(r.column)).join(',')
 
     // wrap the <sheetData> into wrapper so we can store data during helper calls
-    const rootBlockStartEl = processOpeningTag(sheetDoc, sheetDataEl, `{{#xlsxSData type='root'${isAutofitConfigured ? ` autofit="${autoFitColLettersStr}"` : ''}}}`)
+    const sheetDataCallProps = {}
 
-    let rootEdgeEl = sheetDataEl
+    if (isAutofitConfigured) {
+      sheetDataCallProps.autofit = autoFitColLettersStr
+    }
 
-    while (rootEdgeEl.nextSibling != null) {
-      const nextSibling = rootEdgeEl.nextSibling
+    const sheetDataBlockStartEl = processOpeningTag(sheetDoc, sheetDataEl, getDataHelperCall('sd', sheetDataCallProps))
+
+    let sheetDataEdgeEl = sheetDataEl
+
+    while (sheetDataEdgeEl.nextSibling != null) {
+      const nextSibling = sheetDataEdgeEl.nextSibling
 
       if (nextSibling.nodeName === 'mergeCells') {
-        rootEdgeEl = nextSibling
+        sheetDataEdgeEl = nextSibling
         break
       } else {
-        rootEdgeEl = nextSibling
+        sheetDataEdgeEl = nextSibling
       }
     }
 
-    rootEdgeEl = rootEdgeEl.nodeName === 'mergeCells' ? rootEdgeEl : sheetDataEl
+    sheetDataEdgeEl = sheetDataEdgeEl.nodeName === 'mergeCells' ? sheetDataEdgeEl : sheetDataEl
 
-    processClosingTag(sheetDoc, rootEdgeEl, '{{/xlsxSData}}')
+    processClosingTag(sheetDoc, sheetDataEdgeEl, '{{/_D}}')
+
 
     const mergeCellsEl = sheetDoc.getElementsByTagName('mergeCells')[0]
     const mergeCellEls = mergeCellsEl == null ? [] : nodeListToArray(mergeCellsEl.getElementsByTagName('mergeCell'))
@@ -114,9 +121,7 @@ module.exports = (files) => {
     if (dimensionEl != null && rowsEls.length > 0) {
       // if sheetData has rows we add the dimension tag into the sheetData to be able to update
       // the ref by the handlebars
-      const newDimensionEl = sheetDoc.createElement('dimensionUpdated')
-      newDimensionEl.setAttribute('ref', `{{xlsxSData type="dimensionRef" originalCellRefRange="${dimensionEl.getAttribute('ref')}" }}`)
-      sheetDataEl.appendChild(newDimensionEl)
+      dimensionEl.setAttribute('ref', `{{_D t='dimension' o='${dimensionEl.getAttribute('ref')}'}}`)
     }
 
     if (sheetRelsDoc != null) {
@@ -139,13 +144,13 @@ module.exports = (files) => {
             throw new Error(`Could not find table definition info for sheet at ${sheetFilepath}`)
           }
 
-          newTableUpdatedEl.setAttribute('ref', `{{xlsxSData type='newCellRef' originalCellRefRange='${tableDoc.documentElement.getAttribute('ref')}'}}`)
+          newTableUpdatedEl.setAttribute('ref', `{{_D t='newCellRef' originalCellRefRange='${tableDoc.documentElement.getAttribute('ref')}'}}`)
 
           const autoFilterEl = tableDoc.getElementsByTagName('autoFilter')[0]
 
           if (autoFilterEl != null) {
             const newAutoFilterRef = sheetDoc.createElement('autoFilterRef')
-            newAutoFilterRef.setAttribute('ref', `{{xlsxSData type='newCellRef' originalCellRefRange='${autoFilterEl.getAttribute('ref')}'}}`)
+            newAutoFilterRef.setAttribute('ref', `{{_D t='newCellRef' originalCellRefRange='${autoFilterEl.getAttribute('ref')}'}}`)
             newTableUpdatedEl.appendChild(newAutoFilterRef)
           }
 
@@ -183,7 +188,7 @@ module.exports = (files) => {
       }
 
       const newAutofitEl = sheetDoc.createElement('autofitUpdated')
-      newAutofitEl.textContent = '{{xlsxSData type="autofit"}}'
+      newAutofitEl.textContent = "{{_D t='autofit'}}"
       sheetDataEl.appendChild(newAutofitEl)
 
       if (colsEl == null) {
@@ -206,7 +211,6 @@ module.exports = (files) => {
       const isLastRow = rowIdx === lastRowIdx
       const standardCellElsToHandle = []
       const contentDetectCellElsToHandle = []
-      const calcCellElsToHandle = []
 
       if (originalRowNumber == null || originalRowNumber === '') {
         throw new Error('Expected row to contain r attribute defined')
@@ -215,31 +219,35 @@ module.exports = (files) => {
       originalRowNumber = parseInt(originalRowNumber, 10)
 
       // wrap the <row> into wrapper so we can store data during helper calls
-      processOpeningTag(sheetDoc, rowEl, `{{#xlsxSData type='row' originalRowNumber=${originalRowNumber}}}`)
-      processClosingTag(sheetDoc, rowEl, '{{/xlsxSData}}')
+      processOpeningTag(sheetDoc, rowEl, `{{#_R ${originalRowNumber}}}`)
+      processClosingTag(sheetDoc, rowEl, '{{/_R}}')
 
       // update the row number to be based on helper call
-      rowEl.setAttribute('r', "{{xlsxSData type='rowNumber'}}")
+      rowEl.setAttribute('r', '{{@r}}')
 
       const cellsEls = nodeListToArray(rowEl.getElementsByTagName('c'))
 
       for (const cellEl of cellsEls) {
         const cellRef = cellEl.getAttribute('r')
+        const parsedCellRef = parseCellRef(cellRef)
 
-        cellsElsByRefMap.set(cellRef, cellEl)
+        const cellProps = {
+          o: parsedCellRef.letter
+        }
 
-        cellEl.setAttribute('r', `{{xlsxSData type='cellRef' originalCellRef='${cellRef}'}}`)
+        cellsElsByRefMap.set(cellRef, [cellEl, cellProps])
+
+        let cellCallType = '_C'
 
         // search if we need to update some calc cell
         const calcCellEl = calcChainMap.get(`${sheetInfo.id}-${cellRef}`)
 
         if (calcCellEl != null) {
-          calcCellElsToHandle.push({
-            calcCellEl,
-            cellRef,
-            cellEl
-          })
+          cellCallType = '_E'
         }
+
+        // using alias for helper to optimize the size of generated xml
+        cellEl.setAttribute('r', `{{${cellCallType} '${parsedCellRef.letter}'}}`)
 
         // check if the cell starts a merge cell, if yes
         // then queue it to process it later
@@ -328,7 +336,6 @@ module.exports = (files) => {
           )
 
           const formulaInfo = {
-            cellRef,
             formula: info.value,
             formulaEl: info.valueEl
           }
@@ -394,11 +401,11 @@ module.exports = (files) => {
         currentRowLoopDetected.blockStartEl = processOpeningTag(sheetDoc, rowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
           const parsedLoopStart = parseCellRef(currentRowLoopDetected.start.cellRef)
           const parsedLoopEnd = parseCellRef(currentRowLoopDetected.end.cellRef)
-          return `{{#xlsxSData ${valueInsideEachCall} type='loop' hierarchyId='${currentRowLoopDetected.hierarchyId}' start=${originalRowNumber} columnStart=${parsedLoopStart.columnNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
+          return `{{#_D ${valueInsideEachCall} t='loop' hierarchyId='${currentRowLoopDetected.hierarchyId}' start=${originalRowNumber} columnStart=${parsedLoopStart.columnNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
         }))
 
         // we want to put the loop wrapper around the row wrapper
-        currentRowLoopDetected.blockEndEl = processClosingTag(sheetDoc, rowEl.nextSibling, '{{/xlsxSData}}')
+        currentRowLoopDetected.blockEndEl = processClosingTag(sheetDoc, rowEl.nextSibling, '{{/_D}}')
       }
 
       const blockLoops = loopsDetected.filter((l) => l.type === 'block' && l.end?.originalRowNumber === originalRowNumber)
@@ -446,11 +453,11 @@ module.exports = (files) => {
         currentBlockLoopDetected.blockStartEl = processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
           const parsedLoopStart = parseCellRef(currentBlockLoopDetected.start.cellRef)
           const parsedLoopEnd = parseCellRef(currentBlockLoopDetected.end.cellRef)
-          return `{{#xlsxSData ${valueInsideEachCall} type='loop' hierarchyId='${currentBlockLoopDetected.hierarchyId}' start=${currentBlockLoopDetected.start.originalRowNumber} columnStart=${parsedLoopStart.columnNumber} end=${currentBlockLoopDetected.end.originalRowNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
+          return `{{#_D ${valueInsideEachCall} t='loop' hierarchyId='${currentBlockLoopDetected.hierarchyId}' start=${currentBlockLoopDetected.start.originalRowNumber} columnStart=${parsedLoopStart.columnNumber} end=${currentBlockLoopDetected.end.originalRowNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
         }))
 
         // we want to put the loop wrapper around the end row wrapper
-        currentBlockLoopDetected.blockEndEl = processClosingTag(sheetDoc, endingRowEl.nextSibling, '{{/xlsxSData}}')
+        currentBlockLoopDetected.blockEndEl = processClosingTag(sheetDoc, endingRowEl.nextSibling, '{{/_D}}')
       }
 
       for (const cellEl of standardCellElsToHandle) {
@@ -459,8 +466,8 @@ module.exports = (files) => {
 
         // wrap the cell <v> into wrapper so we can check the value size for
         // auto-size logic
-        processOpeningTag(sheetDoc, cellEl.firstChild, `{{#xlsxSData type='cellValue' value="${cellInfo.value}" fontSize=${fontSize}}}`)
-        processClosingTag(sheetDoc, cellEl.firstChild.nextSibling, '{{/xlsxSData}}')
+        processOpeningTag(sheetDoc, cellEl.firstChild, `{{#_D t='cellValue' value='${cellInfo.value}' fontSize=${fontSize}}}`)
+        processClosingTag(sheetDoc, cellEl.firstChild.nextSibling, '{{/_D}}')
       }
 
       for (const cellEl of contentDetectCellElsToHandle) {
@@ -493,20 +500,20 @@ module.exports = (files) => {
           const shouldEscape = !match[0].startsWith('{{{')
           const expressionValue = match[2]
 
-          cellValueWrapperEl.textContent = `{{#xlsxSData type='cellValue' value=${expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue}${shouldEscape ? ' escape=true' : ''}`
+          cellValueWrapperEl.textContent = `{{#_D t='cellValue' value=${expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue}${shouldEscape ? ' escape=true' : ''}`
         } else {
-          cellValueWrapperEl.textContent = "{{#xlsxSData type='cellValue'"
+          cellValueWrapperEl.textContent = "{{#_D t='cellValue'"
         }
 
         cellValueWrapperEl.textContent += ` fontSize=${fontSize}}}`
 
         if (!isSingleMatch) {
-          rawEl.textContent = `{{#xlsxSData type='cellValueRaw' }}${newTextValue}{{/xlsxSData}}`
+          rawEl.textContent = `{{#_D t='cellValueRaw' }}${newTextValue}{{/_D}}`
         }
 
-        cellEl.setAttribute('t', "{{xlsxSData type='cellValueType' }}")
-        newContentEl.textContent = "{{xlsxSData type='cellContent' }}"
-        cellValueWrapperEndEl.textContent = '{{/xlsxSData}}'
+        cellEl.setAttribute('t', "{{_D t='cellValueType' }}")
+        newContentEl.textContent = "{{_D t='cellContent' }}"
+        cellValueWrapperEndEl.textContent = '{{/_D}}'
 
         cellEl.replaceChild(newContentEl, cellInfo.contentEl)
         cellEl.parentNode.insertBefore(cellValueWrapperEl, cellEl)
@@ -517,20 +524,9 @@ module.exports = (files) => {
 
         cellEl.parentNode.insertBefore(cellValueWrapperEndEl, cellEl.nextSibling)
       }
-
-
-
-      for (const { cellRef, cellEl } of calcCellElsToHandle) {
-        const wrapperElement = sheetDoc.createElement('xlsxRemove')
-
-        wrapperElement.textContent = `{{xlsxSData type="calcChainCellUpdate" sheetId=${sheetInfo.id} cellRef=(xlsxSData type="cellRef" originalCellRef="${cellRef}" shadow=true) originalCellRef="${cellRef}"}}`
-
-        // on the contrary with the merge cells case, the calcChainCellUpdated is inserted
-        // in the cell, so there is no need for a wrapper that only renders it
-        // for the first item in loop
-        cellEl.insertBefore(wrapperElement, cellEl.firstChild)
-      }
     }
+
+
 
     let outLoopItemIndex = 0
 
@@ -562,10 +558,10 @@ module.exports = (files) => {
         }
 
         processOpeningTag(sheetDoc, outOfLoopEl.firstChild, rowHandlebarsWrapperText)
-        processClosingTag(sheetDoc, outOfLoopEl.lastChild, '{{/xlsxSData}}')
+        processClosingTag(sheetDoc, outOfLoopEl.lastChild, '{{/_R}}')
 
-        processOpeningTag(sheetDoc, outOfLoopEl.firstChild, `{{#xlsxSData type='outOfLoop' item='${outLoopItemIndex}' }}`)
-        processClosingTag(sheetDoc, outOfLoopEl.lastChild, '{{/xlsxSData}}')
+        processOpeningTag(sheetDoc, outOfLoopEl.firstChild, `{{#_D t='outOfLoop' item='${outLoopItemIndex}' }}`)
+        processClosingTag(sheetDoc, outOfLoopEl.lastChild, '{{/_D}}')
 
         const loopEdgeEl = loopDetected.blockStartEl
 
@@ -581,7 +577,7 @@ module.exports = (files) => {
         const outOfLoopPlaceholderEl = sheetDoc.createElement('outOfLoopPlaceholder')
 
         const contentEl = sheetDoc.createElement('xlsxRemove')
-        contentEl.textContent = `{{xlsxSData type='outOfLoopPlaceholder' item='${outLoopItemIndex}' }}`
+        contentEl.textContent = `{{_D t='outOfLoopPlaceholder' item='${outLoopItemIndex}' }}`
 
         outOfLoopPlaceholderEl.appendChild(contentEl)
 
@@ -617,7 +613,7 @@ module.exports = (files) => {
       const isLast = idx === mergeCellElsToHandle.length - 1
       const newMergeCellCallEl = sheetDoc.createElement('xlsxRemove')
 
-      newMergeCellCallEl.textContent = `{{xlsxSData type='mergeCell' originalCellRefRange='${ref}'}}`
+      newMergeCellCallEl.textContent = `{{_D t='mergeCell' originalCellRefRange='${ref}'}}`
 
       const mergeStartCellRef = ref.split(':')[0]
       const parsedMergeStart = parseCellRef(mergeStartCellRef)
@@ -654,32 +650,32 @@ module.exports = (files) => {
 
       mergeCellsEl.setAttribute('count', '{{@mergeCellsCount}}')
 
-      processOpeningTag(sheetDoc, mergeCellsEl, "{{#xlsxSData type='mergeCells'}}")
-      processClosingTag(sheetDoc, mergeCellsEl, '{{/xlsxSData}}')
+      processOpeningTag(sheetDoc, mergeCellsEl, "{{#_D t='mergeCells'}}")
+      processClosingTag(sheetDoc, mergeCellsEl, '{{/_D}}')
 
       for (const mergeCellEl of mergeCellEls) {
         const originalCellRefRange = mergeCellEl.getAttribute('ref')
         mergeCellEl.setAttribute('ref', '{{newRef}}')
 
-        processOpeningTag(sheetDoc, mergeCellEl, `{{#xlsxSData type='mergeCellItem' originalCellRefRange='${originalCellRefRange}'}}`)
-        processClosingTag(sheetDoc, mergeCellEl, '{{/xlsxSData}}')
+        processOpeningTag(sheetDoc, mergeCellEl, `{{#_D t='mergeCellItem' originalCellRefRange='${originalCellRefRange}'}}`)
+        processClosingTag(sheetDoc, mergeCellEl, '{{/_D}}')
       }
 
-      processOpeningTag(sheetDoc, mergeCellsEl.firstChild, "{{#xlsxSData type='mergeCellsItems'}}")
-      processClosingTag(sheetDoc, mergeCellsEl.lastChild, '{{/xlsxSData}}')
+      processOpeningTag(sheetDoc, mergeCellsEl.firstChild, "{{#_D t='mergeCellsItems'}}")
+      processClosingTag(sheetDoc, mergeCellsEl.lastChild, '{{/_D}}')
     }
 
     const formulaNotExistingCellRefs = new Set()
 
-    for (const { cellRef, formula, formulaEl, sharedFormula, cellRefsInFormula } of formulaCellElsToHandle) {
+    for (const { formula, formulaEl, sharedFormula, cellRefsInFormula } of formulaCellElsToHandle) {
       if (sharedFormula?.type === 'reference') {
         continue
       }
 
-      formulaEl.textContent = `{{xlsxSData type='formula' originalCellRef='${cellRef}' originalFormula='${jsSingleQuoteEscape(formula)}'`
+      formulaEl.textContent = `{{_D t='f' o='${jsSingleQuoteEscape(formula)}'`
 
       if (sharedFormula?.type === 'source') {
-        formulaEl.setAttribute('ref', `{{xlsxSData type='formulaSharedRefRange' originalSharedRefRange='${jsSingleQuoteEscape(sharedFormula.sourceRef)}'}}`)
+        formulaEl.setAttribute('ref', `{{_D t='fs' o='${jsSingleQuoteEscape(sharedFormula.sourceRef)}'}}`)
       }
 
       formulaEl.textContent += '}}'
@@ -692,7 +688,7 @@ module.exports = (files) => {
 
         // we need to normalize to ignore the possible locked symbols ($)
         const normalizedCellRef = cellRefInfo.localRef
-        const targetCellEl = cellsElsByRefMap.get(normalizedCellRef)
+        const targetCellEl = cellsElsByRefMap.get(normalizedCellRef)?.[0]
 
         if (targetCellEl != null) {
           continue
@@ -718,7 +714,7 @@ module.exports = (files) => {
     }
 
     if (formulaNotExistingCellRefs.size > 0) {
-      rootBlockStartEl.textContent = rootBlockStartEl.textContent.replace('}}', ` nonExistingCellRefs='${[...formulaNotExistingCellRefs].join(',')}'}}`)
+      sheetDataCallProps.nonExistingCellRefs = [...formulaNotExistingCellRefs].join(',')
     }
 
     // handle possible lazy formulas (formulas that reference other cells that are not yet processed)
@@ -735,8 +731,13 @@ module.exports = (files) => {
     // is for sure slow if you create many of the formulas that will require the final references
     // to be evaluated at final step
     const newLazyFormulasCallEl = sheetDoc.createElement('xlsxRemove')
-    newLazyFormulasCallEl.textContent = '{{xlsxSData type="lazyFormulas"}}'
+    newLazyFormulasCallEl.textContent = "{{_D t='lazyFormulas'}}"
     sheetDataEl.appendChild(newLazyFormulasCallEl)
+
+    sheetDataBlockStartEl.textContent = getDataHelperCall('sd', sheetDataCallProps)
+
+    processOpeningTag(sheetDoc, sheetDoc.documentElement.firstChild, getDataHelperCall('ws', { sheetId: sheetInfo.id }))
+    processClosingTag(sheetDoc, sheetDoc.documentElement.lastChild, '{{/_D}}')
   }
 
   // normalize the shared string values used across the sheets that can contain handlebars code
@@ -748,15 +749,39 @@ module.exports = (files) => {
     }
 
     if (tEl.textContent.includes('{{') && tEl.textContent.includes('}}')) {
-      tEl.textContent = `{{{{xlsxSData type='raw'}}}}${tEl.textContent}{{{{/xlsxSData}}}}`
+      tEl.textContent = `{{{{_D t='raw'}}}}${tEl.textContent}{{{{/_D}}}}`
     }
   }
 
   // place handlebars call that handle updating the calcChain
   if (calcChainDoc != null) {
-    processOpeningTag(calcChainDoc, calcChainDoc.documentElement.firstChild, "{{#xlsxSData type='calcChain'}}")
-    processClosingTag(calcChainDoc, calcChainDoc.documentElement.lastChild, '{{/xlsxSData}}')
+    processOpeningTag(calcChainDoc, calcChainDoc.documentElement.firstChild, "{{#_D t='calcChain'}}")
+    processClosingTag(calcChainDoc, calcChainDoc.documentElement.lastChild, '{{/_D}}')
   }
+}
+
+function getDataHelperCall (type, props, isBlock = true) {
+  let callStr = `{{${isBlock ? '#' : ''}_D t='${type}'`
+  const targetProps = props || {}
+  const keys = Object.keys(targetProps)
+
+  for (const key of keys) {
+    const value = targetProps[key]
+
+    if (value == null) {
+      continue
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      callStr += ` ${key}=${value}`
+    } else {
+      callStr += ` ${key}='${value}'`
+    }
+  }
+
+  callStr += '}}'
+
+  return callStr
 }
 
 function getOutOfLoopElsSortedByHierarchy (outOfLoopElsToHandle) {
@@ -900,7 +925,7 @@ function getCellElAndWrappers (referenceCellEl) {
     while (currentEl[target] != null) {
       const isWrapper = (
         currentEl[target].nodeName === 'xlsxRemove' &&
-        currentEl[target].textContent.startsWith(target === 'previousSibling' ? '{{#xlsxSData' : '{{/xlsxSData')
+        currentEl[target].textContent.startsWith(target === 'previousSibling' ? '{{#_D' : '{{/_D')
       )
 
       if (!isWrapper) {
@@ -937,7 +962,7 @@ function getCellElsAndWrappersFrom (referenceCellEl, type = 'previous') {
         // if the node is not xlsxRemove then we are ready
         currentEl[target].nodeName !== 'xlsxRemove' ||
         // if it is xlsxRemove but it is not end point then we are ready
-        !currentEl[target].textContent.startsWith(type === 'previous' ? '{{#xlsxSData' : '{{/xlsxSData')
+        !currentEl[target].textContent.startsWith(type === 'previous' ? '{{#_D' : '{{/_D')
       )
     }
 

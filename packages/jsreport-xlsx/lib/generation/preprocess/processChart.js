@@ -152,7 +152,7 @@ module.exports = function processChart (files, sheetContent, drawingEl) {
               }
 
               if (ptValueEl.textContent.includes('{{') && ptValueEl.textContent.includes('}}')) {
-                ptValueEl.textContent = `{{{{xlsxSData type='raw'}}}}${ptValueEl.textContent}{{{{/xlsxSData}}}}`
+                ptValueEl.textContent = `{{{{_D t='raw'}}}}${ptValueEl.textContent}{{{{/_D}}}}`
               }
             }
           }

@@ -46,6 +46,6 @@ module.exports = function processStyles (calcChainUpdatesMap, xmlStr) {
 
   // otherwise serialize the updated nodes
   const items = nodeListToArray(doc.documentElement.childNodes)
-
-  return items.map((el) => el.toString()).join('')
+  const result = items.map((el) => el.toString()).join('')
+  return result
 }

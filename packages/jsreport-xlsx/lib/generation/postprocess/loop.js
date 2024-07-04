@@ -19,36 +19,6 @@ module.exports = async (files) => {
     }
 
 
-    }
-
-    let dimensionUpdatedRef
-
-    // search if we should update the dimension
-    sheetFile.data = await stringReplaceAsync(
-      sheetFile.data.toString(),
-      /<dimensionUpdated [^>]*\/>/g,
-      async (val) => {
-        const dimensionUpdatedEl = new DOMParser().parseFromString(val).documentElement
-        dimensionUpdatedRef = dimensionUpdatedEl.getAttribute('ref')
-
-        return ''
-      }
-    )
-
-    // update the dimension with latest cellRef values
-    if (dimensionUpdatedRef != null) {
-      sheetFile.data = await stringReplaceAsync(
-        sheetFile.data.toString(),
-        /<dimension [^>]*\/>/g,
-        async (val) => {
-          const dimensionEl = new DOMParser().parseFromString(val).documentElement
-
-          dimensionEl.setAttribute('ref', dimensionUpdatedRef)
-
-          return serializeXml(dimensionEl)
-        }
-      )
-    }
 
     // check if we need to updates tables
     sheetFile.data = await recursiveStringReplaceAsync(

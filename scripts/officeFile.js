@@ -9,6 +9,7 @@ const format = require('xml-formatter')
 // NOTE: resources to better understand the openxml spec:
 // - http://officeopenxml.com/WPstyleParStyles.php
 // - https://c-rex.net/projects/samples/ooxml/e1/Part4/OOXML_P4_DOCX_shd_topic_ID0E1CNM.html?hl=w%3Ashd
+// - https://schemas.liquid-technologies.com/OfficeOpenXML/2006/
 // NOTE: resources to better understand the units:
 // - https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/ (info about different units in openxml)
 // - https://blog.lindexi.com/post/C-dontet-Office-Open-XML-Unit-Converter.html (code about conversion between units)
