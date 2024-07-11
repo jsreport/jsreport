@@ -8,6 +8,20 @@ function xlsxColAutofit (options) {
     options.data.meta.autofit.enabledFor = [true]
   }
 
+  const enabledFor = options?.data?.meta?.autofit?.enabledFor ?? []
+  const allColsEnabled = enabledFor[0] === true
+
+  if (!allColsEnabled) {
+    const cols = options?.data?.meta?.autofit?.cols ?? {}
+
+    for (const colLetter of Object.keys(cols)) {
+      // remove cells that are not enabled for autofit
+      if (!enabledFor.includes(colLetter)) {
+        delete cols[colLetter]
+      }
+    }
+  }
+
   return ''
 }
 
@@ -47,6 +61,8 @@ function xlsxContext (options) {
     data = Handlebars.createFrame(options.data)
     data.evalId = options.hash.evalId
     data.calcChainUpdatesMap = new Map()
+    data.styleInfo = null
+    data.styleFontSizeMap = new Map()
   }
 
   const context = {}
@@ -80,13 +96,14 @@ const __xlsxD = (function () {
         let taskExecution = tasks.get(key)
 
         if (taskExecution != null) {
-          return taskExecution.resolve
+          return [taskExecution.resolve, taskExecution.reject]
         }
 
         taskExecution = {}
 
-        taskExecution.promise = new Promise((resolve) => {
+        taskExecution.promise = new Promise((resolve, reject) => {
           taskExecution.resolve = resolve
+          taskExecution.reject = reject
         })
 
         tasks.set(key, taskExecution)
@@ -119,7 +136,7 @@ const __xlsxD = (function () {
   }
 
   function sd (options) {
-    const resolveTask = options.data.tasks.add('sd')
+    const [resolveTask, rejectTask] = options.data.tasks.add('sd')
 
     try {
       const Handlebars = require('handlebars')
@@ -127,7 +144,21 @@ const __xlsxD = (function () {
       options.data.meta.calcChainCellRefsSet = new Set(options.hash.calcChainCellRefs != null ? options.hash.calcChainCellRefs.split(',') : [])
 
       let nonExistingCellRefs = options.hash.nonExistingCellRefs != null ? options.hash.nonExistingCellRefs.split(',') : []
-      const autofit = options.hash.autofit != null ? options.hash.autofit.split(',') : []
+      const autofitEnabledFor = options.hash.autofit != null ? options.hash.autofit.split(',') : []
+
+      const autofitBaseCols = options.hash.autofitBCols != null
+        ? options.hash.autofitBCols.split(',').map((entry) => {
+            const [colLetter, size] = entry.split(':')
+            return [colLetter, parseFloat(size)]
+          })
+        : []
+
+      for (const [colLetter, size] of autofitBaseCols) {
+        options.data.meta.autofit.cols[colLetter] = {
+          size
+        }
+      }
+
       const trackedCells = {}
 
       if (nonExistingCellRefs.length > 0) {
@@ -161,12 +192,15 @@ const __xlsxD = (function () {
         }
       }
 
-      options.data.meta.autofit.enabledFor = autofit
+      options.data.meta.autofit.enabledFor = autofitEnabledFor
       options.data.meta.trackedCells = trackedCells
 
-      return options.fn(this, { data: options.data })
-    } finally {
+      const result = options.fn(this, { data: options.data })
       resolveTask()
+      return result
+    } catch (e) {
+      rejectTask(e)
+      throw e
     }
   }
 
@@ -384,11 +418,14 @@ const __xlsxD = (function () {
   }
 
   function c (info, options) {
+    const Handlebars = require('handlebars')
     const originalRowNumber = options.data.originalRowNumber
     const rowNumber = options.data.r
     const trackedCells = options.data.meta.trackedCells
-    const originalCellLetter = options.hash.o
-    const { calcChainUpdate } = info
+    const isMultipleExpression = typeof options.fn === 'function'
+    const { type, originalCellLetter, calcChainUpdate } = info
+
+    const generateCellTag = type === 'autodetect'
 
     assertOk(originalRowNumber != null, 'originalRowNumber needs to exists on internal data')
     assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
@@ -460,126 +497,100 @@ const __xlsxD = (function () {
     options.data.originalCellRef = originalCellRef
     options.data.currentCellRef = updatedCellRef
 
-    return updatedCellRef
-  }
-
-  function cellValue (options) {
-    const Handlebars = require('handlebars')
-    const newData = Handlebars.createFrame(options.data)
-
-    newData.currentCellValueInfo = {}
-
-    if (Object.prototype.hasOwnProperty.call(options.hash, 'value')) {
-      newData.currentCellValueInfo.value = options.hash.value
-
-      let toEscape = false
-
-      // escape should be there when the original handlebars expression was intended
-      // to be escaped, we preserve that intend here and escape it, we need to do this
-      // because handlebars does not escape automatically the helper parameter hash,
-      // which we use as an implementation detail of our auto detect cell type logic
-      if (Object.prototype.hasOwnProperty.call(options.hash, 'escape')) {
-        toEscape = options.hash.escape === true && typeof newData.currentCellValueInfo.value === 'string'
-      }
-
-      if (toEscape) {
-        newData.currentCellValueInfo.value = Handlebars.escapeExpression(newData.currentCellValueInfo.value)
-      }
+    if (!generateCellTag) {
+      return updatedCellRef
     }
 
-    const result = options.fn(this, { data: newData })
-    const enabledForCol = newData.meta.autofit.enabledFor[0] === true ? true : newData.meta.autofit.enabledFor.includes(newData.columnLetter)
+    let cellValue = isMultipleExpression ? options.fn(this, { data: options.data }) : info.value
+
+    if (!isMultipleExpression && info.escape && typeof cellValue === 'string') {
+      cellValue = Handlebars.escapeExpression(cellValue)
+    }
+
+    const enabledForCol = options.data.meta.autofit.enabledFor[0] === true ? true : options.data.meta.autofit.enabledFor.includes(originalCellLetter)
 
     if (enabledForCol) {
-      const pixelWidth = require('string-pixel-width')
-      const fontSize = options.hash.fontSize
-      const fontSizeInPx = fontSize * (96 / 72)
-      const currentValue = newData.currentCellValueInfo.value
-      const maxInfo = newData.meta.autofit.cols[newData.columnLetter]
+      const { getPixelWidthOfValue, getFontSizeFromStyle } = require('cellUtils')
+      const fontSize = getFontSizeFromStyle(options.hash.s, options.data.styleInfo, options.data.styleFontSizeMap)
+      const colInfo = options.data.meta.autofit.cols[originalCellLetter]
 
-      const size = pixelWidth(currentValue, { font: 'Arial', size: fontSizeInPx })
+      const size = getPixelWidthOfValue(cellValue, fontSize)
 
-      if (maxInfo == null) {
-        newData.meta.autofit.cols[newData.columnLetter] = {
-          value: currentValue,
+      if (colInfo == null) {
+        options.data.meta.autofit.cols[originalCellLetter] = {
           size
         }
-      } else if (size > maxInfo.size) {
-        newData.meta.autofit.cols[newData.columnLetter] = {
-          value: currentValue,
+      } else if (size > colInfo.size) {
+        options.data.meta.autofit.cols[originalCellLetter] = {
           size
         }
       }
     }
 
-    return result
-  }
-
-  function cellValueRaw (options) {
-    const Handlebars = require('handlebars')
-    const newData = Handlebars.createFrame(options.data)
-    const result = options.fn(this, { data: newData })
-
-    if (
-      options?.data?.currentCellValueInfo != null &&
-      !Object.prototype.hasOwnProperty.call(options.data.currentCellValueInfo, 'value')
-    ) {
-      options.data.currentCellValueInfo.value = result
-    }
-
-    return ''
-  }
-
-  function cellValueType (options) {
-    const cellValue = options.data.currentCellValueInfo.value
     let cellType
 
-    if (cellValue == null) {
-      cellType = 'inlineStr'
-    } else if (
-      typeof cellValue === 'boolean' ||
-      (
-        cellValue != null &&
-        typeof cellValue === 'object' &&
-        Object.prototype.toString.call(cellValue) === '[object Boolean]'
-      )
-    ) {
-      cellType = 'b'
-    } else if (
-      typeof cellValue === 'number' ||
-      (
-        cellValue != null &&
-        typeof cellValue === 'object' &&
-        Object.prototype.toString.call(cellValue) === '[object Number]'
-      )
-    ) {
-      cellType = 'n'
-    } else {
-      cellType = 'inlineStr'
+    const serializedAttrs = []
+    const attrsKeys = Object.keys(options.hash)
+
+    if (!attrsKeys.includes('t')) {
+      attrsKeys.push('t')
     }
 
-    options.data.currentCellValueInfo.type = cellType
+    for (let idx = 0; idx < attrsKeys.length; idx++) {
+      const key = attrsKeys[idx]
+      let value
 
-    return cellType
-  }
+      if (key === 'r') {
+        // ensure updated cellRef is part of cell xml
+        value = updatedCellRef
+      } else if (key === 't') {
+        // ensure we put the type according to cell content
+        if (cellValue == null) {
+          cellType = 'inlineStr'
+        } else if (
+          typeof cellValue === 'boolean' ||
+          (
+            cellValue != null &&
+            typeof cellValue === 'object' &&
+            Object.prototype.toString.call(cellValue) === '[object Boolean]'
+          )
+        ) {
+          cellType = 'b'
+        } else if (
+          typeof cellValue === 'number' ||
+          (
+            cellValue != null &&
+            typeof cellValue === 'object' &&
+            Object.prototype.toString.call(cellValue) === '[object Number]'
+          )
+        ) {
+          cellType = 'n'
+        } else {
+          cellType = 'inlineStr'
+        }
 
-  function cellContent (options) {
-    const Handlebars = require('handlebars')
-    const cellType = options.data.currentCellValueInfo.type
-    const cellValue = options.data.currentCellValueInfo.value
-    let result
+        value = cellType
+      } else {
+        // keep rest of attrs
+        value = options.hash[key]
+      }
+
+      serializedAttrs.push(`${key}="${value}"`)
+    }
+
+    let cellContent
 
     if (cellType === 'inlineStr') {
-      result = `<is><t>${cellValue == null ? '' : cellValue}</t></is>`
+      cellContent = `<is><t>${cellValue == null ? '' : cellValue}</t></is>`
     } else if (cellType === 'b') {
-      result = `<v>${cellValue ? '1' : '0'}</v>`
+      cellContent = `<v>${cellValue ? '1' : '0'}</v>`
     } else if (cellType === 'n') {
-      result = `<v>${cellValue}</v>`
+      cellContent = `<v>${cellValue}</v>`
     }
 
-    assertOk(result != null, `cell type "${cellType}" not supported`)
+    assertOk(cellContent != null, `cell type "${cellType}" not supported`)
 
-    return new Handlebars.SafeString(result)
+    return new Handlebars.SafeString(`<c ${serializedAttrs.join(' ')}>${cellContent}</c>`)
   }
 
   function mergeOrFormulaCell (type, options) {
@@ -766,16 +777,15 @@ const __xlsxD = (function () {
     return new Handlebars.SafeString(updated.join('\n'))
   }
 
-  function autofit (options) {
+  async function autofit (options) {
     const Handlebars = require('handlebars')
-    const result = []
-    const autofitInfo = options.data.meta.autofit
+    const processAutofitCols = require('xlsxProcessAutofitCols')
 
-    for (const [colLetter, colInfo] of Object.entries(autofitInfo.cols)) {
-      result.push(`<col ref="${colLetter}" size="${colInfo.size}" />`)
-    }
+    const existingColsXml = options.fn(this)
 
-    return new Handlebars.SafeString(result.join('\n'))
+    await options.data.tasks.wait('sd')
+
+    return new Handlebars.SafeString(processAutofitCols(options.data.meta.autofit, existingColsXml))
   }
 
   function lazyFormulas (options) {
@@ -823,12 +833,28 @@ const __xlsxD = (function () {
     return new Handlebars.SafeString(`<lazyFormulas>${result.join('\n')}</lazyFormulas>`)
   }
 
+  function style (options) {
+    const Handlebars = require('handlebars')
+    const { parseStyle, getStyleInfo } = require('xlsxProcessStyle')
+
+    const styleXml = options.fn(this)
+    const styleDoc = parseStyle(styleXml)
+    const styleInfo = getStyleInfo(styleDoc)
+
+    if (styleInfo != null) {
+      options.data.styleInfo = styleInfo
+    }
+
+    return new Handlebars.SafeString(styleXml)
+  }
+
   function calcChain (options) {
+    const Handlebars = require('handlebars')
     const processCalcChain = require('xlsxProcessCalcChain')
 
     const existingCalcChainXml = options.fn(this)
 
-    return processCalcChain(options.data.calcChainUpdatesMap, existingCalcChainXml)
+    return new Handlebars.SafeString(processCalcChain(options.data.calcChainUpdatesMap, existingCalcChainXml))
   }
 
   function raw (options) {
@@ -1118,18 +1144,17 @@ const __xlsxD = (function () {
     outOfLoop,
     outOfLoopPlaceholder,
     r,
-    // normal cell
-    c: function (options) {
-      return c.call(this, { calcChainUpdate: false }, options)
+    c: function (info, options) {
+      delete options.hash.t
+
+      // restoring original t attribute, needed when we render xml of cell
+      if (options.hash.__originalT__ != null) {
+        options.hash.t = options.hash.__originalT__
+        delete options.hash.__originalT__
+      }
+
+      return c.call(this, info, options)
     },
-    // cell with calcChainUpdated
-    c1: function (options) {
-      return c.call(this, { calcChainUpdate: true }, options)
-    },
-    cellValue,
-    cellValueRaw,
-    cellValueType,
-    cellContent,
     mergeCell: function (options) {
       return mergeOrFormulaCell.call(this, 'mergeCell', options)
     },
@@ -1143,12 +1168,13 @@ const __xlsxD = (function () {
     newCellRef,
     autofit,
     lazyFormulas,
+    style,
     calcChain,
     raw
   }
 
   return {
-    resolveHelper: (helperName, argumentsLength, context, data, options) => {
+    resolveHelper: (helperName, argumentsLength, context, values, options) => {
       const targetHelper = helpers[helperName]
       const validCall = targetHelper != null ? argumentsLength === targetHelper.length : false
 
@@ -1156,46 +1182,41 @@ const __xlsxD = (function () {
         throw new Error(`Invalid usage of _D helper${helperName != null ? ` (t: ${helperName})` : ''}`)
       }
 
-      const params = []
-
-      if (targetHelper.length > 1) {
-        params.push(data)
-        params.push(options)
-      } else {
-        params.push(options)
-      }
-
       try {
-        return targetHelper.apply(context, params)
+        if (values.length > 0) {
+          return targetHelper.call(context, ...values, options)
+        }
+
+        return targetHelper.call(context, options)
       } catch (error) {
-        throw new Error(`_D t="${helperName}" helper, ${error.message}`)
+        error.message = `_D t="${helperName}" helper, ${error.message}`
+        throw error
       }
     },
     assertDataArg: assertOk
   }
 })()
 
-function _D (data, options) {
-  const optionsToUse = options == null ? data : options
+function _D () {
+  const values = []
+  const argsLength = arguments.length
+  let optionsToUse
+
+  if (argsLength > 1) {
+    optionsToUse = arguments[argsLength - 1]
+
+    for (let idx = 0; idx < argsLength - 1; idx++) {
+      values.push(arguments[idx])
+    }
+  } else {
+    optionsToUse = arguments[0]
+  }
+
   const type = optionsToUse.hash.t
 
   __xlsxD.assertDataArg(type != null, '_D helper t arg is required')
 
-  return __xlsxD.resolveHelper(type, arguments.length, this, data, optionsToUse)
-}
-
-// alias for {{_D t='c'}} helper call, we do it this way to optimize size of the generated xml
-function _C (data, options) {
-  options.hash.t = 'c'
-  options.hash.o = data
-  return _D.call(this, options)
-}
-
-// alias for {{_D t='c1'}} helper call, we do it this way to optimize size of the generated xml
-function _E (data, options) {
-  options.hash.t = 'c1'
-  options.hash.o = data
-  return _D.call(this, options)
+  return __xlsxD.resolveHelper(type, arguments.length, this, values, optionsToUse)
 }
 
 // alias for {{_D t='r'}} helper call, we do it this way to optimize size of the generated xml
@@ -1203,4 +1224,86 @@ function _R (data, options) {
   options.hash.t = 'r'
   options.hash.o = data
   return _D.call(this, options)
+}
+
+// alias for {{_D t='c'}} helper call, we do it this way to optimize size of the generated xml
+function _C (data, options) {
+  options.hash.t = 'c'
+  return _D.call(this, { type: 'normal', originalCellLetter: data, calcChainUpdate: false }, options)
+}
+
+// alias for {{_D t='c'}} helper call with calcChainUpdate: true
+function _c (data, options) {
+  options.hash.t = 'c'
+  return _D.call(this, { type: 'normal', originalCellLetter: data, calcChainUpdate: true }, options)
+}
+
+// alias for {{_D t='c'}} helper with autodetect call
+function _T () {
+  let value
+  let raw
+  let options
+
+  if (arguments.length === 1) {
+    options = arguments[0]
+  } else if (arguments.length === 2) {
+    value = arguments[0]
+    options = arguments[1]
+  } else {
+    value = arguments[0]
+    raw = arguments[1] === 1
+    options = arguments[2]
+  }
+
+  if (options.hash.t != null) {
+    options.hash.__originalT__ = options.hash.t
+  }
+
+  options.hash.t = 'c'
+
+  const data = { type: 'autodetect', originalCellLetter: options.hash.r, calcChainUpdate: false }
+
+  data.value = value
+  data.escape = true
+
+  if (raw != null && raw) {
+    data.escape = false
+  }
+
+  return _D.call(this, data, options)
+}
+
+// alias for {{_D t='c'}} helper with autodetect call with calcChainUpdate: true
+function _t () {
+  let value
+  let raw
+  let options
+
+  if (arguments.length === 1) {
+    options = arguments[0]
+  } else if (arguments.length === 2) {
+    value = arguments[0]
+    options = arguments[1]
+  } else {
+    value = arguments[0]
+    raw = arguments[1] === 1
+    options = arguments[2]
+  }
+
+  if (options.hash.t != null) {
+    options.hash.__originalT__ = options.hash.t
+  }
+
+  options.hash.t = 'c'
+
+  const data = { type: 'autodetect', originalCellLetter: options.hash.r, calcChainUpdate: true }
+
+  data.value = value
+  data.escape = true
+
+  if (raw != null && raw) {
+    data.escape = false
+  }
+
+  return _D.call(this, data, options)
 }

@@ -5,7 +5,7 @@ const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const preprocess = require('./preprocess/preprocess')
 const postprocess = require('./postprocess/postprocess')
-const { contentIsXML, isWorksheetFile } = require('../utils')
+const { contentIsXML, isWorksheetFile, getStyleFile } = require('../utils')
 
 const decodeXML = (str) => decode(str, { level: 'xml' })
 
@@ -33,44 +33,88 @@ module.exports = (reporter) => async (inputs, req) => {
 
     await preprocess(files, meta)
 
-    const filesToRender = files.filter(f => contentIsXML(f.data))
+    const [filesToRender, styleFile] = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)))
 
-    // ensure calcChain.xml comes after sheet files,
-    // this is required in child render for our handlebars logic to correctly update the calcChain
-    filesToRender.sort((a, b) => {
-      if (a.path === 'xl/calcChain.xml') {
-        return 1
+    const normalizeAttributeAndTextNode = (node) => {
+      if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
+        // we need to decode the xml entities for the attributes for handlebars to work ok
+        const str = new XMLSerializer().serializeToString(node)
+        return decodeXML(str)
+      } else if (
+        // we need to decode the xml entities in text nodes for handlebars to work ok with partials
+        node.nodeType === 3 && node.nodeValue &&
+        (node.nodeValue.includes('{{>') || node.nodeValue.includes('{{#>'))
+      ) {
+        const str = new XMLSerializer().serializeToString(node)
+
+        return str.replace(/{{#?&gt;/g, (m) => {
+          return decodeXML(m)
+        })
       }
 
-      if (b.path === 'xl/calcChain.xml') {
-        return -1
-      }
-
-      return 0
-    })
+      return node
+    }
 
     let contentToRender = filesToRender.map(f => {
-      const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
-        // we need to decode the xml entities for the attributes for handlebars to work ok
-        if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
-          const str = new XMLSerializer().serializeToString(node)
-          return decodeXML(str)
-        } else if (
-          // we need to decode the xml entities in text nodes for handlebars to work ok with partials
-          node.nodeType === 3 && node.nodeValue &&
-          (node.nodeValue.includes('{{>') || node.nodeValue.includes('{{#>'))
-        ) {
-          const str = new XMLSerializer().serializeToString(node)
+      let xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
+        if (node.nodeType === 1 && node.localName === 'c' && node.hasAttribute('__CT_t__')) {
+          let callType = node.getAttribute('__CT_t__')
+          const hasMultipleExpressionCall = node.getAttribute('__CT_m__') === '1'
+          const calcChainUpdate = node.getAttribute('__CT_cCU__') === '1'
+          const expressionValue = node.getAttribute('__CT_v__')
+          const escapeValue = node.getAttribute('__CT_ve__') === '1'
 
-          return str.replace(/{{#?&gt;/g, (m) => {
-            return decodeXML(m)
-          })
+          if (calcChainUpdate) {
+            callType = callType.toLowerCase()
+          }
+
+          node.removeAttribute('__CT_t__')
+          node.removeAttribute('__CT_m__')
+          node.removeAttribute('__CT_cCU__')
+          node.removeAttribute('__CT_v__')
+          node.removeAttribute('__CT_ve__')
+
+          // this will take care of removing xmlns, xmlns:prefix attributes that we don't want here
+          const str = new XMLSerializer().serializeToString(node, undefined, normalizeAttributeAndTextNode).replace(/ xmlns(:[a-z0-9]+)?="[^"]*"/g, '')
+
+          const isSelfClosing = node.childNodes.length === 0
+          let attrs
+          let content
+
+          if (isSelfClosing) {
+            const closeTagStartIdx = str.lastIndexOf('/>')
+
+            attrs = str.slice(2, closeTagStartIdx)
+            content = ''
+          } else {
+            const openTagEndIdx = str.indexOf('>')
+            const closeTagStartIdx = str.lastIndexOf('</')
+
+            attrs = str.slice(2, openTagEndIdx)
+            content = str.slice(openTagEndIdx + 1, closeTagStartIdx)
+          }
+
+          if (hasMultipleExpressionCall) {
+            return `{{#${callType}${attrs}}}${content}{{/${callType}}}`
+          }
+
+          // for the handlebars call we want to avoid the extra character for escape param,
+          // (size optimization) since the common case is that the handlebars call is
+          // escaped {{}} expression, so instead we expect in the helper receive if the
+          // value should be raw or not (the inverse of escape)
+          return `{{${callType} ${expressionValue}${escapeValue ? '' : ' 1'}${attrs}}}`
         }
 
-        return node
+        return normalizeAttributeAndTextNode(node)
       })
 
-      return xmlStr.replace(/<xlsxRemove>/g, '').replace(/<\/xlsxRemove>/g, '')
+      xmlStr = xmlStr.replace(/<xlsxRemove>/g, '').replace(/<\/xlsxRemove>/g, '')
+
+      if (meta.autofitConfigured && styleFile?.path === f.path) {
+        xmlStr = `{{#_D t='style'}}${xmlStr}{{/_D}}`
+      }
+
+      return xmlStr
     }).join('$$$xlsxFile$$$')
 
     contentToRender = `{{#xlsxContext type="global" evalId="${generateRandomId()}"}}${contentToRender}{{/xlsxContext}}`
@@ -136,4 +180,48 @@ module.exports = (reporter) => async (inputs, req) => {
       weak: true
     })
   }
+}
+
+function ensureOrderOfFiles (files) {
+  // we want to ensure a specific order of files for the render processing,
+  // 1. ensure style file comes as the first
+  // 2. ensure calcChain.xml comes after sheet files (we just put it at the end of everything)
+  // this is required in child render for our handlebars logic to correctly update the calcChain
+  const calcChainIdx = files.findIndex((file) => file.path === 'xl/calcChain.xml')
+  const filesSorted = []
+
+  const skipIndexesSet = new Set()
+
+  const styleFile = getStyleFile(files)
+  let styleIdx = -1
+
+  if (styleFile != null) {
+    styleIdx = files.findIndex((file) => file.path === styleFile.path)
+  }
+
+  for (const idx of [styleIdx, calcChainIdx]) {
+    if (idx === -1) {
+      continue
+    }
+
+    skipIndexesSet.add(idx)
+  }
+
+  if (styleIdx !== -1) {
+    filesSorted.push(files[styleIdx])
+  }
+
+  for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
+    if (skipIndexesSet.has(fileIdx)) {
+      continue
+    }
+
+    filesSorted.push(files[fileIdx])
+  }
+
+  if (calcChainIdx !== -1) {
+    filesSorted.push(files[calcChainIdx])
+  }
+
+  return [filesSorted, styleFile]
 }

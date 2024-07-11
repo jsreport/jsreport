@@ -1,7 +1,7 @@
 const { DOMParser } = require('@xmldom/xmldom')
 const { nodeListToArray } = require('./utils')
 
-module.exports = function processStyles (calcChainUpdatesMap, xmlStr) {
+module.exports = function processCalcChain (calcChainUpdatesMap, xmlStr) {
   const calcChainMap = new Map()
   const doc = new DOMParser().parseFromString(`<xlsxXml>${xmlStr}</xlsxXml>`)
   const calcChainCellEls = nodeListToArray(doc.getElementsByTagName('c'))

@@ -1,4 +1,5 @@
 const { col2num } = require('xlsx-coordinates')
+const pixelWidth = require('string-pixel-width')
 
 const CELL_REG_REGEXP = /^(?:('?(?:\[([A-Za-z0-9_. ]+\.xlsx)\])?([A-Za-z0-9_. ]+)'?)!)?(\$?[A-Z]+)(\$?\d+)$/
 
@@ -65,6 +66,67 @@ function parseCellRef (cellRef, parsedStartCellRef) {
     lockedRow,
     rowNumber: parseInt(lockedRow ? matches[5].slice(1) : matches[5], 10)
   }
+}
+
+function getPixelWidthOfValue (value, fontSize) {
+  const fontSizeInPx = fontSize * (96 / 72)
+  const size = pixelWidth(value, { font: 'Arial', size: fontSizeInPx })
+
+  return parseFloat(size.toFixed(2))
+}
+
+function getFontSizeFromStyle (_styleId, styleInfo, cache) {
+  let styleId
+
+  if (_styleId != null && _styleId !== '') {
+    styleId = parseInt(_styleId, 10)
+  } else {
+    styleId = 0
+  }
+
+  const cacheKey = styleId.toString()
+
+  if (cache != null && cache.has(cacheKey)) {
+    return cache.get(cacheKey)
+  }
+
+  const { cellXfsEls, cellStyleXfsEls, fontEls } = styleInfo
+
+  const selectedXfEl = cellXfsEls[styleId]
+
+  let fontId = selectedXfEl.getAttribute('fontId')
+  const applyFont = selectedXfEl.getAttribute('applyFont')
+  const xfId = selectedXfEl.getAttribute('xfId')
+
+  if (
+    applyFont == null ||
+    applyFont === '' ||
+    applyFont === '0'
+  ) {
+    const selectedStyleXfEl = cellStyleXfsEls[xfId]
+    const nestedFontId = selectedStyleXfEl.getAttribute('fontId')
+    const nestedApplyFont = selectedStyleXfEl.getAttribute('applyFont')
+
+    if (
+      nestedApplyFont == null ||
+      nestedApplyFont === '' ||
+      nestedApplyFont === '1'
+    ) {
+      fontId = nestedFontId
+    }
+  }
+
+  const fontEl = fontEls[fontId]
+  const sizeEl = fontEl.getElementsByTagName('sz')[0]
+
+  // size stored in xlsx is in pt
+  const fontSize = parseFloat(sizeEl.getAttribute('val'))
+
+  if (cache != null) {
+    cache.set(cacheKey, fontSize)
+  }
+
+  return fontSize
 }
 
 function evaluateCellRefsFromExpression (valueExpr, replacer) {
@@ -292,6 +354,8 @@ function generateNewCellRefFromRow (parsedCellRef, rowNumber, fullMetadata = fal
 }
 
 module.exports.parseCellRef = parseCellRef
+module.exports.getPixelWidthOfValue = getPixelWidthOfValue
+module.exports.getFontSizeFromStyle = getFontSizeFromStyle
 module.exports.evaluateCellRefsFromExpression = evaluateCellRefsFromExpression
 module.exports.getNewFormula = getNewFormula
 module.exports.generateNewCellRefFromRow = generateNewCellRefFromRow

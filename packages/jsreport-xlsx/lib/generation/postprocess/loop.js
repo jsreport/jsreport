@@ -1,8 +1,7 @@
 const { DOMParser } = require('@xmldom/xmldom')
-const { col2num } = require('xlsx-coordinates')
 const recursiveStringReplaceAsync = require('../../recursiveStringReplaceAsync')
 const stringReplaceAsync = require('../../stringReplaceAsync')
-const { nodeListToArray, isWorksheetFile, serializeXml, getSheetInfo } = require('../../utils')
+const { nodeListToArray, isWorksheetFile, getSheetInfo } = require('../../utils')
 
 module.exports = async (files) => {
   const workbookPath = 'xl/workbook.xml'
@@ -56,81 +55,7 @@ module.exports = async (files) => {
       }
     )
 
-    const autofitCols = {}
 
-    // check if we need to update the cols with autofit information
-    sheetFile.data = await recursiveStringReplaceAsync(
-      sheetFile.data.toString(),
-      '<autofitUpdated>',
-      '</autofitUpdated>',
-      'g',
-      async (val, content, hasNestedMatch) => {
-        if (hasNestedMatch) {
-          return val
-        }
-
-        const doc = new DOMParser().parseFromString(val)
-        const autofitUpdatedEl = doc.documentElement
-        const colEls = nodeListToArray(autofitUpdatedEl.getElementsByTagName('col'))
-
-        for (const colEl of colEls) {
-          const letter = colEl.getAttribute('ref')
-          const size = parseFloat(colEl.getAttribute('size'))
-          autofitCols[letter] = size
-        }
-
-        return ''
-      }
-    )
-
-    if (Object.keys(autofitCols).length > 0) {
-      sheetFile.data = await recursiveStringReplaceAsync(
-        sheetFile.data.toString(),
-        '<cols>',
-        '</cols>',
-        'g',
-        async (val, content, hasNestedMatch) => {
-          if (hasNestedMatch) {
-            return val
-          }
-
-          const doc = new DOMParser().parseFromString(val)
-          const colsEl = doc.documentElement
-
-          const existingColEls = nodeListToArray(colsEl.getElementsByTagName('col'))
-
-          // cleaning
-          for (let idx = 0; idx < colsEl.childNodes.length; idx++) {
-            const el = colsEl.childNodes[idx]
-            colsEl.removeChild(el)
-          }
-
-          for (const [colLetter, colPxSize] of Object.entries(autofitCols)) {
-            const colSizeInNumberCharactersMDW = (colPxSize / 6.5) + 2 // 2 is for padding
-            const colNumber = col2num(colLetter) + 1
-
-            const existingColEl = existingColEls.find((el) => (
-              el.getAttribute('min') === colNumber.toString() &&
-              el.getAttribute('max') === colNumber.toString()
-            ))
-
-            if (existingColEl != null) {
-              existingColEl.setAttribute('width', colSizeInNumberCharactersMDW)
-              existingColEl.setAttribute('customWidth', '1')
-            } else {
-              const newCol = doc.createElement('col')
-              newCol.setAttribute('min', colNumber.toString())
-              newCol.setAttribute('max', colNumber.toString())
-              newCol.setAttribute('width', colSizeInNumberCharactersMDW)
-              newCol.setAttribute('customWidth', '1')
-              colsEl.appendChild(newCol)
-            }
-          }
-
-          return serializeXml(colsEl)
-        }
-      )
-    }
 
     const allLazyFormulaEls = {}
 

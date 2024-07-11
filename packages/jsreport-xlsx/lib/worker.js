@@ -13,8 +13,18 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.options.sandbox.modules.push({
+    alias: 'xlsxProcessStyle',
+    path: path.join(__dirname, './processStyle.js')
+  })
+
+  reporter.options.sandbox.modules.push({
     alias: 'xlsxProcessCalcChain',
     path: path.join(__dirname, './processCalcChain.js')
+  })
+
+  reporter.options.sandbox.modules.push({
+    alias: 'xlsxProcessAutofitCols',
+    path: path.join(__dirname, './processAutofitCols.js')
   })
 
   reporter.options.sandbox.modules.push({
@@ -25,11 +35,6 @@ module.exports = (reporter, definition) => {
   reporter.options.sandbox.modules.push({
     alias: 'xml2js-preserve-spaces',
     path: require.resolve('xml2js-preserve-spaces')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'string-pixel-width',
-    path: require.resolve('string-pixel-width')
   })
 
   if (reporter.options.sandbox.allowedModules !== '*') {

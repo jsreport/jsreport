@@ -1,19 +1,19 @@
 const path = require('path')
 const { num2col } = require('xlsx-coordinates')
-const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getSheetInfo } = require('../../utils')
-const { parseCellRef, evaluateCellRefsFromExpression } = require('../../cellUtils')
+const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getSheetInfo, getStyleFile, getStyleInfo } = require('../../utils')
+const { parseCellRef, getPixelWidthOfValue, getFontSizeFromStyle, evaluateCellRefsFromExpression } = require('../../cellUtils')
 const startLoopRegexp = /{{#each ([^{}]{0,500})}}/
 
-module.exports = (files) => {
-  const workbookPath = 'xl/workbook.xml'
-  const workbookDoc = files.find((file) => file.path === workbookPath)?.doc
+module.exports = (files, meta) => {
+  // console.time('pre:loop process setup')
+  const workbookDoc = files.find((file) => file.path === 'xl/workbook.xml')?.doc
   const workbookRelsDoc = files.find((file) => file.path === 'xl/_rels/workbook.xml.rels')?.doc
   const sharedStringsDoc = files.find((f) => f.path === 'xl/sharedStrings.xml')?.doc
   const calcChainDoc = files.find((f) => f.path === 'xl/calcChain.xml')?.doc
+  const styleInfo = getStyleInfo(getStyleFile(files)?.doc)
 
   const workbookCalcPrEl = workbookDoc.getElementsByTagName('calcPr')[0]
 
-  let stylesInfo = {}
   let workbookSheetsEls = []
   let workbookRelsEls = []
   let sharedStringsEls = []
@@ -25,19 +25,6 @@ module.exports = (files) => {
 
   if (workbookRelsDoc != null) {
     workbookRelsEls = nodeListToArray(workbookRelsDoc.getElementsByTagName('Relationship'))
-
-    const styleRel = workbookRelsEls.find((el) => el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles')
-
-    if (styleRel != null) {
-      const stylePath = path.posix.join(path.posix.dirname(workbookPath), styleRel.getAttribute('Target'))
-      const stylesDoc = files.find((file) => file.path === stylePath)?.doc
-
-      if (stylesDoc != null) {
-        stylesInfo = {
-          doc: stylesDoc
-        }
-      }
-    }
   }
 
   if (sharedStringsDoc != null) {
@@ -66,7 +53,7 @@ module.exports = (files) => {
     const sheetFilename = path.posix.basename(sheetFilepath)
     const sheetDoc = f.doc
     const sheetDataEl = sheetDoc.getElementsByTagName('sheetData')[0]
-    const colsEl = sheetDoc.getElementsByTagName('cols')[0]
+    let colsEl = sheetDoc.getElementsByTagName('cols')[0]
 
     if (sheetDataEl == null) {
       throw new Error(`Could not find sheet data for sheet at ${sheetFilepath}`)
@@ -91,6 +78,15 @@ module.exports = (files) => {
 
     if (isAutofitConfigured) {
       sheetDataCallProps.autofit = autoFitColLettersStr
+
+      if (colsEl == null) {
+        colsEl = sheetDoc.createElement('cols')
+        sheetDataEl.parentNode.insertBefore(colsEl, sheetDataEl)
+      }
+
+      if (meta.autofitConfigured !== true) {
+        meta.autofitConfigured = true
+      }
     }
 
     const sheetDataBlockStartEl = processOpeningTag(sheetDoc, sheetDataEl, getDataHelperCall('sd', sheetDataCallProps))
@@ -187,15 +183,6 @@ module.exports = (files) => {
         }
       }
 
-      const newAutofitEl = sheetDoc.createElement('autofitUpdated')
-      newAutofitEl.textContent = "{{_D t='autofit'}}"
-      sheetDataEl.appendChild(newAutofitEl)
-
-      if (colsEl == null) {
-        const newColsEl = sheetDoc.createElement('cols')
-        newColsEl.textContent = 'placeholder for autofit'
-        sheetDataEl.parentNode.insertBefore(newColsEl, sheetDataEl)
-      }
     }
 
     const loopsDetected = []
@@ -203,13 +190,14 @@ module.exports = (files) => {
     const mergeCellElsToHandle = []
     const formulaCellElsToHandle = []
     const cellsElsByRefMap = new Map()
+    const colMaxSizeMap = new Map()
 
     const lastRowIdx = rowsEls.length - 1
 
     for (const [rowIdx, rowEl] of rowsEls.entries()) {
       let originalRowNumber = rowEl.getAttribute('r')
       const isLastRow = rowIdx === lastRowIdx
-      const standardCellElsToHandle = []
+      const staticCellElsToHandle = []
       const contentDetectCellElsToHandle = []
 
       if (originalRowNumber == null || originalRowNumber === '') {
@@ -231,11 +219,11 @@ module.exports = (files) => {
         const cellRef = cellEl.getAttribute('r')
         const parsedCellRef = parseCellRef(cellRef)
 
-        const cellProps = {
-          o: parsedCellRef.letter
+        const cellMeta = {
+          letter: parsedCellRef.letter
         }
 
-        cellsElsByRefMap.set(cellRef, [cellEl, cellProps])
+        cellsElsByRefMap.set(cellRef, [cellEl, cellMeta])
 
         let cellCallType = '_C'
 
@@ -243,11 +231,12 @@ module.exports = (files) => {
         const calcCellEl = calcChainMap.get(`${sheetInfo.id}-${cellRef}`)
 
         if (calcCellEl != null) {
-          cellCallType = '_E'
+          cellCallType = '_c'
+          cellMeta.calcChainUpdate = true
         }
 
         // using alias for helper to optimize the size of generated xml
-        cellEl.setAttribute('r', `{{${cellCallType} '${parsedCellRef.letter}'}}`)
+        cellEl.setAttribute('r', `{{${cellCallType} '${cellMeta.letter}'}}`)
 
         // check if the cell starts a merge cell, if yes
         // then queue it to process it later
@@ -270,9 +259,9 @@ module.exports = (files) => {
         ) {
           // only do content detection for the cells with handlebars
           if (info.value.includes('{{') && info.value.includes('}}')) {
-            contentDetectCellElsToHandle.push(cellEl)
+            contentDetectCellElsToHandle.push(cellRef)
           } else if (isAutofitConfigured) {
-            standardCellElsToHandle.push(cellEl)
+            staticCellElsToHandle.push(cellRef)
           }
 
           if (
@@ -460,17 +449,21 @@ module.exports = (files) => {
         currentBlockLoopDetected.blockEndEl = processClosingTag(sheetDoc, endingRowEl.nextSibling, '{{/_D}}')
       }
 
-      for (const cellEl of standardCellElsToHandle) {
+      for (const cellRef of staticCellElsToHandle) {
+        const [cellEl, cellMeta] = cellsElsByRefMap.get(cellRef)
         const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
-        const fontSize = findCellFontSize(cellEl, stylesInfo)
+        const fontSize = getFontSizeFromStyle(cellEl.getAttribute('s'), styleInfo)
 
-        // wrap the cell <v> into wrapper so we can check the value size for
-        // auto-size logic
-        processOpeningTag(sheetDoc, cellEl.firstChild, `{{#_D t='cellValue' value='${cellInfo.value}' fontSize=${fontSize}}}`)
-        processClosingTag(sheetDoc, cellEl.firstChild.nextSibling, '{{/_D}}')
+        const currentMaxSize = colMaxSizeMap.get(cellMeta.letter)
+        const currentSize = getPixelWidthOfValue(cellInfo.value, fontSize)
+
+        if (currentMaxSize == null || currentSize > currentMaxSize) {
+          colMaxSizeMap.set(cellMeta.letter, currentSize)
+        }
       }
 
-      for (const cellEl of contentDetectCellElsToHandle) {
+      for (const cellRef of contentDetectCellElsToHandle) {
+        const [cellEl, cellMeta] = cellsElsByRefMap.get(cellRef)
         const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
         let newTextValue
@@ -486,43 +479,28 @@ module.exports = (files) => {
           newTextValue = cellInfo.value
         }
 
-        const newContentEl = sheetDoc.createElement('xlsxRemove')
-        const cellValueWrapperEl = sheetDoc.createElement('xlsxRemove')
-        const cellValueWrapperEndEl = sheetDoc.createElement('xlsxRemove')
-        const rawEl = sheetDoc.createElement('xlsxRemove')
         const handlebarsRegexp = /{{{?(#[\w-]+ )?([\w-]+[^\n\r}]*)}?}}/g
         const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
         const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
-        const fontSize = findCellFontSize(cellEl, stylesInfo)
+
+        cellEl.setAttribute('r', cellMeta.letter)
+        cellEl.setAttribute('__CT_t__', '_T')
+        cellEl.setAttribute('__CT_m__', isSingleMatch ? '0' : '1')
+        cellEl.setAttribute('__CT_cCU__', cellMeta.calcChainUpdate ? '1' : '0')
 
         if (isSingleMatch) {
           const match = matches[0]
           const shouldEscape = !match[0].startsWith('{{{')
           const expressionValue = match[2]
+          const value = expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue
 
-          cellValueWrapperEl.textContent = `{{#_D t='cellValue' value=${expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue}${shouldEscape ? ' escape=true' : ''}`
-        } else {
-          cellValueWrapperEl.textContent = "{{#_D t='cellValue'"
+          cellEl.setAttribute('__CT_v__', value)
+          cellEl.setAttribute('__CT_ve__', shouldEscape ? '1' : '0')
         }
 
-        cellValueWrapperEl.textContent += ` fontSize=${fontSize}}}`
-
-        if (!isSingleMatch) {
-          rawEl.textContent = `{{#_D t='cellValueRaw' }}${newTextValue}{{/_D}}`
-        }
-
-        cellEl.setAttribute('t', "{{_D t='cellValueType' }}")
-        newContentEl.textContent = "{{_D t='cellContent' }}"
-        cellValueWrapperEndEl.textContent = '{{/_D}}'
-
-        cellEl.replaceChild(newContentEl, cellInfo.contentEl)
-        cellEl.parentNode.insertBefore(cellValueWrapperEl, cellEl)
-
-        if (!isSingleMatch) {
-          cellEl.parentNode.insertBefore(rawEl, cellValueWrapperEl.nextSibling)
-        }
-
-        cellEl.parentNode.insertBefore(cellValueWrapperEndEl, cellEl.nextSibling)
+        // when multi-expression put the content with handlebars as the only content of the cell,
+        // for the rest of cases put a space to avoid the cell to be serialized as self closing tag
+        cellEl.textContent = isSingleMatch ? ' ' : newTextValue
       }
     }
 
@@ -733,6 +711,23 @@ module.exports = (files) => {
     const newLazyFormulasCallEl = sheetDoc.createElement('xlsxRemove')
     newLazyFormulasCallEl.textContent = "{{_D t='lazyFormulas'}}"
     sheetDataEl.appendChild(newLazyFormulasCallEl)
+
+    if (isAutofitConfigured) {
+      const colsProps = {}
+
+      const baseCols = []
+
+      for (const [cellLetter, maxSize] of colMaxSizeMap) {
+        baseCols.push(`${cellLetter}:${maxSize}`)
+      }
+
+      if (baseCols.length > 0) {
+        sheetDataCallProps.autofitBCols = baseCols.join(',')
+      }
+
+      processOpeningTag(sheetDoc, colsEl, getDataHelperCall('autofit', colsProps))
+      processClosingTag(sheetDoc, colsEl, '{{/_D}}')
+    }
 
     sheetDataBlockStartEl.textContent = getDataHelperCall('sd', sheetDataCallProps)
 
@@ -1122,50 +1117,6 @@ function getCellInfo (cellEl, sharedStringsEls, sheetFilepath) {
     valueEl,
     contentEl
   }
-}
-
-function findCellFontSize (cellEl, styleInfo) {
-  let styleId = cellEl.getAttribute('s')
-
-  if (styleId != null && styleId !== '') {
-    styleId = parseInt(styleId, 10)
-  } else {
-    styleId = 0
-  }
-
-  const cellXfsEls = styleInfo.cellXfsEls ?? nodeListToArray(styleInfo.doc.getElementsByTagName('cellXfs')[0]?.getElementsByTagName('xf'))
-  const cellStyleXfsEls = styleInfo.cellStyleXfsEls ?? nodeListToArray(styleInfo.doc.getElementsByTagName('cellStyleXfs')[0]?.getElementsByTagName('xf'))
-  const fontEls = styleInfo.fontEls ?? nodeListToArray(styleInfo.doc.getElementsByTagName('fonts')[0]?.getElementsByTagName('font'))
-
-  const selectedXfEl = cellXfsEls[styleId]
-
-  let fontId = selectedXfEl.getAttribute('fontId')
-  const applyFont = selectedXfEl.getAttribute('applyFont')
-  const xfId = selectedXfEl.getAttribute('xfId')
-
-  if (
-    applyFont == null ||
-    applyFont === '' ||
-    applyFont === '0'
-  ) {
-    const selectedStyleXfEl = cellStyleXfsEls[xfId]
-    const nestedFontId = selectedStyleXfEl.getAttribute('fontId')
-    const nestedApplyFont = selectedStyleXfEl.getAttribute('applyFont')
-
-    if (
-      nestedApplyFont == null ||
-      nestedApplyFont === '' ||
-      nestedApplyFont === '1'
-    ) {
-      fontId = nestedFontId
-    }
-  }
-
-  const fontEl = fontEls[fontId]
-  const sizeEl = fontEl.getElementsByTagName('sz')[0]
-
-  // size stored in xlsx is in pt
-  return parseFloat(sizeEl.getAttribute('val'))
 }
 
 function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {

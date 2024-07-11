@@ -208,6 +208,48 @@ function getSheetInfo (_sheetPath, workbookSheetsEls, workbookRelsEls) {
   }
 }
 
+function getStyleFile (files) {
+  const workbookRelsDoc = files.find((file) => file.path === 'xl/_rels/workbook.xml.rels')?.doc
+
+  if (workbookRelsDoc == null) {
+    return
+  }
+
+  const workbookRelsEls = nodeListToArray(workbookRelsDoc.getElementsByTagName('Relationship'))
+
+  const styleRel = workbookRelsEls.find((el) => el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles')
+
+  if (styleRel == null) {
+    return
+  }
+
+  const stylePath = path.posix.join(path.posix.dirname('xl/workbook.xml'), styleRel.getAttribute('Target'))
+  const stylesFile = files.find((file) => file.path === stylePath)
+
+  if (stylesFile == null) {
+    return
+  }
+
+  return stylesFile
+}
+
+function getStyleInfo (styleDoc) {
+  if (styleDoc == null) {
+    return
+  }
+
+  const cellXfsEls = nodeListToArray(styleDoc.getElementsByTagName('cellXfs')[0]?.getElementsByTagName('xf'))
+  const cellStyleXfsEls = nodeListToArray(styleDoc.getElementsByTagName('cellStyleXfs')[0]?.getElementsByTagName('xf'))
+  const fontEls = nodeListToArray(styleDoc.getElementsByTagName('fonts')[0]?.getElementsByTagName('font'))
+
+  return {
+    doc: styleDoc,
+    cellXfsEls,
+    cellStyleXfsEls,
+    fontEls
+  }
+}
+
 function isWorksheetFile (filePath) {
   return path.posix.dirname(filePath) === 'xl/worksheets' && filePath.endsWith('.xml')
 }
@@ -245,6 +287,8 @@ module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
 module.exports.getClosestEl = getClosestEl
 module.exports.getSheetInfo = getSheetInfo
+module.exports.getStyleFile = getStyleFile
+module.exports.getStyleInfo = getStyleInfo
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
 module.exports.nodeListToArray = nodeListToArray
