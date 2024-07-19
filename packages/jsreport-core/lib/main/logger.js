@@ -171,6 +171,7 @@ function configureLogger (logger, _transports) {
     if (options.silent) {
       continue
     }
+
     const transportInstance = new TransportClass(options)
 
     const existingTransport = logger.transports.find((t) => t.name === transportInstance.name)
@@ -238,7 +239,6 @@ class DebugTransport extends Transport {
 
     this.format = options.format || winston.format.combine(
       winston.format.colorize(),
-      normalizeMetaLoggerFormat(),
       defaultLoggerFormat()
     )
 

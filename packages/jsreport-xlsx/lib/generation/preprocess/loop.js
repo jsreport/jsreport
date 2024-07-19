@@ -108,7 +108,6 @@ module.exports = (files, meta) => {
 
     processClosingTag(sheetDoc, sheetDataEdgeEl, '{{/_D}}')
 
-
     const mergeCellsEl = sheetDoc.getElementsByTagName('mergeCells')[0]
     const mergeCellEls = mergeCellsEl == null ? [] : nodeListToArray(mergeCellsEl.getElementsByTagName('mergeCell'))
 
@@ -182,7 +181,6 @@ module.exports = (files, meta) => {
           conf.shapeEl.parentNode.removeChild(conf.shapeEl)
         }
       }
-
     }
 
     const loopsDetected = []
@@ -503,8 +501,6 @@ module.exports = (files, meta) => {
         cellEl.textContent = isSingleMatch ? ' ' : newTextValue
       }
     }
-
-
 
     let outLoopItemIndex = 0
 

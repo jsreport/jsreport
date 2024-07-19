@@ -34,14 +34,14 @@ describe('profiler', () => {
 
     await reporter.render(renderReq)
 
-    // evry operation start should have a matching end
+    // every operation start should have a matching end
     for (const event of events.filter(m => m.type === 'operationStart')) {
       events.find(m => m.operationId === event.operationId && m.type === 'operationEnd').should.be.ok()
     }
 
     should(events[0].previousOperationId).be.null()
 
-    // evry operation start except first one should have valid previousOperationId
+    // every operation start except first one should have valid previousOperationId
     for (const event of events.filter(m => m.type === 'operationStart').slice(1)) {
       events.find(m => m.operationId === event.previousOperationId).should.be.ok()
       event.operationId.should.not.be.eql(event.previousOperationId)
@@ -203,11 +203,11 @@ describe('profiler', () => {
 
     const content = await reporter.blobStorage.read(profile.blobName)
     const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    const errorMesage = events.find(m => m.type === 'error')
-    should(errorMesage).be.ok()
+    const errorMessage = events.find(m => m.type === 'error')
+    should(errorMessage).be.ok()
   })
 
-  it('should persist profile also when request doesnt reach the worker', async () => {
+  it('should persist profile also when request does not reach the worker', async () => {
     reporter.beforeRenderListeners.add('test', () => {
       throw new Error('My error')
     })
@@ -237,8 +237,8 @@ describe('profiler', () => {
 
     const content = await reporter.blobStorage.read(profile.blobName)
     const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    const errorMesage = events.find(m => m.type === 'error')
-    should(errorMesage).be.ok()
+    const errorMessage = events.find(m => m.type === 'error')
+    should(errorMessage).be.ok()
   })
 
   it('should persist profiles with req/res when settings profiler.mode is full', async () => {
@@ -285,7 +285,7 @@ describe('profiler', () => {
     should(profile).be.null()
   })
 
-  it('should persist no profile entity when settings profiler.mode empty but reporter.options.profiler.defaultMode eqls to disabled ', async () => {
+  it('should persist no profile entity when settings profiler.mode empty but reporter.options.profiler.defaultMode equals to disabled ', async () => {
     reporter.options.profiler.defaultMode = 'disabled'
 
     await reporter.render({
@@ -598,7 +598,7 @@ describe('profiler full mode duration check', () => {
 
   afterEach(() => reporter.close())
 
-  it('shouldnt change profiling mode when fullModeDuration didnt elapsed', async () => {
+  it('should not change profiling mode when fullModeDuration did not elapsed', async () => {
     await reporter.documentStore.collection('settings').insert({ key: 'profiler', value: JSON.stringify({ mode: 'full' }) })
     await new Promise((resolve) => setTimeout(resolve, 10))
     const profiler = await reporter.documentStore.collection('settings').findOne({ key: 'profiler' })
@@ -606,7 +606,7 @@ describe('profiler full mode duration check', () => {
     profilerVal.mode.should.be.eql('full')
   })
 
-  it('should change profiling mode when fullModeDuration didnt elapsed', async () => {
+  it('should change profiling mode when fullModeDuration did not elapsed', async () => {
     await reporter.documentStore.collection('settings').insert({ key: 'profiler', value: JSON.stringify({ mode: 'full' }) })
     await new Promise((resolve) => setTimeout(resolve, 30))
     const profiler = await reporter.documentStore.collection('settings').findOne({ key: 'profiler' })

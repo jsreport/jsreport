@@ -35,7 +35,7 @@ function logFn (level, profiler, ...args) {
     message: util.format.apply(util, msgArgs)
   }
 
-  const meta = normalizeMetaFromLogs(level, log.message, lastArg)
+  const meta = normalizeMetaFromLogs(level, log.message, log.timestamp, lastArg)
 
   if (meta != null) {
     log.meta = meta

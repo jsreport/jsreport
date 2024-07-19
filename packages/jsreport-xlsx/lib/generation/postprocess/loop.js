@@ -17,8 +17,6 @@ module.exports = async (files) => {
       throw new Error(`Could not find sheet info for sheet at ${sheetFile.path}`)
     }
 
-
-
     // check if we need to updates tables
     sheetFile.data = await recursiveStringReplaceAsync(
       sheetFile.data.toString(),
@@ -54,8 +52,6 @@ module.exports = async (files) => {
         return ''
       }
     )
-
-
 
     const allLazyFormulaEls = {}
 

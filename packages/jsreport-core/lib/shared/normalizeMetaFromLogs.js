@@ -1,6 +1,8 @@
 const omit = require('lodash.omit')
 
-module.exports = (level, msg, meta) => {
+module.exports = (level, msg, timestamp, meta) => {
+  let result = meta
+
   // detecting if meta is jsreport request object
   if (meta != null && meta.context) {
     meta.context.logs = meta.context.logs || []
@@ -8,7 +10,7 @@ module.exports = (level, msg, meta) => {
     meta.context.logs.push({
       level: level,
       message: msg,
-      timestamp: meta.timestamp || new Date().getTime()
+      timestamp
     })
 
     // TODO adding cancel looks bad, its before script is adding req.cancel()
@@ -23,8 +25,8 @@ module.exports = (level, msg, meta) => {
       newMeta.id = meta.context.id
     }
 
-    return newMeta
+    result = newMeta
   }
 
-  return meta
+  return result != null && Object.keys(result).length > 0 ? result : null
 }
