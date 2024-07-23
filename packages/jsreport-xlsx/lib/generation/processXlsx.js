@@ -1,13 +1,11 @@
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
-const { decode } = require('html-entities')
 const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const preprocess = require('./preprocess/preprocess')
 const postprocess = require('./postprocess/postprocess')
 const { contentIsXML, isWorksheetFile, getStyleFile } = require('../utils')
-
-const decodeXML = (str) => decode(str, { level: 'xml' })
+const { decodeXML } = require('../cellUtils')
 
 module.exports = (reporter) => async (inputs, req) => {
   const { xlsxTemplateContent, options, outputPath } = inputs
@@ -75,7 +73,11 @@ module.exports = (reporter) => async (inputs, req) => {
           node.removeAttribute('__CT_ve__')
 
           // this will take care of removing xmlns, xmlns:prefix attributes that we don't want here
-          const str = new XMLSerializer().serializeToString(node, undefined, normalizeAttributeAndTextNode).replace(/ xmlns(:[a-z0-9]+)?="[^"]*"/g, '')
+          const str = new XMLSerializer().serializeToString(
+            node,
+            undefined,
+            normalizeAttributeAndTextNode
+          ).replace(/ xmlns(:[a-z0-9]+)?="[^"]*"/g, '')
 
           const isSelfClosing = node.childNodes.length === 0
           let attrs

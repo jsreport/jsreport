@@ -108,12 +108,13 @@ const __xlsxD = (function () {
 
         tasks.set(key, taskExecution)
 
-        return taskExecution.resolve
+        return [taskExecution.resolve, taskExecution.reject]
       }
     }
 
     // init tasks
     newData.tasks.add('sd')
+    newData.tasks.add('lazyFormulas')
 
     newData.meta = {
       calcChainCellRefsSet: null,
@@ -224,6 +225,19 @@ const __xlsxD = (function () {
     const lastCellRef = options.data.meta.lastCellRef
     const parsedEndCellRef = parseCellRef(refsParts[1])
     const parsedLastCellRef = parseCellRef(lastCellRef)
+
+    // if existing dimension is bigger than the last cell with content
+    // then we keep the existing dimension
+    if (
+      parsedEndCellRef.rowNumber > parsedLastCellRef.rowNumber ||
+      (
+        parsedEndCellRef.rowNumber === parsedLastCellRef.rowNumber &&
+        parsedEndCellRef.columnNumber > parsedLastCellRef.columnNumber
+      )
+    ) {
+      return originalCellRefRange
+    }
+
     return `${refsParts[0]}:${parsedEndCellRef.letter}${parsedLastCellRef.rowNumber}`
   }
 
@@ -594,6 +608,7 @@ const __xlsxD = (function () {
   }
 
   function mergeOrFormulaCell (type, options) {
+    const Handlebars = require('handlebars')
     const rowNumber = options.data.r
 
     assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
@@ -601,7 +616,7 @@ const __xlsxD = (function () {
     let output = ''
 
     if (type === 'mergeCell') {
-      const originalCellRefRange = options.hash.originalCellRefRange
+      const originalCellRefRange = options.hash.o
 
       assertOk(originalCellRefRange != null, 'originalCellRefRange arg is required')
 
@@ -626,11 +641,14 @@ const __xlsxD = (function () {
 
       options.data.meta.mergeCells.push(mergeCell)
     } else {
+      const { parseCellRef, getNewFormula, decodeXML, encodeXML } = require('cellUtils')
       const currentCellRef = options.data.currentCellRef
       const trackedCells = options.data.meta.trackedCells
       const lazyFormulas = options.data.meta.lazyFormulas
       const originalCellRef = options.data.originalCellRef
-      const originalFormula = options.hash.o
+      // formulas can contain characters that are encoded as part of the xlsx processing,
+      // we ensure here that we decode the xml entities
+      const originalFormula = options.hash.o != null ? decodeXML(options.hash.o) : null
       const previousLoopIncrement = options.data.previousLoopIncrement
       const currentLoopIncrement = options.data.currentLoopIncrement
 
@@ -641,11 +659,10 @@ const __xlsxD = (function () {
       assertOk(originalFormula != null, 'originalFormula arg is required')
       assertOk(currentLoopIncrement != null, 'currentLoopIncrement needs to exists on internal data')
 
-      const { parseCellRef, getNewFormula } = require('cellUtils')
       const parsedOriginCellRef = parseCellRef(originalCellRef)
       const originCellIsFromLoop = options.data.currentLoopId != null
 
-      const { formula: newFormula } = getNewFormula(originalFormula, parsedOriginCellRef, {
+      const { lazyCellRefs = {}, formula: newFormula } = getNewFormula(originalFormula, parsedOriginCellRef, {
         type: 'normal',
         originCellIsFromLoop,
         previousLoopIncrement,
@@ -662,21 +679,44 @@ const __xlsxD = (function () {
         currentCellRef
       })
 
-      output = newFormula
+      // ensure we encode just some basic xml entities, formula values does not need to
+      // have the full xml entities escaped
+
+      if (Object.keys(lazyCellRefs).length > 0) {
+        return options.data.tasks.wait('lazyFormulas').then(() => {
+          const finalFormula = lazyFormulas.data[newFormula].newFormula
+          return encodeXML(finalFormula, 'basic')
+        })
+      }
+
+      output = encodeXML(newFormula, 'basic')
     }
 
-    return output
+    return new Handlebars.SafeString(output)
   }
 
   function mergeCells (options) {
     const Handlebars = require('handlebars')
-    const targetItems = options.data.meta.mergeCells
     const newData = Handlebars.createFrame(options.data)
 
-    newData.mergeCellsCount = targetItems.length
-    newData.mergeCellsTemplates = Object.create(null)
+    const [resolveTask, rejectTask] = options.data.tasks.add('mergeCells')
 
-    return options.fn(this, { data: newData })
+    newData.mergeCellsCount = 0
+    newData.mergeCellsTemplatesMap = new Map()
+
+    try {
+      const result = options.fn(this, { data: newData })
+      resolveTask()
+      return result
+    } catch (e) {
+      rejectTask(e)
+      throw e
+    }
+  }
+
+  async function mergeCellsCount (options) {
+    await options.data.tasks.wait('mergeCells')
+    return options.data.mergeCellsCount
   }
 
   function mergeCellsItems (options) {
@@ -686,25 +726,45 @@ const __xlsxD = (function () {
     // run the body to fulfill the merge cells templates
     options.fn(this)
 
-    const mergeCellsTemplates = options.data.mergeCellsTemplates
+    const mergeCellsTemplatesMap = options.data.mergeCellsTemplatesMap
 
-    const updated = []
+    let original = []
+    const generated = []
+
+    const originalOrderScore = new Map(
+      Array.from(mergeCellsTemplatesMap.keys()).map((key, idx) => [key, idx])
+    )
 
     for (const targetItem of targetItems) {
-      const template = mergeCellsTemplates[targetItem.original]
+      const template = mergeCellsTemplatesMap.get(targetItem.original)
       const output = template({ newRef: targetItem.value })
-      updated.push(output)
+
+      if (targetItem.original === targetItem.value) {
+        original.push({ score: originalOrderScore.get(targetItem.original), output })
+      } else {
+        generated.push(output)
+      }
     }
 
-    return new Handlebars.SafeString(updated.join('\n'))
+    // preserve the original order from xlsx file, so we avoid noise in diffs when
+    // comparing xlsx output
+    original.sort((a, b) => a.score - b.score)
+
+    original = original.map((item) => item.output)
+
+    options.data.mergeCellsCount = original.length + generated.length
+
+    const output = `${original.join('\n')}${generated.join('\n')}`
+
+    return new Handlebars.SafeString(output)
   }
 
-  function mergeCellItem (options) {
-    const originalCellRefRange = options.hash.originalCellRefRange
+  function mI (options) {
+    const originalCellRefRange = options.hash.o
 
     assertOk(originalCellRefRange != null, 'originalCellRefRange arg is required')
 
-    options.data.mergeCellsTemplates[originalCellRefRange] = options.fn
+    options.data.mergeCellsTemplatesMap.set(originalCellRefRange, options.fn)
 
     return ''
   }
@@ -721,7 +781,8 @@ const __xlsxD = (function () {
     const { evaluateCellRefsFromExpression, generateNewCellRefFromRow } = require('cellUtils')
 
     const { newValue } = evaluateCellRefsFromExpression(originalSharedRefRange, (cellRefInfo) => {
-      const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, rowNumber)
+      const increment = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+      const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, rowNumber + increment)
       return newCellRef
     })
 
@@ -789,48 +850,56 @@ const __xlsxD = (function () {
   }
 
   function lazyFormulas (options) {
-    const Handlebars = require('handlebars')
-    const trackedCells = options.data.meta.trackedCells
-    const lazyFormulas = options.data.meta.lazyFormulas
+    const [resolveTask, rejectTask] = options.data.tasks.add('lazyFormulas')
 
-    assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
-    assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
+    try {
+      const trackedCells = options.data.meta.trackedCells
+      const lazyFormulas = options.data.meta.lazyFormulas
 
-    if (lazyFormulas.count == null || lazyFormulas.count === 0) {
-      return new Handlebars.SafeString('')
+      assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
+      assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
+
+      if (lazyFormulas.count == null || lazyFormulas.count === 0) {
+        resolveTask()
+        return ''
+      }
+
+      const lazyFormulaIds = Object.keys(lazyFormulas.data)
+
+      const { getNewFormula } = require('cellUtils')
+
+      for (const lazyFormulaId of lazyFormulaIds) {
+        const lazyFormulaInfo = lazyFormulas.data[lazyFormulaId]
+
+        const {
+          formula,
+          parsedOriginCellRef,
+          originCellIsFromLoop,
+          previousLoopIncrement,
+          currentLoopIncrement,
+          cellRefs
+        } = lazyFormulaInfo
+
+        const { formula: newFormula } = getNewFormula(formula, parsedOriginCellRef, {
+          type: 'lazy',
+          originCellIsFromLoop,
+          previousLoopIncrement,
+          currentLoopIncrement,
+          trackedCells,
+          lazyCellRefs: cellRefs
+        })
+
+        // ensure we encode just some basic xml entities, formula values does not need to
+        // have the full xml entities escaped
+        lazyFormulaInfo.newFormula = newFormula
+      }
+
+      resolveTask()
+      return ''
+    } catch (e) {
+      rejectTask(e)
+      throw e
     }
-
-    const result = []
-
-    const lazyFormulaIds = Object.keys(lazyFormulas.data)
-
-    const { getNewFormula } = require('cellUtils')
-
-    for (const lazyFormulaId of lazyFormulaIds) {
-      const lazyFormulaInfo = lazyFormulas.data[lazyFormulaId]
-
-      const {
-        formula,
-        parsedOriginCellRef,
-        originCellIsFromLoop,
-        previousLoopIncrement,
-        currentLoopIncrement,
-        cellRefs
-      } = lazyFormulaInfo
-
-      const { formula: newFormula } = getNewFormula(formula, parsedOriginCellRef, {
-        type: 'lazy',
-        originCellIsFromLoop,
-        previousLoopIncrement,
-        currentLoopIncrement,
-        trackedCells,
-        lazyCellRefs: cellRefs
-      })
-
-      result.push(`<item id="${lazyFormulaId}">${newFormula}</item>`)
-    }
-
-    return new Handlebars.SafeString(`<lazyFormulas>${result.join('\n')}</lazyFormulas>`)
   }
 
   function style (options) {
@@ -1155,7 +1224,7 @@ const __xlsxD = (function () {
 
       return c.call(this, info, options)
     },
-    mergeCell: function (options) {
+    m: function (options) {
       return mergeOrFormulaCell.call(this, 'mergeCell', options)
     },
     f: function (options) {
@@ -1163,8 +1232,9 @@ const __xlsxD = (function () {
     },
     fs: formulaShared,
     mergeCells,
+    mergeCellsCount,
     mergeCellsItems,
-    mergeCellItem,
+    mI,
     newCellRef,
     autofit,
     lazyFormulas,

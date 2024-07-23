@@ -1,3 +1,4 @@
+const { decode } = require('html-entities')
 const { col2num } = require('xlsx-coordinates')
 const pixelWidth = require('string-pixel-width')
 
@@ -308,6 +309,9 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
       // the formulaCellRef here is just added for easy debugging
       formulaCellRef: currentCellRef,
       formula: newValue,
+      // just placeholder for the key, this is going to be fill at runtime
+      //  with the updated formula
+      newFormula: null,
       parsedOriginCellRef,
       originCellIsFromLoop,
       previousLoopIncrement,
@@ -353,9 +357,46 @@ function generateNewCellRefFromRow (parsedCellRef, rowNumber, fullMetadata = fal
   return `${prefix}${parsedCellRef.lockedColumn ? '$' : ''}${parsedCellRef.letter}${parsedCellRef.lockedRow ? '$' : ''}${rowNumber}`
 }
 
+const xmlEscapeMap = {
+  '>': '&gt;',
+  '<': '&lt;',
+  "'": '&apos;',
+  '"': '&quot;',
+  '&': '&amp;'
+}
+
+// we dont'se the encode function of html-entities because want to have the chance to
+// escape just some characters
+function encodeXML (str, mode = 'all') {
+  let pattern
+
+  switch (mode) {
+    case 'all':
+      pattern = /([&"<>'])/g
+      break
+    case 'basic':
+      pattern = /([&<>])/g
+      break
+    default:
+      throw new Error('Invalid mode for encodeXML')
+  }
+
+  const output = str.replace(pattern, (_, item) => {
+    return xmlEscapeMap[item]
+  })
+
+  return output
+}
+
+function decodeXML (str) {
+  return decode(str, { level: 'xml' })
+}
+
 module.exports.parseCellRef = parseCellRef
 module.exports.getPixelWidthOfValue = getPixelWidthOfValue
 module.exports.getFontSizeFromStyle = getFontSizeFromStyle
 module.exports.evaluateCellRefsFromExpression = evaluateCellRefsFromExpression
 module.exports.getNewFormula = getNewFormula
 module.exports.generateNewCellRefFromRow = generateNewCellRefFromRow
+module.exports.encodeXML = encodeXML
+module.exports.decodeXML = decodeXML

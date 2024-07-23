@@ -3,7 +3,8 @@ const fs = require('fs')
 const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
 const xlsx = require('xlsx')
-const { getDocumentsFromXlsxBuf } = require('../utils')
+const { getDocumentsFromXlsxBuf, mergeCellExists } = require('../utils')
+const { nodeListToArray } = require('../../lib/utils')
 
 const xlsxDirPath = path.join(__dirname, '../xlsx')
 const outputPath = path.join(__dirname, '../../out.xlsx')
@@ -121,6 +122,124 @@ describe('xlsx generation - base', () => {
     should(sheet.E4.w).be.eql('#DIV/0!')
     should(sheet.E5.t).be.eql('e')
     should(sheet.E5.w).be.eql('#DIV/0!')
+  })
+
+  it('preserve existing dimension if no changes', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'preserve-existing-dimension.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet['!ref']).be.eql('A6:J26')
+  })
+
+  it('preserve merge cells for cells that do not have definition in row (row with no cells in xml) if no changes', async () => {
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'preserve-merge-cells-for-empty-row.xlsx')
+    )
+
+    const [sheetTemplateDoc] = await getDocumentsFromXlsxBuf(templateBuf, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const existingMergeCellRefs = nodeListToArray(
+      sheetTemplateDoc.getElementsByTagName('mergeCells')[0].childNodes
+    ).filter((el) => el.nodeName === 'mergeCell').map((el) => el.getAttribute('ref'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    // if this call pass with strict parsing it means the document is well formed,
+    // contains invalid characters in xml correctly escaped
+    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    for (const mergeCellRef of existingMergeCellRefs) {
+      should(mergeCellExists(sheet, mergeCellRef)).be.True()
+    }
+
+    should(sheet['!merges'].length).be.eql(existingMergeCellRefs.length)
+  })
+
+  it('preserve existing shared formulas', async () => {
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'preserve-shared-formulas.xlsx')
+    )
+
+    const [sheetTemplateDoc] = await getDocumentsFromXlsxBuf(templateBuf, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const getSharedFormulas = (doc) => (
+      nodeListToArray(
+        doc.getElementsByTagName('f')
+      ).filter((el) => (
+        el.getAttribute('t') === 'shared' &&
+        el.getAttribute('ref') != null &&
+        el.getAttribute('ref') !== ''
+      )).map((el) => el.getAttribute('ref'))
+    )
+
+    const existingSharedFormulas = getSharedFormulas(sheetTemplateDoc)
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    // if this call pass with strict parsing it means the document is well formed,
+    // contains invalid characters in xml correctly escaped
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const outputSharedFormulas = getSharedFormulas(sheetDoc)
+
+    should(existingSharedFormulas.length).be.eql(outputSharedFormulas.length)
+
+    for (const sharedFormulaRef of existingSharedFormulas) {
+      const exists = outputSharedFormulas.includes(sharedFormulaRef)
+      should(exists).be.eql(true, `output xlsx does not contain shared formula ${sharedFormulaRef}`)
+    }
   })
 
   it('variable replace', async () => {
@@ -541,5 +660,61 @@ describe('xlsx generation - base', () => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.B2.f).be.eql("'Raw Data'!$B$2")
     should(sheet.A9.f).be.eql('RawData!$A$15')
+  })
+
+  it('existing formula with & character should be handled', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'existing-formula-with-ampersand-character.xlsx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    // if this call pass with strict parsing it means the document is well formed,
+    // contains invalid characters in xml correctly escaped
+    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B4.f).be.eql('B2 & " " & B3')
+  })
+
+  it('existing lazy formula with & character should be handled', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'existing-lazy-formula-with-ampersand-character.xlsx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    // if this call pass with strict parsing it means the document is well formed,
+    // contains invalid characters in xml correctly escaped
+    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.f).be.eql('B3 & " " & B4')
   })
 })

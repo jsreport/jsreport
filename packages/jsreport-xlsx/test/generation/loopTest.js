@@ -5,7 +5,7 @@ const { DOMParser } = require('@xmldom/xmldom')
 const jsreport = require('@jsreport/jsreport-core')
 const { decompress } = require('@jsreport/office')
 const xlsx = require('xlsx')
-const { parseCell } = require('xlsx-coordinates')
+const { mergeCellExists } = require('../utils')
 const { nodeListToArray } = require('../../lib/utils')
 
 const dataDirPath = path.join(__dirname, '../data')
@@ -9778,20 +9778,3 @@ describe('xlsx generation - loops', () => {
     should(sheet['!ref']).be.eql('A1:V4228')
   })
 })
-
-function mergeCellExists (sheet, cellRange) {
-  const cellRangeParts = cellRange.split(':')
-  const parsedStart = parseCell(cellRangeParts[0])
-  const parsedEnd = parseCell(cellRangeParts[1])
-
-  let found = false
-
-  found = sheet['!merges'].find((item) => (
-    item.s.r === parsedStart[1] &&
-    item.s.c === parsedStart[0] &&
-    item.e.r === parsedEnd[1] &&
-    item.e.c === parsedEnd[0]
-  )) != null
-
-  return found
-}

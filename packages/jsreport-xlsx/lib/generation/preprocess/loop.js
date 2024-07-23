@@ -213,6 +213,20 @@ module.exports = (files, meta) => {
 
       const cellsEls = nodeListToArray(rowEl.getElementsByTagName('c'))
 
+      if (cellsEls.length === 0) {
+        // there can be cases when the row has no cells but it has merge cell defined, if yes
+        // then queue it to process it later
+        const foundMergeCellEls = mergeCellEls.filter((mergeCellEl) => {
+          const ref = mergeCellEl.getAttribute('ref')
+          const mergeStartCellRef = ref.split(':')[0]
+          return parseCellRef(mergeStartCellRef).rowNumber === originalRowNumber
+        })
+
+        for (const mergeCellEl of foundMergeCellEls) {
+          mergeCellElsToHandle.push({ ref: mergeCellEl.getAttribute('ref'), rowEl })
+        }
+      }
+
       for (const cellEl of cellsEls) {
         const cellRef = cellEl.getAttribute('r')
         const parsedCellRef = parseCellRef(cellRef)
@@ -587,7 +601,7 @@ module.exports = (files, meta) => {
       const isLast = idx === mergeCellElsToHandle.length - 1
       const newMergeCellCallEl = sheetDoc.createElement('xlsxRemove')
 
-      newMergeCellCallEl.textContent = `{{_D t='mergeCell' originalCellRefRange='${ref}'}}`
+      newMergeCellCallEl.textContent = `{{_D t='m' o='${ref}'}}`
 
       const mergeStartCellRef = ref.split(':')[0]
       const parsedMergeStart = parseCellRef(mergeStartCellRef)
@@ -622,7 +636,7 @@ module.exports = (files, meta) => {
         continue
       }
 
-      mergeCellsEl.setAttribute('count', '{{@mergeCellsCount}}')
+      mergeCellsEl.setAttribute('count', "{{_D t='mergeCellsCount'}}")
 
       processOpeningTag(sheetDoc, mergeCellsEl, "{{#_D t='mergeCells'}}")
       processClosingTag(sheetDoc, mergeCellsEl, '{{/_D}}')
@@ -631,7 +645,7 @@ module.exports = (files, meta) => {
         const originalCellRefRange = mergeCellEl.getAttribute('ref')
         mergeCellEl.setAttribute('ref', '{{newRef}}')
 
-        processOpeningTag(sheetDoc, mergeCellEl, `{{#_D t='mergeCellItem' originalCellRefRange='${originalCellRefRange}'}}`)
+        processOpeningTag(sheetDoc, mergeCellEl, `{{#_D t='mI' o='${originalCellRefRange}'}}`)
         processClosingTag(sheetDoc, mergeCellEl, '{{/_D}}')
       }
 
