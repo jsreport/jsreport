@@ -154,7 +154,7 @@ module.exports = function * createHierarchyIterator ($, mode, documentNode, ctx)
     meta.targetCollection = targetCollection[0].childNodes ? [...targetCollection[0].childNodes] : []
   }
 
-  const finalParts = previousItem.hierarchyId.parts.length
+  const finalParts = previousItem != null ? previousItem.hierarchyId.parts.length : 0
 
   for (let untilIdx = finalParts; untilIdx > 0; untilIdx--) {
     const hierarchyIdParts = previousItem.hierarchyId.parts.slice(0, untilIdx)

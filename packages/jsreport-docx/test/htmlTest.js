@@ -36,6 +36,25 @@ describe('docx html embed', () => {
   })
 
   describe('basic - text', () => {
+    it('not throw on empty string', async () => {
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+      return should(reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: docxTemplateBuf
+            }
+          }
+        },
+        data: {
+          html: ''
+        }
+      })).not.be.rejected()
+    })
+
     it('block mode - text as root', async () => {
       const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
@@ -2717,6 +2736,104 @@ describe('docx html embed', () => {
           const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
 
           should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with sibling div with two inline elements`, async () => {
+        const templateStr = [
+          '<div>',
+          '<span>hello</span>',
+          '<span>world</span>',
+          '</div>',
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2']
+
+        if (mode !== 'block') {
+          const targetTextForInlineMode = ['hello', 'world', ...targetTexts]
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(targetTextForInlineMode.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTextForInlineMode[runIdx])
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(2)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(2)
 
           for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
             const cellNode = cellNodes[cellIdx]

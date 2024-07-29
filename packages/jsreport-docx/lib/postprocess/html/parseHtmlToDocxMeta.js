@@ -28,7 +28,8 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
   const hierarchyContext = {}
   const hierarchyIterator = createHierarchyIterator($, mode, documentNode, hierarchyContext)
   const containerTypes = ['paragraph', 'table', 'row', 'cell']
-  const containers = [{ type: 'root', children: [] }]
+  const activeContainers = [{ type: 'root', children: [] }]
+  const containerMetaMap = new WeakMap()
   const hierarchyIdContainerMap = new Map()
   const elementDataMap = new WeakMap()
   let ignoreChildrenOf
@@ -68,6 +69,9 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
       }
     })
 
+    let updateHierarchyForContainer = false
+
+    // this is to preserve having multiple sibling inline elements into the same paragraph
     if (containersToRemove > 0 && node.previousSibling != null) {
       const previousIsInlineOrText = (
         isTextElement(node.previousSibling) ||
@@ -86,12 +90,30 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
       const skipOne = previousIsInlineOrText && currentIsInlineOrText && someInClosedIsSibling
 
       if (skipOne) {
+        // since we are going to reuse a container, we need to do some handling
+        updateHierarchyForContainer = true
         containersToRemove--
       }
     }
 
     if (containersToRemove > 0) {
-      containers.splice(containers.length - containersToRemove, containersToRemove)
+      activeContainers.splice(activeContainers.length - containersToRemove, containersToRemove)
+    }
+
+    // when reusing the container we need to mark the container as item that needs
+    // hierarchy update, this will update our internal map the next time we find a
+    // new item for this container. this is needed in order to properly close the container
+    // and be able to move to the next active container during processing of nodes
+    if (updateHierarchyForContainer) {
+      const lastActiveContainer = activeContainers[activeContainers.length - 1]
+      let containerMeta = containerMetaMap.get()
+
+      if (containerMeta == null) {
+        containerMeta = {}
+        containerMetaMap.set(lastActiveContainer, containerMeta)
+      }
+
+      containerMeta.updateHierarchy = true
     }
 
     if (ignoreChildrenOf != null) {
@@ -319,7 +341,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
       const toInsert = Array.isArray(newItem) ? newItem : [newItem]
 
       for (const item of toInsert) {
-        let container = containers[containers.length - 1]
+        let container = activeContainers[activeContainers.length - 1]
 
         if (mode === 'inline') {
           container.children.push(item)
@@ -328,12 +350,12 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
 
         let currentItem = item
 
-        // all inline elements (text, break, images) should always be wrapped
-        // in a paragraph
         if (
           !containerTypes.includes(currentItem.type) &&
           container.type !== 'paragraph'
         ) {
+          // all inline elements (text, break, images) should always be wrapped
+          // in a paragraph
           const paragraph = createParagraph()
           paragraph.children.push(currentItem)
           currentItem = paragraph
@@ -341,6 +363,11 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
           container = currentItem
         } else {
           container.children.push(currentItem)
+        }
+
+        if (containerMetaMap.get(container)?.updateHierarchy) {
+          containerMetaMap.delete(container)
+          hierarchyIdContainerMap.set(hierarchyId.value, container)
         }
 
         applyTitleIfNeeded(container, data)
@@ -351,7 +378,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
         applySpacingIfNeeded(container, data)
 
         if (containerTypes.includes(currentItem.type)) {
-          containers.push(currentItem)
+          activeContainers.push(currentItem)
           hierarchyIdContainerMap.set(hierarchyId.value, currentItem)
         }
       }
@@ -362,7 +389,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
 
   processClosedItems(hierarchyContext.getLastClosedItems())
 
-  const docxMeta = containers[0].children
+  const docxMeta = activeContainers[0].children
 
   return docxMeta
 }
