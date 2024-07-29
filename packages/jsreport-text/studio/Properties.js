@@ -22,7 +22,7 @@ export default class Properties extends Component {
             onChange={(v) => onChange({ _id: entity._id, fileExtension: v.target.value })}
           />
         </div>
-        <div className='form-group'><label>Content Type</label>
+        <div className='form-group'><label>Content Disposition</label>
           <input
             type='text'
             placeholder='inline'
