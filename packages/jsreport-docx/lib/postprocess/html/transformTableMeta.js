@@ -424,6 +424,10 @@ function generateTableItems (tableItemMeta, tableWidth) {
         newCell.indent = cell.indent
       }
 
+      if (cell.alignment != null) {
+        newCell.alignment = cell.alignment
+      }
+
       if (cell.spacing != null) {
         newCell.spacing = cell.spacing
       }

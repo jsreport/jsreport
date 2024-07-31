@@ -350,6 +350,8 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
 
         let currentItem = item
 
+        const parentsToProcess = []
+
         if (
           !containerTypes.includes(currentItem.type) &&
           container.type !== 'paragraph'
@@ -360,9 +362,12 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
           paragraph.children.push(currentItem)
           currentItem = paragraph
           container.children.push(currentItem)
+          parentsToProcess.push(container)
           container = currentItem
+          parentsToProcess.push(container)
         } else {
           container.children.push(currentItem)
+          parentsToProcess.push(container)
         }
 
         if (containerMetaMap.get(container)?.updateHierarchy) {
@@ -370,12 +375,14 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
           hierarchyIdContainerMap.set(hierarchyId.value, container)
         }
 
-        applyTitleIfNeeded(container, data)
-        applyListIfNeeded(container, data)
-        applyBackgroundColorIfNeeded(container, data)
-        applyAlignmentIfNeeded(container, data)
-        applyIndentIfNeeded(container, data)
-        applySpacingIfNeeded(container, data)
+        for (const parent of parentsToProcess) {
+          applyTitleIfNeeded(parent, data)
+          applyListIfNeeded(parent, data)
+          applyBackgroundColorIfNeeded(parent, data)
+          applyAlignmentIfNeeded(parent, data)
+          applyIndentIfNeeded(parent, data)
+          applySpacingIfNeeded(parent, data)
+        }
 
         if (containerTypes.includes(currentItem.type)) {
           activeContainers.push(currentItem)
@@ -792,6 +799,20 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
     }
   }
 
+  if (styles['vertical-align'] != null) {
+    const verticalAlign = styles['vertical-align']
+
+    data.alignment = data.alignment || {}
+
+    if (verticalAlign === 'top') {
+      data.alignment.vertical = 'top'
+    } else if (verticalAlign === 'middle') {
+      data.alignment.vertical = 'center'
+    } else if (verticalAlign === 'bottom') {
+      data.alignment.vertical = 'bottom'
+    }
+  }
+
   const mainBorderPropMap = new Map([
     ['border', 'base'],
     ['border-top', 'top'],
@@ -1087,7 +1108,7 @@ function applyBackgroundColorIfNeeded (parentMeta, data) {
 }
 
 function applyAlignmentIfNeeded (parentMeta, data) {
-  if (parentMeta.type !== 'paragraph') {
+  if (parentMeta.type !== 'paragraph' && parentMeta.type !== 'cell') {
     return
   }
 
@@ -1095,7 +1116,25 @@ function applyAlignmentIfNeeded (parentMeta, data) {
     return
   }
 
-  parentMeta.alignment = data.alignment
+  if (parentMeta.type === 'paragraph' && data.alignment.horizontal != null) {
+    parentMeta.alignment = {
+      horizontal: data.alignment.horizontal
+    }
+  }
+
+  if (parentMeta.type === 'cell' && data.alignment.vertical != null) {
+    parentMeta.alignment = {
+      vertical: data.alignment.vertical
+    }
+
+    // vertical alignment should be removed once applied to paragraph item
+    // so children does not inherit it
+    delete data.alignment.vertical
+  }
+
+  if (Object.keys(data.alignment).length === 0) {
+    delete data.alignment
+  }
 }
 
 function applyIndentIfNeeded (parentMeta, data) {
@@ -1109,7 +1148,7 @@ function applyIndentIfNeeded (parentMeta, data) {
 
   parentMeta.indent = data.indent
   // indent should be removed once applied to paragraph item
-  //  so children does not inherit it
+  // so children does not inherit it
   delete data.indent
 }
 
@@ -1123,7 +1162,7 @@ function applySpacingIfNeeded (parentMeta, data) {
   }
 
   parentMeta.spacing = data.spacing
-  // indent should be removed once applied to paragraph item
+  // spacing should be removed once applied to paragraph item
   // so children does not inherit it
   delete data.spacing
 }

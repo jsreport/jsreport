@@ -319,6 +319,14 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
           )
         }
 
+        if (currentDocxMeta.alignment != null) {
+          if (currentDocxMeta.alignment.vertical != null) {
+            cellPrChildren.push(
+              createNode(doc, 'w:vAlign', { attributes: { 'w:val': currentDocxMeta.alignment.vertical } })
+            )
+          }
+        }
+
         if (currentDocxMeta.colspan != null) {
           cellPrChildren.push(
             createNode(doc, 'w:gridSpan', { attributes: { 'w:val': currentDocxMeta.colspan } })

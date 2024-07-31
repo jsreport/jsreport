@@ -15007,6 +15007,63 @@ describe('docx html embed', () => {
         })
       }
 
+      if (mode === 'block') {
+        for (const verticalAlign of ['top', 'middle', 'bottom']) {
+          const templateVerticalAlignStr = `<table><tr><td style="vertical-align: ${verticalAlign}">...</td></tr></table>`
+
+          it(`${mode} mode - vertical align ${verticalAlign}`, async () => {
+            const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: docxTemplateBuf
+                  }
+                }
+              },
+              data: {
+                html: createHtml(templateVerticalAlignStr, ['Hello World'])
+              }
+            })
+
+            // Write document for easier debugging
+            fs.writeFileSync(outputPath, result.content)
+
+            const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+            const tableNodes = nodeListToArray(doc.getElementsByTagName('w:tbl'))
+
+            should(tableNodes.length).eql(1)
+
+            const rowNodes = nodeListToArray(tableNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+            should(rowNodes.length).be.eql(1)
+
+            const cellNodes = nodeListToArray(rowNodes[0].childNodes).filter((el) => el.nodeName === 'w:tc')
+
+            should(cellNodes.length).be.eql(1)
+
+            const cellPrNodes = nodeListToArray(cellNodes[0].childNodes).filter((el) => el.nodeName === 'w:tcPr')
+
+            should(cellPrNodes.length).be.eql(1)
+
+            const targetVal = verticalAlign === 'middle' ? 'center' : verticalAlign
+
+            findChildNode((n) => (
+              n.nodeName = 'w:vAlign' &&
+              n.getAttribute('w:val') === targetVal
+            ), cellPrNodes[0]).should.be.ok()
+
+            const textNodes = nodeListToArray(cellNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes[0].textContent).eql('Hello World')
+          })
+        }
+      }
+
       for (const prop of ['padding', 'margin']) {
         for (const side of ['left', 'right', 'top', 'bottom']) {
           const templateStr = `<p style="padding-${side}: 50px">...</p>`
