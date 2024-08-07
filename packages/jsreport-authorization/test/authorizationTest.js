@@ -1,4 +1,5 @@
 const should = require('should')
+const request = require('supertest')
 const jsreport = require('@jsreport/jsreport-core')
 
 describe('authorization', () => {
@@ -15,6 +16,7 @@ describe('authorization', () => {
         secret: 'secret'
       }
     }))
+    reporter.use(require('@jsreport/jsreport-express')())
     reporter.use(require('../')())
 
     reporter.use((reporter, definition) => {
@@ -536,6 +538,24 @@ describe('authorization', () => {
     await createTemplate(req1())
     const count = await countTemplates(reporter.Request({ context: { user: { _id: 'foo', readAllPermissions: true } } }))
     count.should.be.eql(1)
+  })
+
+  it('user with readAllPermissions should be able to read all entities (http)', async () => {
+    const customUser = { username: 'utest', password: 'utest', readAllPermissions: true }
+
+    await reporter.documentStore.collection('users').insert({ ...customUser })
+    await createTemplate(reqAdmin())
+
+    const templatesCount = await countTemplates(reqAdmin())
+
+    const response = await request(reporter.express.app).get('/odata/templates')
+      .set('Authorization', `Basic ${Buffer.from(`${customUser.username}:${customUser.password}`).toString('base64')}`)
+      .expect(200)
+
+    const templates = response.body.value
+
+    should(templatesCount).be.greaterThan(0)
+    should(templates.length).be.eql(templatesCount)
   })
 
   it('user with editAllPermissions should be able to update entities', async () => {

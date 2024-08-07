@@ -318,10 +318,7 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
           return done(null, false)
         }
 
-        resolvedUser = {
-          _id: user._id,
-          name: user.name
-        }
+        resolvedUser = user
       }
     }
 
