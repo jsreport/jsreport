@@ -51,6 +51,31 @@ function addPassport (reporter, app, admin, definition) {
     duration: 1000 * 60 * 60 * 24 * 365 * 10 // forever
   }))
 
+  // https://github.com/jaredhanson/passport/issues/904
+  // middleware that completes the session manager implementation
+  // expected by passport to exists, it requires that session has some
+  // extra methods (.regenerate, .save) defined
+  app.use((req, res, next) => {
+    const addSessionMethods = (session) => {
+      session.regenerate = (cb) => {
+        // call the method on client-sessions that regenerates the session
+        req.session.reset()
+        // apply the methods again because they got lost after .reset()
+        addSessionMethods(req.session)
+        cb()
+      }
+
+      // we don't need to do anything here, since client-sessions basically stores
+      // session data on the client, the session is saved automatically when writing
+      // headers to the http response and it is transferred as a cookie to the browser.
+      session.save = (cb) => { cb() }
+    }
+
+    addSessionMethods(req.session)
+
+    next()
+  })
+
   app.use(passport.initialize())
   app.use(passport.session())
 
@@ -286,9 +311,14 @@ function addPassport (reporter, app, admin, definition) {
       })(req, res, next)
     })
 
-    app.post('/logout', (req, res) => {
-      req.logout()
-      res.redirect(reporter.options.appPath)
+    app.post('/logout', (req, res, next) => {
+      req.logout((err) => {
+        if (err) {
+          return next(err)
+        }
+
+        res.redirect(reporter.options.appPath)
+      })
     })
   }
 
