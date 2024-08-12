@@ -52,7 +52,7 @@
     "handlebars": "4.7.7",
     "mocha": "10.1.0",
     "pdfjs-dist": "2.16.105",
-    "puppeteer": "22.11.2",
+    "puppeteer": "23.0.2",
     "rimraf": "2.6.3",
     "should": "13.2.3",
     "standard": "16.0.4"
