@@ -7,8 +7,10 @@
  */
 const LRU = require('lru-cache')
 const { nanoid } = require('nanoid')
+const { AsyncLocalStorage } = require('node:async_hooks')
 
 module.exports = (reporter) => {
+  const helperCallerAsyncLocalStorage = new AsyncLocalStorage()
   const templatesCache = LRU(reporter.options.sandbox.cache)
   let systemHelpersCache
 
@@ -17,7 +19,6 @@ module.exports = (reporter) => {
   const contextExecutionChainMap = new Map()
   const executionFnParsedParamsMap = new Map()
   const executionAsyncResultsMap = new Map()
-  const executionAsyncCallChainMap = new Map()
   const executionFinishListenersMap = new Map()
 
   const templatingEnginesEvaluate = async (mainCall, { engine, content, helpers, data }, { entity, entitySet }, req) => {
@@ -50,7 +51,6 @@ module.exports = (reporter) => {
       }
 
       executionAsyncResultsMap.delete(executionId)
-      executionAsyncCallChainMap.delete(executionId)
       executionFinishListenersMap.delete(executionId)
     }
   }
@@ -58,6 +58,8 @@ module.exports = (reporter) => {
   reporter.templatingEngines.evaluate = (executionInfo, entityInfo, req) => {
     return templatingEnginesEvaluate(true, executionInfo, entityInfo, req)
   }
+
+  reporter.closeListeners.add('engineHelperCaller', () => helperCallerAsyncLocalStorage.disable())
 
   reporter.extendProxy((proxy, req, {
     runInSandbox,
@@ -103,13 +105,14 @@ module.exports = (reporter) => {
         const executionId = executionChain[executionChain.length - 1]
 
         if (executionId != null && executionAsyncResultsMap.has(executionId)) {
-          const asyncCallChainSet = executionAsyncCallChainMap.get(executionId)
-          const lastAsyncCall = [...asyncCallChainSet].pop()
-
           const asyncResultMap = executionAsyncResultsMap.get(executionId)
-          // we should exclude the last async call because if it exists it represents the parent
-          // async call that called .waitForAsyncHelpers, it is not going to be resolved at this point
-          const targetAsyncResultKeys = [...asyncResultMap.keys()].filter((key) => key !== lastAsyncCall)
+
+          const callerId = helperCallerAsyncLocalStorage.getStore()
+
+          // we must exclude the caller helper because if it exists it represents some parent
+          // sync/async call that called .waitForAsyncHelpers, it is not going to be resolved at this point
+          // so we should skip it in order for the execution to not hang
+          const targetAsyncResultKeys = [...asyncResultMap.keys()].filter((key) => key !== callerId)
 
           return Promise.all(targetAsyncResultKeys.map((k) => asyncResultMap.get(k)))
         }
@@ -157,7 +160,6 @@ module.exports = (reporter) => {
     } finally {
       executionFnParsedParamsMap.delete(req.context.id)
       executionAsyncResultsMap.delete(executionId)
-      executionAsyncCallChainMap.delete(executionId)
     }
   }
 
@@ -216,7 +218,6 @@ module.exports = (reporter) => {
     const executionFn = async ({ require, console, topLevelFunctions, context }) => {
       sandboxId = context.__sandboxId
       const asyncResultMap = new Map()
-      const asyncCallChainSet = new Set()
 
       if (!contextExecutionChainMap.has(sandboxId)) {
         contextExecutionChainMap.set(sandboxId, [])
@@ -225,7 +226,6 @@ module.exports = (reporter) => {
       contextExecutionChainMap.get(sandboxId).push(executionId)
 
       executionAsyncResultsMap.set(executionId, asyncResultMap)
-      executionAsyncCallChainMap.set(executionId, asyncCallChainSet)
       executionFinishListenersMap.set(executionId, reporter.createListenerCollection())
       executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions, context })
 
@@ -253,7 +253,7 @@ module.exports = (reporter) => {
           if (engine.getWrappingHelpersEnabled && engine.getWrappingHelpersEnabled(req) === false) {
             wrappedTopLevelFunctions[h] = engine.wrapHelper(wrappedTopLevelFunctions[h], { context })
           } else {
-            wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(wrappedTopLevelFunctions[h], asyncResultMap, asyncCallChainSet)
+            wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(wrappedTopLevelFunctions[h], h, asyncResultMap)
           }
         }
 
@@ -269,7 +269,6 @@ module.exports = (reporter) => {
 
           await Promise.all(keysEvaluated.map(async (k) => {
             const result = await clonedMap.get(k)
-            asyncCallChainSet.delete(k)
             resolvedResultsMap.set(k, `${result}`)
             clonedMap.delete(k)
           }))
@@ -401,20 +400,25 @@ module.exports = (reporter) => {
     }
   }
 
-  function wrapHelperForAsyncSupport (fn, asyncResultMap, asyncCallChainSet) {
+  function wrapHelperForAsyncSupport (fn, helperName, asyncResultMap) {
     return function (...args) {
-      // important to call the helper with the current this to preserve the same behavior
-      const fnResult = fn.call(this, ...args)
+      const resultId = nanoid(7)
+
+      let fnResult
+
+      // make the result id available for all calls inside the helper
+      helperCallerAsyncLocalStorage.run(resultId, () => {
+        // important to call the helper with the current this to preserve the same behavior
+        fnResult = fn.call(this, ...args)
+      })
 
       if (fnResult == null || typeof fnResult.then !== 'function') {
         return fnResult
       }
 
-      const asyncResultId = nanoid(7)
-      asyncResultMap.set(asyncResultId, fnResult)
-      asyncCallChainSet.add(asyncResultId)
+      asyncResultMap.set(resultId, fnResult)
 
-      return `{#asyncHelperResult ${asyncResultId}}`
+      return `{#asyncHelperResult ${resultId}}`
     }
   }
 
