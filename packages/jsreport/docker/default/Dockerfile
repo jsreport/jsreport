@@ -5,7 +5,7 @@ ARG TARGETPLATFORM
 ARG UID=2500
 ARG GID=2500
 
-ENV GOSU_VERSION 1.17
+ENV GOSU_VERSION=1.17
 RUN set -eux; \
     \
     apk add --no-cache --virtual .gosu-deps \
@@ -38,9 +38,9 @@ RUN addgroup -g "${GID}" -S jsreport && adduser --shell /bin/bash -u "${UID}" -S
 # this condition is useful when the alpine registry contain different latest versions
 # per architecture, if the versions match then just use the same version number on both paths
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="124.0.6367.78-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="127.0.6533.99-r0"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="126.0.6478.61-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="127.0.6533.99-r0"; \
     fi && \
     echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
     apk update --no-cache && \
@@ -55,8 +55,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
-    libcurl@edge=8.8.0-r0 \
-    git@edge=2.45.2-r1 \
+    libcurl@edge=8.9.1-r1 \
+    git@edge=2.46.0-r0 \
     # so user can docker exec -it test /bin/bash
     bash
 
@@ -72,12 +72,12 @@ RUN chmod g+s /jsreport
 
 VOLUME ["/jsreport"]
 
-ENV NPM_CONFIG_PREFIX /home/jsreport/.npm-global
-ENV PATH $PATH:/home/jsreport/.npm-global/bin
+ENV NPM_CONFIG_PREFIX=/home/jsreport/.npm-global
+ENV PATH=$PATH:/home/jsreport/.npm-global/bin
 
 WORKDIR /app
 
-ENV PUPPETEER_SKIP_DOWNLOAD true
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 
 RUN npm install -g npm
 # ====== COMMENT THIS WHEN CHECKING trivy audit ======
@@ -105,7 +105,7 @@ RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
 
-ENV chrome_launchOptions_executablePath /usr/lib/chromium/chrome
-ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
+ENV chrome_launchOptions_executablePath=/usr/lib/chromium/chrome
+ENV chrome_launchOptions_args=--no-sandbox,--disable-dev-shm-usage
 
 CMD ["bash", "run.sh"]

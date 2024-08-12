@@ -54,7 +54,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs
 
 WORKDIR /app
-ENV PUPPETEER_CACHE_DIR /app/.puppeteer-cache
+ENV PUPPETEER_CACHE_DIR=/app/.puppeteer-cache
 
 RUN npm i -g yarn@1.22.10 json-merger
 COPY ./packages/jsreport/server.js server.js
@@ -80,7 +80,7 @@ RUN yarn cache clean --all && rm -rf /tmp/*
 RUN chown -R jsreport:jsreport /app
 USER jsreport:jsreport
 
-ENV FULL_BUILD true
-ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
+ENV FULL_BUILD=true
+ENV chrome_launchOptions_args=--no-sandbox,--disable-dev-shm-usage
 
 CMD ["bash", "run.sh"]

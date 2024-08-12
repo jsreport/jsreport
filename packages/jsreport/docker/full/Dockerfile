@@ -54,7 +54,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs
 
 WORKDIR /app
-ENV PUPPETEER_CACHE_DIR /app/.puppeteer-cache
+ENV PUPPETEER_CACHE_DIR=/app/.puppeteer-cache
 
 # ====== COMMENT THIS WHEN CHECKING trivy audit ======
 RUN npm i -g @jsreport/jsreport-cli
@@ -104,6 +104,6 @@ RUN node editConfig.js
 RUN chown -R jsreport:jsreport /app
 USER jsreport:jsreport
 
-ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
+ENV chrome_launchOptions_args=--no-sandbox,--disable-dev-shm-usage
 
 CMD ["bash", "run.sh"]
