@@ -27,7 +27,7 @@
     "enhanced-resolve": "5.8.3"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.4.0",
+    "@jsreport/jsreport-core": "4.4.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "mocha": "10.1.0",
     "moment": "2.29.4",

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-text",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "jsreport recipe for rendering plain text from html",
   "keywords": [
     "jsreport"
@@ -25,7 +25,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.4.0",
+    "@jsreport/jsreport-core": "4.4.1",
     "@jsreport/studio-dev": "4.0.0",
     "mocha": "10.1.0",
     "should": "13.2.3",

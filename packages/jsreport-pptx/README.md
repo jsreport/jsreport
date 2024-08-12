@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.3.1
+
+- usage of Handlebars.createFrame should inherit existing data to ensure it correctly propagates existing values
+
 ### 4.3.0
 
 - support for dynamic rows, columns generation

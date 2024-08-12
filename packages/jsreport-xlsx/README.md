@@ -7,6 +7,13 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.2.0
+
+- keep existing dimension when appropriate
+- fix escaping issue in formulas
+- optimization for autofit cols and cell type auto detection helpers
+- performance improvement for templates with lots of cells in calcChain (using lot of formulas)
+
 ### 4.1.1
 
 - update @jsreport/office to fix set `res.meta.fileExtension` without starting `.`

@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.4.1
+
+- fix timestamp shown in logging
+
 ### 4.4.0
 
 - trigger async report using header to avoid allocating worker
