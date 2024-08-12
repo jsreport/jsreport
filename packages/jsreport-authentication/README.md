@@ -7,6 +7,11 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.2.1
+
+- fix regression with user with "allow read all entities" not working
+- update passport to 0.7.0 and fix npm audit
+
 ### 4.2.0
 
 - expose safe properties of req.context.user in sandbox

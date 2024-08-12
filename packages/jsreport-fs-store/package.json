@@ -42,7 +42,7 @@
     "socket.io": "4.7.5"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.4.0",
+    "@jsreport/jsreport-core": "4.4.1",
     "@jsreport/jsreport-express": "4.1.2",
     "@jsreport/studio-dev": "4.0.0",
     "del": "6.0.0",

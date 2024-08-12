@@ -7,6 +7,10 @@ see the documentation https://jsreport.net/learn/text
 
 ## Changelog
 
+### 4.0.2
+
+- fix typo in label content disposition
+
 ### 4.0.1
 
 - fix res.meta.fileExtension should not start with "."

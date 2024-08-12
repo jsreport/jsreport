@@ -7,6 +7,12 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.5.0
+
+- docxHtml table cell support for vertical-align style
+- fix docxHtml throwing error when table have a div as sibling with two inline elements
+- usage of Handlebars.createFrame should inherit existing data to ensure it correctly propagates existing values
+
 ### 4.4.0
 
 - use decodeURIComponentRecursive helper to handle better different cases of MS Programs storing target urls encoded multiple times

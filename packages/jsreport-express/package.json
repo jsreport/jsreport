@@ -40,7 +40,7 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.4.0",
+    "@jsreport/jsreport-core": "4.4.1",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/jsreport-scripts": "4.1.0",
     "@jsreport/studio-dev": "4.0.0",
