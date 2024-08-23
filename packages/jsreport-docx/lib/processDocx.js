@@ -6,6 +6,7 @@ const postprocess = require('./postprocess/postprocess.js')
 const { contentIsXML } = require('./utils')
 const decodeXML = require('./decodeXML')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
+const createContext = require('./ctx')
 
 module.exports = async (reporter, inputs, req) => {
   const { docxTemplateContent, options, outputPath } = inputs
@@ -28,9 +29,11 @@ module.exports = async (reporter, inputs, req) => {
       }
     }
 
-    await preprocess(files)
+    const ctx = createContext('document', { options })
 
-    const filesToRender = files.filter(f => contentIsXML(f.data))
+    await preprocess(files, ctx)
+
+    const filesToRender = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)))
 
     let contentToRender = filesToRender.map(f => {
       const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
@@ -56,7 +59,15 @@ module.exports = async (reporter, inputs, req) => {
       return xmlStr.replace(/<docxRemove>/g, '').replace(/<\/docxRemove>/g, '')
     }).join('$$$docxFile$$$')
 
-    contentToRender = `{{#docxContext type="global" evalId="${generateRandomId()}"}}${contentToRender}{{/docxContext}}`
+    // get the last ids to share it with templating
+    for (const [key, idManager] of ctx.idManagers.all()) {
+      ctx.templating.setGlobalValue(`${key}MaxNumId`, idManager.last.numId)
+    }
+
+    const extraGlobalAttrs = ctx.templating.serializeToHandlebarsAttrs(ctx.templating.allGlobalValues())
+    const extraGlobalAttrsStr = extraGlobalAttrs.length > 0 ? ' ' + extraGlobalAttrs.join(' ') : ''
+
+    contentToRender = `{{#docxContext type='global' evalId='${generateRandomId()}'${extraGlobalAttrsStr}}}${contentToRender}{{docxSData type='newFiles'}}{{/docxContext}}`
 
     reporter.logger.debug('Starting child request to render docx dynamic parts', req)
 
@@ -89,7 +100,20 @@ module.exports = async (reporter, inputs, req) => {
       }
     }
 
-    await postprocess(reporter, files, options)
+    // if these are any new files generated during the render
+    for (let i = filesToRender.length; i < contents.length; i++) {
+      const info = contents[i]
+      const separator = info.indexOf('\n')
+      const filePath = info.slice(0, separator)
+      const content = Buffer.from(info.slice(separator + 1), 'base64')
+
+      files.push({
+        path: filePath,
+        data: content
+      })
+    }
+
+    await postprocess(reporter, files, ctx)
 
     for (const f of files) {
       let shouldSerializeFromDoc = contentIsXML(f.data) && f.path !== 'word/document.xml'
@@ -119,4 +143,42 @@ module.exports = async (reporter, inputs, req) => {
       weak: true
     })
   }
+}
+
+function ensureOrderOfFiles (files) {
+  // we want to ensure a specific order of files for the render processing,
+  // 1. ensure [Content_Types].xml], word/_rels/document.xml.rels are the latest files
+  // this is required in child render for our handlebars logic to
+  // correctly handle processing of our helpers
+  const contentTypesIdx = files.findIndex(f => f.path === '[Content_Types].xml')
+  const documentRelsIdx = files.findIndex(f => f.path === 'word/_rels/document.xml.rels')
+  const filesSorted = []
+
+  const skipIndexesSet = new Set()
+
+  for (const idx of [contentTypesIdx, documentRelsIdx]) {
+    if (idx === -1) {
+      continue
+    }
+
+    skipIndexesSet.add(idx)
+  }
+
+  for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
+    if (skipIndexesSet.has(fileIdx)) {
+      continue
+    }
+
+    filesSorted.push(files[fileIdx])
+  }
+
+  if (contentTypesIdx !== -1) {
+    filesSorted.push(files[contentTypesIdx])
+  }
+
+  if (documentRelsIdx !== -1) {
+    filesSorted.push(files[documentRelsIdx])
+  }
+
+  return filesSorted
 }

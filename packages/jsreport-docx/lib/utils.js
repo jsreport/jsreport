@@ -1,6 +1,7 @@
 const path = require('path')
 const escapeStringRegexp = require('escape-string-regexp')
 const { XMLSerializer } = require('@xmldom/xmldom')
+const createIdManager = require('./idManager')
 
 function nodeListToArray (nodes) {
   const arr = []
@@ -20,10 +21,8 @@ function getNewRelId (relsDoc) {
   return getNewRelIdFromBaseId(relsDoc, itemsMap, baseId)
 }
 
-function getNewRelIdFromBaseId (relsDoc, itemsMap, baseId) {
-  const relationsNodes = nodeListToArray(relsDoc.getElementsByTagName('Relationship'))
-
-  const getId = (id) => {
+function getNewRelIdFromBaseId (relsDoc, itemsMap, baseRelId) {
+  const getNumberId = (id) => {
     const regExp = /^rId(\d+)$/
     const match = regExp.exec(id)
 
@@ -34,32 +33,22 @@ function getNewRelIdFromBaseId (relsDoc, itemsMap, baseId) {
     return parseInt(match[1], 10)
   }
 
-  const maxId = relationsNodes.reduce((lastId, node) => {
-    const nodeId = node.getAttribute('Id')
-    const num = getId(nodeId)
-
-    if (num == null) {
-      return lastId
+  const documentRelsIdManager = createIdManager('documentRels', {
+    fromItems: {
+      getIds: () => nodeListToArray(relsDoc.getElementsByTagName('Relationship')).map((el) => el.getAttribute('Id')),
+      getNumberId
     }
+  })
 
-    if (num > lastId) {
-      return num
-    }
-
-    return lastId
-  }, 0)
-
-  const baseIdNum = getId(baseId)
+  const baseIdNum = getNumberId(baseRelId)
 
   if (baseIdNum == null) {
-    throw new Error(`Unable to get numeric id from rel id "${baseId}"`)
+    throw new Error(`Unable to get numeric id from rel id "${baseRelId}"`)
   }
 
-  let newId = getNewIdFromBaseId(itemsMap, baseIdNum, maxId)
+  const newNumId = getNewIdFromBaseId(itemsMap, baseIdNum, documentRelsIdManager.last.numId)
 
-  newId = `rId${newId}`
-
-  return newId
+  return `rId${newNumId}`
 }
 
 function getNewIdFromBaseId (itemsMap, baseId, maxId) {
@@ -353,11 +342,16 @@ function findChildNode (nodeNameOrFn, targetNode, allNodes = false) {
 
 function createNode (doc, name, opts = {}) {
   const attributes = opts.attributes || {}
+  const properties = opts.properties || {}
   const children = opts.children || []
   const newEl = doc.createElement(name)
 
   for (const [attrName, attrValue] of Object.entries(attributes)) {
     newEl.setAttribute(attrName, attrValue)
+  }
+
+  for (const [propName, propValue] of Object.entries(properties)) {
+    newEl[propName] = propValue
   }
 
   for (const child of children) {

@@ -92,10 +92,23 @@ module.exports = (reporter) => {
             const matchedPart = matchResult[0]
             const asyncResultId = matchResult[1]
             const result = await asyncResultMap.get(asyncResultId)
-            content = `${content.slice(0, matchResult.index)}${result}${content.slice(matchResult.index + matchedPart.length)}`
+            const isFullMatch = content === matchedPart
+
+            if (typeof result !== 'string' && isFullMatch) {
+              // this allows consuming async helper that returns a value other than string
+              // like an async helper that returns object and it is received as
+              // parameter of another helper
+              content = result
+            } else {
+              content = `${content.slice(0, matchResult.index)}${result}${content.slice(matchResult.index + matchedPart.length)}`
+            }
           }
 
-          matchResult = content.match(asyncHelperResultRegExp)
+          if (typeof content === 'string') {
+            matchResult = content.match(asyncHelperResultRegExp)
+          } else {
+            matchResult = null
+          }
         } while (matchResult != null)
 
         return content

@@ -5,18 +5,65 @@ function docxContext (options) {
   const Handlebars = require('handlebars')
   let data
 
-  if (options.hash.type === 'global') {
+  const processMap = {
+    contentTypes: {
+      module: 'docxProcessContentTypes'
+    },
+    documentRels: {
+      module: 'docxProcessDocumentRels'
+    }
+  }
+
+  const { type: contextType, ...restOfHashParameters } = options.hash
+
+  let ctxObjValues = restOfHashParameters
+
+  const initializeContext = (ctxValues) => {
+    const createContext = require('docxCtx')
+    const currentCtx = createContext('handlebars')
+
+    for (const [key, value] of Object.entries(ctxValues)) {
+      const suffix = 'MaxNumId'
+
+      if (key.endsWith(suffix)) {
+        const idKey = key.slice(0, suffix.length * -1)
+
+        currentCtx.idManagers.set(idKey, {
+          fromMaxId: value
+        })
+      } else {
+        currentCtx.set(key, value)
+      }
+    }
+
+    return currentCtx
+  }
+
+  if (contextType === 'global') {
     data = Handlebars.createFrame(options.data)
-    data.evalId = options.hash.evalId
+
+    const { evalId, ...restOfGlobalParameters } = restOfHashParameters
+
+    ctxObjValues = restOfGlobalParameters
+    data.ctx = initializeContext(ctxObjValues)
+
+    data.evalId = evalId
     data.childCache = new Map()
-  } else if (options.hash.type === 'document') {
+    data.newDefaultContentTypes = new Map()
+    data.newDocumentRels = new Set()
+    data.newFiles = new Map()
+  } else if (contextType === 'contentTypes' || contextType === 'documentRels') {
+    data = Handlebars.createFrame(options.data)
+  } else if (contextType === 'document') {
     data = Handlebars.createFrame(options.data)
     data.currentSectionIdx = 0
     data.bookmarkStartInstances = []
-  } else if (options.hash.type === 'header' || options.hash.type === 'footer') {
+    data.defaultShapeTypeByObjectType = new Map()
+  } else if (contextType === 'header' || contextType === 'footer') {
     data = Handlebars.createFrame(options.data)
     data.bookmarkStartInstances = []
-  } else if (options.hash.type === 'sectionIdx') {
+    data.defaultShapeTypeByObjectType = new Map()
+  } else if (contextType === 'sectionIdx') {
     const idx = options.data.currentSectionIdx
 
     if (options.hash.increment === true) {
@@ -24,7 +71,7 @@ function docxContext (options) {
     }
 
     return idx
-  } else if (options.hash.type === 'childContentPartial') {
+  } else if (contextType === 'childContentPartial') {
     return options.data.childPartialId
   }
 
@@ -34,10 +81,14 @@ function docxContext (options) {
     context.data = data
   }
 
+  if (contextType !== 'global') {
+    data.localCtx = initializeContext(ctxObjValues)
+  }
+
   const output = options.fn(this, context)
 
   // clear the child cache/partials after the global context is processed
-  if (options.hash.type === 'global') {
+  if (contextType === 'global') {
     const jsreport = require('jsreport-proxy')
 
     return jsreport.templatingEngines.waitForAsyncHelpers().then(() => output).finally(() => {
@@ -48,6 +99,19 @@ function docxContext (options) {
       }
 
       childCache.clear()
+    })
+  } else if (contextType === 'contentTypes' || contextType === 'documentRels') {
+    const jsreport = require('jsreport-proxy')
+    const processInfo = processMap[contextType]
+
+    if (processInfo == null) {
+      throw new Error(`docxContext helper invalid usage, process module function not found for type "${contextType}"`)
+    }
+
+    const processFn = require(processInfo.module)
+
+    return jsreport.templatingEngines.waitForAsyncHelpers().then(() => {
+      return processFn(options.data, output)
     })
   }
 
@@ -347,6 +411,45 @@ function docxCheckbox (options) {
 function docxCombobox (options) {
   const Handlebars = require('handlebars')
   return new Handlebars.SafeString('$docxCombobox' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
+}
+
+async function docxObject (options) {
+  const Handlebars = require('handlebars')
+  const jsreport = require('jsreport-proxy')
+
+  if (options.hash.content == null) {
+    throw new Error('docxObject helper requires content parameter to be set')
+  }
+
+  options.hash.content = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.content)
+
+  const contentValue = options.hash.content.value
+  const contentFileType = options.hash.content.fileType
+
+  if (typeof contentValue !== 'string' && !Buffer.isBuffer(contentValue) && ArrayBuffer.isView(contentValue)) {
+    throw new Error('docxObject helper requires content.value parameter to be either a base64 string, a buffer or typed array')
+  }
+
+  const validFileTypes = ['docx', 'pdf']
+
+  if (!validFileTypes.includes(contentFileType)) {
+    throw new Error(`docxObject helper requires content.fileType parameter to be one of these values: ${validFileTypes.join(', ')}`)
+  }
+
+  let contentBuffer
+
+  if (typeof contentValue === 'string') {
+    contentBuffer = Buffer.from(contentValue, 'base64')
+  } else {
+    contentBuffer = Buffer.isBuffer(contentValue) ? contentValue : Buffer.from(contentValue)
+  }
+
+  const processObject = require('docxProcessObject')
+
+  return new Handlebars.SafeString(processObject(options.data, {
+    fileType: contentFileType,
+    content: contentBuffer
+  }))
 }
 
 function docxChart (options) {
@@ -744,6 +847,29 @@ async function docxSData (data, options) {
     result = processStyles(newData.styles, result)
 
     return result
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'newFiles'
+  ) {
+    const jsreport = require('jsreport-proxy')
+
+    await jsreport.templatingEngines.waitForAsyncHelpers()
+
+    const output = []
+
+    for (const [filePath, content] of optionsToUse.data.newFiles) {
+      output.push(`${filePath}\n${content.toString('base64')}`)
+    }
+
+    const separator = '$$$'
+
+    if (output.length === 0) {
+      return ''
+    }
+
+    return new Handlebars.SafeString(`${separator}docxFile${separator}${output.join(`${separator}docxFile${separator}`)}`)
   }
 
   throw new Error(`invalid usage of docxSData helper${type != null ? ` (type: ${type})` : ''}`)

@@ -20,6 +20,11 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.options.sandbox.modules.push({
+    alias: 'docxCtx',
+    path: path.join(__dirname, './ctx.js')
+  })
+
+  reporter.options.sandbox.modules.push({
     alias: 'docxProcessChildEmbed',
     path: path.join(__dirname, './processChildEmbed/index.js')
   })
@@ -27,6 +32,21 @@ module.exports = (reporter, definition) => {
   reporter.options.sandbox.modules.push({
     alias: 'docxProcessStyles',
     path: path.join(__dirname, './processStyles.js')
+  })
+
+  reporter.options.sandbox.modules.push({
+    alias: 'docxProcessContentTypes',
+    path: path.join(__dirname, './processContentTypes.js')
+  })
+
+  reporter.options.sandbox.modules.push({
+    alias: 'docxProcessDocumentRels',
+    path: path.join(__dirname, './processDocumentRels.js')
+  })
+
+  reporter.options.sandbox.modules.push({
+    alias: 'docxProcessObject',
+    path: path.join(__dirname, './processObject.js')
   })
 
   reporter.extensionsManager.recipes.push({

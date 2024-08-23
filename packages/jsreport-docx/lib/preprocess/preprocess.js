@@ -1,3 +1,4 @@
+const base = require('./base')
 const concatTags = require('./concatTags')
 const context = require('./context')
 const sections = require('./sections')
@@ -11,10 +12,12 @@ const style = require('./style')
 const pageBreak = require('./pageBreak')
 const toc = require('./toc')
 const watermark = require('./watermark')
+const object = require('./object')
 const html = require('./html')
 const child = require('./child')
 
-module.exports = (files) => {
+module.exports = (files, ctx) => {
+  base(files, ctx)
   concatTags(files)
 
   const sectionsDetails = sections(files)
@@ -27,7 +30,6 @@ module.exports = (files) => {
     return acu
   }, [])
 
-  context(files, headerFooterRefs)
   bookmark(files, headerFooterRefs)
   watermark(files, headerFooterRefs)
   drawingObject(files, headerFooterRefs)
@@ -39,7 +41,11 @@ module.exports = (files) => {
   toc(files)
   pageBreak(files)
   child(files, headerFooterRefs)
-  // we handle the html step as the last to ensure no other step
+  object(files, headerFooterRefs, ctx)
+  // we handle the html step as the last processing step to ensure no other step
   // work with the attribute and comment we put in the <w:p> elements for the html handling
   html(files, headerFooterRefs)
+  // we process context here to ensure we get the chance to pick all changes to ctx,
+  // no transformation done here other than adding the wrapping helper calls
+  context(files, headerFooterRefs, ctx)
 }

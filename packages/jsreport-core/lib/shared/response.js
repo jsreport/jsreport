@@ -3,7 +3,6 @@ const fs = require('fs/promises')
 const { Readable } = require('stream')
 const { pipeline } = require('stream/promises')
 const path = require('path')
-const isArrayBufferView = require('util').types.isArrayBufferView
 
 module.exports = (reporter, requestId, obj) => {
   let outputImpl = new BufferOutput(reporter)
@@ -44,7 +43,7 @@ module.exports = (reporter, requestId, obj) => {
       async getSize () { return outputImpl.getSize() },
       async writeToTempFile (...args) { return outputImpl.writeToTempFile(...args) },
       async update (bufOrStreamOrPath) {
-        if (Buffer.isBuffer(bufOrStreamOrPath) || isArrayBufferView(bufOrStreamOrPath)) {
+        if (Buffer.isBuffer(bufOrStreamOrPath) || ArrayBuffer.isView(bufOrStreamOrPath)) {
           return outputImpl.setBuffer(bufOrStreamOrPath)
         }
 
