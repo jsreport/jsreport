@@ -425,15 +425,81 @@ async function docxObject (options) {
 
   const contentValue = options.hash.content.value
   const contentFileType = options.hash.content.fileType
+  const previewValue = options.hash.content.preview
+  let previewFileType = options.hash.content.previewFileType
+  const previewSize = options.hash.content.previewSize
 
   if (typeof contentValue !== 'string' && !Buffer.isBuffer(contentValue) && ArrayBuffer.isView(contentValue)) {
     throw new Error('docxObject helper requires content.value parameter to be either a base64 string, a buffer or typed array')
   }
 
-  const validFileTypes = ['docx', 'pdf']
+  const validContentFileTypes = ['docx']
 
-  if (!validFileTypes.includes(contentFileType)) {
-    throw new Error(`docxObject helper requires content.fileType parameter to be one of these values: ${validFileTypes.join(', ')}`)
+  if (!validContentFileTypes.includes(contentFileType)) {
+    throw new Error(`docxObject helper requires content.fileType parameter to be one of these values: ${validContentFileTypes.join(', ')}`)
+  }
+
+  if (typeof previewValue !== 'string' && !Buffer.isBuffer(previewValue) && ArrayBuffer.isView(previewValue)) {
+    throw new Error('docxObject helper requires content.preview parameter to be either a base64 string, a buffer or typed array')
+  }
+
+  const validPreviewFileTypes = ['jpg', 'jpeg', 'png']
+
+  if (!validPreviewFileTypes.includes(previewFileType)) {
+    throw new Error(`docxObject helper requires content.previewFileType parameter to be one of these values: ${validPreviewFileTypes.join(', ')}`)
+  }
+
+  const targetPreviewSize = {}
+
+  // preview size is expected to be in pt
+  if (previewSize != null) {
+    if (previewSize.width == null) {
+      throw new Error('docxObject helper requires previewSize.width parameter to be set')
+    }
+
+    if (typeof previewSize.width !== 'string' && typeof previewSize.width !== 'number') {
+      throw new Error('docxObject helper requires previewSize.width parameter to be either a string or number')
+    }
+
+    if (typeof previewSize.width === 'string') {
+      const parsedWidth = parseFloat(previewSize.width)
+
+      if (isNaN(parsedWidth)) {
+        throw new Error('docxObject helper requires previewSize.width parameter to be a valid number')
+      }
+
+      targetPreviewSize.width = parsedWidth
+    } else {
+      targetPreviewSize.width = previewSize.width
+    }
+
+    if (previewSize.height == null) {
+      throw new Error('docxObject helper requires previewSize.height parameter to be set')
+    }
+
+    if (typeof previewSize.height !== 'string' && typeof previewSize.height !== 'number') {
+      throw new Error('docxObject helper requires previewSize.height parameter to be either a string or number')
+    }
+
+    if (typeof previewSize.height === 'string') {
+      const parsedHeight = parseFloat(previewSize.height)
+
+      if (isNaN(parsedHeight)) {
+        throw new Error('docxObject helper requires previewSize.height parameter to be a valid number')
+      }
+
+      targetPreviewSize.height = parsedHeight
+    } else {
+      targetPreviewSize.height = previewSize.height
+    }
+  } else {
+    targetPreviewSize.width = 45
+    targetPreviewSize.height = 45
+  }
+
+  // normalize the alias to the common format
+  if (previewFileType === 'jpg') {
+    previewFileType = 'jpeg'
   }
 
   let contentBuffer
@@ -444,11 +510,22 @@ async function docxObject (options) {
     contentBuffer = Buffer.isBuffer(contentValue) ? contentValue : Buffer.from(contentValue)
   }
 
+  let previewBuffer
+
+  if (typeof previewValue === 'string') {
+    previewBuffer = Buffer.from(previewValue, 'base64')
+  } else {
+    previewBuffer = Buffer.isBuffer(previewValue) ? previewValue : Buffer.from(previewValue)
+  }
+
   const processObject = require('docxProcessObject')
 
   return new Handlebars.SafeString(processObject(options.data, {
     fileType: contentFileType,
-    content: contentBuffer
+    content: contentBuffer,
+    previewFileType,
+    preview: previewBuffer,
+    previewSize: targetPreviewSize
   }))
 }
 
