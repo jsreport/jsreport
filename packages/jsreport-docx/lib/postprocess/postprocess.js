@@ -10,7 +10,7 @@ const toc = require('./toc')
 const removeBlockHelper = require('./removeBlockHelper')
 const html = require('./html')
 
-module.exports = async (reporter, files, options) => {
+module.exports = async (reporter, files, ctx) => {
   const newBookmarksMap = new Map()
   const sectionsDetails = await sections(files)
 
@@ -28,7 +28,7 @@ module.exports = async (reporter, files, options) => {
   await bookmark(files, headerFooterRefs, newBookmarksMap)
   await watermark(files)
   await pageBreak(files)
-  await drawingObject(reporter, files, headerFooterRefs, newBookmarksMap, options)
+  await drawingObject(reporter, files, headerFooterRefs, newBookmarksMap, ctx)
   link(files)
   form(files)
   await toc(files)

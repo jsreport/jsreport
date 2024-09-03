@@ -21,16 +21,12 @@ module.exports = () => {
     const targetMeta = omit(meta, symbolProps)
     const newMeta = normalizeMetaFromLogs(level, message, timestamp, targetMeta)
 
-    if (newMeta != null) {
-      return {
-        level,
-        message,
-        timestamp,
-        ...originalSymbolProps,
-        ...newMeta
-      }
+    return {
+      level,
+      message,
+      timestamp,
+      ...originalSymbolProps,
+      ...newMeta
     }
-
-    return info
   })
 }

@@ -78,6 +78,96 @@ describe('engine', () => {
     should(res.content.toString()).be.eql('foofoofoo')
   })
 
+  it('should be able to use waitForAsyncHelpers in async helper', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: `
+          const jsreport = require('jsreport-proxy')
+
+          function a (helpers) {
+            const data = { callsFinished: [] }
+            const childOutput = helpers.processContent(data, helpers.getFile(data))
+
+            return jsreport.templatingEngines.waitForAsyncHelpers().then(() => {
+              return childOutput + data.callsFinished.join(', ')
+            })
+          }
+
+          async function processContent (data, value) {
+            const content = await jsreport.templatingEngines.waitForAsyncHelper(value)
+            await delay(500)
+            data.callsFinished.push('processContent')
+            return content
+          }
+
+          async function getFile (data) {
+              await delay(800)
+              data.callsFinished.push('getFile')
+              return 'finished '
+          }
+
+          async function delay (time) {
+            await new Promise((resolve) => {
+              setTimeout(() => resolve(), time)
+            })
+            return ''
+          }
+        `,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).be.eql('finished getFile, processContent')
+  })
+
+  it('should be able to use waitForAsyncHelpers with delay in async helper', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: `
+          const jsreport = require('jsreport-proxy')
+
+          function a (helpers) {
+            const data = { callsFinished: [] }
+            const childOutput = helpers.processContent(data, helpers.getFile(data))
+
+            return delay(1200).then(() => {
+              return jsreport.templatingEngines.waitForAsyncHelpers()
+            }).then(() => {
+              return childOutput + data.callsFinished.join(', ')
+            })
+          }
+
+          async function processContent (data, value) {
+            const content = await jsreport.templatingEngines.waitForAsyncHelper(value)
+            await delay(500)
+            data.callsFinished.push('processContent')
+            return content
+          }
+
+          async function getFile (data) {
+              await delay(800)
+              data.callsFinished.push('getFile')
+              return 'finished '
+          }
+
+          async function delay (time) {
+            await new Promise((resolve) => {
+              setTimeout(() => resolve(), time)
+            })
+            return ''
+          }
+        `,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).be.eql('finished getFile, processContent')
+  })
+
   it('should be able to pass async result as a value to another evaluation', async () => {
     const res = await reporter.render({
       template: {

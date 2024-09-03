@@ -4,7 +4,7 @@ const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
 const processImage = require('./processImage')
 const processChart = require('./processChart')
 
-module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, options) => {
+module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx) => {
   const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
@@ -22,7 +22,7 @@ module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, opti
   documentFile.data = await recursiveStringReplaceAsync(
     {
       string: documentFile.data.toString(),
-      parallelLimit: options.imageFetchParallelLimit
+      parallelLimit: ctx.options.imageFetchParallelLimit
     },
     '<w:drawing>',
     '</w:drawing>',

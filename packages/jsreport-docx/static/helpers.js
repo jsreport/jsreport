@@ -5,18 +5,65 @@ function docxContext (options) {
   const Handlebars = require('handlebars')
   let data
 
-  if (options.hash.type === 'global') {
+  const processMap = {
+    contentTypes: {
+      module: 'docxProcessContentTypes'
+    },
+    documentRels: {
+      module: 'docxProcessDocumentRels'
+    }
+  }
+
+  const { type: contextType, ...restOfHashParameters } = options.hash
+
+  let ctxObjValues = restOfHashParameters
+
+  const initializeContext = (ctxValues) => {
+    const createContext = require('docxCtx')
+    const currentCtx = createContext('handlebars')
+
+    for (const [key, value] of Object.entries(ctxValues)) {
+      const suffix = 'MaxNumId'
+
+      if (key.endsWith(suffix)) {
+        const idKey = key.slice(0, suffix.length * -1)
+
+        currentCtx.idManagers.set(idKey, {
+          fromMaxId: value
+        })
+      } else {
+        currentCtx.set(key, value)
+      }
+    }
+
+    return currentCtx
+  }
+
+  if (contextType === 'global') {
     data = Handlebars.createFrame(options.data)
-    data.evalId = options.hash.evalId
+
+    const { evalId, ...restOfGlobalParameters } = restOfHashParameters
+
+    ctxObjValues = restOfGlobalParameters
+    data.ctx = initializeContext(ctxObjValues)
+
+    data.evalId = evalId
     data.childCache = new Map()
-  } else if (options.hash.type === 'document') {
+    data.newDefaultContentTypes = new Map()
+    data.newDocumentRels = new Set()
+    data.newFiles = new Map()
+  } else if (contextType === 'contentTypes' || contextType === 'documentRels') {
+    data = Handlebars.createFrame(options.data)
+  } else if (contextType === 'document') {
     data = Handlebars.createFrame(options.data)
     data.currentSectionIdx = 0
     data.bookmarkStartInstances = []
-  } else if (options.hash.type === 'header' || options.hash.type === 'footer') {
+    data.defaultShapeTypeByObjectType = new Map()
+  } else if (contextType === 'header' || contextType === 'footer') {
     data = Handlebars.createFrame(options.data)
     data.bookmarkStartInstances = []
-  } else if (options.hash.type === 'sectionIdx') {
+    data.defaultShapeTypeByObjectType = new Map()
+  } else if (contextType === 'sectionIdx') {
     const idx = options.data.currentSectionIdx
 
     if (options.hash.increment === true) {
@@ -24,7 +71,7 @@ function docxContext (options) {
     }
 
     return idx
-  } else if (options.hash.type === 'childContentPartial') {
+  } else if (contextType === 'childContentPartial') {
     return options.data.childPartialId
   }
 
@@ -34,10 +81,14 @@ function docxContext (options) {
     context.data = data
   }
 
+  if (contextType !== 'global') {
+    data.localCtx = initializeContext(ctxObjValues)
+  }
+
   const output = options.fn(this, context)
 
   // clear the child cache/partials after the global context is processed
-  if (options.hash.type === 'global') {
+  if (contextType === 'global') {
     const jsreport = require('jsreport-proxy')
 
     return jsreport.templatingEngines.waitForAsyncHelpers().then(() => output).finally(() => {
@@ -48,6 +99,19 @@ function docxContext (options) {
       }
 
       childCache.clear()
+    })
+  } else if (contextType === 'contentTypes' || contextType === 'documentRels') {
+    const jsreport = require('jsreport-proxy')
+    const processInfo = processMap[contextType]
+
+    if (processInfo == null) {
+      throw new Error(`docxContext helper invalid usage, process module function not found for type "${contextType}"`)
+    }
+
+    const processFn = require(processInfo.module)
+
+    return jsreport.templatingEngines.waitForAsyncHelpers().then(() => {
+      return processFn(options.data, output)
     })
   }
 
@@ -347,6 +411,126 @@ function docxCheckbox (options) {
 function docxCombobox (options) {
   const Handlebars = require('handlebars')
   return new Handlebars.SafeString('$docxCombobox' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
+}
+
+async function docxObject (options) {
+  const Handlebars = require('handlebars')
+  const jsreport = require('jsreport-proxy')
+
+  if (options.hash.object == null) {
+    throw new Error('docxObject helper requires object parameter to be set')
+  }
+
+  options.hash.object = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.object)
+
+  if (options.hash.object == null || typeof options.hash.object !== 'object') {
+    throw new Error('docxObject helper requires object parameter to be set')
+  }
+
+  if (options.hash.object.content == null || typeof options.hash.object.content !== 'object') {
+    throw new Error('docxObject helper requires object.content parameter to be set')
+  }
+
+  if (options.hash.object.preview == null || typeof options.hash.object.preview !== 'object') {
+    throw new Error('docxObject helper requires object.preview parameter to be set')
+  }
+
+  let contentBuffer = options.hash.object.content.buffer
+  const contentFileType = options.hash.object.content.fileType
+  let previewBuffer = options.hash.object.preview.buffer
+  let previewFileType = options.hash.object.preview.fileType
+  const previewSize = options.hash.object.preview.size
+
+  if (!Buffer.isBuffer(contentBuffer) && !ArrayBuffer.isView(contentBuffer)) {
+    throw new Error('docxObject helper requires object.content.buffer parameter to be either a buffer or typed array')
+  }
+
+  contentBuffer = Buffer.isBuffer(contentBuffer) ? contentBuffer : Buffer.from(contentBuffer)
+
+  const validContentFileTypes = ['docx']
+
+  if (!validContentFileTypes.includes(contentFileType)) {
+    throw new Error(`docxObject helper requires object.content.fileType parameter to be one of these values: ${validContentFileTypes.join(', ')}`)
+  }
+
+  if (!Buffer.isBuffer(previewBuffer) && !ArrayBuffer.isView(previewBuffer)) {
+    throw new Error('docxObject helper requires object.preview.buffer parameter to be either a buffer or typed array')
+  }
+
+  previewBuffer = Buffer.isBuffer(previewBuffer) ? previewBuffer : Buffer.from(previewBuffer)
+
+  const validPreviewFileTypes = ['jpg', 'jpeg', 'png']
+
+  if (!validPreviewFileTypes.includes(previewFileType)) {
+    throw new Error(`docxObject helper requires object.preview.fileType parameter to be one of these values: ${validPreviewFileTypes.join(', ')}`)
+  }
+
+  const targetPreviewSize = {}
+
+  // preview size is expected to be in pt
+  if (previewSize != null) {
+    if (previewSize.width == null) {
+      throw new Error('docxObject helper requires object.preview.size.width parameter to be set')
+    }
+
+    if (typeof previewSize.width !== 'string' && typeof previewSize.width !== 'number') {
+      throw new Error('docxObject helper requires object.preview.size.width parameter to be either a string or number')
+    }
+
+    if (typeof previewSize.width === 'string') {
+      const parsedWidth = parseFloat(previewSize.width)
+
+      if (isNaN(parsedWidth)) {
+        throw new Error('docxObject helper requires object.preview.size.width parameter to be a valid number')
+      }
+
+      targetPreviewSize.width = parsedWidth
+    } else {
+      targetPreviewSize.width = previewSize.width
+    }
+
+    if (previewSize.height == null) {
+      throw new Error('docxObject helper requires object.preview.size.height parameter to be set')
+    }
+
+    if (typeof previewSize.height !== 'string' && typeof previewSize.height !== 'number') {
+      throw new Error('docxObject helper requires object.preview.size.height parameter to be either a string or number')
+    }
+
+    if (typeof previewSize.height === 'string') {
+      const parsedHeight = parseFloat(previewSize.height)
+
+      if (isNaN(parsedHeight)) {
+        throw new Error('docxObject helper requires object.preview.size.height parameter to be a valid number')
+      }
+
+      targetPreviewSize.height = parsedHeight
+    } else {
+      targetPreviewSize.height = previewSize.height
+    }
+  } else {
+    targetPreviewSize.width = 45
+    targetPreviewSize.height = 45
+  }
+
+  // normalize the alias to the common format
+  if (previewFileType === 'jpg') {
+    previewFileType = 'jpeg'
+  }
+
+  const processObject = require('docxProcessObject')
+
+  return new Handlebars.SafeString(processObject(options.data, {
+    content: {
+      buffer: contentBuffer,
+      fileType: contentFileType
+    },
+    preview: {
+      buffer: previewBuffer,
+      fileType: previewFileType,
+      size: targetPreviewSize
+    }
+  }))
 }
 
 function docxChart (options) {
@@ -744,6 +928,29 @@ async function docxSData (data, options) {
     result = processStyles(newData.styles, result)
 
     return result
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'newFiles'
+  ) {
+    const jsreport = require('jsreport-proxy')
+
+    await jsreport.templatingEngines.waitForAsyncHelpers()
+
+    const output = []
+
+    for (const [filePath, content] of optionsToUse.data.newFiles) {
+      output.push(`${filePath}\n${content.toString('base64')}`)
+    }
+
+    const separator = '$$$'
+
+    if (output.length === 0) {
+      return ''
+    }
+
+    return new Handlebars.SafeString(`${separator}docxFile${separator}${output.join(`${separator}docxFile${separator}`)}`)
   }
 
   throw new Error(`invalid usage of docxSData helper${type != null ? ` (type: ${type})` : ''}`)

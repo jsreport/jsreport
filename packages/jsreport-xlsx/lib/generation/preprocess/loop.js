@@ -4,7 +4,7 @@ const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getSheetInfo, get
 const { parseCellRef, getPixelWidthOfValue, getFontSizeFromStyle, evaluateCellRefsFromExpression } = require('../../cellUtils')
 const startLoopRegexp = /{{#each ([^{}]{0,500})}}/
 
-module.exports = (files, meta) => {
+module.exports = (files, ctx) => {
   // console.time('pre:loop process setup')
   const workbookDoc = files.find((file) => file.path === 'xl/workbook.xml')?.doc
   const workbookRelsDoc = files.find((file) => file.path === 'xl/_rels/workbook.xml.rels')?.doc
@@ -84,8 +84,8 @@ module.exports = (files, meta) => {
         sheetDataEl.parentNode.insertBefore(colsEl, sheetDataEl)
       }
 
-      if (meta.autofitConfigured !== true) {
-        meta.autofitConfigured = true
+      if (ctx.autofitConfigured !== true) {
+        ctx.autofitConfigured = true
       }
     }
 
