@@ -2054,6 +2054,28 @@ describe('assets', function () {
       res.content.toString().should.be.eql('hello')
     })
 
+    it('should get buffer with proxy.asset.read when using encoding=buffer', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.html',
+        content: 'hello'
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: '{{:~helper()}}',
+          recipe: 'html',
+          engine: 'jsrender',
+          helpers: `
+            async function helper() {
+              const value = await require('jsreport-proxy').assets.read('foo.html', 'buffer')
+              return Buffer.isBuffer(value)
+            }
+          `
+        }
+      })
+      res.content.toString().should.be.eql('true')
+    })
+
     it('should export proxy.asset.require', async () => {
       await reporter.documentStore.collection('assets').insert({
         name: 'foo.js',
