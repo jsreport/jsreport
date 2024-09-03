@@ -417,36 +417,52 @@ async function docxObject (options) {
   const Handlebars = require('handlebars')
   const jsreport = require('jsreport-proxy')
 
-  if (options.hash.content == null) {
-    throw new Error('docxObject helper requires content parameter to be set')
+  if (options.hash.object == null) {
+    throw new Error('docxObject helper requires object parameter to be set')
   }
 
-  options.hash.content = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.content)
+  options.hash.object = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.object)
 
-  const contentValue = options.hash.content.value
-  const contentFileType = options.hash.content.fileType
-  const previewValue = options.hash.content.preview
-  let previewFileType = options.hash.content.previewFileType
-  const previewSize = options.hash.content.previewSize
-
-  if (typeof contentValue !== 'string' && !Buffer.isBuffer(contentValue) && ArrayBuffer.isView(contentValue)) {
-    throw new Error('docxObject helper requires content.value parameter to be either a base64 string, a buffer or typed array')
+  if (options.hash.object == null || typeof options.hash.object !== 'object') {
+    throw new Error('docxObject helper requires object parameter to be set')
   }
+
+  if (options.hash.object.content == null || typeof options.hash.object.content !== 'object') {
+    throw new Error('docxObject helper requires object.content parameter to be set')
+  }
+
+  if (options.hash.object.preview == null || typeof options.hash.object.preview !== 'object') {
+    throw new Error('docxObject helper requires object.preview parameter to be set')
+  }
+
+  let contentBuffer = options.hash.object.content.buffer
+  const contentFileType = options.hash.object.content.fileType
+  let previewBuffer = options.hash.object.preview.buffer
+  let previewFileType = options.hash.object.preview.fileType
+  const previewSize = options.hash.object.preview.size
+
+  if (!Buffer.isBuffer(contentBuffer) && !ArrayBuffer.isView(contentBuffer)) {
+    throw new Error('docxObject helper requires object.content.buffer parameter to be either a buffer or typed array')
+  }
+
+  contentBuffer = Buffer.isBuffer(contentBuffer) ? contentBuffer : Buffer.from(contentBuffer)
 
   const validContentFileTypes = ['docx']
 
   if (!validContentFileTypes.includes(contentFileType)) {
-    throw new Error(`docxObject helper requires content.fileType parameter to be one of these values: ${validContentFileTypes.join(', ')}`)
+    throw new Error(`docxObject helper requires object.content.fileType parameter to be one of these values: ${validContentFileTypes.join(', ')}`)
   }
 
-  if (typeof previewValue !== 'string' && !Buffer.isBuffer(previewValue) && ArrayBuffer.isView(previewValue)) {
-    throw new Error('docxObject helper requires content.preview parameter to be either a base64 string, a buffer or typed array')
+  if (!Buffer.isBuffer(previewBuffer) && !ArrayBuffer.isView(previewBuffer)) {
+    throw new Error('docxObject helper requires object.preview.buffer parameter to be either a buffer or typed array')
   }
+
+  previewBuffer = Buffer.isBuffer(previewBuffer) ? previewBuffer : Buffer.from(previewBuffer)
 
   const validPreviewFileTypes = ['jpg', 'jpeg', 'png']
 
   if (!validPreviewFileTypes.includes(previewFileType)) {
-    throw new Error(`docxObject helper requires content.previewFileType parameter to be one of these values: ${validPreviewFileTypes.join(', ')}`)
+    throw new Error(`docxObject helper requires object.preview.fileType parameter to be one of these values: ${validPreviewFileTypes.join(', ')}`)
   }
 
   const targetPreviewSize = {}
@@ -454,18 +470,18 @@ async function docxObject (options) {
   // preview size is expected to be in pt
   if (previewSize != null) {
     if (previewSize.width == null) {
-      throw new Error('docxObject helper requires previewSize.width parameter to be set')
+      throw new Error('docxObject helper requires object.preview.size.width parameter to be set')
     }
 
     if (typeof previewSize.width !== 'string' && typeof previewSize.width !== 'number') {
-      throw new Error('docxObject helper requires previewSize.width parameter to be either a string or number')
+      throw new Error('docxObject helper requires object.preview.size.width parameter to be either a string or number')
     }
 
     if (typeof previewSize.width === 'string') {
       const parsedWidth = parseFloat(previewSize.width)
 
       if (isNaN(parsedWidth)) {
-        throw new Error('docxObject helper requires previewSize.width parameter to be a valid number')
+        throw new Error('docxObject helper requires object.preview.size.width parameter to be a valid number')
       }
 
       targetPreviewSize.width = parsedWidth
@@ -474,18 +490,18 @@ async function docxObject (options) {
     }
 
     if (previewSize.height == null) {
-      throw new Error('docxObject helper requires previewSize.height parameter to be set')
+      throw new Error('docxObject helper requires object.preview.size.height parameter to be set')
     }
 
     if (typeof previewSize.height !== 'string' && typeof previewSize.height !== 'number') {
-      throw new Error('docxObject helper requires previewSize.height parameter to be either a string or number')
+      throw new Error('docxObject helper requires object.preview.size.height parameter to be either a string or number')
     }
 
     if (typeof previewSize.height === 'string') {
       const parsedHeight = parseFloat(previewSize.height)
 
       if (isNaN(parsedHeight)) {
-        throw new Error('docxObject helper requires previewSize.height parameter to be a valid number')
+        throw new Error('docxObject helper requires object.preview.size.height parameter to be a valid number')
       }
 
       targetPreviewSize.height = parsedHeight
@@ -502,30 +518,18 @@ async function docxObject (options) {
     previewFileType = 'jpeg'
   }
 
-  let contentBuffer
-
-  if (typeof contentValue === 'string') {
-    contentBuffer = Buffer.from(contentValue, 'base64')
-  } else {
-    contentBuffer = Buffer.isBuffer(contentValue) ? contentValue : Buffer.from(contentValue)
-  }
-
-  let previewBuffer
-
-  if (typeof previewValue === 'string') {
-    previewBuffer = Buffer.from(previewValue, 'base64')
-  } else {
-    previewBuffer = Buffer.isBuffer(previewValue) ? previewValue : Buffer.from(previewValue)
-  }
-
   const processObject = require('docxProcessObject')
 
   return new Handlebars.SafeString(processObject(options.data, {
-    fileType: contentFileType,
-    content: contentBuffer,
-    previewFileType,
-    preview: previewBuffer,
-    previewSize: targetPreviewSize
+    content: {
+      buffer: contentBuffer,
+      fileType: contentFileType
+    },
+    preview: {
+      buffer: previewBuffer,
+      fileType: previewFileType,
+      size: targetPreviewSize
+    }
   }))
 }
 

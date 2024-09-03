@@ -10,10 +10,10 @@ const previewImageContentTypeMap = Object.assign(Object.create(null), {
 
 module.exports = function processObject (data, objectInfo) {
   const { ctx, localCtx, newDefaultContentTypes, newDocumentRels, defaultShapeTypeByObjectType, newFiles } = data
-  const { fileType, content, previewFileType, preview, previewSize } = objectInfo
+  const { content: objectContent, preview: objectPreview } = objectInfo
   let objectXML
 
-  switch (fileType) {
+  switch (objectContent.fileType) {
     case 'docx': {
       const randomSuffix = generateRandomSuffix()
 
@@ -28,18 +28,18 @@ module.exports = function processObject (data, objectInfo) {
         target: `embeddings/${embeddedContentFilename}`
       })
 
-      newFiles.set(`word/embeddings/${embeddedContentFilename}`, content)
+      newFiles.set(`word/embeddings/${embeddedContentFilename}`, objectContent.buffer)
 
-      const previewImageInfo = previewImageContentTypeMap[previewFileType]
+      const previewImageInfo = previewImageContentTypeMap[objectPreview.fileType]
 
       if (previewImageInfo == null) {
-        throw new Error(`ContentType for image "${previewFileType}" not found`)
+        throw new Error(`ContentType for image "${objectPreview.fileType}" not found`)
       }
 
       const embeddedPreviewFilename = `eObjectPreview_${randomSuffix}.${previewImageInfo.extension}`
       const embeddedPreviewRelId = ctx.idManagers.get('documentRels').generate().id
 
-      newDefaultContentTypes.set(previewFileType, previewImageInfo.contentType)
+      newDefaultContentTypes.set(objectPreview.fileType, previewImageInfo.contentType)
 
       newDocumentRels.add({
         id: embeddedPreviewRelId,
@@ -47,12 +47,12 @@ module.exports = function processObject (data, objectInfo) {
         target: `media/${embeddedPreviewFilename}`
       })
 
-      newFiles.set(`word/media/${embeddedPreviewFilename}`, preview)
+      newFiles.set(`word/media/${embeddedPreviewFilename}`, objectPreview.buffer)
 
       const doc = new DOMParser().parseFromString('<docxXml></docxXml>')
       const objectChildren = []
 
-      const needsShapeType = !defaultShapeTypeByObjectType.has(fileType)
+      const needsShapeType = !defaultShapeTypeByObjectType.has(objectContent.fileType)
       let shapeTypeId
 
       if (needsShapeType) {
@@ -60,7 +60,7 @@ module.exports = function processObject (data, objectInfo) {
 
         ({ numId: shapeTypeNum, id: shapeTypeId } = localCtx.idManagers.get('shapeType').generate())
 
-        defaultShapeTypeByObjectType.set(fileType, shapeTypeId)
+        defaultShapeTypeByObjectType.set(objectContent.fileType, shapeTypeId)
 
         // just for quick reminder, a shapetype is an element that acts
         // as a template for a shape (v:shape), it defines the shape's geometry
@@ -116,7 +116,7 @@ module.exports = function processObject (data, objectInfo) {
           })
         )
       } else {
-        shapeTypeId = defaultShapeTypeByObjectType.get(fileType)
+        shapeTypeId = defaultShapeTypeByObjectType.get(objectContent.fileType)
       }
 
       const shapeId = ctx.idManagers.get('shape').generate().id
@@ -127,7 +127,7 @@ module.exports = function processObject (data, objectInfo) {
             id: shapeId,
             type: `#${shapeTypeId}`,
             alt: '',
-            style: `width:${previewSize.width}pt;height:${previewSize.height}pt;mso-width-percent:0;mso-height-percent:0;mso-width-percent:0;mso-height-percent:0`,
+            style: `width:${objectPreview.size.width}pt;height:${objectPreview.size.height}pt;mso-width-percent:0;mso-height-percent:0;mso-width-percent:0;mso-height-percent:0`,
             // the empty values are important for Word in windows,
             // otherwise the Word can not open the embedded docx with double click
             'o:ole': ''
@@ -185,7 +185,7 @@ module.exports = function processObject (data, objectInfo) {
       break
     }
     default:
-      throw new Error(`Unsupported file type "${fileType}"`)
+      throw new Error(`Unsupported file type "${objectContent.fileType}"`)
   }
 
   return objectXML

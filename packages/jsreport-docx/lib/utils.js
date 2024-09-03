@@ -1,7 +1,7 @@
 const path = require('path')
 const escapeStringRegexp = require('escape-string-regexp')
 const { XMLSerializer } = require('@xmldom/xmldom')
-const createIdManager = require('./idManager')
+const { createIdManager } = require('./idManager')
 
 function nodeListToArray (nodes) {
   const arr = []
