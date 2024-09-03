@@ -7,24 +7,28 @@ class TabTitle extends Component {
   constructor (props) {
     super(props)
     this.setNode = this.setNode.bind(this)
-    this.handleChromeAuxClick = this.handleChromeAuxClick.bind(this)
+    this.handleAuxClick = this.handleAuxClick.bind(this)
   }
 
   componentDidMount () {
-    // workaround for chrome not handling middle click on normal "onClick" listener
+    // workaround for chrome and firefox not handling middle click on normal "onClick" listener
+    const isFirefox = typeof InstallTrigger !== 'undefined'
     const isChrome = !!window.chrome
+    const shouldHandleAuxClick = isChrome || isFirefox
 
-    if (isChrome && this.node) {
-      this.node.addEventListener('auxclick', this.handleChromeAuxClick)
+    if (shouldHandleAuxClick && this.node) {
+      this.node.addEventListener('auxclick', this.handleAuxClick)
     }
   }
 
   componentWillUnmount () {
-    // workaround for chrome not handling middle click on normal "onClick" listener
-    const isChrome = !!window.chrome && !!window.chrome.webstore
+    // workaround for chrome and firefox not handling middle click on normal "onClick" listener
+    const isFirefox = typeof InstallTrigger !== 'undefined'
+    const isChrome = !!window.chrome
+    const shouldHandleAuxClick = isChrome || isFirefox
 
-    if (isChrome && this.node) {
-      this.node.removeEventListener('auxclick', this.handleChromeAuxClick)
+    if (shouldHandleAuxClick && this.node) {
+      this.node.removeEventListener('auxclick', this.handleAuxClick)
     }
   }
 
@@ -32,7 +36,7 @@ class TabTitle extends Component {
     this.node = el
   }
 
-  handleChromeAuxClick (e) {
+  handleAuxClick (e) {
     if (e.which === 2) {
       return this.props.onClick(e, this.props.tab)
     }
