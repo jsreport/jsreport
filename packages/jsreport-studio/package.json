@@ -46,6 +46,7 @@
     "compression": "1.7.4",
     "diff2html": "2.5.0",
     "highlight-words-core": "1.2.2",
+    "image-size": "1.1.1",
     "isbinaryfile": "5.0.0",
     "lodash": "4.17.21",
     "ms": "2.1.3",

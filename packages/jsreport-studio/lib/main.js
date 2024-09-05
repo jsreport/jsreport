@@ -12,6 +12,7 @@ const ThemeManager = require('./themeManager')
 const createTextSearch = require('./textSearch')
 const distPath = path.join(__dirname, '../static/dist')
 const ms = require('ms')
+const sizeOf = require('image-size')
 
 module.exports = (reporter, definition) => {
   const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../static/diff.css')).toString()
@@ -50,6 +51,81 @@ module.exports = (reporter, definition) => {
       _: null
     }
   }
+
+  const faviconInfo = { default: true }
+
+  if (definition.options.favicon != null && definition.options.favicon !== '') {
+    faviconInfo.default = false
+    faviconInfo.path = path.resolve(reporter.options.rootDirectory, definition.options.favicon)
+  } else {
+    faviconInfo.path = path.join(__dirname, '../static/favicon.ico')
+  }
+
+  const validFaviconExtensions = ['.ico']
+
+  faviconInfo.type = path.extname(faviconInfo.path)
+
+  if (faviconInfo.type === '.' || faviconInfo.type === '' || !validFaviconExtensions.includes(faviconInfo.type)) {
+    throw reporter.createError(`Invalid favicon file, the path must have a valid extension. valid: ${validFaviconExtensions.join(', ')}`)
+  }
+
+  faviconInfo.type = faviconInfo.type.slice(1)
+
+  faviconInfo.mimeType = serveStatic.mime.lookup(faviconInfo.type)
+
+  if (!faviconInfo.mimeType) {
+    throw reporter.createError(`Mime type not found for favicon file, the path must have a valid extension. valid: ${validFaviconExtensions.join(', ')}`)
+  }
+
+  try {
+    faviconInfo.content = fs.readFileSync(faviconInfo.path)
+  } catch (error) {
+    throw reporter.createError(`Unable to read favicon file at ${faviconInfo.path}`, {
+      original: error
+    })
+  }
+
+  try {
+    const hasSmallDimension = (d) => d.width === 16 && d.height === 16
+    const hasLargeDimension = (d) => d.width === 32 && d.height === 32
+
+    const dimensions = sizeOf(faviconInfo.content)
+    let dimension
+
+    if (dimensions.type === 'ico') {
+      let smallIcon
+      let largeIcon
+      let otherMaxIcon
+
+      for (const current of dimensions.images) {
+        if (hasSmallDimension(current)) {
+          smallIcon = current
+        } else if (hasLargeDimension(current)) {
+          largeIcon = current
+        } else {
+          if (otherMaxIcon == null) {
+            otherMaxIcon = current
+          } else if (current.width > otherMaxIcon.width) {
+            otherMaxIcon = current
+          }
+        }
+      }
+
+      if (largeIcon == null && smallIcon == null) {
+        dimension = otherMaxIcon
+      } else {
+        dimension = largeIcon ?? smallIcon
+      }
+    } else {
+      dimension = dimensions
+    }
+
+    if (!hasSmallDimension(dimension) && !hasLargeDimension(dimension)) {
+      reporter.logger.warn(`The image at ${faviconInfo.path} has dimensions different than the recommended for a favicon file. We are still going to use this file for the favicon but it is recommend to use an image with 16x16 or 32x32 to avoid issues with browsers`)
+    }
+
+    faviconInfo.size = dimension
+  } catch {}
 
   const titleTemplate = _.template(definition.options.title, titleTemplateSettings)
   // eslint-disable-next-line no-template-curly-in-string
@@ -179,7 +255,7 @@ module.exports = (reporter, definition) => {
     const app = reporter.express.app
 
     app.use(compression())
-    app.use(favicon(path.join(__dirname, '../static/favicon.ico')))
+    app.use(favicon(faviconInfo.content))
 
     // we put the route before webpack dev middleware to get the chance to do our own handling
     app.get(`/studio/assets/${mainCssFilename}`, async (req, res, next) => {
@@ -654,8 +730,17 @@ module.exports = (reporter, definition) => {
         title = defaultTitleTemplate(reporter)
       }
 
+      let faviconLink = `<link rel="icon" type="${faviconInfo.mimeType}"`
+
+      if (faviconInfo.size != null) {
+        faviconLink += ` sizes="${faviconInfo.size.width}x${faviconInfo.size.height}"`
+      }
+
+      faviconLink += ` href="${reporter.options.appPath}favicon.${faviconInfo.type}?${serverStartupHash}">`
+
       content = content.replace('$serverStartupHash', serverStartupHash)
       content = content.replace('$jsreportTitle', req.context.htmlTitle || title)
+      content = content.replace('$jsreportFaviconLink', faviconLink)
       content = content.replace('$defaultTheme', definition.options.theme.name)
       content = content.replace(/client\.[^.]+.js/, (match) => `${reporter.options.appPath}studio/assets/${match}`)
       content = content.replace(/main\.[^.]+.css/, (match) => `${reporter.options.appPath}studio/assets/${match}`)

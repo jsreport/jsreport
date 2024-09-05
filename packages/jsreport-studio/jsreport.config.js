@@ -9,6 +9,10 @@ module.exports = {
       studio: {
         type: 'object',
         properties: {
+          favicon: {
+            type: 'string',
+            description: 'specifies the path to a custom favicon to use in the studio'
+          },
           title: {
             type: 'string',
             description: 'The browser title that will be shown in studio, it accepts es6 template string for dynamic values',

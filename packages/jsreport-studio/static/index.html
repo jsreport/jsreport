@@ -6,6 +6,7 @@
     <meta name="author" content="jsreport.net">
     <meta name="description" content="jsreport - javascript business reports">
     <meta name="jsreport-server-startup-hash" content="$serverStartupHash" data-jsreport-server-startup-hash>
+    $jsreportFaviconLink
     <% for (var css in htmlWebpackPlugin.files.css) { %>
     <link href="<%= htmlWebpackPlugin.files.css[css] %>" data-default-jsreport-studio-theme="true" data-jsreport-studio-theme="$defaultTheme" rel="stylesheet">
     <% } %>
