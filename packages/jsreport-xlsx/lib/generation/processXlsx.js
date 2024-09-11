@@ -104,7 +104,7 @@ module.exports = (reporter) => async (inputs, req) => {
           // (size optimization) since the common case is that the handlebars call is
           // escaped {{}} expression, so instead we expect in the helper receive if the
           // value should be raw or not (the inverse of escape)
-          return `{{${callType} ${expressionValue}${escapeValue ? '' : ' 1'}${attrs}}}`
+          return `{{${callType} ${expressionValue}${escapeValue ? '' : ' 1'}${attrs} n="${expressionValue}"}}`
         }
 
         return normalizeAttributeAndTextNode(node)
@@ -123,13 +123,14 @@ module.exports = (reporter) => async (inputs, req) => {
 
     reporter.logger.debug('Starting child request to render xlsx dynamic parts for generation step', req)
 
-    const { content: newContent } = await reporter.render({
-      template: {
-        content: contentToRender,
-        engine: req.template.engine,
-        recipe: 'html',
-        helpers: req.template.helpers
-      }
+    const newContent = await reporter.templatingEngines.evaluate({
+      engine: req.template.engine,
+      content: contentToRender,
+      helpers: req.template.helpers,
+      data: req.data
+    }, {
+      entity: req.template,
+      entitySet: 'templates'
     }, req)
 
     // we remove NUL, VERTICAL TAB unicode characters, which are characters that are illegal in XML.

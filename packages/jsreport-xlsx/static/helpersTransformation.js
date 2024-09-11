@@ -109,7 +109,12 @@ const __xlsx = (function () {
       const lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
       const pathWithoutLastFragment = path.substring(0, lastFragmentIndex)
       const pathOfLastFragment = path.substring(lastFragmentIndex)
-      const holder = evalGet(options.data.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
+      let holder
+      try {
+        holder = evalGet(options.data.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
+      } catch (e) {
+        throw new Error(`Path ${pathWithoutLastFragment} in file ${filePath} doesn't exist. \n ${e}`)
+      }
 
       this.$replacedValue = evalGet(holder, pathOfLastFragment)
 

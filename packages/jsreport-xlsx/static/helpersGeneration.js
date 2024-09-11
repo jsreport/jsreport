@@ -1325,6 +1325,14 @@ function _T () {
     options = arguments[2]
   }
 
+  if (value === undefined) {
+    const Handlebars = require('handlebars')
+    if (Handlebars.helpers[options.hash.n]) {
+      value = Handlebars.helpers[options.hash.n]()
+      delete options.hash.n
+    }
+  }
+
   if (options.hash.t != null) {
     options.hash.__originalT__ = options.hash.t
   }

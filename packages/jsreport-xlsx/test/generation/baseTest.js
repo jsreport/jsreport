@@ -717,4 +717,40 @@ describe('xlsx generation - base', () => {
 
     should(sheet.B2.f).be.eql('B3 & " " & B4')
   })
+
+  it('folder scoped shared assets should be evaluated in generation', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderA',
+      shortid: 'folderA'
+    })
+    await reporter.documentStore.collection('assets').insert({
+      content: 'function a() { return \'hello form helper\' }',
+      name: 'assetA',
+      sharedHelpersScope: 'folder',
+      folder: { shortid: 'folderA' }
+    })
+    const template = await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'handlebars',
+      recipe: 'xlsx',
+      xlsx: {
+        templateAsset: {
+          content: fs.readFileSync(
+            path.join(xlsxDirPath, 'asset.xlsx')
+          )
+        }
+      },
+      folder: { shortid: 'folderA' }
+    })
+    const result = await reporter.render({
+      template
+    })
+
+    fs.writeFileSync('out.xlsx', result.content)
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.A1.v).be.eql('hello form helper')
+  })
 })
