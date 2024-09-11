@@ -2,8 +2,8 @@ const concatTags = require('./concatTags')
 const loop = require('./loop')
 const drawingObject = require('./drawingObject')
 
-module.exports = (files, meta) => {
+module.exports = (files, ctx) => {
   concatTags(files)
-  loop(files, meta)
-  drawingObject(files, meta)
+  loop(files, ctx)
+  drawingObject(files)
 }

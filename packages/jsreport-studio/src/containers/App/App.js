@@ -36,6 +36,58 @@ class App extends Component {
   }
 
   componentDidMount () {
+    // workaround for firefox triggering click event when releasing mouse on a clickable element
+    // during text selection
+
+    const isFirefox = typeof InstallTrigger !== 'undefined'
+
+    if (isFirefox) {
+      let isMouseDown = false
+      let isSelecting = false
+      let start = null
+      let stopNextClick = false
+
+      // it is tricky to solve this problem, in theory we should be able to use
+      // document.getSelection() and events like 'selectstart', 'selectionchange'
+      // however these events don't work as expected in firefox, so we need to use
+      // manual workaround by tracking mouse events
+      document.addEventListener('mousedown', (event) => {
+        isMouseDown = true
+        start = { x: event.clientX, y: event.clientY }
+      })
+
+      document.addEventListener('mousemove', (event) => {
+        if (isMouseDown) {
+          const current = { x: event.clientX, y: event.clientY }
+
+          if (Math.abs(current.x - start.x) > 0 || Math.abs(current.y - start.y) > 0) {
+            // user is selecting
+            isSelecting = true
+          } else {
+            isSelecting = false
+          }
+        }
+      })
+
+      document.addEventListener('mouseup', () => {
+        isMouseDown = false
+
+        if (isSelecting) {
+          stopNextClick = true
+        }
+
+        isSelecting = false
+      })
+
+      document.addEventListener('click', (event) => {
+        if (stopNextClick) {
+          stopNextClick = false
+          event.preventDefault()
+          event.stopPropagation()
+        }
+      }, true)
+    }
+
     window.onbeforeunload = () => {
       const canSaveAll = storeMethods.getEditorCanSaveAll()
 

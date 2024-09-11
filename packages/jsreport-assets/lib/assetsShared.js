@@ -142,7 +142,7 @@ async function readAsset (reporter, definition, { id, name, encoding, currentDir
       }
 
       return {
-        content: escape(Buffer.from(file.content || '').toString(encoding), file.filename),
+        content: encoding === 'buffer' ? file.content : escape(Buffer.from(file.content || '').toString(encoding), file.filename),
         filename: file.filename,
         modified: file.modified
       }
@@ -184,7 +184,7 @@ async function readAsset (reporter, definition, { id, name, encoding, currentDir
     const file = await readFile(reporter, definition, asset.link)
 
     return {
-      content: escape(Buffer.from(file.content).toString(encoding), file.filename),
+      content: encoding === 'buffer' ? file.content : escape(Buffer.from(file.content).toString(encoding), file.filename),
       filename: file.filename,
       modified: file.modified,
       entity: asset
@@ -194,7 +194,7 @@ async function readAsset (reporter, definition, { id, name, encoding, currentDir
   const buf = Buffer.from(asset.content || '')
 
   return {
-    content: escape(buf.toString(encoding), asset.name),
+    content: encoding === 'buffer' ? buf : escape(buf.toString(encoding), asset.name),
     buffer: buf,
     filename: asset.name,
     modified: asset.modificationDate || new Date(),

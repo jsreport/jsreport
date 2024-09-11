@@ -27,9 +27,9 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }
 
-    const meta = { options }
+    const ctx = { options }
 
-    await preprocess(files, meta)
+    await preprocess(files, ctx)
 
     const [filesToRender, styleFile] = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)))
 
@@ -112,7 +112,7 @@ module.exports = (reporter) => async (inputs, req) => {
 
       xmlStr = xmlStr.replace(/<xlsxRemove>/g, '').replace(/<\/xlsxRemove>/g, '')
 
-      if (meta.autofitConfigured && styleFile?.path === f.path) {
+      if (ctx.autofitConfigured && styleFile?.path === f.path) {
         xmlStr = `{{#_D t='style'}}${xmlStr}{{/_D}}`
       }
 
@@ -153,7 +153,7 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }
 
-    await postprocess(files, meta)
+    await postprocess(files, ctx)
 
     for (const f of files) {
       let shouldSerializeFromDoc = contentIsXML(f.data) && !isWorksheetFile(f.path)
@@ -189,7 +189,8 @@ function ensureOrderOfFiles (files) {
   // we want to ensure a specific order of files for the render processing,
   // 1. ensure style file comes as the first
   // 2. ensure calcChain.xml comes after sheet files (we just put it at the end of everything)
-  // this is required in child render for our handlebars logic to correctly update the calcChain
+  // this is required in child render for our handlebars logic to
+  // correctly handle processing of our helpers
   const calcChainIdx = files.findIndex((file) => file.path === 'xl/calcChain.xml')
   const filesSorted = []
 
