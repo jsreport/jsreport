@@ -2,7 +2,7 @@ const path = require('path')
 const { num2col } = require('xlsx-coordinates')
 const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getSheetInfo, getStyleFile, getStyleInfo } = require('../../utils')
 const { parseCellRef, getPixelWidthOfValue, getFontSizeFromStyle, evaluateCellRefsFromExpression } = require('../../cellUtils')
-const startLoopRegexp = /{{#each ([^{}]{0,500})}}/
+const startLoopRegexp = /{{#each\s+([^{|}]{0,500})(?:\s*(as\s+\|\w+\|))?\s*}}/
 
 module.exports = (files, ctx) => {
   // console.time('pre:loop process setup')
@@ -399,10 +399,13 @@ module.exports = (files, ctx) => {
         }
 
         // we want to put the loop wrapper around the row wrapper
-        currentRowLoopDetected.blockStartEl = processOpeningTag(sheetDoc, rowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
+        currentRowLoopDetected.blockStartEl = processOpeningTag(sheetDoc, rowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, dataExpressionPart, asPart) => {
           const parsedLoopStart = parseCellRef(currentRowLoopDetected.start.cellRef)
           const parsedLoopEnd = parseCellRef(currentRowLoopDetected.end.cellRef)
-          return `{{#_D ${valueInsideEachCall} t='loop' hierarchyId='${currentRowLoopDetected.hierarchyId}' start=${originalRowNumber} columnStart=${parsedLoopStart.columnNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
+          const targetDataExpressionPart = dataExpressionPart.trimEnd()
+          const targetAsPart = asPart != null && asPart !== '' ? ' ' + asPart.trim() : ''
+
+          return `{{#_D ${targetDataExpressionPart} t='loop' hierarchyId='${currentRowLoopDetected.hierarchyId}' start=${originalRowNumber} columnStart=${parsedLoopStart.columnNumber} columnEnd=${parsedLoopEnd.columnNumber}${targetAsPart}}}`
         }))
 
         // we want to put the loop wrapper around the row wrapper
@@ -451,10 +454,13 @@ module.exports = (files, ctx) => {
         }
 
         // we want to put the loop wrapper around the start row wrapper
-        currentBlockLoopDetected.blockStartEl = processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
+        currentBlockLoopDetected.blockStartEl = processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, dataExpressionPart, asPart) => {
           const parsedLoopStart = parseCellRef(currentBlockLoopDetected.start.cellRef)
           const parsedLoopEnd = parseCellRef(currentBlockLoopDetected.end.cellRef)
-          return `{{#_D ${valueInsideEachCall} t='loop' hierarchyId='${currentBlockLoopDetected.hierarchyId}' start=${currentBlockLoopDetected.start.originalRowNumber} columnStart=${parsedLoopStart.columnNumber} end=${currentBlockLoopDetected.end.originalRowNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
+          const targetDataExpressionPart = dataExpressionPart.trimEnd()
+          const targetAsPart = asPart != null && asPart !== '' ? ' ' + asPart.trim() : ''
+
+          return `{{#_D ${targetDataExpressionPart} t='loop' hierarchyId='${currentBlockLoopDetected.hierarchyId}' start=${currentBlockLoopDetected.start.originalRowNumber} columnStart=${parsedLoopStart.columnNumber} end=${currentBlockLoopDetected.end.originalRowNumber} columnEnd=${parsedLoopEnd.columnNumber}${targetAsPart}}}`
         }))
 
         // we want to put the loop wrapper around the end row wrapper
@@ -491,7 +497,7 @@ module.exports = (files, ctx) => {
           newTextValue = cellInfo.value
         }
 
-        const handlebarsRegexp = /{{{?(#[\w-]+ )?([\w-]+[^\n\r}]*)}?}}/g
+        const handlebarsRegexp = /{{{?(#[\w-]+\s+)?([\w-]+[^\n\r}]*)}?}}/g
         const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
         const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
 
