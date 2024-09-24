@@ -249,6 +249,7 @@ const __xlsxD = (function () {
     const columnEnd = options.hash.columnEnd
     const hierarchyId = options.hash.hierarchyId
     const newData = Handlebars.createFrame(options.data)
+    const isVertical = Object.hasOwn(options.hash, 'vertical')
 
     assertOk(start != null, 'start arg is required')
     assertOk(columnStart != null, 'columnStart arg is required')
@@ -266,8 +267,16 @@ const __xlsxD = (function () {
       targetData = [{}]
     }
 
+    let type
+
+    if (isVertical) {
+      type = 'vertical'
+    } else {
+      type = end == null ? 'row' : 'block'
+    }
+
     const loopItem = {
-      type: end == null ? 'row' : 'block',
+      type,
       id: null,
       hierarchyId,
       start,
@@ -278,6 +287,10 @@ const __xlsxD = (function () {
       parentLoopIndex: options.data.index,
       children: [],
       completed: false
+    }
+
+    if (type === 'vertical') {
+      loopItem.rowNumber = options.data.r
     }
 
     const parentLoopItem = getParentLoopItemByHierarchy(loopItem, newData.loopItems)
@@ -354,66 +367,15 @@ const __xlsxD = (function () {
 
     const newData = Handlebars.createFrame(options.data)
 
-    const currentLoopItem = getCurrentLoopItem(newData.currentLoopId, newData.loopItems)
-    // this gets the previous loops (loops defined before a cell) and also on the case of nested loops
-    // all the previous executions of the current loop
-    const previousLoopItems = getPreviousLoopItems(newData.currentLoopId, newData.evaluatedLoopsIds, newData.loopItems)
-
-    const previousMeta = {
-      prev: {
-        total: 0,
-        rowLoopLength: 0
-      },
-      rest: {
-        total: 0,
-        rowLoopLength: 0
+    const { increment, currentLoopIncrement, previousRootLoopIncrement, previousLoopIncrement } = getIncrementWithLoop(
+      'row',
+      {
+        loopId: newData.currentLoopId,
+        loopIndex: options.data.index,
+        evaluatedLoopsIds: newData.evaluatedLoopsIds,
+        loopItems: newData.loopItems
       }
-    }
-
-    const currentRootLoopIdNum = newData.currentLoopId != null ? parseInt(newData.currentLoopId.split('#')[0], 10) : -1
-
-    let currentLoopIncrement = 0
-
-    for (const item of previousLoopItems) {
-      const previousRootLoopIdNum = parseInt(item.id.split('#')[0], 10)
-      const isPrev = currentRootLoopIdNum === -1 ? true : previousRootLoopIdNum < currentRootLoopIdNum
-      let loopItemsLength = 0
-      const target = isPrev ? previousMeta.prev : previousMeta.rest
-
-      if (item.type === 'block') {
-        loopItemsLength += getLoopItemTemplateLength(item) * (item.length - 1)
-      } else {
-        loopItemsLength += item.length
-        target.rowLoopLength += 1
-      }
-
-      target.total += loopItemsLength
-    }
-
-    const previousRootLoopIncrement = previousMeta.prev.total + (previousMeta.prev.rowLoopLength > 0 ? previousMeta.prev.rowLoopLength * -1 : 0)
-    const previousLoopIncrement = previousRootLoopIncrement + previousMeta.rest.total + (previousMeta.rest.rowLoopLength > 0 ? previousMeta.rest.rowLoopLength * -1 : 0)
-
-    if (currentLoopItem) {
-      const loopIndex = options.data.index
-
-      assertOk(loopIndex != null, 'expected loop index to be defined')
-
-      const parents = getParentsLoopItems(currentLoopItem.id, newData.loopItems)
-      let parentLoopIndex = currentLoopItem.parentLoopIndex
-
-      parents.reverse()
-
-      for (const parentLoopItem of parents) {
-        currentLoopIncrement += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
-        parentLoopIndex = parentLoopItem.parentLoopIndex
-      }
-
-      const templateLength = getLoopItemTemplateLength(currentLoopItem)
-
-      currentLoopIncrement = currentLoopIncrement + (templateLength * loopIndex)
-    }
-
-    const increment = previousLoopIncrement + currentLoopIncrement
+    )
 
     newData.originalRowNumber = originalRowNumber
     newData.r = originalRowNumber + increment
@@ -445,9 +407,24 @@ const __xlsxD = (function () {
     assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
     assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
 
-    const { parseCellRef } = require('cellUtils')
+    const { parseCellRef, getNewCellLetter } = require('cellUtils')
     const originalCellRef = `${originalCellLetter}${originalRowNumber}`
-    const updatedCellRef = `${originalCellLetter}${rowNumber}`
+
+    const cellLetter = getNewCellLetter(
+      originalCellLetter,
+      getIncrementWithLoop(
+        'column',
+        {
+          loopId: options.data.currentLoopId,
+          loopIndex: options.data.index,
+          rowNumber: options.data.r,
+          evaluatedLoopsIds: options.data.evaluatedLoopsIds,
+          loopItems: options.data.loopItems
+        }
+      ).increment
+    )
+
+    const updatedCellRef = `${cellLetter}${rowNumber}`
 
     // keeping the lastCellRef updated
     if (options.data.meta.lastCellRef == null) {
@@ -930,43 +907,97 @@ const __xlsxD = (function () {
     return options.fn()
   }
 
-  function getLoopItemById (byTarget, loopItems) {
-    assertOk(byTarget != null, 'getLoopItemById byTarget arg is required')
-    assertOk(Array.isArray(loopItems), 'getLoopItemById loopItems arg is invalid')
+  function getIncrementWithLoop (mode, { loopId, loopIndex, rowNumber, evaluatedLoopsIds, loopItems }) {
+    if (mode !== 'row' && mode !== 'column') {
+      throw new Error('mode must be "row" or "column"')
+    }
 
-    const { idName, idValue } = byTarget
+    if (mode === 'column' && rowNumber == null) {
+      throw new Error('rowNumber must be specified when using column mode')
+    }
 
-    assertOk(idName != null, 'getLoopItemById byTarget.idName arg is required')
-    assertOk(typeof idName === 'string', 'getLoopItemById byTarget.idName arg is invalid')
-    assertOk(idName === 'hierarchyId' || idName === 'id', 'getLoopItemById byTarget.idName should be either "hierarchyId" or "id"')
-    assertOk(idValue != null, 'getLoopItemById byTarget.idValue arg is required')
-    assertOk(typeof idValue === 'string', 'getLoopItemById byTarget.idValue arg is invalid')
+    const currentLoopItem = getCurrentLoopItem(loopId, loopItems)
+    // this gets the previous loops (loops defined before a cell) and also on the case of nested loops
+    // all the previous executions of the current loop
+    const previousLoopItems = getPreviousLoopItems(loopId, evaluatedLoopsIds, loopItems)
 
-    const idParts = idValue.split('#')
-    let ctx = { children: loopItems }
-    let targetIdValue = ''
-    let parent
-
-    while (idParts.length > 0) {
-      const idx = idParts.shift()
-
-      targetIdValue = targetIdValue !== '' ? `${targetIdValue}#${idx}` : `${idx}`
-
-      const matches = ctx.children.filter((c) => c[idName] === targetIdValue)
-      const result = matches[matches.length - 1]
-
-      if (result == null) {
-        break
-      }
-
-      ctx = result
-
-      if (idParts.length === 0) {
-        parent = ctx
+    const previousMeta = {
+      prev: {
+        total: 0,
+        loopLength: 0
+      },
+      rest: {
+        total: 0,
+        loopLength: 0
       }
     }
 
-    return parent
+    const currentRootLoopIdNum = loopId != null ? parseInt(loopId.split('#')[0], 10) : -1
+
+    let currentLoopIncrement = 0
+
+    const validForColumnMode = ['vertical']
+    const validForRowMode = ['row', 'block']
+
+    const isValid = (cLoop) => {
+      return mode === 'column' ? validForColumnMode.includes(cLoop.type) : validForRowMode.includes(cLoop.type)
+    }
+
+    const isValidPrevious = (cLoop, cRowNumber) => {
+      const valid = isValid(cLoop)
+
+      if (valid) {
+        return mode === 'column' ? cLoop.rowNumber === cRowNumber : true
+      }
+
+      return valid
+    }
+
+    const isBlock = (cLoop) => mode === 'column' ? false : cLoop.type === 'block'
+
+    for (const item of previousLoopItems) {
+      const previousRootLoopIdNum = parseInt(item.id.split('#')[0], 10)
+      const isPrev = currentRootLoopIdNum === -1 ? true : previousRootLoopIdNum < currentRootLoopIdNum
+      let loopItemsLength = 0
+      const target = isPrev ? previousMeta.prev : previousMeta.rest
+
+      if (isValidPrevious(item, rowNumber)) {
+        if (isBlock(item)) {
+          loopItemsLength += getLoopItemTemplateLength(item) * (item.length - 1)
+        } else {
+          loopItemsLength += item.length
+          target.loopLength += 1
+        }
+      }
+
+      target.total += loopItemsLength
+    }
+
+    const previousRootLoopIncrement = previousMeta.prev.total + (previousMeta.prev.loopLength > 0 ? previousMeta.prev.loopLength * -1 : 0)
+    const previousLoopIncrement = previousRootLoopIncrement + previousMeta.rest.total + (previousMeta.rest.loopLength > 0 ? previousMeta.rest.loopLength * -1 : 0)
+
+    if (currentLoopItem) {
+      assertOk(loopIndex != null, 'expected loop index to be defined')
+
+      const parents = getParentsLoopItems(currentLoopItem.id, loopItems)
+      let parentLoopIndex = currentLoopItem.parentLoopIndex
+
+      parents.reverse()
+
+      for (const parentLoopItem of parents) {
+        currentLoopIncrement += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
+        parentLoopIndex = parentLoopItem.parentLoopIndex
+      }
+
+      if (isValid(currentLoopItem)) {
+        const templateLength = getLoopItemTemplateLength(currentLoopItem)
+        currentLoopIncrement = currentLoopIncrement + (templateLength * loopIndex)
+      }
+    }
+
+    const increment = previousLoopIncrement + currentLoopIncrement
+
+    return { increment, currentLoopIncrement, previousRootLoopIncrement, previousLoopIncrement }
   }
 
   function getParentLoopItemByHierarchy (childLoopItem, loopItems) {
@@ -1096,6 +1127,45 @@ const __xlsxD = (function () {
     }
 
     return results
+  }
+
+  function getLoopItemById (byTarget, loopItems) {
+    assertOk(byTarget != null, 'getLoopItemById byTarget arg is required')
+    assertOk(Array.isArray(loopItems), 'getLoopItemById loopItems arg is invalid')
+
+    const { idName, idValue } = byTarget
+
+    assertOk(idName != null, 'getLoopItemById byTarget.idName arg is required')
+    assertOk(typeof idName === 'string', 'getLoopItemById byTarget.idName arg is invalid')
+    assertOk(idName === 'hierarchyId' || idName === 'id', 'getLoopItemById byTarget.idName should be either "hierarchyId" or "id"')
+    assertOk(idValue != null, 'getLoopItemById byTarget.idValue arg is required')
+    assertOk(typeof idValue === 'string', 'getLoopItemById byTarget.idValue arg is invalid')
+
+    const idParts = idValue.split('#')
+    let ctx = { children: loopItems }
+    let targetIdValue = ''
+    let parent
+
+    while (idParts.length > 0) {
+      const idx = idParts.shift()
+
+      targetIdValue = targetIdValue !== '' ? `${targetIdValue}#${idx}` : `${idx}`
+
+      const matches = ctx.children.filter((c) => c[idName] === targetIdValue)
+      const result = matches[matches.length - 1]
+
+      if (result == null) {
+        break
+      }
+
+      ctx = result
+
+      if (idParts.length === 0) {
+        parent = ctx
+      }
+    }
+
+    return parent
   }
 
   function getNewCellRef (cellRefInput, originLoopMeta, mode = 'standalone', context) {
@@ -1327,10 +1397,13 @@ function _T () {
 
   if (value === undefined) {
     const Handlebars = require('handlebars')
-    if (Handlebars.helpers[options.hash.n]) {
-      value = Handlebars.helpers[options.hash.n]()
-      delete options.hash.n
+    if (Handlebars.helpers[options.hash._n]) {
+      value = Handlebars.helpers[options.hash._n]()
     }
+  }
+
+  if (options.hash._n !== null) {
+    delete options.hash._n
   }
 
   if (options.hash.t != null) {
@@ -1366,6 +1439,17 @@ function _t () {
     value = arguments[0]
     raw = arguments[1] === 1
     options = arguments[2]
+  }
+
+  if (value === undefined) {
+    const Handlebars = require('handlebars')
+    if (Handlebars.helpers[options.hash._n]) {
+      value = Handlebars.helpers[options.hash._n]()
+    }
+  }
+
+  if (options.hash._n !== null) {
+    delete options.hash._n
   }
 
   if (options.hash.t != null) {

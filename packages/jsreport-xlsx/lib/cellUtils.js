@@ -1,5 +1,5 @@
 const { decode } = require('html-entities')
-const { col2num } = require('xlsx-coordinates')
+const { col2num, num2col } = require('xlsx-coordinates')
 const pixelWidth = require('string-pixel-width')
 
 const CELL_REG_REGEXP = /^(?:('?(?:\[([A-Za-z0-9_. ]+\.xlsx)\])?([A-Za-z0-9_. ]+)'?)!)?(\$?[A-Z]+)(\$?\d+)$/
@@ -67,6 +67,20 @@ function parseCellRef (cellRef, parsedStartCellRef) {
     lockedRow,
     rowNumber: parseInt(lockedRow ? matches[5].slice(1) : matches[5], 10)
   }
+}
+
+function getNewCellLetter (cellLetter, increment) {
+  if (typeof increment !== 'number' || isNaN(increment)) {
+    throw new Error('Increment must be a number')
+  }
+
+  const colNumber = col2num(cellLetter) + increment
+
+  if (colNumber < 0) {
+    throw new Error('Column number can not be negative')
+  }
+
+  return num2col(colNumber)
 }
 
 function getPixelWidthOfValue (value, fontSize) {
@@ -393,6 +407,7 @@ function decodeXML (str) {
 }
 
 module.exports.parseCellRef = parseCellRef
+module.exports.getNewCellLetter = getNewCellLetter
 module.exports.getPixelWidthOfValue = getPixelWidthOfValue
 module.exports.getFontSizeFromStyle = getFontSizeFromStyle
 module.exports.evaluateCellRefsFromExpression = evaluateCellRefsFromExpression
