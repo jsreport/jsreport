@@ -39,6 +39,10 @@ module.exports = async function (reporter, definition) {
 
     const chromeExeName = reporter.execution.value('chromeExeName')
 
+    // we let the user to customize the path to exe
+    if (reporter.options.chrome.launchOptions.executablePath != null) {
+      return
+    }
     reporter.options.chrome.launchOptions.executablePath = path.join(
       path.dirname(zipPath),
       'chrome',
