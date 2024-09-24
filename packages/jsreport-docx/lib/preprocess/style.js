@@ -12,7 +12,9 @@ const { findCommonParent } = require('../styleUtils')
 // the <docxStyle> node will then include the handlebars generated values for color
 
 const docxStyleCallRegExp = /{{#docxStyle [^{}]{0,500}}}/
-const validParents = ['w:p', 'w:tc', 'w:tr']
+// here we added w:tbl just because we want to max parent to be it,
+// and want that if possible {{#docxSData type='styles'}} to be inserted as wrapper of table
+const validParents = ['w:p', 'w:tc', 'w:tr', 'w:tbl']
 
 let styleIdCounter = 1
 
