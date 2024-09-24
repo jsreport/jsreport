@@ -1182,32 +1182,110 @@ describe('authorization', () => {
   })
 
   it('inserting entity should recalculate visibility on folders (nested - permissions on folder)', async () => {
+    await reporter.documentStore.collection('users').insert({
+      _id: 'u1',
+      name: 'u1',
+      password: 'u1',
+      shortid: 'u1'
+    })
+
+    await reporter.documentStore.collection('users').insert({
+      _id: 'u2',
+      name: 'u2',
+      password: 'u2',
+      shortid: 'u2'
+    })
+
     await reporter.documentStore.collection('folders').insert({
-      name: 'foldera',
-      shortid: 'foldera'
+      name: 'root',
+      shortid: 'root'
     }, reqAdmin())
 
     await reporter.documentStore.collection('folders').insert({
-      name: 'folderb',
-      shortid: 'folderb',
+      name: 'a',
+      shortid: 'a',
       folder: {
-        shortid: 'foldera'
+        shortid: 'root'
       },
-      editPermissions: [req1().context.user._id]
+      readPermissions: ['u1']
     }, reqAdmin())
 
-    await reporter.documentStore.collection('templates').insert({
-      name: 'template',
-      engine: 'none',
-      content: 'foo',
-      recipe: 'html',
+    await reporter.documentStore.collection('folders').insert({
+      name: 'b',
+      shortid: 'b',
       folder: {
-        shortid: 'folderb'
+        shortid: 'root'
+      },
+      readPermissions: ['u2']
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'aa',
+      shortid: 'aa',
+      folder: {
+        shortid: 'a'
       }
     }, reqAdmin())
 
-    const count = await reporter.documentStore.collection('folders').count({}, req1())
-    count.should.be.eql(2)
+    const root = await reporter.documentStore.collection('folders').findOne({ name: 'root' }, reqAdmin())
+    root.visibilityPermissions.should.have.length(2)
+  })
+
+  it('inserting entity should recalculate visibility on folders (nested - permissions on folder) based on user groups', async () => {
+    await reporter.documentStore.collection('users').insert({
+      _id: 'u1',
+      name: 'u1',
+      password: 'u1',
+      shortid: 'u1'
+    })
+
+    await reporter.documentStore.collection('users').insert({
+      _id: 'u2',
+      name: 'u2',
+      password: 'u2',
+      shortid: 'u2'
+    })
+
+    await reporter.documentStore.collection('usersGroups').insert({
+      _id: 'g',
+      name: 'g',
+      shortid: 'g',
+      users: [{ shortid: 'u1' }]
+    })
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'root',
+      shortid: 'root'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'a',
+      shortid: 'a',
+      folder: {
+        shortid: 'root'
+      },
+      readPermissions: ['u1']
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'b',
+      shortid: 'b',
+      folder: {
+        shortid: 'root'
+      },
+      readPermissionsGroup: ['g']
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'aa',
+      shortid: 'aa',
+      folder: {
+        shortid: 'a'
+      }
+    }, reqAdmin())
+
+    const root = await reporter.documentStore.collection('folders').findOne({ name: 'root' }, reqAdmin())
+    root.visibilityPermissions.should.have.length(2)
   })
 
   it('updating folder permissions should preserve inherited permissions in its children', async () => {

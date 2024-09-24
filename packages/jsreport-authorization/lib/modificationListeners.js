@@ -1,5 +1,6 @@
 const extend = require('node.extend.without.arrays')
 const AssertPermissions = require('./assertPermissions.js')
+const _omit = require('lodash.omit')
 
 const {
   collectEntitiesInHierarchy,
@@ -38,7 +39,8 @@ module.exports = (reporter) => {
           }
         }
 
-        await propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)
+        await
+        propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)
 
         await assertPermissions.assertInsert(col, doc, req)
       })
@@ -337,41 +339,13 @@ async function propagateVisibilityPermissions (reporter, entity, { permissions =
   let entities = await collectEntitiesAtSameLevel(reporter, folder, adminReq)
   entities = entities.filter(e => e._id !== entity._id)
 
-  const finalVisibilityPermissionsSet = new Set([...permissions])
+  const visibilityPermissionsSet = new Set([...permissions])
 
   for (const e of entities) {
-    if (e.editPermissions) {
-      e.editPermissions.forEach(p => finalVisibilityPermissionsSet.add(p))
-    }
-
-    if (e.readPermissions) {
-      e.readPermissions.forEach(p => finalVisibilityPermissionsSet.add(p))
-    }
-
-    if (e.visibilityPermissions) {
-      e.visibilityPermissions.forEach(p => finalVisibilityPermissionsSet.add(p))
-    }
-
-    const {
-      readPermissions: inheritedReadPermissionsFromGroup,
-      editPermissions: inheritedEditPermissionsFromGroup
-    } = await collectPermissionsFromEntityGroups(reporter, { entity: e, groupUsers }, adminReq)
-
-    inheritedReadPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
-    inheritedEditPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
+    await collectVisibilityPermissionsFromEntity(reporter, e, groupUsers, adminReq, visibilityPermissionsSet)
   }
 
-  for (const pFolder of folders) {
-    const {
-      readPermissions: inheritedReadPermissionsFromGroup,
-      editPermissions: inheritedEditPermissionsFromGroup
-    } = await collectPermissionsFromEntityGroups(reporter, { entity: pFolder, groupUsers }, adminReq)
-
-    inheritedReadPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
-    inheritedEditPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
-  }
-
-  const finalVisibilityPermissions = [...finalVisibilityPermissionsSet]
+  await collectVisibilityPermissionsFromEntity(reporter, _omit(folder, 'visibilityPermissions'), groupUsers, adminReq, visibilityPermissionsSet)
 
   for (const f of folders) {
     const q = {
@@ -382,6 +356,19 @@ async function propagateVisibilityPermissions (reporter, entity, { permissions =
       adminReq.context.skipAuthorizationForUpdate = q
     }
 
+    if (f._id !== folder._id) {
+      const childFolders = await reporter.documentStore.collection('folders').find({
+        folder: { shortid: f.shortid }
+      },
+      adminReq
+      )
+
+      for (const childFolder of childFolders) {
+        await collectVisibilityPermissionsFromEntity(reporter, childFolder, groupUsers, adminReq, visibilityPermissionsSet)
+      }
+    }
+
+    const finalVisibilityPermissions = [...visibilityPermissionsSet]
     if (arraysEqual(f.visibilityPermissions, finalVisibilityPermissions)) {
       continue
     }
@@ -396,6 +383,28 @@ async function propagateVisibilityPermissions (reporter, entity, { permissions =
       adminReq
     )
   }
+}
+
+async function collectVisibilityPermissionsFromEntity (reporter, entity, groupUsers, adminReq, visibilityPermissionsSet) {
+  if (entity.editPermissions) {
+    entity.editPermissions.forEach(p => visibilityPermissionsSet.add(p))
+  }
+
+  if (entity.readPermissions) {
+    entity.readPermissions.forEach(p => visibilityPermissionsSet.add(p))
+  }
+
+  if (entity.visibilityPermissions) {
+    entity.visibilityPermissions.forEach(p => visibilityPermissionsSet.add(p))
+  }
+
+  const {
+    readPermissions: inheritedReadPermissionsFromGroup,
+    editPermissions: inheritedEditPermissionsFromGroup
+  } = await collectPermissionsFromEntityGroups(reporter, { entity, groupUsers }, adminReq)
+
+  inheritedReadPermissionsFromGroup.forEach(p => visibilityPermissionsSet.add(p))
+  inheritedEditPermissionsFromGroup.forEach(p => visibilityPermissionsSet.add(p))
 }
 
 function entitiesDontNeedPermissionsPropagation (a, b) {
