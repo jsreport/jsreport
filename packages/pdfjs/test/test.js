@@ -506,6 +506,25 @@ describe('pdfjs', () => {
     texts[0].should.be.eql('a')
   })
 
+  it('processText should support page Contents as array', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'page-contents-array.pdf')))
+    document.append(external)
+
+    let docText = ''
+    await document.processText({
+      resolver: (text) => {
+        docText += text
+      }
+    })
+    await document.asBuffer()
+
+    // the external PDF contains unsuported text commands like
+    // [(pement \351lectrique ou \351lectr)6.1 (onique usag\351 dans la limite de la quantit\351)-15 ( )]TJ
+    // in future we may support it, but at this moment it isn't important because text parsing is primarily used for embedding hidden marks with chrome
+    docText.should.containEql('amiable')
+  })
+
   it('acroform with text type', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))

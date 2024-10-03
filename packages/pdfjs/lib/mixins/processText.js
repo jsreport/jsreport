@@ -3,6 +3,7 @@ const StringStream = require('../pdfjs-ext/core/stream.js').StringStream
 const unicode = require('../pdfjs-ext/core/unicode.js')
 const normalizedUnicodes = unicode.getNormalizedUnicodes()
 const zlib = require('zlib')
+const PDF = require('../object')
 
 module.exports = (doc) => {
   doc.processText = (options) => doc.finalizers.push(() => processText(doc, options))
@@ -16,7 +17,14 @@ async function processText (doc, { resolver }) {
   let pageIndex = 0
   const pages = doc.pages
   for (const pageObject of pages) {
-    const streamObject = pageObject.properties.get('Contents').object.content
+    let streamObject
+    if (Array.isArray(pageObject.properties.get('Contents'))) {
+      streamObject = concatStreams(pageObject.properties.get('Contents'))
+    } else {
+      const contentsObject = pageObject.properties.get('Contents').object
+      streamObject = contentsObject.content
+    }
+
     await processStream({
       doc,
       streamObject,
@@ -289,4 +297,23 @@ async function parseText (ext) {
     })
   }
   return result
+}
+
+function concatStreams (streams) {
+  const buffers = []
+  for (const content of streams) {
+    const pageStreamObject = content.object?.content?.object
+    if (pageStreamObject) {
+      const filterProp = pageStreamObject.properties.get('Filter')
+      if (filterProp && filterProp.name === 'FlateDecode') {
+        buffers.push(zlib.unzipSync(pageStreamObject.content.content))
+      }
+    }
+  }
+  const contentsObject = new PDF.Object('Contents')
+  const streamObject = new PDF.Stream(contentsObject)
+  streamObject.content = zlib.deflateSync(Buffer.concat(buffers))
+  contentsObject.prop('Length', streamObject.content.length)
+  contentsObject.prop('Filter', 'FlateDecode')
+  return streamObject
 }
