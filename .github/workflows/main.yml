@@ -21,18 +21,8 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: Restore yarn workspaces
-        id: yarn-cache
-        uses: pat-s/always-upload-cache@v2.1.5
-        with:
-          path: |
-            node_modules
-            **/node_modules
-            ~/.cache/puppeteer
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - name: Install dependencies
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: rm yarn.lock && yarn install --no-progress --non-interactive
+      
+      - name: Install dependencies        
+        run: yarn install --no-progress --non-interactive
 
       - run: yarn test
