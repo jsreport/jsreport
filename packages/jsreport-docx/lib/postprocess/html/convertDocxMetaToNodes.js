@@ -1306,7 +1306,7 @@ async function addOrGetNumbering (files, listInfo, cache) {
           }
 
           const opts = {
-            start: 1,
+            start: listInfo.start ?? 1,
             numFmt,
             text,
             jc: 'left',
