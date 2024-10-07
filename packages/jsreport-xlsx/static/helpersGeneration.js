@@ -985,7 +985,10 @@ const __xlsxD = (function () {
       parents.reverse()
 
       for (const parentLoopItem of parents) {
-        currentLoopIncrement += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
+        if (isValid(parentLoopItem)) {
+          currentLoopIncrement += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
+        }
+
         parentLoopIndex = parentLoopItem.parentLoopIndex
       }
 
