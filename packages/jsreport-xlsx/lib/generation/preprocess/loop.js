@@ -281,13 +281,25 @@ module.exports = (files, ctx) => {
           let remainingToCheck = info.value
           let lastStartCall = ''
 
+          const normalizeIfVerticalLoop = (cLoop, callStr) => {
+            if (cLoop?.end == null && callStr !== '') {
+              const loopHelperCall = callStr.match(startLoopRegexp)[0]
+              const isVertical = cLoop.type === 'block' && loopHelperCall != null && loopHelperCall.includes('vertical=')
+
+              if (isVertical) {
+                cLoop.type = 'vertical'
+              }
+            }
+          }
+
           do {
             const match = remainingToCheck.match(loopStartOrEndRegExp)
-            const currentLoopDetected = getLatestNotClosedLoop(loopsDetected)
+            let currentLoopDetected = getLatestNotClosedLoop(loopsDetected)
 
             if (match != null) {
               const partType = match[0] === '{{#each' ? 'start' : 'end'
               let inlineLoop = false
+              let newLoopItem
 
               if (currentLoopDetected != null && partType === 'end') {
                 // if loop starts and end in same cell then
@@ -297,11 +309,30 @@ module.exports = (files, ctx) => {
                   inlineLoop = true
                   loopsDetected.pop()
                 } else {
+                  if (currentLoopDetected.type === 'vertical') {
+                    let foundMatchingVerticalLoop = false
+                    const latestNotClosedLoops = getLatestNotClosedLoop(loopsDetected, true).reverse()
+
+                    for (const latestLoop of latestNotClosedLoops) {
+                      if (latestLoop.type === 'vertical' && parsedCellRef.columnNumber === latestLoop.start.originalColumnNumber) {
+                        foundMatchingVerticalLoop = latestLoop
+                        break
+                      }
+                    }
+
+                    if (!foundMatchingVerticalLoop) {
+                      throw new Error(`Unable to match start {{#each}} and end {{/each}} of vertical loop for multiple rows in ${f.path}. both start and end of loop must be on same column`)
+                    }
+
+                    currentLoopDetected = foundMatchingVerticalLoop
+                  }
+
                   currentLoopDetected.end = {
                     el: cellEl,
                     cellRef,
                     info,
-                    originalRowNumber
+                    originalRowNumber,
+                    originalColumnNumber: parsedCellRef.columnNumber
                   }
 
                   if (currentLoopDetected.end.originalRowNumber === currentLoopDetected.start.originalRowNumber) {
@@ -309,12 +340,16 @@ module.exports = (files, ctx) => {
                   }
                 }
               } else if (partType === 'start') {
-                const hierarchyIdPrefix = currentLoopDetected == null ? '' : `${currentLoopDetected.hierarchyId}#`
-                const hierarchyIdCounter = currentLoopDetected == null ? loopsDetected.length : currentLoopDetected.children.length
+                normalizeIfVerticalLoop(currentLoopDetected, lastStartCall)
+
+                const isNested = currentLoopDetected != null && currentLoopDetected.type !== 'vertical'
+
+                const hierarchyIdPrefix = isNested ? `${currentLoopDetected.hierarchyId}#` : ''
+                const hierarchyIdCounter = isNested ? currentLoopDetected.children.length : loopsDetected.length
 
                 const hierarchyId = `${hierarchyIdPrefix}${hierarchyIdCounter}`
 
-                const newLoopItem = {
+                newLoopItem = {
                   type: 'block',
                   hierarchyId,
                   blockStartEl: null,
@@ -324,11 +359,12 @@ module.exports = (files, ctx) => {
                     el: cellEl,
                     cellRef,
                     info,
-                    originalRowNumber
+                    originalRowNumber,
+                    originalColumnNumber: parsedCellRef.columnNumber
                   }
                 }
 
-                if (currentLoopDetected != null) {
+                if (isNested) {
                   currentLoopDetected.children.push(newLoopItem)
                 }
 
@@ -352,12 +388,14 @@ module.exports = (files, ctx) => {
 
               if (partType === 'start') {
                 lastStartCall = remainingToCheck.slice(match.index, lastPartIdx)
+                newLoopItem.start.helperCall = lastStartCall
               }
 
               remainingToCheck = remainingToCheck.slice(lastPartIdx)
             } else {
               textWithoutLoopParts.push(remainingToCheck)
               remainingToCheck = ''
+              normalizeIfVerticalLoop(currentLoopDetected, lastStartCall)
             }
           } while (remainingToCheck !== '')
 
@@ -421,8 +459,8 @@ module.exports = (files, ctx) => {
 
         const startingRowEl = currentLoop.start.el.parentNode
         const endingRowEl = currentLoop.end.el.parentNode
-        const loopHelperCall = currentLoop.start.info.value.match(startLoopRegexp)[0]
-        const isVertical = currentLoop.type === 'block' && loopHelperCall.includes('vertical=')
+        const loopHelperCall = currentLoop.start.helperCall
+        const isVertical = currentLoop.type === 'vertical'
 
         const outOfLoopTypes = []
         const previousEls = getCellElsAndWrappersFrom(currentLoop.start.el, 'previous')
@@ -476,10 +514,6 @@ module.exports = (files, ctx) => {
         }
 
         if (isVertical) {
-          if (parsedLoopStart.columnNumber !== parsedLoopEnd.columnNumber) {
-            throw new Error(`Unable to math start {{#each}} and end {{/each}} of vertical loop for multiple rows in ${f.path}. both start and end of loop must be on same column`)
-          }
-
           const affectedRowNumbers = previousRows.filter(([pRowNumber]) => {
             return (
               pRowNumber >= parsedLoopStart.rowNumber &&
@@ -576,18 +610,51 @@ module.exports = (files, ctx) => {
         const rowHandlebarsWrapperText = type === 'left' ? startingRowEl.previousSibling.textContent : endingRowEl.previousSibling.textContent
 
         const toCloneEls = []
+        const currentRowNumber = type === 'left' ? loopDetected.start.originalRowNumber : loopDetected.end.originalRowNumber
         const currentEl = type === 'left' ? loopDetected.start.el : loopDetected.end.el
 
+        const remainingCellRefsInRow = cellsByRowMap.get(currentRowNumber).filter((cellRef) => {
+          const parsedCellRef = parseCellRef(cellRef)
+
+          if (type === 'left') {
+            return parsedCellRef.columnNumber < loopDetected.start.originalColumnNumber
+          }
+
+          return parsedCellRef.columnNumber > loopDetected.end.originalColumnNumber
+        })
+
+        const els = getCellElsAndWrappersFrom(currentEl, type === 'left' ? 'previous' : 'next')
+
         if (type === 'left') {
-          toCloneEls.push(...getCellElsAndWrappersFrom(currentEl, 'previous'))
-          toCloneEls.reverse()
-        } else {
-          toCloneEls.push(...getCellElsAndWrappersFrom(currentEl, 'next'))
+          els.reverse()
         }
 
-        for (const toCloneEl of toCloneEls) {
+        const items = []
+        let idx = 0
+
+        for (const cEl of els) {
+          const item = [cEl]
+
+          if (cEl.nodeName === 'c') {
+            item.push(remainingCellRefsInRow[idx])
+            idx++
+          }
+
+          items.push(item)
+        }
+
+        toCloneEls.push(...items)
+
+        for (const [toCloneEl, cellRef] of toCloneEls) {
           const newEl = toCloneEl.cloneNode(true)
           outOfLoopEl.appendChild(newEl)
+
+          if (cellRef != null) {
+            // updating map of cellEl references
+            const stored = cellsElsByRefMap.get(cellRef)
+            stored[0] = newEl
+          }
+
           toCloneEl.parentNode.removeChild(toCloneEl)
         }
 
@@ -647,35 +714,25 @@ module.exports = (files, ctx) => {
       const isLast = idx === mergeCellElsToHandle.length - 1
       const newMergeCellCallEl = sheetDoc.createElement('xlsxRemove')
 
-      newMergeCellCallEl.textContent = `{{_D t='m' o='${ref}'}}`
-
       const mergeStartCellRef = ref.split(':')[0]
       const parsedMergeStart = parseCellRef(mergeStartCellRef)
+      const mergeStartMatch = cellsElsByRefMap.get(mergeStartCellRef)
 
-      // we check here if there is a loop that start/end in the same row of merged cell
-      // (this does not necessarily mean that merged cell is part of the loop)
-      const loopDetectionResult = getParentLoop(inverseLoopsDetected, parsedMergeStart)
-      const loopDetected = loopDetectionResult?.loopDetected
-      const parsedLoopEnd = loopDetectionResult != null ? loopDetectionResult.parsedLoopEnd : null
-      const insideLoop = loopDetectionResult != null ? loopDetectionResult.isInside : false
-      let stayAt = 'first'
+      if (mergeStartMatch == null) {
+        // this happens when there is merge cell that has no definition in row (row with no cells),
+        // we put a cell call just to have the correct handlebars data.l updated before the merge helper call happens
+        newMergeCellCallEl.textContent = `{{_C '${parsedMergeStart.letter}'}}{{_D t='m' o='${ref}'}}`
+        rowEl.appendChild(newMergeCellCallEl)
+      } else {
+        const [mergeStartCellEl] = mergeStartMatch
+        newMergeCellCallEl.textContent = `{{_D t='m' o='${ref}'}}`
 
-      if (
-        loopDetected != null &&
-        !insideLoop &&
-        loopDetected.type === 'block' &&
-        parsedLoopEnd != null &&
-        parsedLoopEnd.rowNumber === parsedMergeStart.rowNumber &&
-        parsedMergeStart.columnNumber > parsedLoopEnd.columnNumber
-      ) {
-        stayAt = 'last'
-      }
-
-      rowEl.appendChild(newMergeCellCallEl)
-
-      if (loopDetected != null && !insideLoop) {
-        processOpeningTag(sheetDoc, newMergeCellCallEl, `{{#if @${stayAt}}}`)
-        processClosingTag(sheetDoc, newMergeCellCallEl, '{{/if}}')
+        // since the updated cell letter does not have a parent-child relationship like
+        // the updated row number has, then we need to insert the merge cell call just next to
+        // the merge cell start to ensure that when it tries to read the updated cell letter
+        // it is still the right value, specially for when there is vertical loop involved
+        // in current cell or past cells
+        mergeStartCellEl.parentNode.insertBefore(newMergeCellCallEl, mergeStartCellEl.nextSibling)
       }
 
       if (!isLast) {
@@ -900,8 +957,8 @@ function getOutOfLoopElsSortedByHierarchy (outOfLoopElsToHandle) {
   return result
 }
 
-function getLatestNotClosedLoop (loopsDetected) {
-  let loopFound
+function getLatestNotClosedLoop (loopsDetected, all = false) {
+  const found = []
 
   for (let index = loopsDetected.length - 1; index >= 0; index--) {
     const currentLoop = loopsDetected[index]
@@ -910,23 +967,35 @@ function getLatestNotClosedLoop (loopsDetected) {
       continue
     }
 
-    loopFound = currentLoop
-    break
+    found.push(currentLoop)
+
+    if (!all) {
+      break
+    }
   }
 
-  return loopFound
+  return all ? found : found[0]
 }
 
 function getParentLoop (inverseLoopsDetected, parsedCellRef) {
   const loopDetected = inverseLoopsDetected.find((l) => {
-    if (l.type === 'block') {
-      return (
-        parsedCellRef.rowNumber >= l.start.originalRowNumber &&
-        parsedCellRef.rowNumber <= l.end.originalRowNumber
-      )
+    switch (l.type) {
+      case 'row':
+        return l.start.originalRowNumber === parsedCellRef.rowNumber
+      case 'block':
+        return (
+          parsedCellRef.rowNumber >= l.start.originalRowNumber &&
+          parsedCellRef.rowNumber <= l.end.originalRowNumber
+        )
+      case 'vertical':
+        return (
+          parsedCellRef.rowNumber >= l.start.originalRowNumber &&
+          parsedCellRef.rowNumber <= l.end.originalRowNumber &&
+          parsedCellRef.columnNumber === l.start.originalColumnNumber
+        )
+      default:
+        throw new Error(`Unknown loop type ${l.type}`)
     }
-
-    return l.start.originalRowNumber === parsedCellRef.rowNumber
   })
 
   if (loopDetected == null) {
@@ -938,19 +1007,31 @@ function getParentLoop (inverseLoopsDetected, parsedCellRef) {
   let insideLoop = false
 
   // here we check if the merged cell is really part of the loop or not
-  if (loopDetected.type === 'block') {
-    if (parsedLoopStart.rowNumber === parsedCellRef.rowNumber) {
-      insideLoop = parsedCellRef.columnNumber >= parsedLoopStart.columnNumber
-    } else if (parsedLoopEnd.rowNumber === parsedCellRef.rowNumber) {
-      insideLoop = parsedCellRef.columnNumber <= parsedLoopEnd.columnNumber
-    } else {
-      insideLoop = true
+  switch (loopDetected.type) {
+    case 'row': {
+      insideLoop = (
+        parsedCellRef.columnNumber >= parsedLoopStart.columnNumber &&
+        parsedCellRef.columnNumber <= parsedLoopEnd.columnNumber
+      )
+      break
     }
-  } else {
-    insideLoop = (
-      parsedCellRef.columnNumber >= parsedLoopStart.columnNumber &&
-      parsedCellRef.columnNumber <= parsedLoopEnd.columnNumber
-    )
+    case 'block': {
+      if (parsedLoopStart.rowNumber === parsedCellRef.rowNumber) {
+        insideLoop = parsedCellRef.columnNumber >= parsedLoopStart.columnNumber
+      } else if (parsedLoopEnd.rowNumber === parsedCellRef.rowNumber) {
+        insideLoop = parsedCellRef.columnNumber <= parsedLoopEnd.columnNumber
+      } else {
+        insideLoop = true
+      }
+      break
+    }
+    case 'vertical': {
+      // if it passed the checks, nothing else to do here
+      insideLoop = true
+      break
+    }
+    default:
+      throw new Error(`Unknown loop type ${loopDetected.type}`)
   }
 
   return {
@@ -1307,7 +1388,7 @@ function checkAndGetLoopsToProcess (currentFile, loopsDetected, currentRowNumber
     throw new Error(`Unable to find end of loop (#each) in ${currentFile.path}. {{/each}} is missing`)
   }
 
-  const blockLoops = loopsDetected.filter((l) => l.type === 'block' && l.end?.originalRowNumber === currentRowNumber)
+  let blockLoops = loopsDetected.filter((l) => l.type === 'block')
 
   if (isLastRow) {
     const invalidBlockLoop = blockLoops.find((l) => l.end == null)
@@ -1317,7 +1398,21 @@ function checkAndGetLoopsToProcess (currentFile, loopsDetected, currentRowNumber
     }
   }
 
-  return [...rowLoops, ...blockLoops]
+  blockLoops = blockLoops.filter((l) => l.end?.originalRowNumber === currentRowNumber)
+
+  let verticalLoops = loopsDetected.filter((l) => l.type === 'vertical')
+
+  if (isLastRow) {
+    const invalidVerticalLoop = verticalLoops.find((l) => l.end == null)
+
+    if (invalidVerticalLoop) {
+      throw new Error(`Unable to find end of vertical loop (#each) in ${currentFile.path}. {{/each}} is missing`)
+    }
+  }
+
+  verticalLoops = verticalLoops.filter((l) => l.end?.originalRowNumber === currentRowNumber)
+
+  return [...rowLoops, ...blockLoops, ...verticalLoops]
 }
 
 function processOpeningTag (doc, refElement, helperCall) {

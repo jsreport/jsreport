@@ -222,7 +222,7 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
 
       // reuse already calculated cell refs
       if (!shouldEvaluate) {
-        return generateNewCellRefFromRow(cellRefInfo.parsed, cellRefInfo.parsed.rowNumber)
+        return generateNewCellRefFrom(cellRefInfo.parsed, { rowNumber: cellRefInfo.parsed.rowNumber })
       }
     }
 
@@ -304,7 +304,7 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
       newRowNumber = cellRefInfo.parsed.rowNumber + increment
     }
 
-    const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, newRowNumber)
+    const newCellRef = generateNewCellRefFrom(cellRefInfo.parsed, { rowNumber: newRowNumber })
 
     return newCellRef
   })
@@ -343,7 +343,7 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
   return result
 }
 
-function generateNewCellRefFromRow (parsedCellRef, rowNumber, fullMetadata = false) {
+function generateNewCellRefFrom (parsedCellRef, { columnLetter, rowNumber }, fullMetadata = false) {
   let prefix = ''
 
   const prefixData = fullMetadata
@@ -368,7 +368,10 @@ function generateNewCellRefFromRow (parsedCellRef, rowNumber, fullMetadata = fal
     prefix += '!'
   }
 
-  return `${prefix}${parsedCellRef.lockedColumn ? '$' : ''}${parsedCellRef.letter}${parsedCellRef.lockedRow ? '$' : ''}${rowNumber}`
+  const letter = columnLetter != null ? columnLetter : parsedCellRef.letter
+  const number = rowNumber != null ? rowNumber : parsedCellRef.rowNumber
+
+  return `${prefix}${parsedCellRef.lockedColumn ? '$' : ''}${letter}${parsedCellRef.lockedRow ? '$' : ''}${number}`
 }
 
 const xmlEscapeMap = {
@@ -412,6 +415,6 @@ module.exports.getPixelWidthOfValue = getPixelWidthOfValue
 module.exports.getFontSizeFromStyle = getFontSizeFromStyle
 module.exports.evaluateCellRefsFromExpression = evaluateCellRefsFromExpression
 module.exports.getNewFormula = getNewFormula
-module.exports.generateNewCellRefFromRow = generateNewCellRefFromRow
+module.exports.generateNewCellRefFrom = generateNewCellRefFrom
 module.exports.encodeXML = encodeXML
 module.exports.decodeXML = decodeXML

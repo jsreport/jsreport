@@ -226,19 +226,19 @@ const __xlsxD = (function () {
     const parsedEndCellRef = parseCellRef(refsParts[1])
     const parsedLastCellRef = parseCellRef(lastCellRef)
 
-    // if existing dimension is bigger than the last cell with content
-    // then we keep the existing dimension
-    if (
-      parsedEndCellRef.rowNumber > parsedLastCellRef.rowNumber ||
-      (
-        parsedEndCellRef.rowNumber === parsedLastCellRef.rowNumber &&
-        parsedEndCellRef.columnNumber > parsedLastCellRef.columnNumber
-      )
-    ) {
-      return originalCellRefRange
+    let dimensionLetter = parsedEndCellRef.letter
+
+    if (parsedLastCellRef.columnNumber > parsedEndCellRef.columnNumber) {
+      dimensionLetter = parsedLastCellRef.letter
     }
 
-    return `${refsParts[0]}:${parsedEndCellRef.letter}${parsedLastCellRef.rowNumber}`
+    let dimensionRowNumber = parsedEndCellRef.rowNumber
+
+    if (parsedLastCellRef.rowNumber > parsedEndCellRef.rowNumber) {
+      dimensionRowNumber = parsedLastCellRef.rowNumber
+    }
+
+    return `${refsParts[0]}:${dimensionLetter}${dimensionRowNumber}`
   }
 
   function loop (data, options) {
@@ -384,8 +384,9 @@ const __xlsxD = (function () {
     // this is a value that represents all the executions of the current loop (considering nested loops too)
     newData.currentLoopIncrement = currentLoopIncrement + (previousLoopIncrement - previousRootLoopIncrement)
 
-    newData.columnLetter = null
+    newData.originalColumnLetter = null
     newData.originalCellRef = null
+    newData.l = null
     newData.currentCellRef = null
 
     const result = options.fn(this, { data: newData })
@@ -484,8 +485,9 @@ const __xlsxD = (function () {
       calcChainUpdatesForCellRef.push(updatedCellRef)
     }
 
-    options.data.columnLetter = originalCellLetter
+    options.data.originalColumnLetter = originalCellLetter
     options.data.originalCellRef = originalCellRef
+    options.data.l = cellLetter
     options.data.currentCellRef = updatedCellRef
 
     if (!generateCellTag) {
@@ -586,6 +588,7 @@ const __xlsxD = (function () {
 
   function mergeOrFormulaCell (type, options) {
     const Handlebars = require('handlebars')
+    const columnLetter = options.data.l
     const rowNumber = options.data.r
 
     assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
@@ -597,16 +600,23 @@ const __xlsxD = (function () {
 
       assertOk(originalCellRefRange != null, 'originalCellRefRange arg is required')
 
-      const { evaluateCellRefsFromExpression, generateNewCellRefFromRow } = require('cellUtils')
+      const { evaluateCellRefsFromExpression, generateNewCellRefFrom, getNewCellLetter } = require('cellUtils')
 
       const { newValue } = evaluateCellRefsFromExpression(originalCellRefRange, (cellRefInfo) => {
         const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
 
         assertOk(isRange, `cell ref expected to be a range. value: "${originalCellRefRange}`)
 
-        const increment = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+        const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
+        const newColumnLetter = getNewCellLetter(columnLetter, columnIncrement)
 
-        const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, rowNumber + increment)
+        const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+        const newRowNumber = rowNumber + rowIncrement
+
+        const newCellRef = generateNewCellRefFrom(cellRefInfo.parsed, {
+          columnLetter: newColumnLetter,
+          rowNumber: newRowNumber
+        })
 
         return newCellRef
       })
@@ -755,11 +765,15 @@ const __xlsxD = (function () {
 
     assertOk(originalSharedRefRange != null, 'originalSharedRefRange arg is required')
 
-    const { evaluateCellRefsFromExpression, generateNewCellRefFromRow } = require('cellUtils')
+    const { evaluateCellRefsFromExpression, generateNewCellRefFromRow, getNewCellLetter } = require('cellUtils')
 
     const { newValue } = evaluateCellRefsFromExpression(originalSharedRefRange, (cellRefInfo) => {
-      const increment = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
-      const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, rowNumber + increment)
+      const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+      const newRowNumber = rowNumber + rowIncrement
+
+      const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, {
+        rowNumber: newRowNumber
+      })
       return newCellRef
     })
 

@@ -7,6 +7,7 @@ const { decompress } = require('@jsreport/office')
 const xlsx = require('xlsx')
 const { mergeCellExists } = require('../utils')
 const { nodeListToArray } = require('../../lib/utils')
+const { getNewCellLetter } = require('../../lib/cellUtils')
 
 const dataDirPath = path.join(__dirname, '../data')
 const xlsxDirPath = path.join(__dirname, '../xlsx')
@@ -599,9 +600,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-and-inner-loop.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-inner-loop'))
             }
           }
         },
@@ -631,7 +630,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].colors.map((item) => item.name).join(''))
         should(sheet.F5.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -661,6 +660,23 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].colors.map((item) => item.name).join(''))
         should(sheet.F14.v).be.eql(items[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Colors')
+        should(sheet.D4.v).be.eql(items[0].colors.map((item) => item.name).join(''))
+        should(sheet.E4.v).be.eql(items[1].colors.map((item) => item.name).join(''))
+        should(sheet.F4.v).be.eql(items[2].colors.map((item) => item.name).join(''))
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
       }
     })
 
@@ -709,9 +725,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-siblings.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-siblings'))
             }
           }
         },
@@ -762,7 +776,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C14.v).be.eql(items3[2].name)
         should(sheet.D14.v).be.eql(items3[2].lastname)
         should(sheet.E14.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -821,6 +835,48 @@ describe('xlsx generation - loops', () => {
         should(sheet.C41.v).be.eql(items3[2].name)
         should(sheet.D41.v).be.eql(items3[2].lastname)
         should(sheet.E41.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.G2).be.not.ok()
+        should(sheet.H2.v).be.eql('Name')
+        should(sheet.I2.v).be.eql(items2[0].name)
+        should(sheet.J2.v).be.eql(items2[1].name)
+        should(sheet.K2).be.not.ok()
+        should(sheet.L2.v).be.eql('Name')
+        should(sheet.M2.v).be.eql(items3[0].name)
+        should(sheet.N2.v).be.eql(items3[1].name)
+        should(sheet.O2.v).be.eql(items3[2].name)
+
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.G3).be.not.ok()
+        should(sheet.H3.v).be.eql('Lastname')
+        should(sheet.I3.v).be.eql(items2[0].lastname)
+        should(sheet.J3.v).be.eql(items2[1].lastname)
+        should(sheet.K3).be.not.ok()
+        should(sheet.L3.v).be.eql('Lastname')
+        should(sheet.M3.v).be.eql(items3[0].lastname)
+        should(sheet.N3.v).be.eql(items3[1].lastname)
+        should(sheet.O3.v).be.eql(items3[2].lastname)
+
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4.v).be.eql('Age')
+        should(sheet.I4.v).be.eql(items2[0].age)
+        should(sheet.J4.v).be.eql(items2[1].age)
+        should(sheet.K4).be.not.ok()
+        should(sheet.L4.v).be.eql('Age')
+        should(sheet.M4.v).be.eql(items3[0].age)
+        should(sheet.N4.v).be.eql(items3[1].age)
+        should(sheet.O4.v).be.eql(items3[2].age)
       }
     })
 
@@ -869,9 +925,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-mixed-siblings.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-mixed-siblings'))
             }
           }
         },
@@ -925,7 +979,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C19.v).be.eql(items3[2].name)
         should(sheet.D19.v).be.eql(items3[2].lastname)
         should(sheet.E19.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -980,6 +1034,90 @@ describe('xlsx generation - loops', () => {
         should(sheet.C34.v).be.eql(items3[2].name)
         should(sheet.D34.v).be.eql(items3[2].lastname)
         should(sheet.E34.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+
+        should(sheet.C6).be.not.ok()
+        should(sheet.D6).be.not.ok()
+        should(sheet.E6).be.not.ok()
+
+        should(sheet.C7.v).be.eql('Name')
+        should(sheet.D7.v).be.eql(items2[0].name)
+        should(sheet.E7.v).be.eql(items2[1].name)
+        should(sheet.C8.v).be.eql('Lastname')
+        should(sheet.D8.v).be.eql(items2[0].lastname)
+        should(sheet.E8.v).be.eql(items2[1].lastname)
+        should(sheet.C9.v).be.eql('Age')
+        should(sheet.D9.v).be.eql(items2[0].age)
+        should(sheet.E9.v).be.eql(items2[1].age)
+        should(sheet.G7.v).be.eql('Name')
+        should(sheet.H7.v).be.eql(items2[0].name)
+        should(sheet.I7.v).be.eql(items2[1].name)
+        should(sheet.G8.v).be.eql('Lastname')
+        should(sheet.H8.v).be.eql(items2[0].lastname)
+        should(sheet.I8.v).be.eql(items2[1].lastname)
+        should(sheet.G9.v).be.eql('Age')
+        should(sheet.H9.v).be.eql(items2[0].age)
+        should(sheet.I9.v).be.eql(items2[1].age)
+
+        should(sheet.C10).be.not.ok()
+        should(sheet.D10).be.not.ok()
+        should(sheet.E10).be.not.ok()
+        should(sheet.C11).be.not.ok()
+        should(sheet.D11).be.not.ok()
+        should(sheet.E11).be.not.ok()
+
+        should(sheet.C12.v).be.eql('Name')
+        should(sheet.D12.v).be.eql('Lastname')
+        should(sheet.E12.v).be.eql('Age')
+        should(sheet.C13.v).be.eql(items3[0].name)
+        should(sheet.D13.v).be.eql(items3[0].lastname)
+        should(sheet.E13.v).be.eql(items3[0].age)
+
+        should(sheet.C14).be.not.ok()
+        should(sheet.D14).be.not.ok()
+        should(sheet.E14).be.not.ok()
+        should(sheet.C15).be.not.ok()
+        should(sheet.D15).be.not.ok()
+        should(sheet.E15).be.not.ok()
+        should(sheet.C16).be.not.ok()
+        should(sheet.D16).be.not.ok()
+        should(sheet.E16).be.not.ok()
+
+        should(sheet.C17.v).be.eql('Name')
+        should(sheet.D17.v).be.eql('Lastname')
+        should(sheet.E17.v).be.eql('Age')
+        should(sheet.C18.v).be.eql(items3[1].name)
+        should(sheet.D18.v).be.eql(items3[1].lastname)
+        should(sheet.E18.v).be.eql(items3[1].age)
+
+        should(sheet.C19).be.not.ok()
+        should(sheet.D19).be.not.ok()
+        should(sheet.E19).be.not.ok()
+        should(sheet.C20).be.not.ok()
+        should(sheet.D20).be.not.ok()
+        should(sheet.E20).be.not.ok()
+        should(sheet.C21).be.not.ok()
+        should(sheet.D21).be.not.ok()
+        should(sheet.E21).be.not.ok()
+
+        should(sheet.C22.v).be.eql('Name')
+        should(sheet.D22.v).be.eql('Lastname')
+        should(sheet.E22.v).be.eql('Age')
+        should(sheet.C23.v).be.eql(items3[2].name)
+        should(sheet.D23.v).be.eql(items3[2].lastname)
+        should(sheet.E23.v).be.eql(items3[2].age)
       }
     })
 
@@ -1007,9 +1145,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-preserve'))
             }
           }
         },
@@ -1043,7 +1179,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C5.v).be.eql(items[2].name)
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.A2.v).be.eql('preserve')
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
@@ -1070,6 +1206,27 @@ describe('xlsx generation - loops', () => {
         should(sheet.C14.v).be.eql(items[2].name)
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.D1.v).be.eql('preserve')
+        should(sheet.E1).be.not.ok()
+        should(sheet.F1).be.not.ok()
+        should(sheet.D2.v).be.eql('preserve2')
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql(items[0].name)
+        should(sheet.E3.v).be.eql(items[1].name)
+        should(sheet.F3.v).be.eql(items[2].name)
+        should(sheet.C4.v).be.eql('Lastname')
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[2].lastname)
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
       }
     })
 
@@ -1094,9 +1251,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-preserve-without-context.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-preserve-without-context'))
             }
           }
         },
@@ -1134,7 +1289,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].name)
         should(sheet.E5.v).be.eql(items[2].lastname)
         should(sheet.F5.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.A2.v).be.eql('')
         should(sheet.B2.v).be.eql('test')
         should(sheet.C2.v).be.eql('')
@@ -1163,6 +1318,30 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].name)
         should(sheet.F14.v).be.eql(items[2].lastname)
         should(sheet.G14.v).be.eql(items[2].age)
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.D1.v).be.eql('')
+        should(sheet.E1).be.not.ok()
+        should(sheet.F1).be.not.ok()
+        should(sheet.D2.v).be.eql('test')
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3).be.not.ok()
+        should(sheet.F3).be.not.ok()
+
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql(items[0].name)
+        should(sheet.E4.v).be.eql(items[1].name)
+        should(sheet.F4.v).be.eql(items[2].name)
+        should(sheet.C5.v).be.eql('Lastname')
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[1].lastname)
+        should(sheet.F5.v).be.eql(items[2].lastname)
+        should(sheet.C6.v).be.eql('Age')
+        should(sheet.D6.v).be.eql(items[0].age)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.F6.v).be.eql(items[2].age)
       }
     })
 
@@ -1187,9 +1366,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-preserve'))
             }
           }
         },
@@ -1222,7 +1399,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1251,6 +1428,27 @@ describe('xlsx generation - loops', () => {
 
         should(sheet.C16.v).be.eql('preserve')
         should(sheet.D16.v).be.eql('preserve2')
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        // preserving the cells on the right of the loop
+        should(sheet.D5.v).be.eql('preserve')
+        should(sheet.E5).be.not.ok()
+        should(sheet.F5).be.not.ok()
+        should(sheet.D6.v).be.eql('preserve2')
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
       }
     })
 
@@ -1275,9 +1473,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-preserve-without-context.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-preserve-without-context'))
             }
           }
         },
@@ -1314,7 +1510,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
         should(sheet.H5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1344,6 +1540,30 @@ describe('xlsx generation - loops', () => {
         should(sheet.C16.v).be.eql('')
         should(sheet.D16.v).be.eql('test')
         should(sheet.E16.v).be.eql('')
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        // preserving the cells on the right of the loop
+        should(sheet.D5.v).be.eql('')
+        should(sheet.E5).be.not.ok()
+        should(sheet.F5).be.not.ok()
+        should(sheet.D6.v).be.eql('test')
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
+        should(sheet.D7.v).be.eql('')
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
       }
     })
 
@@ -1368,9 +1588,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-preserve'))
             }
           }
         },
@@ -1409,7 +1627,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.A2.v).be.eql('preserve')
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
@@ -1439,6 +1657,35 @@ describe('xlsx generation - loops', () => {
 
         should(sheet.C16.v).be.eql('preserve2')
         should(sheet.D16.v).be.eql('preserve3')
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.D1.v).be.eql('preserve')
+        should(sheet.E1).be.not.ok()
+        should(sheet.F1).be.not.ok()
+        should(sheet.D2.v).be.eql('preserve2')
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql(items[0].name)
+        should(sheet.E3.v).be.eql(items[1].name)
+        should(sheet.F3.v).be.eql(items[2].name)
+        should(sheet.C4.v).be.eql('Lastname')
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[2].lastname)
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
+
+        // preserving the cells on the right of the loop
+        should(sheet.D6.v).be.eql('preserve3')
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
+        should(sheet.D7.v).be.eql('preserve4')
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
       }
     })
 
@@ -1463,9 +1710,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-preserve-without-context.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-preserve-without-context'))
             }
           }
         },
@@ -1512,7 +1757,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5).be.not.ok()
         should(sheet.H5).be.not.ok()
         should(sheet.I5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.A2.v).be.eql('')
         should(sheet.B2.v).be.eql('test')
         should(sheet.C2.v).be.eql('')
@@ -1545,6 +1790,41 @@ describe('xlsx generation - loops', () => {
         should(sheet.E16.v).be.eql('')
         should(sheet.F16.v).be.eql('test')
         should(sheet.G16.v).be.eql('')
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.D1.v).be.eql('')
+        should(sheet.E1).be.not.ok()
+        should(sheet.F1).be.not.ok()
+        should(sheet.D2.v).be.eql('test')
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3).be.not.ok()
+        should(sheet.F3).be.not.ok()
+
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql(items[0].name)
+        should(sheet.E4.v).be.eql(items[1].name)
+        should(sheet.F4.v).be.eql(items[2].name)
+        should(sheet.C5.v).be.eql('Lastname')
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[1].lastname)
+        should(sheet.F5.v).be.eql(items[2].lastname)
+        should(sheet.C6.v).be.eql('Age')
+        should(sheet.D6.v).be.eql(items[0].age)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.F6.v).be.eql(items[2].age)
+
+        // preserving the cells on the right of the loop
+        should(sheet.D7.v).be.eql('')
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
+        should(sheet.D8.v).be.eql('test')
+        should(sheet.E8).be.not.ok()
+        should(sheet.F8).be.not.ok()
+        should(sheet.D9.v).be.eql('')
+        should(sheet.E9).be.not.ok()
+        should(sheet.F9).be.not.ok()
       }
     })
 
@@ -1597,9 +1877,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'multiple' : 'multiple-row'}-loops.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-multiple'))
             }
           }
         },
@@ -1655,7 +1933,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C19.v).be.eql(items3[2].name)
         should(sheet.D19.v).be.eql(items3[2].lastname)
         should(sheet.E19.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1692,23 +1970,23 @@ describe('xlsx generation - loops', () => {
         should(sheet.C21.v).be.eql('Name')
         should(sheet.D21.v).be.eql('Lastname')
         should(sheet.E21.v).be.eql('Age')
-        should(sheet.C22.v).be.eql(items[0].name)
-        should(sheet.D22.v).be.eql(items[0].lastname)
-        should(sheet.E22.v).be.eql(items[0].age)
+        should(sheet.C22.v).be.eql(items2[0].name)
+        should(sheet.D22.v).be.eql(items2[0].lastname)
+        should(sheet.E22.v).be.eql(items2[0].age)
 
         should(sheet.C26.v).be.eql('Name')
         should(sheet.D26.v).be.eql('Lastname')
         should(sheet.E26.v).be.eql('Age')
-        should(sheet.C27.v).be.eql(items[1].name)
-        should(sheet.D27.v).be.eql(items[1].lastname)
-        should(sheet.E27.v).be.eql(items[1].age)
+        should(sheet.C27.v).be.eql(items2[1].name)
+        should(sheet.D27.v).be.eql(items2[1].lastname)
+        should(sheet.E27.v).be.eql(items2[1].age)
 
         should(sheet.C31.v).be.eql('Name')
         should(sheet.D31.v).be.eql('Lastname')
         should(sheet.E31.v).be.eql('Age')
-        should(sheet.C32.v).be.eql(items[2].name)
-        should(sheet.D32.v).be.eql(items[2].lastname)
-        should(sheet.E32.v).be.eql(items[2].age)
+        should(sheet.C32.v).be.eql(items2[2].name)
+        should(sheet.D32.v).be.eql(items2[2].lastname)
+        should(sheet.E32.v).be.eql(items2[2].age)
 
         should(sheet.B36.v).be.eql('another2')
         should(sheet.C36.v).be.eql('content2')
@@ -1719,23 +1997,71 @@ describe('xlsx generation - loops', () => {
         should(sheet.C39.v).be.eql('Name')
         should(sheet.D39.v).be.eql('Lastname')
         should(sheet.E39.v).be.eql('Age')
-        should(sheet.C40.v).be.eql(items[0].name)
-        should(sheet.D40.v).be.eql(items[0].lastname)
-        should(sheet.E40.v).be.eql(items[0].age)
+        should(sheet.C40.v).be.eql(items3[0].name)
+        should(sheet.D40.v).be.eql(items3[0].lastname)
+        should(sheet.E40.v).be.eql(items3[0].age)
 
         should(sheet.C44.v).be.eql('Name')
         should(sheet.D44.v).be.eql('Lastname')
         should(sheet.E44.v).be.eql('Age')
-        should(sheet.C45.v).be.eql(items[1].name)
-        should(sheet.D45.v).be.eql(items[1].lastname)
-        should(sheet.E45.v).be.eql(items[1].age)
+        should(sheet.C45.v).be.eql(items3[1].name)
+        should(sheet.D45.v).be.eql(items3[1].lastname)
+        should(sheet.E45.v).be.eql(items3[1].age)
 
         should(sheet.C49.v).be.eql('Name')
         should(sheet.D49.v).be.eql('Lastname')
         should(sheet.E49.v).be.eql('Age')
-        should(sheet.C50.v).be.eql(items[2].name)
-        should(sheet.D50.v).be.eql(items[2].lastname)
-        should(sheet.E50.v).be.eql(items[2].age)
+        should(sheet.C50.v).be.eql(items3[2].name)
+        should(sheet.D50.v).be.eql(items3[2].lastname)
+        should(sheet.E50.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.F1.v).be.eql('another')
+        should(sheet.K1.v).be.eql('another2')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        should(sheet.H2.v).be.eql('content')
+        should(sheet.H3.v).be.eql('here')
+
+        should(sheet.J2.v).be.eql('Name')
+        should(sheet.K2.v).be.eql(items2[0].name)
+        should(sheet.L2.v).be.eql(items2[1].name)
+        should(sheet.M2.v).be.eql(items2[2].name)
+        should(sheet.J3.v).be.eql('Lastname')
+        should(sheet.K3.v).be.eql(items2[0].lastname)
+        should(sheet.L3.v).be.eql(items2[1].lastname)
+        should(sheet.M3.v).be.eql(items2[2].lastname)
+        should(sheet.J4.v).be.eql('Age')
+        should(sheet.K4.v).be.eql(items2[0].age)
+        should(sheet.L4.v).be.eql(items2[1].age)
+        should(sheet.M4.v).be.eql(items2[2].age)
+
+        should(sheet.O2.v).be.eql('content2')
+        should(sheet.O3.v).be.eql('here2')
+
+        should(sheet.Q2.v).be.eql('Name')
+        should(sheet.R2.v).be.eql(items3[0].name)
+        should(sheet.S2.v).be.eql(items3[1].name)
+        should(sheet.T2.v).be.eql(items3[2].name)
+        should(sheet.Q3.v).be.eql('Lastname')
+        should(sheet.R3.v).be.eql(items3[0].lastname)
+        should(sheet.S3.v).be.eql(items3[1].lastname)
+        should(sheet.T3.v).be.eql(items3[2].lastname)
+        should(sheet.Q4.v).be.eql('Age')
+        should(sheet.R4.v).be.eql(items3[0].age)
+        should(sheet.S4.v).be.eql(items3[1].age)
+        should(sheet.T4.v).be.eql(items3[2].age)
       }
     })
 
@@ -1760,9 +2086,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode))
             }
           }
         },
@@ -1776,9 +2100,11 @@ describe('xlsx generation - loops', () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
       if (mode === 'row') {
-        should(sheet['!ref']).be.eql(`C2:E${2 + items.length}`)
+        should(sheet['!ref']).be.eql(`C2:E${3 + (items.length - 1)}`)
+      } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql(`B2:E${6 + (5 * (items.length - 1))}`)
       } else {
-        should(sheet['!ref']).be.eql(`B2:E${1 + (5 * items.length)}`)
+        should(sheet['!ref']).be.eql(`C2:${getNewCellLetter('D', items.length - 1)}4`)
       }
     })
 
@@ -1803,9 +2129,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
             }
           }
         },
@@ -1825,13 +2149,20 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B7:C7')).be.True()
         should(sheet.E7.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E7:G7')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B18.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'B18:C18')).be.True()
         should(sheet.E18.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E18:G18')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.H2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'H2:H3')).be.True()
+        should(sheet.F5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F5:F6')).be.True()
       }
     })
 
@@ -1844,9 +2175,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
             }
           }
         },
@@ -1866,13 +2195,20 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B5:C5')).be.True()
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B8.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.F2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'F2:F3')).be.True()
+        should(sheet.F5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F5:F6')).be.True()
       }
     })
 
@@ -1889,9 +2225,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
             }
           }
         },
@@ -1911,13 +2245,20 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B5:C5')).be.True()
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B8.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.F2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'F2:F3')).be.True()
+        should(sheet.F5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F5:F6')).be.True()
       }
     })
 
@@ -1942,9 +2283,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-merged-cells'))
             }
           }
         },
@@ -1973,7 +2312,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.F5.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D5:E5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2000,6 +2339,22 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.F14.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D14:E14')).be.True()
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(mergeCellExists(sheet, 'E3:E4')).be.True()
+        should(mergeCellExists(sheet, 'F3:F4')).be.True()
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
       }
     })
 
@@ -2027,9 +2382,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-multiple-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-merged-cells'))
             }
           }
         },
@@ -2065,7 +2418,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.H5.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D5:E5')).be.True()
         should(mergeCellExists(sheet, 'F5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2101,6 +2454,29 @@ describe('xlsx generation - loops', () => {
         should(sheet.H14.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D14:E14')).be.True()
         should(mergeCellExists(sheet, 'F14:G14')).be.True()
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(mergeCellExists(sheet, 'E3:E4')).be.True()
+        should(mergeCellExists(sheet, 'F3:F4')).be.True()
+        should(sheet.C5.v).be.eql('Job')
+        should(sheet.D5.v).be.eql(items[0].job)
+        should(sheet.E5.v).be.eql(items[1].job)
+        should(sheet.F5.v).be.eql(items[2].job)
+        should(mergeCellExists(sheet, 'D5:D6')).be.True()
+        should(mergeCellExists(sheet, 'E5:E6')).be.True()
+        should(mergeCellExists(sheet, 'F5:F6')).be.True()
+        should(sheet.C7.v).be.eql('Age')
+        should(sheet.D7.v).be.eql(items[0].age)
+        should(sheet.E7.v).be.eql(items[1].age)
+        should(sheet.F7.v).be.eql(items[2].age)
       }
     })
 
@@ -2125,9 +2501,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
             }
           }
         },
@@ -2165,7 +2539,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B7:C7')).be.True()
         should(sheet.E7.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E7:G7')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -2200,6 +2574,30 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B18:C18')).be.True()
         should(sheet.E18.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E18:G18')).be.True()
+      } else {
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(mergeCellExists(sheet, 'E3:E4')).be.True()
+        should(mergeCellExists(sheet, 'F3:F4')).be.True()
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
+
+        should(sheet.H2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'H2:H3')).be.True()
+        should(sheet.F6.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F6:F8')).be.True()
       }
     })
 
@@ -2212,9 +2610,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
             }
           }
         },
@@ -2244,7 +2640,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B5:C5')).be.True()
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -2263,6 +2659,22 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      } else {
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('')
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql('')
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql('')
+
+        should(sheet.F2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'F2:F3')).be.True()
+        should(sheet.F6.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F6:F8')).be.True()
       }
     })
 
@@ -2279,9 +2691,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
             }
           }
         },
@@ -2311,7 +2721,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B5:C5')).be.True()
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -2330,6 +2740,22 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      } else {
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+
+        should(sheet.F2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'F2:F3')).be.True()
+        should(sheet.F6.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F6:F8')).be.True()
       }
     })
 
@@ -2354,9 +2780,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-merge-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-merge-cell-preserve'))
             }
           }
         },
@@ -2397,7 +2821,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5.v).be.eql(items[2].lastname)
         should(sheet.H5.v).be.eql(items[2].age)
         should(sheet['!merges']).have.length(2)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.F2.v).be.eql('')
         should(sheet.F6.v).be.eql('')
 
@@ -2435,6 +2859,24 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'D12:E12')).be.False()
 
         should(sheet['!merges']).have.length(2)
+      } else {
+        should(sheet.D1.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'D1:D2')).be.True()
+        should(sheet.D4.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D4:D5')).be.True()
+
+        should(sheet.C6.v).be.eql('Name')
+        should(sheet.D6.v).be.eql(items[0].name)
+        should(sheet.E6.v).be.eql(items[1].name)
+        should(sheet.F6.v).be.eql(items[2].name)
+        should(sheet.C7.v).be.eql('Lastname')
+        should(sheet.D7.v).be.eql(items[0].lastname)
+        should(sheet.E7.v).be.eql(items[1].lastname)
+        should(sheet.F7.v).be.eql(items[2].lastname)
+        should(sheet.C8.v).be.eql('Age')
+        should(sheet.D8.v).be.eql(items[0].age)
+        should(sheet.E8.v).be.eql(items[1].age)
+        should(sheet.F8.v).be.eql(items[2].age)
       }
     })
 
@@ -2459,9 +2901,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-merge-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-merge-cell-preserve'))
             }
           }
         },
@@ -2502,7 +2942,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.I5).be.not.ok()
         should(mergeCellExists(sheet, 'I5:J5')).be.False()
         should(sheet['!merges']).have.length(2)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2540,6 +2980,24 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'G16:H16')).be.True()
 
         should(sheet['!merges']).have.length(2)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        should(sheet.D5.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'D5:D6')).be.True()
+        should(sheet.D8.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D8:D9')).be.True()
       }
     })
 
@@ -2564,9 +3022,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-merge-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-merge-cell-preserve'))
             }
           }
         },
@@ -2620,7 +3076,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.K5).be.not.ok()
         should(mergeCellExists(sheet, 'K5:L5')).be.False()
         should(sheet['!merges']).have.length(4)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.F2.v).be.eql('')
         should(sheet.F6.v).be.eql('')
 
@@ -2672,6 +3128,29 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'K16:L16')).be.True()
 
         should(sheet['!merges']).have.length(4)
+      } else {
+        should(sheet.D1.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'D1:D2')).be.True()
+        should(sheet.D4.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D4:D5')).be.True()
+
+        should(sheet.C6.v).be.eql('Name')
+        should(sheet.D6.v).be.eql(items[0].name)
+        should(sheet.E6.v).be.eql(items[1].name)
+        should(sheet.F6.v).be.eql(items[2].name)
+        should(sheet.C7.v).be.eql('Lastname')
+        should(sheet.D7.v).be.eql(items[0].lastname)
+        should(sheet.E7.v).be.eql(items[1].lastname)
+        should(sheet.F7.v).be.eql(items[2].lastname)
+        should(sheet.C8.v).be.eql('Age')
+        should(sheet.D8.v).be.eql(items[0].age)
+        should(sheet.E8.v).be.eql(items[1].age)
+        should(sheet.F8.v).be.eql(items[2].age)
+
+        should(sheet.D9.v).be.eql('preserve3')
+        should(mergeCellExists(sheet, 'D9:D10')).be.True()
+        should(sheet.D11.v).be.eql('preserve4')
+        should(mergeCellExists(sheet, 'D11:D12')).be.True()
       }
     })
 
