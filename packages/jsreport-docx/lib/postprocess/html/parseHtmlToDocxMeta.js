@@ -687,6 +687,20 @@ function applyListDataIfNeeded (data, node) {
     // and unordered lists at different levels,
     // in docx this is not possible if you re-use the same id
     data.listContainerId = `list_${generateRandomId()}`
+
+    let start = node.tagName === 'ol' ? node.attribs?.start : null
+
+    if (start != null) {
+      start = parseInt(start, 10)
+      start = isNaN(start) ? null : start
+    }
+
+    if (start != null) {
+      data.listStart = start
+    } else {
+      // important to do this to prevent nested list to inherit the start
+      data.listStart = null
+    }
   } else if (node.tagName === 'li') {
     if (
       data.parentElement?.tagName !== 'ul' &&
@@ -711,6 +725,10 @@ function applyListDataIfNeeded (data, node) {
       id: data.listContainerId,
       type: data.parentElement.tagName,
       level: isNested ? data.list.level + 1 : 1
+    }
+
+    if (data.listStart != null) {
+      data.list.start = data.listStart
     }
   }
 }

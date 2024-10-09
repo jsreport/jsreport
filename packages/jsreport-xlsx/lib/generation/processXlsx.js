@@ -104,7 +104,7 @@ module.exports = (reporter) => async (inputs, req) => {
           // (size optimization) since the common case is that the handlebars call is
           // escaped {{}} expression, so instead we expect in the helper receive if the
           // value should be raw or not (the inverse of escape)
-          return `{{${callType} ${expressionValue}${escapeValue ? '' : ' 1'}${attrs} n="${expressionValue}"}}`
+          return `{{${callType} ${expressionValue}${escapeValue ? '' : ' 1'}${attrs} _n="${expressionValue}"}}`
         }
 
         return normalizeAttributeAndTextNode(node)

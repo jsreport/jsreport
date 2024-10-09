@@ -5,7 +5,6 @@ const { parseCellRef, getPixelWidthOfValue, getFontSizeFromStyle, evaluateCellRe
 const startLoopRegexp = /{{#each\s+([^{|}]{0,500})(?:\s*(as\s+\|\w+\|))?\s*}}/
 
 module.exports = (files, ctx) => {
-  // console.time('pre:loop process setup')
   const workbookDoc = files.find((file) => file.path === 'xl/workbook.xml')?.doc
   const workbookRelsDoc = files.find((file) => file.path === 'xl/_rels/workbook.xml.rels')?.doc
   const sharedStringsDoc = files.find((f) => f.path === 'xl/sharedStrings.xml')?.doc
@@ -183,20 +182,22 @@ module.exports = (files, ctx) => {
       }
     }
 
+    const previousRows = []
     const loopsDetected = []
     const outOfLoopElsToHandle = []
     const mergeCellElsToHandle = []
     const formulaCellElsToHandle = []
+    const cellsByRowMap = new Map()
     const cellsElsByRefMap = new Map()
     const colMaxSizeMap = new Map()
+    const staticCellElsToHandle = []
+    const contentDetectCellElsToHandle = []
 
     const lastRowIdx = rowsEls.length - 1
 
     for (const [rowIdx, rowEl] of rowsEls.entries()) {
       let originalRowNumber = rowEl.getAttribute('r')
       const isLastRow = rowIdx === lastRowIdx
-      const staticCellElsToHandle = []
-      const contentDetectCellElsToHandle = []
 
       if (originalRowNumber == null || originalRowNumber === '') {
         throw new Error('Expected row to contain r attribute defined')
@@ -232,10 +233,17 @@ module.exports = (files, ctx) => {
         const parsedCellRef = parseCellRef(cellRef)
 
         const cellMeta = {
-          letter: parsedCellRef.letter
+          letter: parsedCellRef.letter,
+          columnNumber: parsedCellRef.columnNumber
         }
 
         cellsElsByRefMap.set(cellRef, [cellEl, cellMeta])
+
+        if (!cellsByRowMap.has(originalRowNumber)) {
+          cellsByRowMap.set(originalRowNumber, [])
+        }
+
+        cellsByRowMap.get(originalRowNumber).push(cellRef)
 
         let cellCallType = '_C'
 
@@ -261,7 +269,6 @@ module.exports = (files, ctx) => {
           mergeCellElsToHandle.push({ ref: mergeCellEl.getAttribute('ref'), rowEl })
         }
 
-        const currentLoopDetected = getLatestNotClosedLoop(loopsDetected)
         const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
         if (
@@ -269,56 +276,101 @@ module.exports = (files, ctx) => {
           (info.type === 'inlineStr' ||
           info.type === 's')
         ) {
+          const loopStartOrEndRegExp = /{{[#/]each/
+          const textWithoutLoopParts = []
+          let remainingToCheck = info.value
+          let lastStartCall = ''
+
+          do {
+            const match = remainingToCheck.match(loopStartOrEndRegExp)
+            const currentLoopDetected = getLatestNotClosedLoop(loopsDetected)
+
+            if (match != null) {
+              const partType = match[0] === '{{#each' ? 'start' : 'end'
+              let inlineLoop = false
+
+              if (currentLoopDetected != null && partType === 'end') {
+                // if loop starts and end in same cell then
+                // we don't consider it a loop for our purposes
+                // (it is just a normal loop that creates strings not rows/cells)
+                if (currentLoopDetected.start.el === cellEl) {
+                  inlineLoop = true
+                  loopsDetected.pop()
+                } else {
+                  currentLoopDetected.end = {
+                    el: cellEl,
+                    cellRef,
+                    info,
+                    originalRowNumber
+                  }
+
+                  if (currentLoopDetected.end.originalRowNumber === currentLoopDetected.start.originalRowNumber) {
+                    currentLoopDetected.type = 'row'
+                  }
+                }
+              } else if (partType === 'start') {
+                const hierarchyIdPrefix = currentLoopDetected == null ? '' : `${currentLoopDetected.hierarchyId}#`
+                const hierarchyIdCounter = currentLoopDetected == null ? loopsDetected.length : currentLoopDetected.children.length
+
+                const hierarchyId = `${hierarchyIdPrefix}${hierarchyIdCounter}`
+
+                const newLoopItem = {
+                  type: 'block',
+                  hierarchyId,
+                  blockStartEl: null,
+                  blockEndEl: null,
+                  children: [],
+                  start: {
+                    el: cellEl,
+                    cellRef,
+                    info,
+                    originalRowNumber
+                  }
+                }
+
+                if (currentLoopDetected != null) {
+                  currentLoopDetected.children.push(newLoopItem)
+                }
+
+                loopsDetected.push(newLoopItem)
+              }
+
+              const restLeft = remainingToCheck.slice(0, match.index)
+
+              if (restLeft !== '') {
+                textWithoutLoopParts.push(inlineLoop ? `${lastStartCall}${restLeft}{{/each}}` : restLeft)
+              }
+
+              const endLoopPartIdx = remainingToCheck.indexOf('}}', match.index + match[0].length)
+              let lastPartIdx
+
+              if (endLoopPartIdx !== -1) {
+                lastPartIdx = endLoopPartIdx + 2
+              } else {
+                lastPartIdx = match.index + match[0].length
+              }
+
+              if (partType === 'start') {
+                lastStartCall = remainingToCheck.slice(match.index, lastPartIdx)
+              }
+
+              remainingToCheck = remainingToCheck.slice(lastPartIdx)
+            } else {
+              textWithoutLoopParts.push(remainingToCheck)
+              remainingToCheck = ''
+            }
+          } while (remainingToCheck !== '')
+
           // only do content detection for the cells with handlebars
           if (info.value.includes('{{') && info.value.includes('}}')) {
-            contentDetectCellElsToHandle.push(cellRef)
+            const textWithoutLoop = textWithoutLoopParts.join('')
+
+            contentDetectCellElsToHandle.push({
+              cellRef,
+              normalizedText: textWithoutLoop
+            })
           } else if (isAutofitConfigured) {
             staticCellElsToHandle.push(cellRef)
-          }
-
-          if (
-            currentLoopDetected != null &&
-            info.value.includes('{{/each}}') &&
-            !info.value.includes('{{#each')
-          ) {
-            currentLoopDetected.end = {
-              el: cellEl,
-              cellRef,
-              info,
-              originalRowNumber
-            }
-
-            if (currentLoopDetected.end.originalRowNumber === currentLoopDetected.start.originalRowNumber) {
-              currentLoopDetected.type = 'row'
-            }
-          } else if (
-            info.value.includes('{{#each') &&
-            !info.value.includes('{{/each}}')
-          ) {
-            const hierarchyIdPrefix = currentLoopDetected == null ? '' : `${currentLoopDetected.hierarchyId}#`
-            const hierarchyIdCounter = currentLoopDetected == null ? loopsDetected.length : currentLoopDetected.children.length
-
-            const hierarchyId = `${hierarchyIdPrefix}${hierarchyIdCounter}`
-
-            const newLoopItem = {
-              type: 'block',
-              hierarchyId,
-              blockStartEl: null,
-              blockEndEl: null,
-              children: [],
-              start: {
-                el: cellEl,
-                cellRef,
-                info,
-                originalRowNumber
-              }
-            }
-
-            if (currentLoopDetected != null) {
-              currentLoopDetected.children.push(newLoopItem)
-            }
-
-            loopsDetected.push(newLoopItem)
           }
         } else if (
           info != null &&
@@ -361,165 +413,153 @@ module.exports = (files, ctx) => {
         }
       }
 
-      const rowLoops = loopsDetected.filter((l) => l.type === 'row' && l.start.originalRowNumber === originalRowNumber)
-      const invalidRowLoop = rowLoops.find((l) => l.end == null)
+      const loopsToProcess = checkAndGetLoopsToProcess(f, loopsDetected, originalRowNumber, isLastRow)
 
-      if (invalidRowLoop != null) {
-        throw new Error(`Unable to find end of loop (#each) in ${f.path}. {{/each}} is missing`)
-      }
-
-      for (const currentRowLoopDetected of rowLoops) {
+      for (const currentLoop of loopsToProcess) {
         // we should remove the handlebars loop call from the start/end cell
-        normalizeLoopStartEndCell(currentRowLoopDetected)
+        normalizeLoopStartEndCell(currentLoop)
 
-        const startingRowEl = currentRowLoopDetected.start.el.parentNode
-        const loopHelperCall = currentRowLoopDetected.start.info.value.match(startLoopRegexp)[0]
+        const startingRowEl = currentLoop.start.el.parentNode
+        const endingRowEl = currentLoop.end.el.parentNode
+        const loopHelperCall = currentLoop.start.info.value.match(startLoopRegexp)[0]
+        const isVertical = currentLoop.type === 'block' && loopHelperCall.includes('vertical=')
 
         const outOfLoopTypes = []
-        const previousEls = getCellElsAndWrappersFrom(currentRowLoopDetected.start.el, 'previous')
-        const nextEls = getCellElsAndWrappersFrom(currentRowLoopDetected.end.el, 'next')
+        const previousEls = getCellElsAndWrappersFrom(currentLoop.start.el, 'previous')
+        const nextEls = getCellElsAndWrappersFrom(currentLoop.end.el, 'next')
 
-        if (previousEls.length > 0) {
+        if (!isVertical && previousEls.length > 0) {
           // specify that there are cells to preserve that are before the each
           outOfLoopTypes.push('left')
         }
 
-        if (nextEls.length > 0) {
+        if (!isVertical && nextEls.length > 0) {
           // specify that there are cells to preserve that are after the each
           outOfLoopTypes.push('right')
         }
 
         if (outOfLoopTypes.length > 0) {
           outOfLoopElsToHandle.push({
-            loopDetected: currentRowLoopDetected,
-            startingRowEl,
-            endingRowEl: startingRowEl,
-            types: outOfLoopTypes
-          })
-        }
-
-        // we want to put the loop wrapper around the row wrapper
-        currentRowLoopDetected.blockStartEl = processOpeningTag(sheetDoc, rowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, dataExpressionPart, asPart) => {
-          const parsedLoopStart = parseCellRef(currentRowLoopDetected.start.cellRef)
-          const parsedLoopEnd = parseCellRef(currentRowLoopDetected.end.cellRef)
-          const targetDataExpressionPart = dataExpressionPart.trimEnd()
-          const targetAsPart = asPart != null && asPart !== '' ? ' ' + asPart.trim() : ''
-
-          return `{{#_D ${targetDataExpressionPart} t='loop' hierarchyId='${currentRowLoopDetected.hierarchyId}' start=${originalRowNumber} columnStart=${parsedLoopStart.columnNumber} columnEnd=${parsedLoopEnd.columnNumber}${targetAsPart}}}`
-        }))
-
-        // we want to put the loop wrapper around the row wrapper
-        currentRowLoopDetected.blockEndEl = processClosingTag(sheetDoc, rowEl.nextSibling, '{{/_D}}')
-      }
-
-      const blockLoops = loopsDetected.filter((l) => l.type === 'block' && l.end?.originalRowNumber === originalRowNumber)
-
-      if (isLastRow) {
-        const invalidBlockLoop = blockLoops.find((l) => l.end == null)
-
-        if (invalidBlockLoop) {
-          throw new Error(`Unable to find end of block loop (#each) in ${f.path}. {{/each}} is missing`)
-        }
-      }
-
-      for (const currentBlockLoopDetected of blockLoops) {
-        // we should remove the handlebars loop call from the start/end cell
-        normalizeLoopStartEndCell(currentBlockLoopDetected)
-
-        const startingRowEl = currentBlockLoopDetected.start.el.parentNode
-        const endingRowEl = currentBlockLoopDetected.end.el.parentNode
-        const loopHelperCall = currentBlockLoopDetected.start.info.value.match(startLoopRegexp)[0]
-
-        const outOfLoopTypes = []
-        const previousEls = getCellElsAndWrappersFrom(currentBlockLoopDetected.start.el, 'previous')
-        const nextEls = getCellElsAndWrappersFrom(currentBlockLoopDetected.end.el, 'next')
-
-        if (previousEls.length > 0) {
-          // specify that there are cells to preserve that are before the each
-          outOfLoopTypes.push('left')
-        }
-
-        if (nextEls.length > 0) {
-          // specify that there are cells to preserve that are after the each
-          outOfLoopTypes.push('right')
-        }
-
-        if (outOfLoopTypes.length > 0) {
-          outOfLoopElsToHandle.push({
-            loopDetected: currentBlockLoopDetected,
+            loopDetected: currentLoop,
             startingRowEl,
             endingRowEl,
             types: outOfLoopTypes
           })
         }
 
-        // we want to put the loop wrapper around the start row wrapper
-        currentBlockLoopDetected.blockStartEl = processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, dataExpressionPart, asPart) => {
-          const parsedLoopStart = parseCellRef(currentBlockLoopDetected.start.cellRef)
-          const parsedLoopEnd = parseCellRef(currentBlockLoopDetected.end.cellRef)
+        const parsedLoopStart = parseCellRef(currentLoop.start.cellRef)
+        const parsedLoopEnd = parseCellRef(currentLoop.end.cellRef)
+
+        const replaceLoopMatch = (match, dataExpressionPart, asPart) => {
           const targetDataExpressionPart = dataExpressionPart.trimEnd()
-          const targetAsPart = asPart != null && asPart !== '' ? ' ' + asPart.trim() : ''
+          const targetAsPart = asPart != null && asPart !== '' ? asPart.trim() : ''
 
-          return `{{#_D ${targetDataExpressionPart} t='loop' hierarchyId='${currentBlockLoopDetected.hierarchyId}' start=${currentBlockLoopDetected.start.originalRowNumber} columnStart=${parsedLoopStart.columnNumber} end=${currentBlockLoopDetected.end.originalRowNumber} columnEnd=${parsedLoopEnd.columnNumber}${targetAsPart}}}`
-        }))
+          const extraAttrs = [
+            `hierarchyId='${currentLoop.hierarchyId}'`,
+            `start=${currentLoop.start.originalRowNumber}`
+          ]
 
-        // we want to put the loop wrapper around the end row wrapper
-        currentBlockLoopDetected.blockEndEl = processClosingTag(sheetDoc, endingRowEl.nextSibling, '{{/_D}}')
-      }
+          if (currentLoop.type === 'block') {
+            extraAttrs.push(`end=${currentLoop.end.originalRowNumber}`)
+          }
 
-      for (const cellRef of staticCellElsToHandle) {
-        const [cellEl, cellMeta] = cellsElsByRefMap.get(cellRef)
-        const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
-        const fontSize = getFontSizeFromStyle(cellEl.getAttribute('s'), styleInfo)
+          extraAttrs.push(
+            `columnStart=${parsedLoopStart.columnNumber}`,
+            `columnEnd=${parsedLoopEnd.columnNumber}`
+          )
 
-        const currentMaxSize = colMaxSizeMap.get(cellMeta.letter)
-        const currentSize = getPixelWidthOfValue(cellInfo.value, fontSize)
+          if (targetAsPart !== '') {
+            extraAttrs.push(targetAsPart)
+          }
 
-        if (currentMaxSize == null || currentSize > currentMaxSize) {
-          colMaxSizeMap.set(cellMeta.letter, currentSize)
+          return `{{#_D ${targetDataExpressionPart} t='loop' ${extraAttrs.join(' ')}}}`
         }
-      }
 
-      for (const cellRef of contentDetectCellElsToHandle) {
-        const [cellEl, cellMeta] = cellsElsByRefMap.get(cellRef)
-        const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
+        if (isVertical) {
+          if (parsedLoopStart.columnNumber !== parsedLoopEnd.columnNumber) {
+            throw new Error(`Unable to math start {{#each}} and end {{/each}} of vertical loop for multiple rows in ${f.path}. both start and end of loop must be on same column`)
+          }
 
-        let newTextValue
+          const affectedRowNumbers = previousRows.filter(([pRowNumber]) => {
+            return (
+              pRowNumber >= parsedLoopStart.rowNumber &&
+              pRowNumber <= parsedLoopEnd.rowNumber
+            )
+          }).map(([pRowNumber]) => pRowNumber)
 
-        const isPartOfLoopStart = loopsDetected.find((l) => l.start.el === cellEl) != null
-        const isPartOfLoopEnd = loopsDetected.find((l) => l.end?.el === cellEl) != null
+          affectedRowNumbers.push(parsedLoopEnd.rowNumber)
 
-        if (isPartOfLoopStart) {
-          newTextValue = cellInfo.value.replace(startLoopRegexp, '')
-        } else if (isPartOfLoopEnd) {
-          newTextValue = cellInfo.value.replace('{{/each}}', '')
+          for (const currentRowNumber of affectedRowNumbers) {
+            const cellElsInRow = cellsByRowMap.get(currentRowNumber).filter((cellRef) => {
+              const [, cellMeta] = cellsElsByRefMap.get(cellRef)
+
+              return (
+                cellMeta.columnNumber >= parsedLoopStart.columnNumber &&
+                cellMeta.columnNumber <= parsedLoopEnd.columnNumber
+              )
+            }).sort((a, b) => {
+              const [, aMeta] = cellsElsByRefMap.get(a)
+              const [, bMeta] = cellsElsByRefMap.get(b)
+              return aMeta.columnNumber - bMeta.columnNumber
+            }).map((cellRef) => cellsElsByRefMap.get(cellRef)[0])
+
+            const startEl = cellElsInRow[0]
+
+            processOpeningTag(sheetDoc, startEl, loopHelperCall.replace(startLoopRegexp, replaceLoopMatch))
+            processClosingTag(sheetDoc, startEl, '{{/_D}}')
+          }
         } else {
-          newTextValue = cellInfo.value
+          // we want to put the loop wrapper around the start row wrapper
+          currentLoop.blockStartEl = processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, replaceLoopMatch))
+
+          // we want to put the loop wrapper around the end row wrapper
+          currentLoop.blockEndEl = processClosingTag(sheetDoc, endingRowEl.nextSibling, '{{/_D}}')
         }
-
-        const handlebarsRegexp = /{{{?(#[\w-]+\s+)?([\w-]+[^\n\r}]*)}?}}/g
-        const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
-        const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
-
-        cellEl.setAttribute('r', cellMeta.letter)
-        cellEl.setAttribute('__CT_t__', '_T')
-        cellEl.setAttribute('__CT_m__', isSingleMatch ? '0' : '1')
-        cellEl.setAttribute('__CT_cCU__', cellMeta.calcChainUpdate ? '1' : '0')
-
-        if (isSingleMatch) {
-          const match = matches[0]
-          const shouldEscape = !match[0].startsWith('{{{')
-          const expressionValue = match[2]
-          const value = expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue
-
-          cellEl.setAttribute('__CT_v__', value)
-          cellEl.setAttribute('__CT_ve__', shouldEscape ? '1' : '0')
-        }
-
-        // when multi-expression put the content with handlebars as the only content of the cell,
-        // for the rest of cases put a space to avoid the cell to be serialized as self closing tag
-        cellEl.textContent = isSingleMatch ? ' ' : newTextValue
       }
+
+      previousRows.push([originalRowNumber, rowEl])
+    }
+
+    for (const cellRef of staticCellElsToHandle) {
+      const [cellEl, cellMeta] = cellsElsByRefMap.get(cellRef)
+      const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
+      const fontSize = getFontSizeFromStyle(cellEl.getAttribute('s'), styleInfo)
+
+      const currentMaxSize = colMaxSizeMap.get(cellMeta.letter)
+      const currentSize = getPixelWidthOfValue(cellInfo.value, fontSize)
+
+      if (currentMaxSize == null || currentSize > currentMaxSize) {
+        colMaxSizeMap.set(cellMeta.letter, currentSize)
+      }
+    }
+
+    for (const { cellRef, normalizedText } of contentDetectCellElsToHandle) {
+      const [cellEl, cellMeta] = cellsElsByRefMap.get(cellRef)
+
+      const newTextValue = normalizedText
+
+      const handlebarsRegexp = /{{{?(#[\w-]+\s+)?([\w-]+[^\n\r}]*)}?}}/g
+      const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
+      const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
+
+      cellEl.setAttribute('r', cellMeta.letter)
+      cellEl.setAttribute('__CT_t__', '_T')
+      cellEl.setAttribute('__CT_m__', isSingleMatch ? '0' : '1')
+      cellEl.setAttribute('__CT_cCU__', cellMeta.calcChainUpdate ? '1' : '0')
+
+      if (isSingleMatch) {
+        const match = matches[0]
+        const shouldEscape = !match[0].startsWith('{{{')
+        const expressionValue = match[2]
+        const value = expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue
+
+        cellEl.setAttribute('__CT_v__', value)
+        cellEl.setAttribute('__CT_ve__', shouldEscape ? '1' : '0')
+      }
+
+      // when multi-expression put the content with handlebars as the only content of the cell,
+      // for the rest of cases put a space to avoid the cell to be serialized as self closing tag
+      cellEl.textContent = isSingleMatch ? ' ' : newTextValue
     }
 
     let outLoopItemIndex = 0
@@ -1257,6 +1297,27 @@ function normalizeLoopStartEndCell (loopDetectedInfo) {
       cellInfo.valueEl.textContent = cellInfo.valueEl.textContent.replace(target, '')
     }
   }
+}
+
+function checkAndGetLoopsToProcess (currentFile, loopsDetected, currentRowNumber, isLastRow) {
+  const rowLoops = loopsDetected.filter((l) => l.type === 'row' && l.start.originalRowNumber === currentRowNumber)
+  const invalidRowLoop = rowLoops.find((l) => l.end == null)
+
+  if (invalidRowLoop != null) {
+    throw new Error(`Unable to find end of loop (#each) in ${currentFile.path}. {{/each}} is missing`)
+  }
+
+  const blockLoops = loopsDetected.filter((l) => l.type === 'block' && l.end?.originalRowNumber === currentRowNumber)
+
+  if (isLastRow) {
+    const invalidBlockLoop = blockLoops.find((l) => l.end == null)
+
+    if (invalidBlockLoop) {
+      throw new Error(`Unable to find end of block loop (#each) in ${currentFile.path}. {{/each}} is missing`)
+    }
+  }
+
+  return [...rowLoops, ...blockLoops]
 }
 
 function processOpeningTag (doc, refElement, helperCall) {
