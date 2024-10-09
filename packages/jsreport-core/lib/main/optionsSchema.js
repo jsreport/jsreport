@@ -196,7 +196,7 @@ module.exports.getRootSchemaOptions = () => ({
         maxDiffSize: {
           type: ['string', 'number'],
           '$jsreport-acceptsSize': true,
-          default: '50mb'
+          default: '10mb'
         }
       }
     }
