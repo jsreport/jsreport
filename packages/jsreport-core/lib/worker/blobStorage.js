@@ -1,17 +1,31 @@
-module.exports = (executeMainAction) => {
+module.exports = (executeMainAction, { writeTempFile, readTempFile }) => {
   return {
     async read (blobName, req) {
       const r = await executeMainAction('blobStorage.read', {
         blobName
       }, req)
-      return Buffer.from(r, 'base64')
+
+      if (r.content) {
+        return Buffer.from(r.content, 'base64')
+      }
+
+      const { content } = await readTempFile(r.pathToFile)
+      return content
     },
 
-    write (blobName, content, req) {
-      return executeMainAction('blobStorage.write', {
-        blobName,
-        content: Buffer.from(content).toString('base64')
-      }, req)
+    async write (blobName, content, req) {
+      const message = {
+        blobName
+      }
+
+      if (content.length < 1000 * 1000 * 10) {
+        message.content = Buffer.from(content).toString('base64')
+      } else {
+        const { pathToFile } = await writeTempFile((uuid) => `${uuid}.blob`, content)
+        message.pathToFile = pathToFile
+      }
+
+      return executeMainAction('blobStorage.write', message, req)
     },
 
     remove (blobName, req) {

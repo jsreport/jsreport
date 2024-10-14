@@ -54,7 +54,7 @@ class WorkerReporter extends Reporter {
     await this.extensionsManager.init()
 
     this.documentStore = DocumentStore(this._documentStoreData, this.executeMainAction.bind(this))
-    this.blobStorage = BlobStorage(this.executeMainAction.bind(this))
+    this.blobStorage = BlobStorage(this.executeMainAction.bind(this), { writeTempFile: this.writeTempFile.bind(this), readTempFile: this.readTempFile.bind(this) })
 
     this.addRequestContextMetaConfig('rootId', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('id', { sandboxReadOnly: true })
