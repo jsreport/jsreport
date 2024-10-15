@@ -10,7 +10,9 @@ describe('html to xlsx', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport().use(require('../')()).use(require('@jsreport/jsreport-handlebars')())
+    reporter = jsreport({
+      chrome: { launchOptions: { args: ['--no-sandbox '] } }
+    }).use(require('../')()).use(require('@jsreport/jsreport-handlebars')())
     return reporter.init()
   })
 
