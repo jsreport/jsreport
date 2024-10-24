@@ -367,7 +367,12 @@ const __xlsxD = (function () {
 
     const newData = Handlebars.createFrame(options.data)
 
-    const { increment, currentLoopIncrement, previousRootLoopIncrement, previousLoopIncrement } = getIncrementWithLoop(
+    const {
+      increment: rowIncrement,
+      currentLoopIncrement: rowCurrentLoopIncrement,
+      previousRootLoopIncrement: rowPreviousRootLoopIncrement,
+      previousLoopIncrement: rowPreviousLoopIncrement
+    } = getIncrementWithLoop(
       'row',
       {
         loopId: newData.currentLoopId,
@@ -378,16 +383,18 @@ const __xlsxD = (function () {
     )
 
     newData.originalRowNumber = originalRowNumber
-    newData.r = originalRowNumber + increment
+    newData.r = originalRowNumber + rowIncrement
     // only a value that represents the increment of previous loops defined before the cell
-    newData.previousLoopIncrement = previousRootLoopIncrement
+    newData.rowPreviousLoopIncrement = rowPreviousRootLoopIncrement
     // this is a value that represents all the executions of the current loop (considering nested loops too)
-    newData.currentLoopIncrement = currentLoopIncrement + (previousLoopIncrement - previousRootLoopIncrement)
+    newData.rowCurrentLoopIncrement = rowCurrentLoopIncrement + (rowPreviousLoopIncrement - rowPreviousRootLoopIncrement)
 
     newData.originalColumnLetter = null
     newData.originalCellRef = null
     newData.l = null
     newData.currentCellRef = null
+    newData.columnPreviousLoopIncrement = null
+    newData.columnCurrentLoopIncrement = null
 
     const result = options.fn(this, { data: newData })
 
@@ -411,18 +418,25 @@ const __xlsxD = (function () {
     const { parseCellRef, getNewCellLetter } = require('cellUtils')
     const originalCellRef = `${originalCellLetter}${originalRowNumber}`
 
+    const {
+      increment: columnIncrement,
+      currentLoopIncrement: columnCurrentLoopIncrement,
+      previousRootLoopIncrement: columnPreviousRootLoopIncrement,
+      previousLoopIncrement: columnPreviousLoopIncrement
+    } = getIncrementWithLoop(
+      'column',
+      {
+        loopId: options.data.currentLoopId,
+        loopIndex: options.data.index,
+        rowNumber: options.data.r,
+        evaluatedLoopsIds: options.data.evaluatedLoopsIds,
+        loopItems: options.data.loopItems
+      }
+    )
+
     const cellLetter = getNewCellLetter(
       originalCellLetter,
-      getIncrementWithLoop(
-        'column',
-        {
-          loopId: options.data.currentLoopId,
-          loopIndex: options.data.index,
-          rowNumber: options.data.r,
-          evaluatedLoopsIds: options.data.evaluatedLoopsIds,
-          loopItems: options.data.loopItems
-        }
-      ).increment
+      columnIncrement
     )
 
     const updatedCellRef = `${cellLetter}${rowNumber}`
@@ -489,6 +503,10 @@ const __xlsxD = (function () {
     options.data.originalCellRef = originalCellRef
     options.data.l = cellLetter
     options.data.currentCellRef = updatedCellRef
+    // only a value that represents the increment of previous loops defined before the cell
+    options.data.columnPreviousLoopIncrement = columnPreviousRootLoopIncrement
+    // this is a value that represents all the executions of the current loop (considering nested loops too)
+    options.data.columnCurrentLoopIncrement = columnCurrentLoopIncrement + (columnPreviousLoopIncrement - columnPreviousRootLoopIncrement)
 
     if (!generateCellTag) {
       return updatedCellRef
@@ -636,15 +654,18 @@ const __xlsxD = (function () {
       // formulas can contain characters that are encoded as part of the xlsx processing,
       // we ensure here that we decode the xml entities
       const originalFormula = options.hash.o != null ? decodeXML(options.hash.o) : null
-      const previousLoopIncrement = options.data.previousLoopIncrement
-      const currentLoopIncrement = options.data.currentLoopIncrement
+      const rowPreviousLoopIncrement = options.data.rowPreviousLoopIncrement
+      const rowCurrentLoopIncrement = options.data.rowCurrentLoopIncrement
+      const columnPreviousLoopIncrement = options.data.columnPreviousLoopIncrement
+      const columnCurrentLoopIncrement = options.data.columnCurrentLoopIncrement
 
       assertOk(currentCellRef != null, 'currentCellRef needs to exists on internal data')
       assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
       assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
       assertOk(originalCellRef != null, 'originalCellRef needs to exists on internal data')
       assertOk(originalFormula != null, 'originalFormula arg is required')
-      assertOk(currentLoopIncrement != null, 'currentLoopIncrement needs to exists on internal data')
+      assertOk(rowCurrentLoopIncrement != null, 'currentLoopIncrement needs to exists on internal data')
+      assertOk(columnCurrentLoopIncrement != null, 'columnCurrentLoopIncrement needs to exists on internal data')
 
       const parsedOriginCellRef = parseCellRef(originalCellRef)
       const originCellIsFromLoop = options.data.currentLoopId != null
@@ -652,8 +673,10 @@ const __xlsxD = (function () {
       const { lazyCellRefs = {}, formula: newFormula } = getNewFormula(originalFormula, parsedOriginCellRef, {
         type: 'normal',
         originCellIsFromLoop,
-        previousLoopIncrement,
-        currentLoopIncrement,
+        rowPreviousLoopIncrement,
+        rowCurrentLoopIncrement,
+        columnPreviousLoopIncrement,
+        columnCurrentLoopIncrement,
         trackedCells,
         includeLoopIncrementResolver: (cellRefIsFromLoop, cellRefInfo) => {
           return (
@@ -668,7 +691,6 @@ const __xlsxD = (function () {
 
       // ensure we encode just some basic xml entities, formula values does not need to
       // have the full xml entities escaped
-
       if (Object.keys(lazyCellRefs).length > 0) {
         return options.data.tasks.wait('lazyFormulas').then(() => {
           const finalFormula = lazyFormulas.data[newFormula].newFormula
@@ -765,13 +787,13 @@ const __xlsxD = (function () {
 
     assertOk(originalSharedRefRange != null, 'originalSharedRefRange arg is required')
 
-    const { evaluateCellRefsFromExpression, generateNewCellRefFromRow, getNewCellLetter } = require('cellUtils')
+    const { evaluateCellRefsFromExpression, generateNewCellRefFrom } = require('cellUtils')
 
     const { newValue } = evaluateCellRefsFromExpression(originalSharedRefRange, (cellRefInfo) => {
       const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
       const newRowNumber = rowNumber + rowIncrement
 
-      const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, {
+      const newCellRef = generateNewCellRefFrom(cellRefInfo.parsed, {
         rowNumber: newRowNumber
       })
       return newCellRef
@@ -866,16 +888,20 @@ const __xlsxD = (function () {
           formula,
           parsedOriginCellRef,
           originCellIsFromLoop,
-          previousLoopIncrement,
-          currentLoopIncrement,
+          rowPreviousLoopIncrement,
+          rowCurrentLoopIncrement,
+          columnPreviousLoopIncrement,
+          columnCurrentLoopIncrement,
           cellRefs
         } = lazyFormulaInfo
 
         const { formula: newFormula } = getNewFormula(formula, parsedOriginCellRef, {
           type: 'lazy',
           originCellIsFromLoop,
-          previousLoopIncrement,
-          currentLoopIncrement,
+          rowPreviousLoopIncrement,
+          rowCurrentLoopIncrement,
+          columnPreviousLoopIncrement,
+          columnCurrentLoopIncrement,
           trackedCells,
           lazyCellRefs: cellRefs
         })

@@ -3307,9 +3307,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -3332,7 +3330,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('SUM(E7:E8)')
         should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
         should(sheet.E11?.f).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -3340,6 +3338,11 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
+      } else {
+        should(sheet.H4?.f).be.not.ok()
+        should(sheet.I4?.f).be.not.ok()
+        should(sheet.J4.f).be.eql('SUM(H4:I4)')
+        should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
       }
     })
 
@@ -3364,9 +3367,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -3387,7 +3388,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('SUM(E7:E8)')
         should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
         should(sheet.E11?.f).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -3395,6 +3396,11 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
+      } else {
+        should(sheet.H4?.f).be.not.ok()
+        should(sheet.I4?.f).be.not.ok()
+        should(sheet.J4.f).be.eql('SUM(H4:I4)')
+        should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
       }
     })
 
@@ -3407,9 +3413,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -3427,11 +3431,16 @@ describe('xlsx generation - loops', () => {
         should(sheet.E6.v).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.v).be.ok()
         should(sheet.E9.v).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      } else {
+        should(sheet.H4.f).be.ok()
+        should(sheet.I4.f).be.ok()
+        should(sheet.H4.f).be.eql('SUM(F4:G4)')
+        should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
       }
     })
 
@@ -3448,9 +3457,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -3468,11 +3475,16 @@ describe('xlsx generation - loops', () => {
         should(sheet.E6.v).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.v).be.ok()
         should(sheet.E9.v).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      } else {
+        should(sheet.H4.f).be.ok()
+        should(sheet.I4.f).be.ok()
+        should(sheet.H4.f).be.eql('SUM(F4:G4)')
+        should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
       }
     })
 
@@ -3497,9 +3509,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -3540,7 +3550,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E10', cellEls)).be.True()
         should(cellExists('E11', cellEls)).be.False()
         should(cellEls).have.length(2)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('E8', cellEls)).be.False()
         should(cellExists('E9', cellEls)).be.False()
         should(cellExists('E10', cellEls)).be.False()
@@ -3548,6 +3558,11 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E20', cellEls)).be.True()
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.False()
+      } else {
+        should(cellExists('H4', cellEls)).be.False()
+        should(cellExists('I4', cellEls)).be.False()
+        should(cellExists('J4', cellEls)).be.True()
+        should(cellExists('K4', cellEls)).be.True()
       }
     })
 
@@ -3572,9 +3587,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
             }
           }
         },
@@ -3595,7 +3608,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('MIN(E3:E6)')
         should(sheet.E10.f).be.eql('MAX(E3:E6)')
         should(sheet.E11.f).be.eql('SUM(E9,E10)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -3606,6 +3619,14 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('MIN(E4:E17)')
         should(sheet.E21.f).be.eql('MAX(E4:E17)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
+      } else {
+        should(sheet.F4?.f).be.not.ok()
+        should(sheet.G4?.f).be.not.ok()
+        should(sheet.H4.f).be.eql('SUM(D4:G4)')
+        should(sheet.I4.f).be.eql('AVERAGE(D4:G4)')
+        should(sheet.J4.f).be.eql('MIN(D4:G4)')
+        should(sheet.K4.f).be.eql('MAX(D4:G4)')
+        should(sheet.L4.f).be.eql('SUM(J4,K4)')
       }
     })
 
@@ -3618,9 +3639,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
             }
           }
         },
@@ -3639,12 +3658,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('MIN(E3:E4)')
         should(sheet.E8.f).be.eql('MAX(E3:E4)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.f).be.eql('SUM(E4:E7)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E7)')
         should(sheet.E10.f).be.eql('MIN(E4:E7)')
         should(sheet.E11.f).be.eql('MAX(E4:E7)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      } else {
+        should(sheet.F4.f).be.eql('SUM(D4:E4)')
+        should(sheet.G4.f).be.eql('AVERAGE(D4:E4)')
+        should(sheet.H4.f).be.eql('MIN(D4:E4)')
+        should(sheet.I4.f).be.eql('MAX(D4:E4)')
+        should(sheet.J4.f).be.eql('SUM(H4,I4)')
       }
     })
 
@@ -3661,9 +3686,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
             }
           }
         },
@@ -3682,12 +3705,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('MIN(E3:E4)')
         should(sheet.E8.f).be.eql('MAX(E3:E4)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.f).be.eql('SUM(E4:E7)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E7)')
         should(sheet.E10.f).be.eql('MIN(E4:E7)')
         should(sheet.E11.f).be.eql('MAX(E4:E7)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      } else {
+        should(sheet.F4.f).be.eql('SUM(D4:E4)')
+        should(sheet.G4.f).be.eql('AVERAGE(D4:E4)')
+        should(sheet.H4.f).be.eql('MIN(D4:E4)')
+        should(sheet.I4.f).be.eql('MAX(D4:E4)')
+        should(sheet.J4.f).be.eql('SUM(H4,I4)')
       }
     })
 
@@ -3712,9 +3741,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
             }
           }
         },
@@ -3756,7 +3783,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E11', cellEls)).be.True()
         should(cellExists('E12', cellEls)).be.False()
         should(cellEls).have.length(5)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('E8', cellEls)).be.False()
         should(cellExists('E9', cellEls)).be.False()
         should(cellExists('E10', cellEls)).be.False()
@@ -3768,6 +3795,14 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.True()
         should(cellEls).have.length(5)
+      } else {
+        should(cellExists('F4', cellEls)).be.False()
+        should(cellExists('G4', cellEls)).be.False()
+        should(cellExists('H4', cellEls)).be.True()
+        should(cellExists('I4', cellEls)).be.True()
+        should(cellExists('J4', cellEls)).be.True()
+        should(cellExists('K4', cellEls)).be.True()
+        should(cellExists('L4', cellEls)).be.True()
       }
     })
 
@@ -3792,9 +3827,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
             }
           }
         },
@@ -3815,7 +3848,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('MIN(E3:E5)')
         should(sheet.E10.f).be.eql('MAX(E3:E5)')
         should(sheet.E11.f).be.eql('SUM(E9,E10)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -3826,6 +3859,14 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('MIN(E4:E14)')
         should(sheet.E21.f).be.eql('MAX(E4:E14)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
+      } else {
+        should(sheet.F4?.f).be.not.ok()
+        should(sheet.G4?.f).be.not.ok()
+        should(sheet.H4.f).be.eql('SUM(D4:F4)')
+        should(sheet.I4.f).be.eql('AVERAGE(D4:F4)')
+        should(sheet.J4.f).be.eql('MIN(D4:F4)')
+        should(sheet.K4.f).be.eql('MAX(D4:F4)')
+        should(sheet.L4.f).be.eql('SUM(J4,K4)')
       }
     })
 
@@ -3838,9 +3879,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
             }
           }
         },
@@ -3859,12 +3898,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('MIN(E3:E3)')
         should(sheet.E8.f).be.eql('MAX(E3:E3)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.f).be.eql('SUM(E4:E4)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E5)')
         should(sheet.E10.f).be.eql('MIN(E4:E4)')
         should(sheet.E11.f).be.eql('MAX(E4:E4)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      } else {
+        should(sheet.F4.f).be.eql('SUM(D4:D4)')
+        should(sheet.G4.f).be.eql('AVERAGE(D4:D4)')
+        should(sheet.H4.f).be.eql('MIN(D4:D4)')
+        should(sheet.I4.f).be.eql('MAX(D4:D4)')
+        should(sheet.J4.f).be.eql('SUM(H4,I4)')
       }
     })
 
@@ -3881,9 +3926,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
             }
           }
         },
@@ -3902,12 +3945,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('MIN(E3:E3)')
         should(sheet.E8.f).be.eql('MAX(E3:E3)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.f).be.eql('SUM(E4:E4)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E5)')
         should(sheet.E10.f).be.eql('MIN(E4:E4)')
         should(sheet.E11.f).be.eql('MAX(E4:E4)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      } else {
+        should(sheet.F4.f).be.eql('SUM(D4:D4)')
+        should(sheet.G4.f).be.eql('AVERAGE(D4:D4)')
+        should(sheet.H4.f).be.eql('MIN(D4:D4)')
+        should(sheet.I4.f).be.eql('MAX(D4:D4)')
+        should(sheet.J4.f).be.eql('SUM(H4,I4)')
       }
     })
 
@@ -3932,9 +3981,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
             }
           }
         },
@@ -3976,7 +4023,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E11', cellEls)).be.True()
         should(cellExists('E12', cellEls)).be.False()
         should(cellEls).have.length(5)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('E8', cellEls)).be.False()
         should(cellExists('E9', cellEls)).be.False()
         should(cellExists('E10', cellEls)).be.False()
@@ -3988,6 +4035,14 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.True()
         should(cellEls).have.length(5)
+      } else {
+        should(cellExists('F4', cellEls)).be.False()
+        should(cellExists('G4', cellEls)).be.False()
+        should(cellExists('H4', cellEls)).be.True()
+        should(cellExists('I4', cellEls)).be.True()
+        should(cellExists('J4', cellEls)).be.True()
+        should(cellExists('K4', cellEls)).be.True()
+        should(cellExists('L4', cellEls)).be.True()
       }
     })
 
@@ -4018,9 +4073,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
             }
           }
         },
@@ -4557,9 +4610,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
             }
           }
         },
@@ -4610,9 +4661,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
             }
           }
         },
@@ -4675,9 +4724,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
             }
           }
         },
