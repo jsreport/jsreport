@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authorization
 
 ## Changelog
 
+### 4.0.1
+
+- fix `visibilityPermissions` permission on folder not preserved if changes are made to grandchildren folders
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

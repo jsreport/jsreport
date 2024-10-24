@@ -7,6 +7,10 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 4.0.5
+
+- update dev prompt to prompts to fix audit
+
 ### 4.0.4
 
 - dont use console.error(e.stack) and just console.error(e) to avoid loosing e.cause inner error

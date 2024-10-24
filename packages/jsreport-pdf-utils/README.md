@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.2.2
+
+- improve manipulation support for more cases of external pdf files
+
 ### 4.2.1
 
 - remove references to pdfjs-dist

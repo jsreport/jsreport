@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-chrome-pdf": "4.1.0",
-    "@jsreport/jsreport-core": "4.4.1",
+    "@jsreport/jsreport-core": "4.5.0",
     "mocha": "10.1.0",
     "puppeteer": "23.0.2",
     "should": "13.2.3",

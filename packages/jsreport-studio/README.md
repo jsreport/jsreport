@@ -18,6 +18,13 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.2.0
+
+- fix npm audit
+- add option `favicon` (path to a file) to allow changing the favicon used in studio
+- fix firefox bug triggering click event after mouseup event caused by user selecting text
+- fix middle click to close tab not working on firefox
+
 ### 4.1.1
 
 - fix getting studio preview as dark theme when using light theme

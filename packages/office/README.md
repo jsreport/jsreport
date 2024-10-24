@@ -5,6 +5,10 @@ Some helpers for officed based jsreport recipes
 
 ## Changelog
 
+### 4.1.2
+
+- update deps to fix npm audit
+
 ### 4.1.1
 
 - fix res.meta.fileExtension should not start with "."

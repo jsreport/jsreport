@@ -7,6 +7,14 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.1.4
+
+- update html-to-xlsx to fix audit
+
+### 4.1.3
+
+- update deps to fix npm audit
+
 ### 4.1.2
 
 - update @jsreport/office to fix set `res.meta.fileExtension` without starting `.`

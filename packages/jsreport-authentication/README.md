@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.2.2
+
+- update deps to fix npm audit
+
 ### 4.2.1
 
 - fix regression with user with "allow read all entities" not working

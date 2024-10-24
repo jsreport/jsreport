@@ -8,6 +8,11 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 4.2.0
+
+- add support for encoding `buffer` (handy when working in scripts/helpers that work directly with binary data)
+- update deps to fix npm audit
+
 ### 4.1.1
 
 - update @jsreport/office to fix set `res.meta.fileExtension` without starting `.`

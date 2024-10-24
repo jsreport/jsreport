@@ -7,6 +7,13 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.6.0
+
+- update axios to fix audit
+- `docxHtml` ol lists now support the `start` attribute
+- fix `docxStyle` working with tables
+- add `docxObject` helper to allow embedding `docx` file into another docx
+
 ### 4.5.0
 
 - docxHtml table cell support for vertical-align style

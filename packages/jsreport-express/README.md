@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.1.3
+
+- update deps to fix npm audit
+
 ### 4.1.2
 
 - trigger async report using header to avoid allocating worker
