@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "archiver": "7.0.1",
-    "axios": "1.6.7",
+    "axios": "1.7.7",
     "form-data": "2.3.3",
     "lodash.isequal": "4.5.0",
     "lodash.omit": "4.5.0",
