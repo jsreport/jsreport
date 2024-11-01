@@ -38,7 +38,6 @@ RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
     rm -rf /src/*.deb && \
     rm -rf /var/cache/apk/* /tmp/*
 
-RUN mkdir -p /app
 RUN mkdir -p /app/.puppeteer-cache
 
 # we need to create the volume and give it expected owner

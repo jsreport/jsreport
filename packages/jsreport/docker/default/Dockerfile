@@ -62,8 +62,6 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
 
 RUN rm -rf /var/cache/apk/* /tmp/*
 
-RUN mkdir -p /app
-
 # we need to create the volume and give it expected owner
 # before the VOLUME step in order for the volume to be created with non-root user
 RUN mkdir /jsreport
