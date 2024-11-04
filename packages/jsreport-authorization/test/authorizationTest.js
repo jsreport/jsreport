@@ -3263,6 +3263,113 @@ describe('authorization', () => {
     t.editPermissionsGroup[0].should.be.eql(g._id)
   })
 
+  // NOTE: this test should pass until we implement this https://github.com/jsreport/jsreport/issues/1143
+  it('adding to root folder should work if no explicit permissions with both users (normal user and user that is group)', async () => {
+    const g = await addUserToGroup('g1', req1())
+    const gReq = reqGroup(g)
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb'
+    }, gReq)
+
+    const foldera = await reporter.documentStore.collection('folders').findOne({ name: 'foldera' }, reqAdmin())
+    const folderb = await reporter.documentStore.collection('folders').findOne({ name: 'folderb' }, reqAdmin())
+
+    foldera.readPermissions = foldera.readPermissions || []
+    foldera.editPermissions = foldera.editPermissions || []
+    foldera.readPermissionsGroup = foldera.readPermissionsGroup || []
+    foldera.editPermissionsGroup = foldera.editPermissionsGroup || []
+    folderb.readPermissions = folderb.readPermissions || []
+    folderb.editPermissions = folderb.editPermissions || []
+    folderb.readPermissionsGroup = folderb.readPermissionsGroup || []
+    folderb.editPermissionsGroup = folderb.editPermissionsGroup || []
+
+    foldera.readPermissions.should.have.length(1)
+    foldera.editPermissions.should.have.length(1)
+    foldera.readPermissionsGroup.should.have.length(0)
+    foldera.editPermissionsGroup.should.have.length(0)
+    foldera.inheritedReadPermissions.should.have.length(0)
+    foldera.inheritedEditPermissions.should.have.length(0)
+    folderb.readPermissions.should.have.length(0)
+    folderb.editPermissions.should.have.length(0)
+    folderb.readPermissionsGroup.should.have.length(1)
+    folderb.editPermissionsGroup.should.have.length(1)
+    folderb.inheritedReadPermissions.should.have.length(2)
+    folderb.inheritedEditPermissions.should.have.length(2)
+
+    foldera.readPermissions[0].should.be.eql(req1().context.user._id)
+    foldera.editPermissions[0].should.be.eql(req1().context.user._id)
+    folderb.readPermissionsGroup[0].should.be.eql(g._id)
+    folderb.editPermissionsGroup[0].should.be.eql(g._id)
+    folderb.inheritedReadPermissions[0].should.be.eql(g._id)
+    folderb.inheritedReadPermissions[1].should.be.eql(req1().context.user._id)
+    folderb.inheritedEditPermissions[0].should.be.eql(g._id)
+    folderb.inheritedEditPermissions[1].should.be.eql(req1().context.user._id)
+  })
+
+  it('adding to parent folder should not work ok if no explicit permissions with both users (normal user and user that is group)', async () => {
+    const g = await addUserToGroup('g1', req1())
+    const gReq = reqGroup(g)
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      },
+      readPermissionsGroup: [g._id]
+    }, reqAdmin())
+
+    let errorFromNormalUser
+
+    try {
+      await reporter.documentStore.collection('templates').insert({
+        name: 'template',
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html',
+        folder: {
+          shortid: 'folderb'
+        }
+      }, req1())
+    } catch (error) {
+      errorFromNormalUser = error
+    }
+
+    should(errorFromNormalUser).be.instanceof(Error, 'insert did not failed for normal user')
+    should(errorFromNormalUser.message).match(/Unauthorized for templates/)
+
+    let errorFromGroupUser
+
+    try {
+      await reporter.documentStore.collection('templates').insert({
+        name: 'template',
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html',
+        folder: {
+          shortid: 'folderb'
+        }
+      }, gReq)
+    } catch (error) {
+      errorFromGroupUser = error
+    }
+
+    should(errorFromGroupUser).be.instanceof(Error, 'insert did not failed for user that is group')
+    should(errorFromGroupUser.message).match(/Unauthorized for templates/)
+  })
+
   it('updating should work ok with user that is group', async () => {
     const g = await reporter.documentStore.collection('usersGroups').insert({ name: 'g', users: [] }, reqAdmin())
     const req = reqGroup(g)
