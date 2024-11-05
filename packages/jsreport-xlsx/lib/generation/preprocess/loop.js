@@ -311,7 +311,7 @@ module.exports = (files, ctx) => {
                 } else {
                   if (currentLoopDetected.type === 'vertical') {
                     let foundMatchingVerticalLoop = false
-                    const latestNotClosedLoops = getLatestNotClosedLoop(loopsDetected, true).reverse()
+                    const latestNotClosedLoops = getLatestNotClosedLoop(loopsDetected, true)
 
                     for (const latestLoop of latestNotClosedLoops) {
                       if (latestLoop.type === 'vertical' && parsedCellRef.columnNumber === latestLoop.start.originalColumnNumber) {
@@ -514,6 +514,37 @@ module.exports = (files, ctx) => {
         }
 
         if (isVertical) {
+          const invalidLoop = loopsDetected.find((loop) => {
+            if (loop.hierarchyId === currentLoop.hierarchyId) {
+              return false
+            }
+
+            if (loop.type === 'vertical') {
+              // we are fine detecting just one side
+              return (
+                loop.start.originalColumnNumber === parsedLoopStart.columnNumber &&
+                loop.start.originalRowNumber >= parsedLoopStart.rowNumber &&
+                loop.start.originalRowNumber <= parsedLoopEnd.rowNumber
+              )
+            } else if (loop.type === 'row' || loop.type === 'block') {
+              // we are fine detecting just one side in the case of block loops
+              return (
+                loop.start.originalRowNumber >= parsedLoopStart.rowNumber &&
+                loop.start.originalRowNumber <= parsedLoopEnd.rowNumber
+              )
+            }
+
+            return false
+          })
+
+          if (invalidLoop != null) {
+            if (invalidLoop.type === 'vertical') {
+              throw new Error(`Vertical loops can not have child vertical loops. Check child vertical loop definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+            } else {
+              throw new Error(`Vertical loops can not be defined in rows that contain ${invalidLoop.type} loops. Check vertical loop definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+            }
+          }
+
           const affectedRowNumbers = previousRows.filter(([pRowNumber]) => {
             return (
               pRowNumber >= parsedLoopStart.rowNumber &&
