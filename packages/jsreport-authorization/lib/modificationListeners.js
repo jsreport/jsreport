@@ -29,20 +29,40 @@ module.exports = (reporter) => {
           return
         }
 
+        let assertFirst = false
+
         if (req && req.context && req.context.user && !req.context.user.isSuperAdmin) {
           if (!req.context.user.isGroup) {
             doc.readPermissions = mergeArrays(doc.readPermissions, [req.context.user._id.toString()])
             doc.editPermissions = mergeArrays(doc.editPermissions, [req.context.user._id.toString()])
           } else {
-            doc.readPermissionsGroup = mergeArrays(doc.readPermissionsGroup, [req.context.user._id.toString()])
-            doc.editPermissionsGroup = mergeArrays(doc.editPermissionsGroup, [req.context.user._id.toString()])
+            // if entity target is root folder we need to replicate the behavior of a normal user
+            // insert, which is to allow the insert, in this case then we don't assert first
+            if (doc.folder == null) {
+              doc.readPermissionsGroup = mergeArrays(doc.readPermissionsGroup, [req.context.user._id.toString()])
+              doc.editPermissionsGroup = mergeArrays(doc.editPermissionsGroup, [req.context.user._id.toString()])
+            } else {
+              assertFirst = () => {
+                doc.readPermissionsGroup = mergeArrays(doc.readPermissionsGroup, [req.context.user._id.toString()])
+                doc.editPermissionsGroup = mergeArrays(doc.editPermissionsGroup, [req.context.user._id.toString()])
+              }
+            }
           }
         }
 
-        await
-        propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)
+        if (!assertFirst) {
+          await propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)
+          await assertPermissions.assertInsert(col, doc, req)
+        } else {
+          // we need to propagate first to normalize existing permissions (from folder and custom read/edit permissions group)
+          await propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)
 
-        await assertPermissions.assertInsert(col, doc, req)
+          await assertPermissions.assertInsert(col, doc, req)
+          assertFirst()
+
+          // propagate the remaining (current user as group)
+          await propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)
+        }
       })
 
       col.beforeRemoveListeners.add('authorization-cascade-remove', async (q, req) => {

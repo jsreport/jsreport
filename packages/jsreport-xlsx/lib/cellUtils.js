@@ -225,7 +225,10 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
 
       // reuse already calculated cell refs
       if (!shouldEvaluate) {
-        return generateNewCellRefFrom(cellRefInfo.parsed, { rowNumber: cellRefInfo.parsed.rowNumber })
+        return generateNewCellRefFrom(cellRefInfo.parsed, {
+          columnLetter: cellRefInfo.parsed.letter,
+          rowNumber: cellRefInfo.parsed.rowNumber
+        })
       }
     }
 
@@ -241,7 +244,7 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
     let cellRefIsFromLoop = false
 
     if (isLocalRef && trackedCells[cellRefInfo.localRef] != null) {
-      cellRefIsFromLoop = trackedCells[cellRefInfo.localRef].inLoop
+      cellRefIsFromLoop = trackedCells[cellRefInfo.localRef].currentLoopId != null
     }
 
     let includeLoopIncrement
@@ -266,7 +269,17 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
       if (!cellRefInfo.parsed.lockedRow) {
         newRowNumber += rowCurrentLoopIncrement
       }
-    } else if (meta.type === 'normal' && parsedOriginCellRef.rowNumber < cellRefInfo.parsed.rowNumber) {
+
+      if (!cellRefInfo.parsed.lockedColumn) {
+        newColumnLetter = getNewCellLetter(cellRefInfo.parsed.letter, columnCurrentLoopIncrement)
+      }
+    } else if (
+      meta.type === 'normal' &&
+      (
+        parsedOriginCellRef.rowNumber < cellRefInfo.parsed.rowNumber ||
+        parsedOriginCellRef.columnNumber < cellRefInfo.parsed.columnNumber
+      )
+    ) {
       // if formula has a cell reference that is greater than origin then we
       // mark it as lazy
       result.lazyCellRefs[lazyCellRefId] = {
@@ -278,11 +291,13 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
       // let the cell as it is
       // (the final row number will be calculated later in other helper)
       newRowNumber = cellRefInfo.parsed.rowNumber
+      newColumnLetter = cellRefInfo.parsed.letter
     } else {
       let columnIncrement
       let rowIncrement
 
       if (trackedCells[cellRefInfo.localRef] != null && trackedCells[cellRefInfo.localRef].count > 0) {
+        const { currentCellRef, getCurrentLoopItem } = meta
         const tracked = trackedCells[cellRefInfo.localRef]
 
         const shouldUseFirstForRow = (
@@ -293,12 +308,24 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
         let parsedLastCellRef = shouldUseFirstForRow ? parseCellRef(tracked.first) : parseCellRef(tracked.last)
         rowIncrement = parsedLastCellRef.rowNumber - cellRefInfo.parsed.rowNumber
 
-        const shouldUseFirstForColumn = (
-          cellRefInfo.parsed.lockedColumn ||
-          (!originCellIsFromLoop && cellRefIsFromLoop && cellRefInfo.type === 'rangeStart')
-        )
+        let cellRefLoopItem
 
-        parsedLastCellRef = shouldUseFirstForColumn ? parseCellRef(tracked.first) : parseCellRef(tracked.last)
+        if (cellRefIsFromLoop) {
+          cellRefLoopItem = getCurrentLoopItem(tracked.currentLoopId)
+        }
+
+        if (!cellRefInfo.parsed.lockedColumn && originCellIsFromLoop && cellRefLoopItem?.type === 'vertical') {
+          const parsedOriginCurrentCellRef = parseCellRef(currentCellRef)
+          parsedLastCellRef = parseCellRef(cellRefLoopItem.trackedCells.get(cellRefInfo.localRef)?.get(parsedOriginCurrentCellRef.letter) ?? currentCellRef)
+        } else {
+          const shouldUseFirstForColumn = (
+            cellRefInfo.parsed.lockedColumn ||
+            (!originCellIsFromLoop && cellRefIsFromLoop && cellRefInfo.type === 'rangeStart')
+          )
+
+          parsedLastCellRef = shouldUseFirstForColumn ? parseCellRef(tracked.first) : parseCellRef(tracked.last)
+        }
+
         columnIncrement = parsedLastCellRef.columnNumber - cellRefInfo.parsed.columnNumber
       } else {
         // cell reference points to cell which does not exists as content of the template
