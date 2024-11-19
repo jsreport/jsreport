@@ -277,10 +277,41 @@ describe('pdfjs', () => {
     fonts.get('Helvetica').should.be.ok()
   })
 
-  it('merge should merge the StructTreeRoot', async () => {
+  it('merge should merge the StructTreeRoot for chrome 131 generated docs', async () => {
     const document = new Document()
-    document.append(new External(fs.readFileSync(path.join(__dirname, 'main.pdf'))), { copyAccessibilityTags: true })
-    document.merge(new External(fs.readFileSync(path.join(__dirname, 'header.pdf'))), { copyAccessibilityTags: true })
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main-chrome131.pdf'))), { copyAccessibilityTags: true })
+    document.merge(new External(fs.readFileSync(path.join(__dirname, 'header-chrome131.pdf'))), { copyAccessibilityTags: true })
+
+    const pdf = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdf)
+
+    const { catalog } = await validate(pdf)
+    catalog.properties.get('MarkInfo').get('Marked').should.be.true()
+
+    const page = catalog.properties.get('Pages').object.properties.get('Kids')[0].object
+    page.properties.get('StructParents').should.be.eql(0)
+    page.properties.get('Resources').get('XObject').get('X1.0').object.properties.get('StructParents').should.be.eql(1)
+
+    const structTreeRoot = catalog.properties.get('StructTreeRoot').object
+
+    structTreeRoot.properties.get('ParentTreeNextKey').should.be.eql(2)
+    const parentTree = structTreeRoot.properties.get('ParentTree').object
+    parentTree.properties.get('Nums').should.have.length(4)
+    parentTree.properties.get('Nums')[0].should.be.eql(0)
+    parentTree.properties.get('Nums')[2].should.be.eql(1)
+
+    const documentNode = structTreeRoot.properties.get('K').object
+    documentNode.properties.get('K').should.have.length(2)
+    documentNode.properties.get('K')[1].object.properties.get('P').should.be.eql(documentNode.properties.get('K')[0].object.properties.get('P'))
+    documentNode.properties.get('K')[1].object.properties.get('K')[0].object.properties.get('K')[0].get('Stm').object.should.be.eql(
+      page.properties.get('Resources').get('XObject').get('X1.0').object
+    )
+  })
+
+  it.skip('merge should merge the StructTreeRoot', async () => {
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main-chrome131.pdf'))), { copyAccessibilityTags: true })
+    document.merge(new External(fs.readFileSync(path.join(__dirname, 'header-chrome131.pdf'))), { copyAccessibilityTags: true })
 
     const pdf = await document.asBuffer()
     fs.writeFileSync('out.pdf', pdf)

@@ -89,10 +89,28 @@ function findStructsForPageAndReplaceOldPg (structTreeRoot, newPage, originalPag
   const f = (nodeOrDict, parent) => {
     if (nodeOrDict.get && nodeOrDict.get('Pg')?.object === newPage) {
       nodeOrDict.set('Pg', (originalPage || newPage).toReference())
+
       if (xobj) {
         nodeOrDict.set('Stm', xobj.toReference())
       }
+
       return structsInPage.push({ parent, node: nodeOrDict })
+    } else {
+      if (nodeOrDict.object && nodeOrDict.object.properties.get('Pg')?.object === newPage) {
+        nodeOrDict.object.properties.set('Pg', (originalPage || newPage).toReference())
+
+        if (xobj && Number.isInteger(nodeOrDict.object.properties.get('K')[0])) {
+          const mcr = new PDF.Dictionary()
+          mcr.set('Type', new PDF.Name('MCR'))
+          mcr.set('Pg', nodeOrDict.object.properties.get('Pg'))
+          mcr.set('MCID', nodeOrDict.object.properties.get('K')[0])
+          mcr.set('Stm', xobj.toReference())
+          nodeOrDict.object.properties.set('K', new PDF.Array([mcr]))
+          nodeOrDict.object.properties.del('Pg')
+        }
+
+        return structsInPage.push({ parent, node: nodeOrDict.object.properties })
+      }
     }
 
     if (nodeOrDict.object) {
