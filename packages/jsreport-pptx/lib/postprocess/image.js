@@ -1,7 +1,7 @@
 
 const sizeOf = require('image-size')
 const axios = require('axios')
-const { nodeListToArray, pxToEMU, cmToEMU } = require('../utils')
+const { nodeListToArray, getDimension, pxToEMU, cmToEMU } = require('../utils')
 
 module.exports = async (files) => {
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
@@ -147,18 +147,4 @@ module.exports = async (files) => {
       grpSp.removeChild(el.parentNode.parentNode.parentNode.parentNode.parentNode)
     }
   }
-}
-
-function getDimension (value) {
-  const regexp = /^(\d+(.\d+)?)(cm|px)$/
-  const match = regexp.exec(value)
-
-  if (match) {
-    return {
-      value: parseFloat(match[1]),
-      unit: match[3]
-    }
-  }
-
-  return null
 }

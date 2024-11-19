@@ -8,6 +8,8 @@ module.exports = (files) => {
     const elements = nodeListToArray(doc.getElementsByTagName('a:t'))
     const openTags = []
 
+    const tablesFoundMap = new Map()
+
     for (let i = 0; i < elements.length; i++) {
       const el = elements[i]
 
@@ -80,6 +82,8 @@ module.exports = (files) => {
         const rowNode = cellNode.parentNode
         const tableNode = rowNode.parentNode
 
+        tablesFoundMap.set(tableNode, helperCall)
+
         const newRowNode = rowNode.cloneNode(true)
 
         if (!isBlock) {
@@ -129,16 +133,16 @@ module.exports = (files) => {
         processOpeningTag(doc, newRowNode, helperCall)
         processClosingTag(doc, newRowNode)
 
-        const tableGridNode = tableNode.getElementsByTagName('a:tblGrid')[0]
+        const tableGridNode = nodeListToArray(tableNode.childNodes).find((node) => node.nodeName === 'a:tblGrid')
         const tableGridColNodes = nodeListToArray(tableGridNode.getElementsByTagName('a:gridCol'))
 
         const baseColsWidth = tableGridColNodes[0].getAttribute('w')
 
         if (baseColsWidth != null && baseColsWidth !== '' && !isNaN(parseInt(baseColsWidth, 10))) {
-          tableNode.setAttribute('needsColWidthNormalization', baseColsWidth)
+          tableGridNode.setAttribute('needsColWidthNormalization', baseColsWidth)
         }
 
-        // add loop for colum definitions (pptx table requires this to show the newly created columns)
+        // add loop for column definitions (pptx table requires this to show the newly created columns)
         processOpeningTag(doc, tableGridColNodes[0], helperCall.replace('rows=', 'ignore='))
         processClosingTag(doc, tableGridColNodes[0])
       } else if (el.textContent.includes('{{#pptxTable')) {
@@ -150,8 +154,12 @@ module.exports = (files) => {
           openTags.push({ mode: 'row' })
         }
 
+        const cellNode = el.parentNode.parentNode.parentNode.parentNode
+        const tableNode = cellNode.parentNode.parentNode
+
+        tablesFoundMap.set(tableNode, helperCall)
+
         if (isVertical) {
-          const cellNode = el.parentNode.parentNode.parentNode.parentNode
           const cellIndex = getCellIndex(cellNode)
           const [affectedRows, textNodeTableClose] = getNextRowsUntilTableClose(cellNode.parentNode)
 
@@ -159,8 +167,7 @@ module.exports = (files) => {
             textNodeTableClose.textContent = textNodeTableClose.textContent.replace('{{/pptxTable}}', '')
           }
 
-          const tableNode = cellNode.parentNode.parentNode
-          const tableGridNode = tableNode.getElementsByTagName('a:tblGrid')[0]
+          const tableGridNode = nodeListToArray(tableNode.childNodes).find((node) => node.nodeName === 'a:tblGrid')
           const tableGridColNodes = nodeListToArray(tableGridNode.getElementsByTagName('a:gridCol'))
 
           const baseColsWidth = tableGridColNodes.reduce((acu, colNode) => {
@@ -179,10 +186,10 @@ module.exports = (files) => {
           }, 0)
 
           if (baseColsWidth !== 0) {
-            tableNode.setAttribute('needsColWidthNormalization', baseColsWidth)
+            tableGridNode.setAttribute('needsColWidthNormalization', baseColsWidth)
           }
 
-          // add loop for colum definitions (pptx table requires this to show the newly created columns)
+          // add loop for column definitions (pptx table requires this to show the newly created columns)
           processOpeningTag(doc, tableGridColNodes[cellIndex], helperCall, isVertical)
           processClosingTag(doc, tableGridColNodes[cellIndex], isVertical)
 
@@ -207,6 +214,77 @@ module.exports = (files) => {
           processClosingTag(doc, el)
         }
       }
+    }
+
+    for (const [tableEl, helperCall] of tablesFoundMap) {
+      const tableGridEl = nodeListToArray(tableEl.childNodes).find((node) => node.nodeName === 'a:tblGrid')
+      const gridColEls = nodeListToArray(tableGridEl.childNodes).filter((node) => node.nodeName === 'a:gridCol')
+
+      const searchTerm = 'colsWidth='
+      const startColsWidthParameter = helperCall.indexOf(searchTerm)
+      let colsWidthParameterValue = ''
+
+      if (startColsWidthParameter !== -1) {
+        const remainingHelperCall = helperCall.slice(startColsWidthParameter + searchTerm.length)
+        let startValueMatch = remainingHelperCall.match(/["'(@\w]/)
+
+        if (startValueMatch != null) {
+          const startIdx = startValueMatch.index
+          startValueMatch = startValueMatch[0]
+          let endDelimiter
+
+          switch (startValueMatch) {
+            case '(':
+              endDelimiter = ')'
+              break
+            case '"':
+              endDelimiter = '"'
+              break
+            case "'":
+              endDelimiter = "'"
+              break
+            default:
+              endDelimiter = ' '
+              break
+          }
+
+          let endIdx = -1
+
+          if (endDelimiter === ' ') {
+            // we consider the case where the parameter is the last value of helper call
+            const currentRemaining = remainingHelperCall.slice(startIdx)
+            const endValueMatch = currentRemaining.match(/[ }]/)
+
+            if (endValueMatch != null) {
+              endIdx = startIdx + endValueMatch.index
+            }
+          } else {
+            endIdx = remainingHelperCall.indexOf(endDelimiter, startIdx + 1)
+
+            if (endIdx !== -1) {
+              // for the rest of delimiters other than space we want to include the delimiter itself
+              endIdx += 1
+            }
+          }
+
+          if (endIdx !== -1) {
+            colsWidthParameterValue = remainingHelperCall.slice(0, endIdx)
+          }
+        }
+      }
+
+      for (const gridColEl of gridColEls) {
+        gridColEl.setAttribute('w', `{{pptxTable check="colWidth" o=${gridColEl.getAttribute('w')}}}`)
+      }
+
+      const extraAttrs = ['check="grid"']
+
+      if (colsWidthParameterValue !== '') {
+        extraAttrs.push(`colsWidth=${colsWidthParameterValue}`)
+      }
+
+      processOpeningTag(doc, tableGridEl, `{{#pptxTable ${extraAttrs.join(' ')}}}`)
+      processClosingTag(doc, tableGridEl)
     }
   }
 }

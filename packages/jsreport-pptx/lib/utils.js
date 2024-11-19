@@ -8,6 +8,20 @@ function nodeListToArray (nodes) {
   return arr
 }
 
+function getDimension (value) {
+  const regexp = /^(\d+(.\d+)?)(cm|px)$/
+  const match = regexp.exec(value)
+
+  if (match) {
+    return {
+      value: parseFloat(match[1]),
+      unit: match[3]
+    }
+  }
+
+  return null
+}
+
 function pxToEMU (val) {
   return Math.round(val * 914400 / 96)
 }
@@ -385,6 +399,7 @@ module.exports.contentIsXML = (content) => {
 module.exports.serializeXml = (doc) => new XMLSerializer().serializeToString(doc).replace(/ xmlns(:[a-z0-9]+)?=""/g, '')
 
 module.exports.nodeListToArray = nodeListToArray
+module.exports.getDimension = getDimension
 module.exports.pxToEMU = pxToEMU
 module.exports.cmToEMU = cmToEMU
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
