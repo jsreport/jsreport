@@ -140,7 +140,7 @@ function processSMask (xobj) {
   const width = xobj.properties.get('Width')
 
   for (let y = 0; y < height; y++) {
-    const yOffset = y * width;
+    const yOffset = y * width
 
     for (let x = 0; x < width; x++) {
       if (x % 8 === 0 && x !== 0) {
