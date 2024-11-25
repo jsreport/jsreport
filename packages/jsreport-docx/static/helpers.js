@@ -57,12 +57,8 @@ function docxContext (options) {
   } else if (contextType === 'document') {
     data = Handlebars.createFrame(options.data)
     data.currentSectionIdx = 0
-    data.bookmarkStartInstances = []
-    data.defaultShapeTypeByObjectType = new Map()
   } else if (contextType === 'header' || contextType === 'footer') {
     data = Handlebars.createFrame(options.data)
-    data.bookmarkStartInstances = []
-    data.defaultShapeTypeByObjectType = new Map()
   } else if (contextType === 'sectionIdx') {
     const idx = options.data.currentSectionIdx
 
@@ -73,6 +69,41 @@ function docxContext (options) {
     return idx
   } else if (contextType === 'childContentPartial') {
     return options.data.childPartialId
+  }
+
+  if (
+    contextType === 'document' ||
+    contextType === 'header' ||
+    contextType === 'footer'
+  ) {
+    data.bookmarkStartInstances = []
+    data.defaultShapeTypeByObjectType = new Map()
+
+    const tasks = new Map()
+
+    data.tasks = {
+      wait (key) {
+        return tasks.get(key)?.promise
+      },
+      add (key) {
+        let taskExecution = tasks.get(key)
+
+        if (taskExecution != null) {
+          return [taskExecution.resolve, taskExecution.reject]
+        }
+
+        taskExecution = {}
+
+        taskExecution.promise = new Promise((resolve, reject) => {
+          taskExecution.resolve = resolve
+          taskExecution.reject = reject
+        })
+
+        tasks.set(key, taskExecution)
+
+        return [taskExecution.resolve, taskExecution.reject]
+      }
+    }
   }
 
   const context = {}
@@ -146,7 +177,7 @@ function docxList (data, options) {
   return Handlebars.helpers.each(data, options)
 }
 
-function docxTable (data, options) {
+async function docxTable (data, options) {
   const Handlebars = require('handlebars')
   const optionsToUse = options == null ? data : options
   let currentData
@@ -174,10 +205,22 @@ function docxTable (data, options) {
     Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'wrapper') &&
     optionsToUse.hash.wrapper === 'main'
   ) {
+    optionsToUse.data.tasks.add('grid')
+
     const newData = Handlebars.createFrame(optionsToUse.data)
-    newData.rows = optionsToUse.hash.rows
-    newData.columns = optionsToUse.hash.columns
-    newData.activeMergedCellsItems = []
+
+    newData.colsWidth = {
+      config: null,
+      values: null,
+      customized: false
+    }
+
+    if (optionsToUse.hash.rows != null && optionsToUse.hash.columns != null) {
+      newData.rows = optionsToUse.hash.rows
+      newData.columns = optionsToUse.hash.columns
+      newData.activeMergedCellsItems = []
+    }
+
     return optionsToUse.fn(this, { data: newData })
   }
 
@@ -202,6 +245,212 @@ function docxTable (data, options) {
         data.empty = matchedMergedCell.rowStart !== optionsToUse.data.rowIndex
         return optionsToUse.fn({}, { data })
       }
+    }
+
+    if (
+      optionsToUse.hash.check === 'tableWidthValue'
+    ) {
+      const originalTableWidthValue = optionsToUse.hash.o
+
+      await optionsToUse.data.tasks.wait('grid')
+
+      if (!optionsToUse.data.colsWidth.customized) {
+        return originalTableWidthValue
+      }
+
+      const newTableWidthValue = optionsToUse.data.colsWidth.values.reduce((acu, width) => {
+        return acu + width
+      }, 0)
+
+      return newTableWidthValue
+    }
+
+    if (
+      optionsToUse.hash.check === 'tableWidthType'
+    ) {
+      const originalTableWidthType = optionsToUse.hash.o
+
+      await optionsToUse.data.tasks.wait('grid')
+
+      if (!optionsToUse.data.colsWidth.customized) {
+        return originalTableWidthType
+      }
+
+      return 'dxa'
+    }
+
+    if (
+      optionsToUse.hash.check === 'grid'
+    ) {
+      const jsreport = require('jsreport-proxy')
+      const [resolveTask, rejectTask] = optionsToUse.data.tasks.add('grid')
+
+      try {
+        const data = Handlebars.createFrame(optionsToUse.data)
+        data.currentCol = { index: null }
+        const colsWidthConfig = optionsToUse.hash.colsWidth ?? []
+        data.colsWidth.config = colsWidthConfig
+        data.colsWidth.values = []
+        data.colsWidth.customized = optionsToUse.hash.colsWidth != null
+        const result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data }))
+        resolveTask()
+        return result
+      } catch (e) {
+        rejectTask(e)
+        throw e
+      }
+    }
+
+    if (
+      optionsToUse.hash.check === 'colWidth'
+    ) {
+      const currentCol = optionsToUse.data.currentCol
+      const colsWidth = optionsToUse.data.colsWidth
+      const originalWidth = optionsToUse.hash.o
+
+      if (currentCol == null) {
+        throw new Error('docxTable check="colWidth" helper invalid usage, currentCol was not found')
+      }
+
+      if (colsWidth == null) {
+        throw new Error('docxTable check="colWidth" helper invalid usage, colsWidth was not found')
+      }
+
+      if (currentCol.index == null) {
+        currentCol.index = 0
+      } else {
+        currentCol.index += 1
+      }
+
+      const currentColIdx = currentCol.index
+      const colsWidthConfig = colsWidth.config
+      const colsWidthValues = colsWidth.values
+      let colWidth
+
+      if (colsWidthConfig[currentColIdx] != null) {
+        const getColWidth = require('docxGetColWidth')
+        colWidth = getColWidth(colsWidthConfig[currentColIdx])
+
+        if (colWidth == null) {
+          throw new Error(
+            `docxTable helper requires colsWidth parameter to contain valid values. widths passed should be valid number with unit (cm or px). got ${
+              colsWidthConfig[currentColIdx]
+            } at index ${currentColIdx}`
+          )
+        }
+      } else {
+        colWidth = originalWidth
+      }
+
+      colsWidthValues.push(colWidth)
+
+      return colWidth
+    }
+
+    if (
+      optionsToUse.hash.check === 'row'
+    ) {
+      const data = Handlebars.createFrame(optionsToUse.data)
+
+      data.currentCell = { index: null, extra: 0 }
+
+      return optionsToUse.fn(this, { data })
+    }
+
+    if (
+      optionsToUse.hash.check === 'cell'
+    ) {
+      const currentCell = optionsToUse.data.currentCell
+
+      if (currentCell.index == null) {
+        currentCell.index = 0
+      } else {
+        currentCell.index += 1
+      }
+
+      if (currentCell.extra > 0) {
+        currentCell.index += currentCell.extra
+        currentCell.extra = 0
+      }
+
+      let gridSpan = optionsToUse.data.colspan
+
+      if (gridSpan == null) {
+        gridSpan = optionsToUse.hash.gs
+      }
+
+      if (gridSpan == null) {
+        gridSpan = 1
+      }
+
+      let dataToUse = optionsToUse.data
+
+      if (gridSpan > 1) {
+        currentCell.extra = gridSpan - 1
+        dataToUse = Handlebars.createFrame(optionsToUse.data)
+        dataToUse.colspan = gridSpan
+      }
+
+      return optionsToUse.fn(this, { data: dataToUse })
+    }
+
+    if (
+      optionsToUse.hash.check === 'cellWidthValue'
+    ) {
+      const originalWidthValue = optionsToUse.hash.o
+      const colsWidth = optionsToUse.data.colsWidth
+      const currentCellIndex = optionsToUse.data.currentCell.index
+
+      const colsWidthValues = colsWidth.values
+
+      if (!colsWidth.customized) {
+        return originalWidthValue
+      }
+
+      let gridSpan = optionsToUse.data.colspan
+
+      if (gridSpan == null) {
+        gridSpan = 1
+      }
+
+      let cellWidthValue = colsWidthValues[currentCellIndex]
+
+      if (cellWidthValue == null) {
+        cellWidthValue = originalWidthValue
+      }
+
+      if (gridSpan > 1) {
+        const lastIdx = (currentCellIndex + gridSpan) - 1
+
+        for (let idx = currentCellIndex + 1; idx <= lastIdx; idx++) {
+          const currentWidthValue = colsWidthValues[idx] ?? 0
+          cellWidthValue += currentWidthValue
+        }
+      }
+
+      return cellWidthValue
+    }
+
+    if (
+      optionsToUse.hash.check === 'cellWidthType'
+    ) {
+      const originalWidthType = optionsToUse.hash.o
+      const colsWidth = optionsToUse.data.colsWidth
+      const currentCellIndex = optionsToUse.data.currentCell.index
+
+      const colsWidthValues = colsWidth.values
+
+      if (!colsWidth.customized) {
+        return originalWidthType
+      }
+
+      const cellWidthValue = colsWidthValues[currentCellIndex]
+
+      if (cellWidthValue == null) {
+        return originalWidthType
+      }
+
+      return 'dxa'
     }
 
     return new Handlebars.SafeString('')
@@ -917,11 +1166,12 @@ async function docxSData (data, options) {
     arguments.length === 1 &&
     type === 'styles'
   ) {
+    const jsreport = require('jsreport-proxy')
     const newData = Handlebars.createFrame(optionsToUse.data)
 
     newData.styles = new Map()
 
-    let result = optionsToUse.fn(this, { data: newData })
+    let result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
 
     const processStyles = require('docxProcessStyles')
 
