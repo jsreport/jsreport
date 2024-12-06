@@ -25,6 +25,11 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.options.sandbox.modules.push({
+    alias: 'docxGetColWidth',
+    path: path.join(__dirname, './getColWidth.js')
+  })
+
+  reporter.options.sandbox.modules.push({
     alias: 'docxProcessChildEmbed',
     path: path.join(__dirname, './processChildEmbed/index.js')
   })

@@ -12,25 +12,6 @@ module.exports = (files) => {
 }
 
 function processTableEl (tableEl, doc) {
-  // if needed, normalize col widths, this should be done typically only for tables
-  // in vertical mode, or in dynamic rows/cell mode.
-  // we calculate the col width based on the total columns in table, each col will get
-  // the same width. we do this to improve the end result of table, so it fits better
-  // in the slide
-  if (tableEl.hasAttribute('needsColWidthNormalization')) {
-    const baseColsWidth = parseInt(tableEl.getAttribute('needsColWidthNormalization'), 10)
-
-    tableEl.removeAttribute('needsColWidthNormalization')
-
-    const gridColEls = nodeListToArray(tableEl.getElementsByTagName('a:gridCol'))
-    // ensure we don't end with float number, the w property does not admit it
-    const colWidth = Math.trunc(baseColsWidth / gridColEls.length)
-
-    for (const gridColEl of gridColEls) {
-      gridColEl.setAttribute('w', colWidth)
-    }
-  }
-
   const cellEls = nodeListToArray(tableEl.getElementsByTagName('a:tc'))
 
   // normalize table cells to contain at least paragraph

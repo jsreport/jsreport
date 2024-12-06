@@ -8,6 +8,8 @@ module.exports = (files) => {
     const elements = nodeListToArray(doc.getElementsByTagName('w:t'))
     const openTags = []
 
+    const tablesFoundMap = new Map()
+
     for (let i = 0; i < elements.length; i++) {
       const el = elements[i]
 
@@ -117,6 +119,8 @@ module.exports = (files) => {
         const rowNode = cellNode.parentNode
         const tableNode = rowNode.parentNode
 
+        tablesFoundMap.set(tableNode, helperCall)
+
         const newRowNode = rowNode.cloneNode(true)
 
         if (!isBlock) {
@@ -165,6 +169,15 @@ module.exports = (files) => {
 
         processOpeningTag(doc, newRowNode, helperCall)
         processClosingTag(doc, newRowNode)
+
+        const tableGridNode = nodeListToArray(tableNode.childNodes).find((node) => node.nodeName === 'w:tblGrid')
+        const tableGridColNodes = nodeListToArray(tableGridNode.getElementsByTagName('w:gridCol'))
+
+        // add loop for column definitions (technically docx table does not requires the
+        // col to be defined here in order to show the new cells, however we still create
+        // them in order to be able to normalize col widths if needed)
+        processOpeningTag(doc, tableGridColNodes[0], helperCall.replace('rows=', 'ignore='))
+        processClosingTag(doc, tableGridColNodes[0])
       } else if (el.textContent.includes('{{#docxTable')) {
         const helperCall = el.textContent.match(regexp)[0]
         const isVertical = el.textContent.includes('vertical=')
@@ -174,14 +187,30 @@ module.exports = (files) => {
           openTags.push({ mode: 'row' })
         }
 
+        const cellNode = el.parentNode.parentNode.parentNode
+        const tableNode = cellNode.parentNode.parentNode
+
+        processOpeningTag(doc, tableNode, '{{#docxTable wrapper="main"}}')
+        processClosingTag(doc, tableNode, isVertical)
+
+        tablesFoundMap.set(tableNode, helperCall)
+
         if (isVertical) {
-          const cellNode = el.parentNode.parentNode.parentNode
           const cellIndex = getCellIndex(cellNode)
           const [affectedRows, textNodeTableClose] = getNextRowsUntilTableClose(cellNode.parentNode)
 
           if (textNodeTableClose) {
             textNodeTableClose.textContent = textNodeTableClose.textContent.replace('{{/docxTable}}', '')
           }
+
+          const tableGridNode = nodeListToArray(tableNode.childNodes).find((node) => node.nodeName === 'w:tblGrid')
+          const tableGridColNodes = nodeListToArray(tableGridNode.getElementsByTagName('w:gridCol'))
+
+          // add loop for column definitions (technically docx table does not requires the
+          // col to be defined here in order to show the new cells, however we still create
+          // them in order to be able to normalize col widths if needed)
+          processOpeningTag(doc, tableGridColNodes[cellIndex], helperCall, isVertical)
+          processClosingTag(doc, tableGridColNodes[cellIndex], isVertical)
 
           processOpeningTag(doc, el, helperCall, isVertical)
           processClosingTag(doc, el, isVertical)
@@ -202,6 +231,114 @@ module.exports = (files) => {
         if (isNormal && el.textContent.includes('{{/docxTable')) {
           openTags.pop()
           processClosingTag(doc, el)
+        }
+      }
+    }
+
+    for (const [tableEl, helperCall] of tablesFoundMap) {
+      const tablePrEl = nodeListToArray(tableEl.childNodes).find((node) => node.nodeName === 'w:tblPr')
+      const tableWidthEl = nodeListToArray(tablePrEl.childNodes).find((node) => node.nodeName === 'w:tblW')
+
+      tableWidthEl.setAttribute('w:w', `{{docxTable check="tableWidthValue" o=${tableWidthEl.getAttribute('w:w')}}}`)
+      tableWidthEl.setAttribute('w:type', `{{docxTable check="tableWidthType" o="${tableWidthEl.getAttribute('w:type')}"}}`)
+
+      const searchTerm = 'colsWidth='
+      const startColsWidthParameter = helperCall.indexOf(searchTerm)
+      let colsWidthParameterValue = ''
+
+      if (startColsWidthParameter !== -1) {
+        const remainingHelperCall = helperCall.slice(startColsWidthParameter + searchTerm.length)
+        let startValueMatch = remainingHelperCall.match(/["'(@\w]/)
+
+        if (startValueMatch != null) {
+          const startIdx = startValueMatch.index
+          startValueMatch = startValueMatch[0]
+          let endDelimiter
+
+          switch (startValueMatch) {
+            case '(':
+              endDelimiter = ')'
+              break
+            case '"':
+              endDelimiter = '"'
+              break
+            case "'":
+              endDelimiter = "'"
+              break
+            default:
+              endDelimiter = ' '
+              break
+          }
+
+          let endIdx = -1
+
+          if (endDelimiter === ' ') {
+            // we consider the case where the parameter is the last value of helper call
+            const currentRemaining = remainingHelperCall.slice(startIdx)
+            const endValueMatch = currentRemaining.match(/[ }]/)
+
+            if (endValueMatch != null) {
+              endIdx = startIdx + endValueMatch.index
+            }
+          } else {
+            endIdx = remainingHelperCall.indexOf(endDelimiter, startIdx + 1)
+
+            if (endIdx !== -1) {
+              // for the rest of delimiters other than space we want to include the delimiter itself
+              endIdx += 1
+            }
+          }
+
+          if (endIdx !== -1) {
+            colsWidthParameterValue = remainingHelperCall.slice(0, endIdx)
+          }
+        }
+      }
+
+      const tableGridEl = nodeListToArray(tableEl.childNodes).find((node) => node.nodeName === 'w:tblGrid')
+      const gridColEls = nodeListToArray(tableGridEl.childNodes).filter((node) => node.nodeName === 'w:gridCol')
+
+      for (const gridColEl of gridColEls) {
+        gridColEl.setAttribute('w:w', `{{docxTable check="colWidth" o=${gridColEl.getAttribute('w:w')}}}`)
+      }
+
+      const extraAttrs = ['check="grid"']
+
+      if (colsWidthParameterValue !== '') {
+        extraAttrs.push(`colsWidth=${colsWidthParameterValue}`)
+      }
+
+      processOpeningTag(doc, tableGridEl, `{{#docxTable ${extraAttrs.join(' ')}}}`)
+      processClosingTag(doc, tableGridEl)
+
+      const tableRowEls = nodeListToArray(tableEl.childNodes).filter((node) => node.nodeName === 'w:tr')
+
+      for (const tableRowEl of tableRowEls) {
+        processOpeningTag(doc, tableRowEl, '{{#docxTable check="row"}}')
+        processClosingTag(doc, tableRowEl)
+
+        const tableCellEls = nodeListToArray(tableRowEl.childNodes).filter((node) => node.nodeName === 'w:tc')
+
+        for (const tableCellEl of tableCellEls) {
+          const tableCellPrEl = nodeListToArray(tableCellEl.childNodes).find((node) => node.nodeName === 'w:tcPr')
+          const tableCellWidthEl = nodeListToArray(tableCellPrEl.childNodes).find((node) => node.nodeName === 'w:tcW')
+          const gridSpanEl = nodeListToArray(tableCellPrEl.childNodes).find((node) => node.nodeName === 'w:gridSpan')
+
+          tableCellWidthEl.setAttribute('w:w', `{{docxTable check="cellWidthValue" o=${tableCellWidthEl.getAttribute('w:w')}}}`)
+          tableCellWidthEl.setAttribute('w:type', `{{docxTable check="cellWidthType" o="${tableCellWidthEl.getAttribute('w:type')}"}}`)
+
+          const extraAttrs = ['check="cell"']
+
+          if (
+            gridSpanEl != null &&
+            gridSpanEl.getAttribute('w:val') != null &&
+            !isNaN(parseInt(gridSpanEl.getAttribute('w:val'), 10))
+          ) {
+            extraAttrs.push(`gs=${gridSpanEl.getAttribute('w:val')}`)
+          }
+
+          processOpeningTag(doc, tableCellEl, `{{#docxTable ${extraAttrs.join(' ')}}}`)
+          processClosingTag(doc, tableCellEl)
         }
       }
     }
