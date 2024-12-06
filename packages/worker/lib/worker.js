@@ -84,17 +84,29 @@ module.exports = (options = {}) => {
       if (!workersManager) {
         debug('initializing worker')
 
-        const chromeLaunchOptions = {
-          args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile']
+        const workerOptions = reqBody.workerOptions
+
+        const chromeLaunchOptions = workerOptions.options.chrome?.launchOptions || {}
+        workerOptions.options.chrome = {
+          ...workerOptions.options.chrome,
+          launchOptions: chromeLaunchOptions
+        }
+
+        // we need defaults that we know work with chrome in docker, but we still want to allow user to change this in the main config
+        if (chromeLaunchOptions.args == null || chromeLaunchOptions.args.length === 0) {
+          chromeLaunchOptions.args = ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile']
+        }
+
+        if (chromeLaunchOptions.executablePath == null) {
+          chromeLaunchOptions.executablePath = '/usr/bin/chromium'
         }
 
         if (options.useChromiumMacosWorkaround) {
           debug('using chromiumMacosWorkaround')
-          chromeLaunchOptions.executablePath = 'chromium-browser'
           chromeLaunchOptions.args = ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile', '--no-zygote', '--disable-gpu', '--disable-audio-output', '--disable-setuid-sandbox', '--single-process']
         }
 
-        const workerOptions = reqBody.workerOptions
+        chromeLaunchOptions.executablePath = '/usr/bin/chromium'
 
         for (const def of workerOptions.extensionsDefs) {
           if (options.overwriteExtensionPaths !== false) {
@@ -105,28 +117,17 @@ module.exports = (options = {}) => {
             def.options.enabled = false
           }
 
-          // the worker gets already merged configs so we cant it just have in ENV in dockerfile
-          // TODO solve this somehow
           if (def.name === 'chrome-pdf') {
-            def.options.launchOptions = {}
+            def.options.launchOptions = { ...def.options.launchOptions }
 
-            if (chromeLaunchOptions.executablePath != null) {
+            if (def.options.launchOptions.executablePath == null) {
               def.options.launchOptions.executablePath = chromeLaunchOptions.executablePath
             }
 
-            def.options.launchOptions.args = chromeLaunchOptions.args
+            if (def.options.launchOptions.args == null || def.options.launchOptions.args.length === 0) {
+              def.options.launchOptions.args = chromeLaunchOptions.args
+            }
           }
-        }
-
-        workerOptions.options.chrome = {
-          ...workerOptions.options.chrome,
-          launchOptions: {
-            args: chromeLaunchOptions.args
-          }
-        }
-
-        if (chromeLaunchOptions.executablePath != null) {
-          workerOptions.options.chrome.launchOptions.executablePath = chromeLaunchOptions.executablePath
         }
 
         let rootDirectory
