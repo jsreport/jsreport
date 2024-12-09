@@ -23,7 +23,8 @@
     "test": "standard"
   },
   "dependencies": {
-    "azure-storage": "2.10.4"
+    "@azure/identity": "4.5.0",
+    "@azure/storage-blob": "12.26.0"    
   },
   "devDependencies": {
     "standard": "16.0.4"
