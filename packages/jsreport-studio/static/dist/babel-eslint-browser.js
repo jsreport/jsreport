@@ -17666,7 +17666,6 @@ if ($gOPD) {
     $gOPD = null; // this is IE 8, which has a broken gOPD
   }
 }
-
 var throwTypeError = function () {
   throw new $TypeError();
 };
@@ -18330,7 +18329,6 @@ var isES6ClassFn = function isES6ClassFunction(value) {
     return false; // not a function
   }
 };
-
 var tryFunctionObject = function tryFunctionToStr(value) {
   try {
     if (isES6ClassFn(value)) {
@@ -18480,7 +18478,6 @@ if ($gOPD) {
     $gOPD = null; // this is IE 8, which has a broken gOPD
   }
 }
-
 var throwTypeError = function () {
   throw new $TypeError();
 };
@@ -19521,7 +19518,6 @@ var defineProperty = function (object, name, value, predicate) {
     object[name] = value; // eslint-disable-line no-param-reassign
   }
 };
-
 var defineProperties = function (object, map) {
   var predicates = arguments.length > 2 ? arguments[2] : {};
   var props = keys(map);
@@ -19772,7 +19768,6 @@ if ($gOPD) {
     $gOPD = null; // this is IE 8, which has a broken gOPD
   }
 }
-
 var throwTypeError = function () {
   throw new $TypeError();
 };
@@ -39082,7 +39077,6 @@ function setup(env) {
       hash = (hash << 5) - hash + namespace.charCodeAt(i);
       hash |= 0; // Convert to 32bit integer
     }
-
     return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
   }
   createDebug.selectColor = selectColor;
@@ -41260,7 +41254,6 @@ exports["default"] = SourceMap;
         pos = encodeInteger(buf, pos, state, segment, 4); // namesIndex
       }
     }
-
     return out + td.decode(buf.subarray(0, pos));
   }
   function encodeInteger(buf, pos, state, segment, j) {
@@ -41572,7 +41565,6 @@ function SlowBuffer(length) {
 Buffer.isBuffer = function isBuffer(b) {
   return b != null && b._isBuffer === true && b !== Buffer.prototype; // so Buffer.isBuffer(Buffer.prototype) will be false
 };
-
 Buffer.compare = function compare(a, b) {
   if (isInstance(a, Uint8Array)) a = Buffer.from(a, a.offset, a.byteLength);
   if (isInstance(b, Uint8Array)) b = Buffer.from(b, b.offset, b.byteLength);
@@ -41683,7 +41675,6 @@ function byteLength(string, encoding) {
         if (loweredCase) {
           return mustMatch ? -1 : utf8ToBytes(string).length; // assume utf8
         }
-
         encoding = ('' + encoding).toLowerCase();
         loweredCase = true;
     }
@@ -46758,7 +46749,6 @@ const singleEscapes = {
   // `\v` is omitted intentionally, because in IE < 9, '\v' == 'v'.
   // '\v': '\\x0B'
 };
-
 const regexSingleEscape = /["'\\\b\f\n\r\t]/;
 const regexDigit = /[0-9]/;
 const regexWhitelist = /[ !#-&\(-\[\]-_a-~]/;

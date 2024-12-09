@@ -6,6 +6,7 @@ import api from '../../helpers/api'
 import openProfileFromServer from '../../helpers/openProfileFromServer'
 import { values as configuration } from '../../lib/configuration'
 import moment from 'moment'
+import humanizeReportDuration from '../../helpers/humanizeReportDuration'
 
 class Startup extends Component {
   constructor () {
@@ -178,7 +179,7 @@ class Startup extends Component {
                     </a>
                   </td>
                   <td title={new Date(p.timestamp).toLocaleString()}>{moment.duration(moment(new Date()).diff(moment(new Date(p.timestamp)))).humanize() + ' ago'}</td>
-                  <td>{p.finishedOn ? ((p.finishedOn - p.timestamp) + ' ms') : ''}</td>
+                  <td>{p.finishedOn ? humanizeReportDuration(p.finishedOn - p.timestamp) : ''}</td>
                   <td><span style={this.stateStyle(p.state)}>{p.state}</span></td>
                 </tr>
               ))}

@@ -5,6 +5,7 @@ import fileSaver from 'filesaver.js-npm'
 import { actions as progressActions } from '../../../../redux/progress'
 import styles from '../../Preview.css'
 import { openModal } from '../../../../helpers/openModal'
+import humanizeReportDuration from '../../../../helpers/humanizeReportDuration'
 
 const OperationNode = React.memo(function OperationNode (props) {
   const {
@@ -124,7 +125,7 @@ const OperationNode = React.memo(function OperationNode (props) {
       {/* eslint-disable-next-line */}
       <Fragment>
         <div className={styles.profileExecutionTime}>
-          <span className={styles.profileExecutionTimeLabel}>{time}ms</span>
+          <span className={styles.profileExecutionTimeLabel}>{humanizeReportDuration(time)}</span>
         </div>
         <div className={styles.profileExecutionTimeCover} title={`${time}ms`}>
           &nbsp;

@@ -8,6 +8,7 @@ import { actions as settingsActions } from '../../redux/settings'
 import moment from 'moment'
 import { values as configuration } from '../../lib/configuration'
 import EntityRefSelect from '../../components/common/EntityRefSelect'
+import humanizeReportDuration from '../../helpers/humanizeReportDuration'
 
 class Profiler extends Component {
   constructor (props) {
@@ -112,6 +113,7 @@ class Profiler extends Component {
               <tr>
                 <th>template</th>
                 <th>started</th>
+                <th>duration</th>
                 <th>state</th>
               </tr>
             </thead>
@@ -129,6 +131,7 @@ class Profiler extends Component {
                       : moment.duration(moment(new Date()).diff(moment(new Date(p.timestamp)))).humanize() + ' ago'
                       }
                   </td>
+                  <td>{p.finishedOn ? humanizeReportDuration(p.finishedOn - p.timestamp) : ''}</td>
                   <td><span style={this.stateStyle(p.state)}>{p.state}</span></td>
                 </tr>
               ))}

@@ -279,6 +279,7 @@
 }
 
 .profileExecutionTimeLabel {
+  white-space: nowrap;
   display: inline-block;
   color: $primary-color;
   transform: translateX(-50%);
