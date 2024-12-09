@@ -228,6 +228,17 @@ class HistoryEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       title: 'Uncommitted changes'
     });
   }
+  async clearAllCommits() {
+    if (window.confirm('This will permanently delete all commits. Are you sure you want to perform this action?')) {
+      try {
+        const res = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.get('/odata/versions');
+        await Promise.all(res.value.map(v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.del(`/odata/versions('${v._id}')`)));
+        this.load();
+      } catch (e) {
+        alert(e);
+      }
+    }
+  }
   render() {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "block custom-editor"
@@ -236,7 +247,10 @@ class HistoryEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }), " Commits history", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
       className: "button confirmation",
       onClick: () => this.localChanges()
-    }, "Uncommitted changes")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    }, "Uncommitted changes"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      className: "button danger",
+      onClick: () => this.clearAllCommits()
+    }, "Clear all commits")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       style: {
         marginTop: '1rem',
         marginBottom: '1rem'
