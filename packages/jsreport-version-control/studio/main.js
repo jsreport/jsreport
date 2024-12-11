@@ -672,7 +672,17 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().initializeListeners.push(
       }));
     }
   }
-  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(VCToolbar);
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(() => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    title: "History",
+    className: "toolbar-button",
+    onClick: () => jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openTab({
+      key: 'versionControlLocalChanges',
+      editorComponentKey: 'versionControlLocalChanges',
+      title: 'Uncommited changes'
+    })
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
+    className: "fa fa-history"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, "Version control")), 'settings');
 });
 })();
 
