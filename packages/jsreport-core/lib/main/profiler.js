@@ -12,7 +12,7 @@ module.exports = (reporter) => {
     templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
     timestamp: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
     finishedOn: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
-    state: { type: 'Edm.String' },
+    state: { type: 'Edm.String', schema: { enum: ['running', 'success', 'queued', 'error', 'canceling'] } },
     error: { type: 'Edm.String' },
     mode: { type: 'Edm.String', schema: { enum: ['full', 'standard', 'disabled'] } },
     blobName: { type: 'Edm.String' },
@@ -377,6 +377,7 @@ module.exports = (reporter) => {
 
   let profilesCleanupInterval
   let fullModeDurationCheckInterval
+  let profilesCancelingCheckInterval
 
   reporter.initializeListeners.add('profiler', async () => {
     reporter.documentStore.collection('profiles').beforeRemoveListeners.add('profiles', async (query, req) => {
@@ -398,11 +399,39 @@ module.exports = (reporter) => {
       return reporter._profilesFullModeDurationCheck()
     }
 
+    let _profilesCancelingCheckExecRunning = false
+    async function profilesCancelingCheckExec () {
+      if (_profilesCancelingCheckExecRunning) {
+        return
+      }
+      _profilesCancelingCheckExecRunning = true
+
+      try {
+        const cancelingProfiles = await reporter.documentStore.collection('profiles').find({
+          state: 'canceling'
+        })
+
+        for (const profile of cancelingProfiles) {
+          const runningReq = [...reporter.runningRequests.map.values()].find(v => v.req.context.profiling?.entity?._id === profile._id)
+          if (runningReq) {
+            runningReq.options.abortEmitter.emit('abort')
+          }
+        }
+      } catch (e) {
+        reporter.logger.warn('Failed to process cancelling profiles. No worry, it will retry next time.', e)
+      } finally {
+        _profilesCancelingCheckExecRunning = false
+      }
+    }
+
     profilesCleanupInterval = setInterval(profilesCleanupExec, reporter.options.profiler.cleanupInterval)
     profilesCleanupInterval.unref()
 
     fullModeDurationCheckInterval = setInterval(fullModeDurationCheckExec, reporter.options.profiler.fullModeDurationCheckInterval)
     fullModeDurationCheckInterval.unref()
+
+    profilesCancelingCheckInterval = setInterval(profilesCancelingCheckExec, reporter.options.profiler.cancelingCheckInterval)
+    profilesCancelingCheckInterval.unref()
 
     await reporter._profilesCleanup()
   })
@@ -412,8 +441,29 @@ module.exports = (reporter) => {
       clearInterval(profilesCleanupInterval)
     }
 
+    if (profilesCleanupInterval) {
+      clearInterval(profilesCleanupInterval)
+    }
+
     if (fullModeDurationCheckInterval) {
       clearInterval(fullModeDurationCheckInterval)
+    }
+
+    try {
+      const runningRequests = [...reporter.runningRequests.map.values()]
+      reporter.documentStore.collection('profiles').update({
+        _id: {
+          $in: runningRequests.map(r => r.req.context.profiling?.entity?._id)
+        }
+      }, {
+        $set: {
+          state: 'error',
+          finishedOn: new Date(),
+          error: 'The server unexpectedly stopped during the report rendering.'
+        }
+      })
+    } catch (e) {
+      reporter.logger.warn('Failed to set error state to the running requests when closing.', e)
     }
 
     for (const key of profilerOperationsChainsMap.keys()) {
@@ -460,7 +510,7 @@ module.exports = (reporter) => {
       }
 
       const notFinishedProfiles = await reporter.documentStore.collection('profiles')
-        .find({ $or: [{ state: 'running' }, { state: 'queued' }] }, { _id: 1, timeout: 1, timestamp: 1 })
+        .find({ $or: [{ state: 'running' }, { state: 'queued' }, { state: 'canceling' }] }, { _id: 1, timeout: 1, timestamp: 1 })
         .toArray()
 
       for (const profile of notFinishedProfiles) {

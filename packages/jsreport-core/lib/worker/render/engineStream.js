@@ -58,14 +58,14 @@ module.exports = (reporter) => {
     if (proxy.templatingEngines) {
       proxy.templatingEngines.createStream = async (opts = {}) => {
         // limiting the number of temp files to avoid breaking server, otherwise I see no reason why having more than 1000 calls per req should be valid usecase
-        const counter = reporter.reqStorage.get('engine-stream-counter', req) || 0
+        const counter = reporter.runningRequests.keyValueStore.get('engine-stream-counter', req) || 0
         if (counter > 1000) {
           throw reporter.createError('Reached maximum limit of templatingEngine.createStream calls', {
             weak: true,
             statusCode: 400
           })
         }
-        reporter.reqStorage.set('engine-stream-counter', counter + 1, req)
+        reporter.runningRequests.keyValueStore.set('engine-stream-counter', counter + 1, req)
 
         req.context.engineStreamEnabled = true
 

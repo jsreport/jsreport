@@ -78,7 +78,6 @@ module.exports = (app, reporter, exposedOptions) => {
       // clear the res.setTimeout, this internally remove listener from res
       res.setTimeout(0)
       req.socket.removeListener('close', onReqClose)
-      abortEmitter.removeAllListeners('abort')
     }
 
     reporter.render(renderRequest, { abortEmitter, onReqReady }).then((renderResponse) => {

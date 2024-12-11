@@ -217,7 +217,7 @@ class Startup extends Component {
                     </a>
                   </td>
                   <td title={new Date(p.timestamp).toLocaleString()}>{moment.duration(moment(new Date()).diff(moment(new Date(p.timestamp)))).humanize() + ' ago'}</td>
-                  <td>{p.finishedOn ? ((p.finishedOn - p.timestamp) + ' ms') : ''}</td>
+                  <td>{p.finishedOn ? humanizeReportDuration(p.finishedOn - p.timestamp) : ''}</td>
                   <td>{!p.error || p.error.length < 90 ? p.error : (p.error.substring(0, 80) + '...')}</td>
                 </tr>
               ))}

@@ -197,6 +197,11 @@ module.exports.getRootSchemaOptions = () => ({
           type: ['string', 'number'],
           '$jsreport-acceptsSize': true,
           default: '10mb'
+        },
+        cancelingCheckInterval: {
+          type: ['string', 'number'],
+          '$jsreport-acceptsDuration': true,
+          default: '5s'
         }
       }
     }

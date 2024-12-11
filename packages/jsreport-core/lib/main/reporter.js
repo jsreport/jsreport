@@ -29,6 +29,7 @@ const Request = require('./request')
 const Response = require('../shared/response')
 const Profiler = require('./profiler')
 const semver = require('semver')
+const EventEmitter = require('events')
 let reportCounter = 0
 
 class MainReporter extends Reporter {
@@ -367,6 +368,8 @@ class MainReporter extends Reporter {
       throw new Error('Not initialized, you need to call jsreport.init().then before rendering')
     }
 
+    options.abortEmitter = options.abortEmitter || new EventEmitter()
+
     req = Object.assign({}, req)
     req.context = Object.assign({}, req.context)
     req.context.rootId = req.context.rootId || this.generateRequestId()
@@ -374,6 +377,8 @@ class MainReporter extends Reporter {
     req.context.reportCounter = ++reportCounter
     req.context.startTimestamp = new Date().getTime()
     req.options = Object.assign({}, req.options)
+
+    this.runningRequests.register(req, options)
 
     let worker
     let workerAborted
@@ -491,6 +496,9 @@ class MainReporter extends Reporter {
       this._cleanProfileInRequest(req)
       throw err
     } finally {
+      options.abortEmitter.removeAllListeners('abort')
+
+      this.runningRequests.unregister(req, options)
       if (worker && !workerAborted && !dontCloseProcessing) {
         await worker.release(req)
       }

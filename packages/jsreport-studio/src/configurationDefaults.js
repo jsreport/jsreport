@@ -411,6 +411,19 @@ export default () => {
     )
   })
 
+  configuration.toolbarComponents.left.push(function CancelProfile (props) {
+    const activeProfile = Profiler.Instance?.state?.active
+    if (activeProfile == null || (activeProfile.state !== 'running' && activeProfile.state !== 'queued')) {
+      return <></>
+    }
+
+    return (
+      <div className='toolbar-button button danger' onClick={() => Profiler.Instance?.cancel()}>
+        <i className='fa fa-times' />Cancel
+      </div>
+    )
+  })
+
   configuration.toolbarComponents.settings.push((props) => (
     <div
       onClick={() => {
