@@ -2,6 +2,7 @@ import fileSaver from 'filesaver.js-npm'
 import * as entities from '../entities'
 import * as progress from '../progress'
 import * as ActionTypes from './constants'
+import * as EntitiesActionTypes from '../entities/constants'
 import uid from '../../helpers/uid'
 import api from '../../helpers/api'
 import * as selectors from './selectors'
@@ -754,5 +755,47 @@ export function activateUndockMode () {
 export function desactivateUndockMode () {
   return {
     type: ActionTypes.DESACTIVATE_UNDOCK_MODE
+  }
+}
+
+export function openProfile (profile) {
+  return {
+    type: ActionTypes.OPEN_PROFILE,
+    profile
+  }
+}
+
+export function cancelProfile (profile) {
+  return async function (dispatch, getState) {
+    if (!confirm('This will cancel running request. Are you sure you want to perform this action?')) {
+      return
+    }
+
+    try {
+      dispatch({
+        type: EntitiesActionTypes.API_START
+      })
+
+      await api.patch(`/odata/profiles('${profile._id}')`, {
+        data: {
+          state: 'canceling'
+        }
+      })
+
+      dispatch({
+        type: EntitiesActionTypes.API_DONE
+      })
+
+      dispatch({
+        type: ActionTypes.OPEN_PROFILE,
+        profile: null
+      })
+    } catch (e) {
+      dispatch({
+        type: EntitiesActionTypes.API_FAILED,
+        error: e
+      })
+      throw e
+    }
   }
 }

@@ -40,7 +40,7 @@ import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePrevi
 import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'
 import { openModal } from './helpers/openModal'
 import createGroupEntitiesByFolders from './helpers/groupEntitiesByFolders'
-import { openTab } from './redux/editor/actions'
+import { openTab, cancelProfile } from './redux/editor/actions'
 import storeMethods from './redux/methods'
 
 export default () => {
@@ -411,18 +411,20 @@ export default () => {
     )
   })
 
-  configuration.toolbarComponents.left.push(function CancelProfile (props) {
-    const activeProfile = Profiler.Instance?.state?.active
-    if (activeProfile == null || (activeProfile.state !== 'running' && activeProfile.state !== 'queued')) {
+  configuration.toolbarComponents.left.push(connect((state) =>
+    ({ activeProfile: state.editor.activeProfile }),
+  { cancelProfile }
+  )((props) => {
+    if (props.activeProfile == null || (props.activeProfile.state !== 'running' && props.activeProfile.state !== 'queued')) {
       return <></>
     }
 
     return (
-      <div className='toolbar-button button danger' onClick={() => Profiler.Instance?.cancel()}>
+      <div className='toolbar-button button danger' onClick={() => props.cancelProfile(props.activeProfile)}>
         <i className='fa fa-times' />Cancel
       </div>
     )
-  })
+  }))
 
   configuration.toolbarComponents.settings.push((props) => (
     <div

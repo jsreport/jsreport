@@ -5,21 +5,16 @@ import resolveUrl from '../../helpers/resolveUrl'
 import openProfileFromStreamReader from '../../helpers/openProfileFromStreamReader'
 import storeMethods from '../../redux/methods'
 import { actions as settingsActions } from '../../redux/settings'
+import { actions as editorActions } from '../../redux/editor'
 import moment from 'moment'
 import { values as configuration } from '../../lib/configuration'
 import EntityRefSelect from '../../components/common/EntityRefSelect'
 import humanizeReportDuration from '../../helpers/humanizeReportDuration'
 
-let _instance
 class Profiler extends Component {
-  static get Instance () {
-    return _instance
-  }
-
   constructor (props) {
     super()
     this.state = { profiles: [], fullProfilingEnabled: false, filterState: props.tab.filterState, filterTemplatesShortids: [] }
-    _instance = this
   }
 
   componentDidMount () {
@@ -29,16 +24,16 @@ class Profiler extends Component {
     const profilerSettings = storeMethods.getSettingsByKey('profiler', false)
 
     this.setState({
-      profilerMode: (profilerSettings != null && profilerSettings.mode != null) ? profilerSettings.mode : (configuration.extensions.studio.options.profiler.defaultMode || 'standard'),
-      active: null
+      profilerMode: (profilerSettings != null && profilerSettings.mode != null) ? profilerSettings.mode : (configuration.extensions.studio.options.profiler.defaultMode || 'standard')
     })
+    this.props.openProfile(null)
   }
 
   onTabActive () {
     this.setState({
-      active: null,
       profiles: []
     })
+    this.props.openProfile(null)
     return this.loadProfiles()
   }
 
@@ -82,6 +77,7 @@ class Profiler extends Component {
 
   componentWillUnmount () {
     clearInterval(this._interval)
+    this.props.openProfile(null)
   }
 
   componentDidUpdate () {
@@ -119,7 +115,7 @@ class Profiler extends Component {
 
   renderProfiles (profiles) {
     const { openTab } = this.props
-    const { loadingProfile, active } = this.state
+    const { loadingProfile } = this.state
     return (
       <div>
         <div>
@@ -134,12 +130,12 @@ class Profiler extends Component {
             </thead>
             <tbody>
               {(profiles).map((p, k) => (
-                <tr key={k} onClick={() => this.openProfile(p)} className={(this.state.active?._id === p._id) ? 'active' : ''}>
+                <tr key={k} onClick={() => this.openProfile(p)} className={(this.props.activeProfile?._id === p._id) ? 'active' : ''}>
                   <td className='selection'>
                     <a style={{ textDecoration: 'underline' }} onClick={() => p.template._id ? openTab({ _id: p.template._id }) : null}>
                       {p.template.path}
                     </a>
-                    <i className='fa fa-circle-o-notch fa-spin' style={{ marginLeft: '0.5rem', display: (loadingProfile && active?._id === p._id) ? 'inline-block' : 'none' }} />
+                    <i className='fa fa-circle-o-notch fa-spin' style={{ marginLeft: '0.5rem', display: (loadingProfile && this.props.activeProfile?._id === p._id) ? 'inline-block' : 'none' }} />
                   </td>
                   <td>{
                     (new Date().getTime() - new Date(p.timestamp).getTime()) > (1000 * 60 * 60 * 24)
@@ -159,11 +155,10 @@ class Profiler extends Component {
   }
 
   async openProfile (p) {
+    this.props.openProfile(p)
     this.setState({
-      active: p,
       loadingProfile: true
     })
-    this.props.update('profiler', { active: p })
     try {
       await openProfileFromStreamReader(async () => {
         if (p.blobName == null && p.state === 'error' && p.error) {
@@ -218,34 +213,15 @@ class Profiler extends Component {
 
   filterStateChanged (ev) {
     this.setState({
-      filterState: ev.target.value === '__blank' ? null : ev.target.value,
-      active: null
+      filterState: ev.target.value === '__blank' ? null : ev.target.value
     })
+    this.props.openProfile(null)
   }
 
   filterTemplatesChanged (selected) {
     this.setState({
       filterTemplatesShortids: selected.map((t) => t.shortid)
     })
-  }
-
-  async cancel () {
-    if (confirm('This will cancel running request. Are you sure you want to perform this action?')) {
-      try {
-        await api.patch(`/odata/profiles('${this.state.active._id}')`, {
-          data: {
-            state: 'canceling'
-          }
-        })
-        this.setState({
-          active: null
-        })
-        this.props.update('profiler', { active: null })
-        return this.loadProfiles()
-      } catch (e) {
-        alert(e)
-      }
-    }
   }
 
   render () {
@@ -331,9 +307,10 @@ class Profiler extends Component {
   }
 }
 
-export default connect(
-  undefined,
-  { ...settingsActions },
-  undefined,
-  { forwardRef: true }
+export default connect((state) => ({
+  activeProfile: state.editor.activeProfile
+}),
+{ ...settingsActions, ...editorActions },
+undefined,
+{ forwardRef: true }
 )(Profiler)

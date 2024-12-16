@@ -13,6 +13,7 @@ const reducer = createReducer({
   lastActiveTemplateKey: null,
   running: null,
   undockMode: false,
+  activeProfile: null,
   preview: {
     id: uid(),
     type: 'empty',
@@ -332,5 +333,19 @@ reducer.handleAction(ActionTypes.DESACTIVATE_UNDOCK_MODE, (state, action) => {
   return {
     ...state,
     undockMode: false
+  }
+})
+
+reducer.handleAction(ActionTypes.OPEN_PROFILE, (state, action) => {
+  return {
+    ...state,
+    activeProfile: action.profile
+  }
+})
+
+reducer.handleAction(ActionTypes.CANCEL_PROFILE, (state, action) => {
+  return {
+    ...state,
+    activeProfile: null
   }
 })
