@@ -3,7 +3,7 @@ const types = require('./types/types')
 function parseType (def, name, model, primitiveTypes) {
   if (primitiveTypes[def.type]) {
     def.isPrimitive = true
-    return [{ dataType: primitiveTypes[def.type](def), name: name }]
+    return [{ dataType: primitiveTypes[def.type](def), name: name, index: def.index }]
   }
 
   if (def.type.indexOf('Collection') === 0) {
@@ -31,12 +31,19 @@ module.exports = function (model, dialect, prefix) {
   const tables = []
   const primitiveTypes = types(dialect)
   for (const name in model.entityTypes) {
-    const table = { name: prefix + name, columns: [] }
+    const table = { name: prefix + name, columns: [], indexes: [] }
     tables.push(table)
     for (const columnName in model.entityTypes[name]) {
-      parseType(model.entityTypes[name][columnName], columnName, model, primitiveTypes).forEach(function (t) {
-        table.columns.push(t)
-      })
+      for (const c of parseType(model.entityTypes[name][columnName], columnName, model, primitiveTypes)) {
+        table.columns.push(c)
+
+        if (c.index) {
+          table.indexes.push({
+            name: `idx_${name}_${c.name}`,
+            on: c.name
+          })
+        }
+      }
     }
   }
 

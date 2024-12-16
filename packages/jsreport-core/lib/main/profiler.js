@@ -12,7 +12,7 @@ module.exports = (reporter) => {
     templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
     timestamp: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
     finishedOn: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
-    state: { type: 'Edm.String', schema: { enum: ['running', 'success', 'queued', 'error', 'canceling'] } },
+    state: { type: 'Edm.String', schema: { enum: ['running', 'success', 'queued', 'error', 'canceling'] }, index: true, length: 255 },
     error: { type: 'Edm.String' },
     mode: { type: 'Edm.String', schema: { enum: ['full', 'standard', 'disabled'] } },
     blobName: { type: 'Edm.String' },
@@ -451,7 +451,7 @@ module.exports = (reporter) => {
 
     try {
       const runningRequests = [...reporter.runningRequests.map.values()]
-      reporter.documentStore.collection('profiles').update({
+      await reporter.documentStore.collection('profiles').update({
         _id: {
           $in: runningRequests.map(r => r.req.context.profiling?.entity?._id)
         }

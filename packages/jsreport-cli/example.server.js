@@ -16,11 +16,10 @@ if (process.env.JSREPORT_CLI) {
 async function shutdown () {
   try {
     await jsreport.close()
+    process.exit(0)
   } catch (e) {
     console.error(e)
     process.exit(1)
-  } finally {
-    process.exit(0)
   }
 }
 process.on('SIGTERM', shutdown)

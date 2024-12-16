@@ -11,26 +11,34 @@ module.exports = function (model, dialect, prefix, schema) {
   prefix = prefix || ''
   sql.setDialect(dialect)
 
-  const tableList = define(model, dialect, prefix).map(function (t) {
+  const tableList = define(model, dialect, prefix).map((meta) => {
     if (schema) {
-      t.schema = schema
+      meta.schema = schema
     }
 
-    return sql.define(t)
+    return {
+      meta: meta,
+      def: sql.define(meta)
+    }
   })
 
   const tables = {}
   for (const entitySetName in model.entitySets) {
-    tables[entitySetName] = tableList.filter(function (t) {
-      return t._name === (prefix + model.entitySets[entitySetName].entityType.replace(model.namespace + '.', ''))
-    })[0]
+    tables[entitySetName] = tableList.find((t) => t.def._name === (prefix + model.entitySets[entitySetName].entityType.replace(model.namespace + '.', ''))).def
   }
 
   return {
     create: function () {
-      return tableList.map(function (t) {
-        return t.create().ifNotExists().toQuery()
-      })
+      const queries = []
+      for (const table of tableList) {
+        queries.push(table.def.create().ifNotExists().toQuery())
+        for (const index of table.meta.indexes) {
+          const q = table.def.indexes().create(index.name).on(table.def[index.on]).toQuery()
+          q.ignoreError = true
+          queries.push(q)
+        }
+      }
+      return queries
     },
     drop: function () {
       return tableList.map(function (t) {

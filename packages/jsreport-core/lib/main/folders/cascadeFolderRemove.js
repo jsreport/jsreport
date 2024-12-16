@@ -4,6 +4,9 @@ module.exports = (reporter) => {
 
     for (const folder of foldersToRemove) {
       for (const c of Object.keys(reporter.documentStore.collections)) {
+        if (!reporter.documentStore.model.entitySets[c].entityTypeDef.folder) {
+          continue
+        }
         const entities = await reporter.documentStore.collection(c).find({
           folder: {
             shortid: folder.shortid

@@ -47,7 +47,7 @@ class Cursor {
 }
 
 module.exports = (options, dialect, executeQuery, transactionManager = {}) => ({
-  load: function (model) {
+  load: async function (model) {
     this.model = model
     this.odataSql = OdataSql(model, dialect, options.prefix || 'jsreport_', options.schema)
 
@@ -55,7 +55,15 @@ module.exports = (options, dialect, executeQuery, transactionManager = {}) => ({
       return
     }
 
-    return Promise.all(this.odataSql.create().map((q) => executeQuery(q, {})))
+    for (const q of this.odataSql.create()) {
+      try {
+        await executeQuery(q, {})
+      } catch (e) {
+        if (q.ignoreError !== true) {
+          throw e
+        }
+      }
+    }
   },
   async beginTransaction () {
     const tran = await transactionManager.start()

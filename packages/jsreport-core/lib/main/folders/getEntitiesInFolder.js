@@ -8,6 +8,10 @@ module.exports = (reporter) => async function getEntitiesInFolder (folderShortId
   const lookup = []
 
   for (const [entitySetName] of Object.entries(reporter.documentStore.model.entitySets)) {
+    if (!reporter.documentStore.model.entitySets[entitySetName].entityTypeDef.folder) {
+      continue
+    }
+
     lookup.push(reporter.documentStore.collection(entitySetName).find({
       folder: {
         shortid: folderShortId

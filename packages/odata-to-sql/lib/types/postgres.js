@@ -1,5 +1,5 @@
 module.exports = {
-  'Edm.String': (attributes) => 'varchar(10241024)',
+  'Edm.String': (attributes) => attributes.length != null ? `varchar(${attributes.length})` : 'varchar(10241024)',
   'Edm.DateTimeOffset': (attributes) => 'timestamp',
   'Edm.Boolean': (attributes) => 'boolean',
   'Edm.Int32': (attributes) => 'integer',

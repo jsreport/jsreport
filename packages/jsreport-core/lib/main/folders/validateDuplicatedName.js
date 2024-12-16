@@ -6,6 +6,10 @@ async function findEntity (reporter, name, folder, req) {
       continue
     }
 
+    if (folder != null && !reporter.documentStore.model.entitySets[c].entityTypeDef.folder) {
+      continue
+    }
+
     const allEntities = await reporter.documentStore.collection(c).findAdmin({
       folder
     }, {
