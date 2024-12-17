@@ -1,0 +1,55 @@
+{
+  "name": "@jsreport/html-to-xlsx",
+  "version": "0.0.0",
+  "description": "Convert html to xlsx",
+  "keywords": [
+    "html",
+    "xlsx",
+    "conversion"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --timeout 15000 test/test.js && standard"
+  },
+  "dependencies": {
+    "@jsreport/exceljs": "0.0.0",
+    "moment": "2.29.4",
+    "tinycolor2": "1.4.2",
+    "uuid": "8.3.2"
+  },
+  "devDependencies": {
+    "chrome-page-eval": "1.3.2",
+    "mocha": "10.1.0",
+    "phantom-page-eval": "2.0.1",
+    "phantomjs": "2.1.7",
+    "puppeteer": "22.5.0",
+    "should": "13.2.3",
+    "standard": "17.0.0",
+    "xlsx": "0.18.5"
+  },
+  "engines": {
+    "node": ">=18.15.0"
+  },
+  "standard": {
+    "env": [
+      "node",
+      "mocha"
+    ],
+    "ignore": [
+      "lib/scripts/conversionScript.js"
+    ]
+  }
+}
