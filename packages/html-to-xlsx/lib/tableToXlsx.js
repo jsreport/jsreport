@@ -230,7 +230,17 @@ function addRow (sheet, row, context) {
       for (let r = start; r < end; r++) {
         if (currentCellOffsetsPerRow[r] != null) {
           const cellOffsetsInRow = currentCellOffsetsPerRow[r]
-          cellOffsetsInRow[cellOffsetsInRow.length - 1].startCell += cellSpan
+          const idx = cellOffsetsInRow.length - 1
+
+          if (startCell === cellOffsetsInRow[0].startCell || idx === 0) {
+            // if we are in the same spot (or passing it) than the next offset,
+            // or there is only one record in the offsets collection
+            // then we should increase the next offset
+            cellOffsetsInRow[0].startCell += cellSpan
+          } else {
+            // otherwise increase the limit
+            cellOffsetsInRow[cellOffsetsInRow.length - 1].startCell += cellSpan
+          }
         }
       }
     }
@@ -239,8 +249,9 @@ function addRow (sheet, row, context) {
 
     if (currentCellOffsetsPerRow[context.currentRowInFile][1] != null) {
       let shouldMoveToNext = true
+      const max = currentCellOffsetsPerRow[context.currentRowInFile][1].startCell
 
-      for (let c = nextCell; c < currentCellOffsetsPerRow[context.currentRowInFile][1].startCell; c++) {
+      for (let c = nextCell; c < max; c++) {
         if (context.usedCells[`${context.currentRowInFile + 1},${c}`] == null) {
           shouldMoveToNext = false
           break
