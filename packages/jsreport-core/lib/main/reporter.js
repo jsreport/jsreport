@@ -370,7 +370,8 @@ class MainReporter extends Reporter {
 
     options.abortEmitter = options.abortEmitter || new EventEmitter()
 
-    req = Object.assign({}, req)
+    req = Request(req)
+
     req.context = Object.assign({}, req.context)
     req.context.rootId = req.context.rootId || this.generateRequestId()
     req.context.id = req.context.rootId
@@ -420,10 +421,9 @@ class MainReporter extends Reporter {
         }, {
           timeout: this.getReportTimeout(req)
         })
-        req = result
+        req = Request(result)
       }
 
-      req = Request(req)
       options.onReqReady?.(req)
 
       // TODO: we will probably validate in the thread

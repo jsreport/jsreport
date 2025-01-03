@@ -16,6 +16,10 @@ module.exports = (obj, parent) => {
     }
   })
 
+  if (obj.rawContent) {
+    request.rawContent = obj.rawContent
+  }
+
   request.template = extend(true, {}, obj.template)
 
   if (parent) {
