@@ -12035,9 +12035,9 @@ describe('docx html embed', () => {
                 should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
                 should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
                 should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
-                should(leftBorderNode.getAttribute('w:val')).be.eql('single')
-                should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
-                should(leftBorderNode.getAttribute('w:color')).be.eql('#FF0000')
+                should(leftBorderNode).be.not.ok()
+                should(leftBorderNode).be.not.ok()
+                should(leftBorderNode ).be.not.ok()
               } else if (rowIdx === 0 && cellIdx === 2) {
                 should(topBorderNode).be.not.ok()
                 should(rightBorderNode).be.not.ok()

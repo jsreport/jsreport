@@ -302,7 +302,7 @@ function generateTableItems (tableItemMeta, tableWidth) {
           }
           case 'left': {
             const isCollapsed = borderColIdx !== 0
-            const previousBorderColIdx = borderRowIdx - 1
+            const previousBorderColIdx = borderColIdx - 1
             const previousBorder = rowsMeta.get(borderRowIdx)?.cellsMeta?.get(previousBorderColIdx)?.border || {}
 
             if (
