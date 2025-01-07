@@ -37,19 +37,20 @@
     "phantomjs": "2.1.7",
     "puppeteer": "22.5.0",
     "should": "13.2.3",
-    "standard": "17.0.0",
+    "standard": "16.0.4",
     "xlsx": "0.18.5"
   },
   "engines": {
     "node": ">=18.15.0"
   },
   "standard": {
-    "env": [
-      "node",
-      "mocha"
-    ],
     "ignore": [
       "lib/scripts/conversionScript.js"
-    ]
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
   }
 }
