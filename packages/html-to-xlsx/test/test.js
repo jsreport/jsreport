@@ -4,14 +4,19 @@ const path = require('path')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
 const xlsx = require('xlsx')
+const { parseCell } = require('xlsx-coordinates')
 const chromePageEval = require('chrome-page-eval')
 const phantomPageEval = require('phantom-page-eval')
 const puppeteer = require('puppeteer')
 const phantomPath = require('phantomjs').path
+const { getDocumentsFromXlsxBuf } = require('./utils')
+
 const tmpDir = path.join(__dirname, 'temp')
 
 const readFileAsync = util.promisify(fs.readFile)
 const writeFileAsync = util.promisify(fs.writeFile)
+
+const outputPath = path.join(__dirname, '../out.xlsx')
 
 const extractTableScriptFn = fs.readFileSync(
   path.join(__dirname, '../lib/scripts/conversionScript.js')
@@ -1977,6 +1982,2320 @@ describe('html to xlsx conversion with strategy', () => {
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]]['!merges'][1].e.c).be.eql(8)
     })
 
+    it('should work when using cell border collapsing styles', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td style="border: 2px solid red">col1-1</td>
+            <td>col1-2</td>
+            <td>col1-3</td>
+          </tr>
+          <tr>
+            <td>col2-1</td>
+            <td style="border: 2px solid red">col2-2</td>
+            <td>col2-3</td>
+          </tr>
+          <tr>
+            <td>col3-1</td>
+            <td>col3-2</td>
+            <td style="border: 2px solid red">col3-3</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('col1-1')
+
+      const cellA1Border = getStyle(sheetDoc, stylesDoc, 'A1', 'b')
+
+      should(cellA1Border.left.style).be.eql('thin')
+      should(cellA1Border.left.color).be.eql('ffff0000')
+      should(cellA1Border.top.style).be.eql('thin')
+      should(cellA1Border.top.color).be.eql('ffff0000')
+      should(cellA1Border.right.style).be.eql('thin')
+      should(cellA1Border.right.color).be.eql('ffff0000')
+      should(cellA1Border.bottom.style).be.eql('thin')
+      should(cellA1Border.bottom.color).be.eql('ffff0000')
+
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('col1-2')
+      should(getStyle(sheetDoc, stylesDoc, 'B1', 'b')).be.not.ok()
+
+      should(getCell(sheetDoc, 'C1', 'v')).be.eql('col1-3')
+      should(getStyle(sheetDoc, stylesDoc, 'C1', 'b')).be.not.ok()
+
+      should(getCell(sheetDoc, 'A2', 'v')).be.eql('col2-1')
+      should(getStyle(sheetDoc, stylesDoc, 'A2', 'b')).be.not.ok()
+
+      should(getCell(sheetDoc, 'B2', 'v')).be.eql('col2-2')
+
+      const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
+
+      should(cellB2Border.left.style).be.eql('thin')
+      should(cellB2Border.left.color).be.eql('ffff0000')
+      should(cellB2Border.top.style).be.eql('thin')
+      should(cellB2Border.top.color).be.eql('ffff0000')
+      should(cellB2Border.right.style).be.eql('thin')
+      should(cellB2Border.right.color).be.eql('ffff0000')
+      should(cellB2Border.bottom.style).be.eql('thin')
+      should(cellB2Border.bottom.color).be.eql('ffff0000')
+
+      should(getCell(sheetDoc, 'C2', 'v')).be.eql('col2-3')
+      should(getStyle(sheetDoc, stylesDoc, 'C2', 'b')).be.not.ok()
+
+      should(getCell(sheetDoc, 'A3', 'v')).be.eql('col3-1')
+      should(getStyle(sheetDoc, stylesDoc, 'A3', 'b')).be.not.ok()
+
+      should(getCell(sheetDoc, 'B3', 'v')).be.eql('col3-2')
+      should(getStyle(sheetDoc, stylesDoc, 'B3', 'b')).be.not.ok()
+
+      should(getCell(sheetDoc, 'C3', 'v')).be.eql('col3-3')
+
+      const cellC3Border = getStyle(sheetDoc, stylesDoc, 'C3', 'b')
+
+      should(cellC3Border.left.style).be.eql('thin')
+      should(cellC3Border.left.color).be.eql('ffff0000')
+      should(cellC3Border.top.style).be.eql('thin')
+      should(cellC3Border.top.color).be.eql('ffff0000')
+      should(cellC3Border.right.style).be.eql('thin')
+      should(cellC3Border.right.color).be.eql('ffff0000')
+      should(cellC3Border.bottom.style).be.eql('thin')
+      should(cellC3Border.bottom.color).be.eql('ffff0000')
+    })
+
+    it('should work when using cell border collapsing styles #2', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.1</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.2</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.3</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">2.1</td>
+            <td style="border: 1px solid red; padding-left: 25px; padding-right: 25px; text-align: center;">2.2</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">2.3</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.1</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.2</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.3</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const expectedBlackBorder = {
+        style: 'thin',
+        color: 'ff000000'
+      }
+
+      const expectedRedBorder = {
+        style: 'thin',
+        color: 'ffff0000'
+      }
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('1.1')
+
+      const cellA1Border = getStyle(sheetDoc, stylesDoc, 'A1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('1.2')
+
+      const cellB1Border = getStyle(sheetDoc, stylesDoc, 'B1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C1', 'v')).be.eql('1.3')
+
+      const cellC1Border = getStyle(sheetDoc, stylesDoc, 'C1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A2', 'v')).be.eql('2.1')
+
+      const cellA2Border = getStyle(sheetDoc, stylesDoc, 'A2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellA2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B2', 'v')).be.eql('2.2')
+
+      const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellB2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB2Border[side].style).be.eql(expectedRedBorder.style)
+        should(cellB2Border[side].color).be.eql(expectedRedBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C2', 'v')).be.eql('2.3')
+
+      const cellC2Border = getStyle(sheetDoc, stylesDoc, 'C2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A3', 'v')).be.eql('3.1')
+
+      const cellA3Border = getStyle(sheetDoc, stylesDoc, 'A3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellA3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B3', 'v')).be.eql('3.2')
+
+      const cellB3Border = getStyle(sheetDoc, stylesDoc, 'B3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellB3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C3', 'v')).be.eql('3.3')
+
+      const cellC3Border = getStyle(sheetDoc, stylesDoc, 'C3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+    })
+
+    it('should work when using cell border collapsing styles (with merge cell) #3', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.1</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.2</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.3</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.4</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">2.1</td>
+            <td colspan="2" style="border: 1px solid red; padding-left: 25px; padding-right: 25px; text-align: center;">2.2</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">2.3</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.1</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.2</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.3</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.4</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const expectedBlackBorder = {
+        style: 'thin',
+        color: 'ff000000'
+      }
+
+      const expectedRedBorder = {
+        style: 'thin',
+        color: 'ffff0000'
+      }
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('1.1')
+
+      const cellA1Border = getStyle(sheetDoc, stylesDoc, 'A1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('1.2')
+
+      const cellB1Border = getStyle(sheetDoc, stylesDoc, 'B1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C1', 'v')).be.eql('1.3')
+
+      const cellC1Border = getStyle(sheetDoc, stylesDoc, 'C1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D1', 'v')).be.eql('1.4')
+
+      const cellD1Border = getStyle(sheetDoc, stylesDoc, 'D1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A2', 'v')).be.eql('2.1')
+
+      const cellA2Border = getStyle(sheetDoc, stylesDoc, 'A2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellA2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B2', 'v')).be.eql('2.2')
+
+      const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellB2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB2Border[side].style).be.eql(expectedRedBorder.style)
+        should(cellB2Border[side].color).be.eql(expectedRedBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D2', 'v')).be.eql('2.3')
+
+      const cellD2Border = getStyle(sheetDoc, stylesDoc, 'D2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD2Border[side]).be.not.ok()
+          continue
+        }
+
+        if (side === 'top') {
+          should(cellD2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A3', 'v')).be.eql('3.1')
+
+      const cellA3Border = getStyle(sheetDoc, stylesDoc, 'A3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellA3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B3', 'v')).be.eql('3.2')
+
+      const cellB3Border = getStyle(sheetDoc, stylesDoc, 'B3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellB3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C3', 'v')).be.eql('3.3')
+
+      const cellC3Border = getStyle(sheetDoc, stylesDoc, 'C3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D3', 'v')).be.eql('3.4')
+
+      const cellD3Border = getStyle(sheetDoc, stylesDoc, 'D3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellD3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+    })
+
+    it('should work when using cell border collapsing styles (with merge cell) #4', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.1</td>
+            <td style="border: 1px solid blue; padding-left: 25px; padding-right: 25px; text-align: center;">1.2</td>
+            <td style="border: 1px solid green; padding-left: 25px; padding-right: 25px; text-align: center;">1.3</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">1.4</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">2.1</td>
+            <td colspan="2" style="border: 1px solid red; padding-left: 25px; padding-right: 25px; text-align: center;">2.2</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">2.3</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.1</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.2</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.3</td>
+            <td style="border: 1px solid black; padding-left: 25px; padding-right: 25px; text-align: center;">3.4</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const expectedBlackBorder = {
+        style: 'thin',
+        color: 'ff000000'
+      }
+
+      const expectedBlueBorder = {
+        style: 'thin',
+        color: 'ff0000ff'
+      }
+
+      const expectedGreenBorder = {
+        style: 'thin',
+        color: 'ff008000'
+      }
+
+      const expectedRedBorder = {
+        style: 'thin',
+        color: 'ffff0000'
+      }
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('1.1')
+
+      const cellA1Border = getStyle(sheetDoc, stylesDoc, 'A1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('1.2')
+
+      const cellB1Border = getStyle(sheetDoc, stylesDoc, 'B1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB1Border[side].style).be.eql(expectedBlueBorder.style)
+        should(cellB1Border[side].color).be.eql(expectedBlueBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C1', 'v')).be.eql('1.3')
+
+      const cellC1Border = getStyle(sheetDoc, stylesDoc, 'C1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC1Border[side].style).be.eql(expectedGreenBorder.style)
+        should(cellC1Border[side].color).be.eql(expectedGreenBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D1', 'v')).be.eql('1.4')
+
+      const cellD1Border = getStyle(sheetDoc, stylesDoc, 'D1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A2', 'v')).be.eql('2.1')
+
+      const cellA2Border = getStyle(sheetDoc, stylesDoc, 'A2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellA2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B2', 'v')).be.eql('2.2')
+
+      const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellB2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB2Border[side].style).be.eql(expectedRedBorder.style)
+        should(cellB2Border[side].color).be.eql(expectedRedBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D2', 'v')).be.eql('2.3')
+
+      const cellD2Border = getStyle(sheetDoc, stylesDoc, 'D2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellD2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A3', 'v')).be.eql('3.1')
+
+      const cellA3Border = getStyle(sheetDoc, stylesDoc, 'A3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellA3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B3', 'v')).be.eql('3.2')
+
+      const cellB3Border = getStyle(sheetDoc, stylesDoc, 'B3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellB3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C3', 'v')).be.eql('3.3')
+
+      const cellC3Border = getStyle(sheetDoc, stylesDoc, 'C3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D3', 'v')).be.eql('3.4')
+
+      const cellD3Border = getStyle(sheetDoc, stylesDoc, 'D3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellD3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+    })
+
+    it('should work when using cell border collapsing styles (with merge cell) #5', async () => {
+      const stream = await conversion(`
+        <style>
+            table {
+                border-collapse: collapse;
+            }
+
+            td.head {
+                border: 1px solid black;
+                padding-left: 25px;
+                padding-right: 25px;
+                text-align: center;
+            }
+            td.data {
+                border: 1px solid black;
+                padding-left: 25px;
+                padding-right: 25px;
+                text-align: center;
+            }
+            td.data_highlight {
+                border: 1px solid red;
+                padding-left: 25px;
+                padding-right: 25px;
+                text-align: center;
+            }
+        </style>
+        <table name="MissingData">
+            <tr>
+              <td class="data" rowspan="6">2</td>
+              <td class="data" rowspan="6">Account Name 2</td>
+              <td class="data">Test First Name 1</td>
+              <td class="data">Last Name 1</td>
+              <td class="data">Another note</td>
+              <td class="data" rowspan="6">Main City 1</td>
+              <td class="data" rowspan="6">Main State 1</td>
+              <td class="data" rowspan="6">Home City</td>
+              <td class="data" rowspan="6">Home State</td>
+            </tr>
+            <tr>
+              <td class="data">First Name 2</td>
+              <td class="data">Last Name 2</td>
+              <td class="data">&nbsp;</td>
+            </tr>
+            <tr>
+              <td class="data" rowspan="2">First Name 3</td>
+              <td class="data" rowspan="2">Last Name 3</td>
+              <td class="data">3 - one</td>
+            </tr>
+            <tr>
+              <td class="data_highlight">3 - two</td>
+            </tr>
+            <tr>
+              <td class="data">First Name 4</td>
+              <td class="data">Last Name 4</td>
+              <td class="data">&nbsp;</td>
+            </tr>
+            <tr>
+              <td class="data">First Name 5</td>
+              <td class="data">Last Name 5</td>
+              <td class="data">&nbsp;</td>
+            </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const expectedBlackBorder = {
+        style: 'thin',
+        color: 'ff000000'
+      }
+
+      const expectedRedBorder = {
+        style: 'thin',
+        color: 'ffff0000'
+      }
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('2')
+
+      const cellA1Border = getStyle(sheetDoc, stylesDoc, 'A1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('Account Name 2')
+
+      const cellB1Border = getStyle(sheetDoc, stylesDoc, 'B1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C1', 'v')).be.eql('Test First Name 1')
+
+      const cellC1Border = getStyle(sheetDoc, stylesDoc, 'C1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D1', 'v')).be.eql('Last Name 1')
+
+      const cellD1Border = getStyle(sheetDoc, stylesDoc, 'D1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E1', 'v')).be.eql('Another note')
+
+      const cellE1Border = getStyle(sheetDoc, stylesDoc, 'E1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellE1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F1', 'v')).be.eql('Main City 1')
+
+      const cellF1Border = getStyle(sheetDoc, stylesDoc, 'F1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G1', 'v')).be.eql('Main State 1')
+
+      const cellG1Border = getStyle(sheetDoc, stylesDoc, 'G1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellG1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H1', 'v')).be.eql('Home City')
+
+      const cellH1Border = getStyle(sheetDoc, stylesDoc, 'H1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellH1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I1', 'v')).be.eql('Home State')
+
+      const cellI1Border = getStyle(sheetDoc, stylesDoc, 'I1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellI1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A2', 'v')).be.not.ok()
+
+      const cellA2Border = getStyle(sheetDoc, stylesDoc, 'A2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B2', 'v')).be.not.ok()
+
+      const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C2', 'v')).be.eql('First Name 2')
+
+      const cellC2Border = getStyle(sheetDoc, stylesDoc, 'C2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D2', 'v')).be.eql('Last Name 2')
+
+      const cellD2Border = getStyle(sheetDoc, stylesDoc, 'D2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellD2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E2', 'v')).be.eql(' ')
+
+      const cellE2Border = getStyle(sheetDoc, stylesDoc, 'E2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellE2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F2', 'v')).be.not.ok()
+
+      const cellF2Border = getStyle(sheetDoc, stylesDoc, 'F2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G2', 'v')).be.not.ok()
+
+      const cellG2Border = getStyle(sheetDoc, stylesDoc, 'G2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellG2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H2', 'v')).be.not.ok()
+
+      const cellH2Border = getStyle(sheetDoc, stylesDoc, 'H2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellH2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I2', 'v')).be.not.ok()
+
+      const cellI2Border = getStyle(sheetDoc, stylesDoc, 'I2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellI2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A3', 'v')).be.not.ok()
+
+      const cellA3Border = getStyle(sheetDoc, stylesDoc, 'A3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B3', 'v')).be.not.ok()
+
+      const cellB3Border = getStyle(sheetDoc, stylesDoc, 'B3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C3', 'v')).be.eql('First Name 3')
+
+      const cellC3Border = getStyle(sheetDoc, stylesDoc, 'C3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D3', 'v')).be.eql('Last Name 3')
+
+      const cellD3Border = getStyle(sheetDoc, stylesDoc, 'D3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellD3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E3', 'v')).be.eql('3 - one')
+
+      const cellE3Border = getStyle(sheetDoc, stylesDoc, 'E3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellE3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F3', 'v')).be.not.ok()
+
+      const cellF3Border = getStyle(sheetDoc, stylesDoc, 'F3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G3', 'v')).be.not.ok()
+
+      const cellG3Border = getStyle(sheetDoc, stylesDoc, 'G3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellG3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H3', 'v')).be.not.ok()
+
+      const cellH3Border = getStyle(sheetDoc, stylesDoc, 'H3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellH3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I3', 'v')).be.not.ok()
+
+      const cellI3Border = getStyle(sheetDoc, stylesDoc, 'I3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellI3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A4', 'v')).be.not.ok()
+
+      const cellA4Border = getStyle(sheetDoc, stylesDoc, 'A4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B4', 'v')).be.not.ok()
+
+      const cellB4Border = getStyle(sheetDoc, stylesDoc, 'B4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C4', 'v')).be.not.ok()
+
+      const cellC4Border = getStyle(sheetDoc, stylesDoc, 'C4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D4', 'v')).be.not.ok()
+
+      const cellD4Border = getStyle(sheetDoc, stylesDoc, 'D4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellD4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E4', 'v')).be.eql('3 - two')
+
+      const cellE4Border = getStyle(sheetDoc, stylesDoc, 'E4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellE4Border[side]).be.not.ok()
+          continue
+        }
+
+        if (side === 'bottom') {
+          should(cellE4Border[side].style).be.eql(expectedRedBorder.style)
+        } else {
+          should(cellE4Border[side].color).be.eql(expectedBlackBorder.color)
+        }
+      }
+
+      should(getCell(sheetDoc, 'F4', 'v')).be.not.ok()
+
+      const cellF4Border = getStyle(sheetDoc, stylesDoc, 'F4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G4', 'v')).be.not.ok()
+
+      const cellG4Border = getStyle(sheetDoc, stylesDoc, 'G4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellG4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H4', 'v')).be.not.ok()
+
+      const cellH4Border = getStyle(sheetDoc, stylesDoc, 'H4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellH4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I4', 'v')).be.not.ok()
+
+      const cellI4Border = getStyle(sheetDoc, stylesDoc, 'I4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellI4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A5', 'v')).be.not.ok()
+
+      const cellA5Border = getStyle(sheetDoc, stylesDoc, 'A5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B5', 'v')).be.not.ok()
+
+      const cellB5Border = getStyle(sheetDoc, stylesDoc, 'B5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C5', 'v')).be.eql('First Name 4')
+
+      const cellC5Border = getStyle(sheetDoc, stylesDoc, 'C5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D5', 'v')).be.eql('Last Name 4')
+
+      const cellD5Border = getStyle(sheetDoc, stylesDoc, 'D5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellD5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E5', 'v')).be.eql(' ')
+
+      const cellE5Border = getStyle(sheetDoc, stylesDoc, 'E5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellE5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F5', 'v')).be.not.ok()
+
+      const cellF5Border = getStyle(sheetDoc, stylesDoc, 'F5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G5', 'v')).be.not.ok()
+
+      const cellG5Border = getStyle(sheetDoc, stylesDoc, 'G5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellG5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H5', 'v')).be.not.ok()
+
+      const cellH5Border = getStyle(sheetDoc, stylesDoc, 'H5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellH5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I5', 'v')).be.not.ok()
+
+      const cellI5Border = getStyle(sheetDoc, stylesDoc, 'I5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellI5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A6', 'v')).be.not.ok()
+
+      const cellA6Border = getStyle(sheetDoc, stylesDoc, 'A6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B6', 'v')).be.not.ok()
+
+      const cellB6Border = getStyle(sheetDoc, stylesDoc, 'B6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C6', 'v')).be.eql('First Name 5')
+
+      const cellC6Border = getStyle(sheetDoc, stylesDoc, 'C6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellC6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D6', 'v')).be.eql('Last Name 5')
+
+      const cellD6Border = getStyle(sheetDoc, stylesDoc, 'D6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellD6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E6', 'v')).be.eql(' ')
+
+      const cellE6Border = getStyle(sheetDoc, stylesDoc, 'E6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellE6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F6', 'v')).be.not.ok()
+
+      const cellF6Border = getStyle(sheetDoc, stylesDoc, 'F6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G6', 'v')).be.not.ok()
+
+      const cellG6Border = getStyle(sheetDoc, stylesDoc, 'G6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellG6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H6', 'v')).be.not.ok()
+
+      const cellH6Border = getStyle(sheetDoc, stylesDoc, 'H6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellH6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I6', 'v')).be.not.ok()
+
+      const cellI6Border = getStyle(sheetDoc, stylesDoc, 'I6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellI6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+    })
+
+    it('should work when using cell border collapsing styles (with merge cell) #6', async () => {
+      const stream = await conversion(`
+        <style>
+          table {
+            border-collapse: collapse;
+          }
+
+          td.head {
+            border: 1px solid black;
+            padding-left: 25px;
+            padding-right: 25px;
+            text-align: center;
+          }
+          td.data {
+            border: 1px solid black;
+            padding-left: 25px;
+            padding-right: 25px;
+            text-align: center;
+          }
+          td.data_highlight {
+            border: 1px solid red;
+            padding-left: 25px;
+            padding-right: 25px;
+            text-align: center;
+          }
+        </style>
+        <table name="DataAppears">
+          <tr>
+            <td class="data" rowspan="6">2</td>
+            <td class="data" rowspan="6">Account Name 2</td>
+            <td class="data" rowspan="6">Main City 1</td>
+            <td class="data" rowspan="6">Main State 1</td>
+            <td class="data" rowspan="6">Home City</td>
+            <td class="data" rowspan="6">Home State</td>
+            <td class="data">Test First Name 1</td>
+            <td class="data">Last Name 1</td>
+            <td class="data">Another note</td>
+          </tr>
+          <tr>
+            <td class="data">First Name 2</td>
+            <td class="data">Last Name 2</td>
+            <td class="data">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="data" rowspan="2">First Name 3</td>
+            <td class="data" rowspan="2">Last Name 3</td>
+            <td class="data">3 - one</td>
+          </tr>
+          <tr>
+            <td class="data_highlight">3 - two</td>
+          </tr>
+          <tr>
+            <td class="data">First Name 4</td>
+            <td class="data">Last Name 4</td>
+            <td class="data">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="data">First Name 5</td>
+            <td class="data">Last Name 5</td>
+            <td class="data">&nbsp;</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const expectedBlackBorder = {
+        style: 'thin',
+        color: 'ff000000'
+      }
+
+      const expectedRedBorder = {
+        style: 'thin',
+        color: 'ffff0000'
+      }
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('2')
+
+      const cellA1Border = getStyle(sheetDoc, stylesDoc, 'A1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('Account Name 2')
+
+      const cellB1Border = getStyle(sheetDoc, stylesDoc, 'B1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C1', 'v')).be.eql('Main City 1')
+
+      const cellC1Border = getStyle(sheetDoc, stylesDoc, 'C1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D1', 'v')).be.eql('Main State 1')
+
+      const cellD1Border = getStyle(sheetDoc, stylesDoc, 'D1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E1', 'v')).be.eql('Home City')
+
+      const cellE1Border = getStyle(sheetDoc, stylesDoc, 'E1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellE1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F1', 'v')).be.eql('Home State')
+
+      const cellF1Border = getStyle(sheetDoc, stylesDoc, 'F1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G1', 'v')).be.eql('Test First Name 1')
+
+      const cellG1Border = getStyle(sheetDoc, stylesDoc, 'G1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellG1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H1', 'v')).be.eql('Last Name 1')
+
+      const cellH1Border = getStyle(sheetDoc, stylesDoc, 'H1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellH1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I1', 'v')).be.eql('Another note')
+
+      const cellI1Border = getStyle(sheetDoc, stylesDoc, 'I1', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellI1Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI1Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI1Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A2', 'v')).be.not.ok()
+
+      const cellA2Border = getStyle(sheetDoc, stylesDoc, 'A2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B2', 'v')).be.not.ok()
+
+      const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C2', 'v')).be.not.ok()
+
+      const cellC2Border = getStyle(sheetDoc, stylesDoc, 'C2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D2', 'v')).be.not.ok()
+
+      const cellD2Border = getStyle(sheetDoc, stylesDoc, 'D2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E2', 'v')).be.not.ok()
+
+      const cellE2Border = getStyle(sheetDoc, stylesDoc, 'E2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellE2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F2', 'v')).be.not.ok()
+
+      const cellF2Border = getStyle(sheetDoc, stylesDoc, 'F2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G2', 'v')).be.eql('First Name 2')
+
+      const cellG2Border = getStyle(sheetDoc, stylesDoc, 'G2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellG2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H2', 'v')).be.eql('Last Name 2')
+
+      const cellH2Border = getStyle(sheetDoc, stylesDoc, 'H2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellH2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I2', 'v')).be.eql(' ')
+
+      const cellI2Border = getStyle(sheetDoc, stylesDoc, 'I2', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellI2Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI2Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI2Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A3', 'v')).be.not.ok()
+
+      const cellA3Border = getStyle(sheetDoc, stylesDoc, 'A3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B3', 'v')).be.not.ok()
+
+      const cellB3Border = getStyle(sheetDoc, stylesDoc, 'B3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C3', 'v')).be.not.ok()
+
+      const cellC3Border = getStyle(sheetDoc, stylesDoc, 'C3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D3', 'v')).be.not.ok()
+
+      const cellD3Border = getStyle(sheetDoc, stylesDoc, 'D3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E3', 'v')).be.not.ok()
+
+      const cellE3Border = getStyle(sheetDoc, stylesDoc, 'E3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellE3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F3', 'v')).be.not.ok()
+
+      const cellF3Border = getStyle(sheetDoc, stylesDoc, 'F3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G3', 'v')).be.eql('First Name 3')
+
+      const cellG3Border = getStyle(sheetDoc, stylesDoc, 'G3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellG3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H3', 'v')).be.eql('Last Name 3')
+
+      const cellH3Border = getStyle(sheetDoc, stylesDoc, 'H3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellH3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I3', 'v')).be.eql('3 - one')
+
+      const cellI3Border = getStyle(sheetDoc, stylesDoc, 'I3', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellI3Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI3Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI3Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A4', 'v')).be.not.ok()
+
+      const cellA4Border = getStyle(sheetDoc, stylesDoc, 'A4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B4', 'v')).be.not.ok()
+
+      const cellB4Border = getStyle(sheetDoc, stylesDoc, 'B4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C4', 'v')).be.not.ok()
+
+      const cellC4Border = getStyle(sheetDoc, stylesDoc, 'C4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D4', 'v')).be.not.ok()
+
+      const cellD4Border = getStyle(sheetDoc, stylesDoc, 'D4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E4', 'v')).be.not.ok()
+
+      const cellE4Border = getStyle(sheetDoc, stylesDoc, 'E4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellE4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F4', 'v')).be.not.ok()
+
+      const cellF4Border = getStyle(sheetDoc, stylesDoc, 'F4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G4', 'v')).be.not.ok()
+
+      const cellG4Border = getStyle(sheetDoc, stylesDoc, 'G4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellG4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H4', 'v')).be.not.ok()
+
+      const cellH4Border = getStyle(sheetDoc, stylesDoc, 'H4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellH4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH4Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH4Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I4', 'v')).be.eql('3 - two')
+
+      const cellI4Border = getStyle(sheetDoc, stylesDoc, 'I4', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellI4Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI4Border[side].style).be.eql(expectedRedBorder.style)
+        should(cellI4Border[side].color).be.eql(expectedRedBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A5', 'v')).be.not.ok()
+
+      const cellA5Border = getStyle(sheetDoc, stylesDoc, 'A5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B5', 'v')).be.not.ok()
+
+      const cellB5Border = getStyle(sheetDoc, stylesDoc, 'B5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C5', 'v')).be.not.ok()
+
+      const cellC5Border = getStyle(sheetDoc, stylesDoc, 'C5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D5', 'v')).be.not.ok()
+
+      const cellD5Border = getStyle(sheetDoc, stylesDoc, 'D5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E5', 'v')).be.not.ok()
+
+      const cellE5Border = getStyle(sheetDoc, stylesDoc, 'E5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellE5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F5', 'v')).be.not.ok()
+
+      const cellF5Border = getStyle(sheetDoc, stylesDoc, 'F5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G5', 'v')).be.eql('First Name 4')
+
+      const cellG5Border = getStyle(sheetDoc, stylesDoc, 'G5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellG5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H5', 'v')).be.eql('Last Name 4')
+
+      const cellH5Border = getStyle(sheetDoc, stylesDoc, 'H5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellH5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I5', 'v')).be.eql(' ')
+
+      const cellI5Border = getStyle(sheetDoc, stylesDoc, 'I5', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellI5Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI5Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI5Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'A6', 'v')).be.not.ok()
+
+      const cellA6Border = getStyle(sheetDoc, stylesDoc, 'A6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        should(cellA6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellA6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'B6', 'v')).be.not.ok()
+
+      const cellB6Border = getStyle(sheetDoc, stylesDoc, 'B6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellB6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellB6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellB6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'C6', 'v')).be.not.ok()
+
+      const cellC6Border = getStyle(sheetDoc, stylesDoc, 'C6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellC6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellC6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellC6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'D6', 'v')).be.not.ok()
+
+      const cellD6Border = getStyle(sheetDoc, stylesDoc, 'D6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellD6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellD6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellD6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'E6', 'v')).be.not.ok()
+
+      const cellE6Border = getStyle(sheetDoc, stylesDoc, 'E6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellE6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellE6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellE6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'F6', 'v')).be.not.ok()
+
+      const cellF6Border = getStyle(sheetDoc, stylesDoc, 'F6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left') {
+          should(cellF6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellF6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellF6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'G6', 'v')).be.eql('First Name 5')
+
+      const cellG6Border = getStyle(sheetDoc, stylesDoc, 'G6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellG6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellG6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellG6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'H6', 'v')).be.eql('Last Name 5')
+
+      const cellH6Border = getStyle(sheetDoc, stylesDoc, 'H6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellH6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellH6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellH6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+
+      should(getCell(sheetDoc, 'I6', 'v')).be.eql(' ')
+
+      const cellI6Border = getStyle(sheetDoc, stylesDoc, 'I6', 'b')
+
+      for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'left' || side === 'top') {
+          should(cellI6Border[side]).be.not.ok()
+          continue
+        }
+
+        should(cellI6Border[side].style).be.eql(expectedBlackBorder.style)
+        should(cellI6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+    })
+
     it('should be able to set fontFamily', async () => {
       const stream = await conversion(`
         <style>
@@ -2467,6 +4786,123 @@ describe('html to xlsx conversion with strategy', () => {
     })
   }
 })
+
+function getStyle (sheetDoc, styleDoc, cellAddress, property) {
+  const cell = getCell(sheetDoc, cellAddress)
+
+  if (!cell) {
+    return null
+  }
+
+  const styleId = cell.getAttribute('s')
+  const style = styleDoc.getElementsByTagName('cellXfs')[0].getElementsByTagName('xf')[styleId]
+
+  const validProperties = ['b']
+
+  if (!validProperties.includes(property)) {
+    throw new Error(`Not supported property: ${property}`)
+  }
+
+  let result
+
+  switch (property) {
+    case 'b': {
+      const parsedStyleId = parseInt(styleId, 10)
+      let borderId = style.getAttribute('borderId')
+
+      if (parsedStyleId === 0) {
+        borderId = style.getAttribute('borderId')
+      } else if (parsedStyleId > 0 && style.getAttribute('applyBorder') === '1') {
+        borderId = style.getAttribute('borderId')
+      }
+
+      if (borderId == null) {
+        break
+      }
+
+      const border = styleDoc.getElementsByTagName('borders')[0].getElementsByTagName('border')[borderId]
+
+      if (border == null) {
+        break
+      }
+
+      const parsedBorder = nodeListToArray(border.childNodes).filter((node) => (
+        node.nodeName === 'left' || node.nodeName === 'right' ||
+        node.nodeName === 'top' || node.nodeName === 'bottom'
+      )).reduce((acc, node) => {
+        const props = {}
+        const borderStyle = node.getAttribute('style')
+        const color = nodeListToArray(node.childNodes).find((n) => n.nodeName === 'color')?.getAttribute('rgb')
+
+        if (borderStyle != null && borderStyle !== '') {
+          props.style = borderStyle
+        }
+
+        if (color != null && color !== '') {
+          props.color = color
+        }
+
+        if (Object.keys(props).length > 0) {
+          acc[node.nodeName] = props
+        }
+
+        return acc
+      }, {})
+
+      if (Object.keys(parsedBorder).length > 0) {
+        result = parsedBorder
+      }
+
+      break
+    }
+
+    default:
+      throw new Error(`Property not implemented: ${property}`)
+  }
+
+  return result
+}
+
+function getCell (sheetDoc, cellAddress, property) {
+  const [, rowIdx] = parseCell(cellAddress)
+  const row = nodeListToArray(sheetDoc.getElementsByTagName('row')).find((row) => row.getAttribute('r') === `${rowIdx + 1}`)
+
+  if (!row) {
+    return null
+  }
+
+  const cell = nodeListToArray(row.getElementsByTagName('c')).find((cell) => cell.getAttribute('r') === cellAddress)
+
+  if (property == null) {
+    return cell
+  }
+
+  const validProperties = ['v']
+
+  if (!validProperties.includes(property)) {
+    throw new Error(`Not supported property: ${property}`)
+  }
+
+  let result
+
+  switch (property) {
+    case 'v':
+      result = cell.getElementsByTagName('v')?.[0]?.textContent
+      break
+    default:
+      throw new Error(`Property not implemented: ${property}`)
+  }
+
+  return result
+}
+
+function nodeListToArray (nodes) {
+  const arr = []
+  for (let i = 0; i < nodes.length; i++) {
+    arr.push(nodes[i])
+  }
+  return arr
+}
 
 async function createHtmlFile (html) {
   const outputPath = path.join(tmpDir, `${uuidv4()}.html`)

@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+/* eslint-disable no-unused-vars, no-var */
 function conversion () {
   var tables = document.querySelectorAll('table')
   var tablesOutput = []

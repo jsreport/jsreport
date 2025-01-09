@@ -37,13 +37,49 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
       pendingCellOffsetsPerRow: [],
       usedCells: [],
       maxWidths: [],
+      pendingCellStylesByRow: new Map(),
       parsedStyles: new Map(),
       totalRows: table.rowsCount
     }
 
+    const normalizedBordersInRowSet = new Set()
+    const patchedCellBorders = new Set()
+    let lastCurrentRowInFile
+
     await table.getRows((row) => {
+      const currentRowInFile = context.currentRowInFile
+      lastCurrentRowInFile = currentRowInFile
+
       addRow(sheet, row, context)
+
+      const pendingCellStylesByRow = context.pendingCellStylesByRow
+      const rowId = currentRowInFile + 1
+      const sortedPendingRows = [...pendingCellStylesByRow.keys()].sort()
+
+      if (sortedPendingRows.length >= 3 && rowId > sortedPendingRows[2]) {
+        processPendingCellStyle(
+          sheet,
+          pendingCellStylesByRow,
+          sortedPendingRows,
+          normalizedBordersInRowSet,
+          patchedCellBorders,
+          { totalRows: context.totalRows }
+        )
+      }
     })
+
+    while (context.pendingCellStylesByRow.size > 0) {
+      const sortedPendingRows = [...context.pendingCellStylesByRow.keys()].sort()
+
+      processPendingCellStyle(
+        sheet,
+        context.pendingCellStylesByRow,
+        sortedPendingRows,
+        normalizedBordersInRowSet,
+        patchedCellBorders,
+        { totalRows: context.totalRows, rowsInFile: lastCurrentRowInFile + 1 }
+      )
+    }
 
     sheet.commit()
   }
@@ -53,7 +89,53 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
   return fs.createReadStream(outputFilePath)
 }
 
+function processPendingCellStyle (
+  sheet,
+  pendingCellStylesByRow,
+  sortedPendingRows,
+  normalizedBordersInRowSet,
+  patchedCellBorders,
+  rowsCountMeta
+) {
+  // remember that all indexes here are 1-based, also the ones stores in the pending map
+  const rowIdToCommit = sortedPendingRows[0]
+  const rowIdToProcess = sortedPendingRows[1]
+
+  if (!normalizedBordersInRowSet.has(rowIdToCommit)) {
+    normalizeBorderForRow(pendingCellStylesByRow, rowIdToCommit, patchedCellBorders, rowsCountMeta)
+    normalizedBordersInRowSet.add(rowIdToCommit)
+  }
+
+  if (rowIdToProcess && !normalizedBordersInRowSet.has(rowIdToProcess)) {
+    normalizeBorderForRow(pendingCellStylesByRow, rowIdToProcess, patchedCellBorders, rowsCountMeta)
+    normalizedBordersInRowSet.add(rowIdToProcess)
+  }
+
+  const pendingColIds = [...pendingCellStylesByRow.get(rowIdToCommit).keys()].sort()
+
+  // apply styles for all the cells in the row that is going to be committed
+  for (const colId of pendingColIds) {
+    const styles = pendingCellStylesByRow.get(rowIdToCommit).get(colId).styles
+    const cell = sheet.getCell(rowIdToCommit, colId)
+
+    if (styles.border != null && Object.keys(styles.border).length === 0) {
+      delete styles.border
+    }
+
+    if (Object.keys(styles).length > 0) {
+      setStyles(cell, styles)
+    }
+  }
+
+  // remember that when you commit a row, all rows before are also committed
+  sheet.getRow(rowIdToCommit).commit()
+
+  normalizedBordersInRowSet.delete(rowIdToCommit)
+  pendingCellStylesByRow.delete(rowIdToCommit)
+}
+
 function addRow (sheet, row, context) {
+  const pendingCellStylesByRow = context.pendingCellStylesByRow
   const currentCellOffsetsPerRow = context.currentCellOffsetsPerRow
   const usedCells = context.usedCells
   const maxWidths = context.maxWidths
@@ -111,8 +193,6 @@ function addRow (sheet, row, context) {
         // only remember max column widths for single columns
         if (cellSpan === 1) {
           maxWidths[xlsxColumnIdx] = width
-          // we need to set column width before row commit in order
-          // to make it work
           sheet.getColumn(xlsxColumnIdx + 1).width = width
         } else if (Boolean(sheet.getColumn(xlsxColumnIdx + 1).width) === false) {
           // only set width on multi colspan if not already defined
@@ -165,11 +245,17 @@ function addRow (sheet, row, context) {
     let styles
 
     if (context.parsedStyles.has(styleKey)) {
-      styles = context.parsedStyles.get(styleKey)
+      styles = { ...context.parsedStyles.get(styleKey) }
     } else {
       styles = getXlsxStyles(cellInfo)
       context.parsedStyles.set(styleKey, styles)
     }
+
+    if (!pendingCellStylesByRow.has(context.currentRowInFile + 1)) {
+      pendingCellStylesByRow.set(context.currentRowInFile + 1, new Map())
+    }
+
+    const pendingCellStyleEntry = { styles }
 
     if (rowSpan > 1 || cellSpan > 1) {
       const rowIncrement = Math.max(rowSpan - 1, 0)
@@ -183,20 +269,31 @@ function addRow (sheet, row, context) {
           if (usedCells[`${r},${c}`] == null) {
             usedCells[`${r},${c}`] = true
           }
+
+          if (!pendingCellStylesByRow.has(r)) {
+            pendingCellStylesByRow.set(r, new Map())
+          }
+
+          const newStyles = Object.assign({}, styles)
+
+          if (newStyles.border != null) {
+            newStyles.border = { ...newStyles.border }
+          }
+
+          const pendingItem = Object.assign({}, r === startRow && c === startCell ? pendingCellStyleEntry : { styles: {} }, {
+            merge: { startRow, endRow, startCell, endCell },
+            mergeBaseStyle: newStyles
+          })
+
+          pendingCellStylesByRow.get(r).set(c, pendingItem)
         }
       }
 
       sheet.mergeCells(startRow, startCell, endRow, endCell)
-
-      // merged cells share the same style object so setting the style
-      // in one cell will do it also for the other cells
-      if (Object.keys(styles).length > 0) {
-        setStyles(cell, styles)
-      }
     } else {
-      if (Object.keys(styles).length > 0) {
-        setStyles(cell, styles)
-      }
+      // NOTE: remember that merged cells share the same style object so setting the style
+      // in one cell will do it also for the other cells
+      pendingCellStylesByRow.get(context.currentRowInFile + 1).set(startCell, pendingCellStyleEntry)
     }
 
     for (let r = 0; r < rowSpan; r++) {
@@ -277,9 +374,189 @@ function addRow (sheet, row, context) {
   sheet.getRow(context.currentRowInFile + 1).height = maxHeight
 
   if (!allCellsAreRowSpan) {
-    sheet.getRow(context.currentRowInFile + 1).commit()
     context.currentRowInFile++
   }
+}
+
+function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorders, rowsCountMeta) {
+  const pendingCellStylesInRow = pendingCellStylesByRow.get(rowId)
+  const colIds = [...pendingCellStylesByRow.get(rowId).keys()].sort()
+  const totalRows = rowsCountMeta.totalRows
+  const rowsInFile = rowsCountMeta.rowsInFile
+
+  for (const colId of colIds) {
+    const currentCell = pendingCellStylesInRow.get(colId)
+
+    if (currentCell == null) {
+      continue
+    }
+
+    let currentIsMergeCell = false
+
+    // for merged cells we should only normalize the border for the start cell
+    // we ignore the other placeholder cells, for the start cell we normalize accordingly
+    // and get the next cell depending on colspan, rowspan
+    if (currentCell.merge != null) {
+      if (
+        ![currentCell.merge.startRow, currentCell.merge.endRow].includes(rowId) &&
+        ![currentCell.merge.startCell, currentCell.merge.endCell].includes(colId)
+      ) {
+        continue
+      }
+
+      currentIsMergeCell = true
+    }
+
+    const styles = currentCell.styles
+
+    // skip cell with no explicit border, only when it is not a merge cell
+    if (!currentIsMergeCell && styles.border == null) {
+      continue
+    }
+
+    // make a clone of border first, so we can modify it safely
+    styles.border = { ...styles.border }
+
+    const currentBorder = styles.border
+    const sourceBorder = currentIsMergeCell ? currentCell.mergeBaseStyle.border : currentBorder
+
+    for (const currentSide of ['top', 'right', 'bottom', 'left']) {
+      if (sourceBorder?.[currentSide] == null) {
+        continue
+      }
+
+      switch (currentSide) {
+        case 'top': {
+          const isCollapsed = rowId !== 1
+          const previousBorderRowId = rowId - 1
+
+          if (currentIsMergeCell && isPartOfMerge(currentCell.merge, previousBorderRowId, colId)) {
+            break
+          }
+
+          const previousCell = pendingCellStylesByRow.get(previousBorderRowId)?.get(colId)
+          const previousBorder = (previousCell?.merge != null ? previousCell.mergeBaseStyle?.border : previousCell?.styles?.border) || {}
+
+          if (
+            isCollapsed &&
+            (
+              previousBorder?.bottom != null &&
+              patchedCellBorders.has(`${rowId}-${colId}-top`)
+            )
+          ) {
+            delete currentBorder[currentSide]
+          }
+
+          break
+        }
+        case 'right': {
+          const lastColId = colIds[colIds.length - 1]
+          const isCollapsed = colId !== lastColId
+
+          if (isCollapsed) {
+            const nextColId = colId + 1
+
+            if (nextColId > lastColId) {
+              break
+            }
+
+            if (currentIsMergeCell && isPartOfMerge(currentCell.merge, rowId, nextColId)) {
+              break
+            }
+
+            const currentCellIsFullRowspan = currentCell.merge != null && ((currentCell.merge.endRow - currentCell.merge.startRow) + 1) === totalRows
+            const nextCell = pendingCellStylesByRow.get(rowId)?.get(nextColId)
+            const nextCellIsFullRowspan = nextCell?.merge != null && ((nextCell.merge.endRow - nextCell.merge.startRow) + 1) === totalRows
+            let targetSourceBorderValue
+
+            if (!currentCellIsFullRowspan && nextCellIsFullRowspan && rowId > nextCell.merge.startRow) {
+              // if the next cell is a full rowspan cell and the current cell is not,
+              // then we should get the border from the next cell and apply it to the
+              // current cell, this is the opposite of the normal collapsing behavior
+              // but this is how browsers resolve it so we replicate it
+              targetSourceBorderValue = nextCell.mergeBaseStyle.border?.left
+              currentBorder.right = { ...targetSourceBorderValue }
+            } else {
+              targetSourceBorderValue = sourceBorder?.[currentSide]
+            }
+
+            const nextBorder = Object.assign({}, nextCell?.styles?.border)
+
+            if (targetSourceBorderValue == null) {
+              break
+            }
+
+            nextBorder.left = { ...targetSourceBorderValue }
+            patchedCellBorders.add(`${rowId}-${nextColId}-left`)
+            pendingCellStylesByRow.get(rowId).get(nextColId).styles.border = nextBorder
+          }
+
+          break
+        }
+        case 'bottom': {
+          const isCollapsed = rowsInFile == null ? true : rowId !== rowsInFile
+
+          if (isCollapsed) {
+            const nextRowId = rowId + 1
+
+            if (rowsInFile != null && nextRowId > rowsInFile) {
+              break
+            }
+
+            if (currentIsMergeCell && isPartOfMerge(currentCell.merge, nextRowId, colId)) {
+              break
+            }
+
+            const nextBorder = Object.assign({}, pendingCellStylesByRow.get(nextRowId)?.get(colId)?.styles?.border)
+
+            if (sourceBorder?.[currentSide] == null) {
+              break
+            }
+
+            nextBorder.top = { ...sourceBorder[currentSide] }
+            patchedCellBorders.add(`${nextRowId}-${colId}-top`)
+            pendingCellStylesByRow.get(nextRowId).get(colId).styles.border = nextBorder
+          }
+
+          break
+        }
+        case 'left': {
+          const isCollapsed = colId !== 1
+          const previousBorderColId = colId - 1
+
+          if (currentIsMergeCell && isPartOfMerge(currentCell.merge, rowId, previousBorderColId)) {
+            break
+          }
+
+          const previousCell = pendingCellStylesByRow.get(rowId)?.get(previousBorderColId)
+          const previousBorder = (previousCell?.merge != null ? previousCell.mergeBaseStyle?.border : previousCell?.styles?.border) || {}
+
+          if (
+            isCollapsed &&
+            (
+              previousBorder?.right != null &&
+              patchedCellBorders.has(`${rowId}-${colId}-left`)
+            )
+          ) {
+            delete currentBorder[currentSide]
+          }
+
+          break
+        }
+        default:
+          throw new Error(`Unsupported border side: ${currentSide}`)
+      }
+    }
+  }
+}
+
+function isPartOfMerge (mergeInfo, targetRowId, targetColId) {
+  return (
+    targetRowId >= mergeInfo.startRow &&
+    targetRowId <= mergeInfo.endRow &&
+    targetColId >= mergeInfo.startCell &&
+    targetColId <= mergeInfo.endCell
+  )
 }
 
 function getXlsxStyles (cellInfo) {
@@ -298,6 +575,10 @@ function getXlsxStyles (cellInfo) {
 
 function setStyles (cell, styles) {
   for (const [styleName, styleValue] of Object.entries(styles)) {
+    if (styleName === 'border' && styleValue != null && Object.keys(styleValue).length === 0) {
+      continue
+    }
+
     cell[styleName] = styleValue
   }
 }
