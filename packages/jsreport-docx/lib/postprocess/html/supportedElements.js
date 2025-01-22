@@ -87,6 +87,17 @@ const elements = [
     tag: 'table'
   },
   {
+    tag: 'caption'
+  },
+  {
+    tag: 'colgroup',
+    meta: true
+  },
+  {
+    tag: 'col',
+    meta: true
+  },
+  {
     tag: 'thead'
   },
   {
@@ -130,6 +141,7 @@ const ELEMENTS = elements.map((el) => {
 
 const BLOCK_ELEMENTS = []
 const INLINE_ELEMENTS = []
+const META_ELEMENTS = []
 
 for (const el of ELEMENTS) {
   let collection
@@ -149,6 +161,14 @@ for (const el of ELEMENTS) {
   if (el.alias != null) {
     collection.push(...el.alias)
   }
+
+  if (el.meta === true) {
+    META_ELEMENTS.push(el.tag)
+
+    if (el.alias != null) {
+      META_ELEMENTS.push(...el.alias)
+    }
+  }
 }
 
 const SUPPORTED_ELEMENTS = [...BLOCK_ELEMENTS, ...INLINE_ELEMENTS]
@@ -156,4 +176,5 @@ const SUPPORTED_ELEMENTS = [...BLOCK_ELEMENTS, ...INLINE_ELEMENTS]
 module.exports.ELEMENTS = ELEMENTS
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.INLINE_ELEMENTS = INLINE_ELEMENTS
+module.exports.META_ELEMENTS = META_ELEMENTS
 module.exports.SUPPORTED_ELEMENTS = SUPPORTED_ELEMENTS

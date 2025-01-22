@@ -10839,6 +10839,1161 @@ describe('docx html embed', () => {
         }
       })
 
+      it(`${mode} mode <table> colgroup`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup style="background-color: red; border: 2px solid green; width: 50px">',
+          '</colgroup>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(topBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else if (rowIdx === 1 && cellIdx === 0) {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode).be.not.ok()
+              should(bottomBorderNode).be.not.ok()
+
+              if (cellIdx === 1) {
+                should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+                should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+                should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              } else {
+                should(leftBorderNode).be.not.ok()
+              }
+
+              should(backgroundColor).be.not.ok()
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('4044')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with span`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup span="5" style="background-color: #d7d9f2; width: 50px">',
+          '</colgroup>',
+          '<colgroup span="2" style="background-color: #ffe8d4; width: 50px">',
+          '</colgroup>',
+          '<tr>',
+          '<th>Mon</th>',
+          '<th>Tue</th>',
+          '<th>Wed</th>',
+          '<th>Thu</th>',
+          '<th>Fri</th>',
+          '<th>Sat</th>',
+          '<th>Sun</th>',
+          '</tr>',
+          '<tr>',
+          '<td>Clean room</td>',
+          '<td>Football training</td>',
+          '<td>Dance Course</td>',
+          '<td>History Class</td>',
+          '<td>Buy drinks</td>',
+          '<td>Study hour</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '<tr>',
+          '<td>Yoga</td>',
+          '<td>Chess Club</td>',
+          '<td>Meet friends</td>',
+          '<td>Gymnastics</td>',
+          '<td>Birthday party</td>',
+          '<td>Fishing trip</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(7)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        const expectedCellsContent = [
+          ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          ['Clean room', 'Football training', 'Dance Course', 'History Class', 'Buy drinks', 'Study hour', 'Free time'],
+          ['Yoga', 'Chess Club', 'Meet friends', 'Gymnastics', 'Birthday party', 'Fishing trip', 'Free time']
+        ]
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(7)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(topBorderNode).be.not.ok()
+            }
+
+            should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+            should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+            should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+            should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+
+            if (cellIdx === 0) {
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(leftBorderNode).be.not.ok()
+            }
+
+            should(widthType).be.eql('dxa')
+            should(widthValue).be.eql('750')
+
+            if ([0, 1, 2, 3, 4].includes(cellIdx)) {
+              should(backgroundColor).be.eql('D7D9F2')
+            } else {
+              should(backgroundColor).be.eql('FFE8D4')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(expectedCellsContent[rowIdx][cellIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with col`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup>',
+          '<col style="background-color: red; border: 2px solid green; width: 50px" />',
+          '</colgroup>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(topBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else if (rowIdx === 1 && cellIdx === 0) {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode).be.not.ok()
+              should(bottomBorderNode).be.not.ok()
+
+              if (cellIdx === 1) {
+                should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+                should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+                should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              } else {
+                should(leftBorderNode).be.not.ok()
+              }
+
+              should(backgroundColor).be.not.ok()
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('4044')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with col in middle with no styles`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup>',
+          '<col style="background-color: red; border: 2px solid green; width: 50px" />',
+          '<col />',
+          '<col style="background-color: red; border: 2px solid green; width: 50px" />',
+          '</colgroup>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (
+              (rowIdx === 0 && cellIdx === 0) ||
+              (rowIdx === 0 && cellIdx === 2)
+            ) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(topBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else if (
+              (rowIdx === 1 && cellIdx === 0) ||
+              (rowIdx === 1 && cellIdx === 2)
+            ) {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode).be.not.ok()
+              should(bottomBorderNode).be.not.ok()
+
+              if (cellIdx === 1) {
+                should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+                should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+                should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              } else {
+                should(leftBorderNode).be.not.ok()
+              }
+
+              should(backgroundColor).be.not.ok()
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('7338')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with col with span`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup>',
+          '<col span="5" style="background-color: #d7d9f2; width: 50px" />',
+          '<col span="2" style="background-color: #ffe8d4; width: 50px" />',
+          '</colgroup>',
+          '<tr>',
+          '<th>Mon</th>',
+          '<th>Tue</th>',
+          '<th>Wed</th>',
+          '<th>Thu</th>',
+          '<th>Fri</th>',
+          '<th>Sat</th>',
+          '<th>Sun</th>',
+          '</tr>',
+          '<tr>',
+          '<td>Clean room</td>',
+          '<td>Football training</td>',
+          '<td>Dance Course</td>',
+          '<td>History Class</td>',
+          '<td>Buy drinks</td>',
+          '<td>Study hour</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '<tr>',
+          '<td>Yoga</td>',
+          '<td>Chess Club</td>',
+          '<td>Meet friends</td>',
+          '<td>Gymnastics</td>',
+          '<td>Birthday party</td>',
+          '<td>Fishing trip</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(7)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        const expectedCellsContent = [
+          ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          ['Clean room', 'Football training', 'Dance Course', 'History Class', 'Buy drinks', 'Study hour', 'Free time'],
+          ['Yoga', 'Chess Club', 'Meet friends', 'Gymnastics', 'Birthday party', 'Fishing trip', 'Free time']
+        ]
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(7)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(topBorderNode).be.not.ok()
+            }
+
+            should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+            should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+            should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+            should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+
+            if (cellIdx === 0) {
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(leftBorderNode).be.not.ok()
+            }
+
+            should(widthType).be.eql('dxa')
+            should(widthValue).be.eql('750')
+
+            if ([0, 1, 2, 3, 4].includes(cellIdx)) {
+              should(backgroundColor).be.eql('D7D9F2')
+            } else {
+              should(backgroundColor).be.eql('FFE8D4')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(expectedCellsContent[rowIdx][cellIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with col with span in different groups`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup>',
+          '<col span="5" style="background-color: #d7d9f2; width: 50px" />',
+          '</colgroup>',
+          '<colgroup>',
+          '<col span="2" style="background-color: #ffe8d4; width: 50px" />',
+          '</colgroup>',
+          '<tr>',
+          '<th>Mon</th>',
+          '<th>Tue</th>',
+          '<th>Wed</th>',
+          '<th>Thu</th>',
+          '<th>Fri</th>',
+          '<th>Sat</th>',
+          '<th>Sun</th>',
+          '</tr>',
+          '<tr>',
+          '<td>Clean room</td>',
+          '<td>Football training</td>',
+          '<td>Dance Course</td>',
+          '<td>History Class</td>',
+          '<td>Buy drinks</td>',
+          '<td>Study hour</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '<tr>',
+          '<td>Yoga</td>',
+          '<td>Chess Club</td>',
+          '<td>Meet friends</td>',
+          '<td>Gymnastics</td>',
+          '<td>Birthday party</td>',
+          '<td>Fishing trip</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(7)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        const expectedCellsContent = [
+          ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          ['Clean room', 'Football training', 'Dance Course', 'History Class', 'Buy drinks', 'Study hour', 'Free time'],
+          ['Yoga', 'Chess Club', 'Meet friends', 'Gymnastics', 'Birthday party', 'Fishing trip', 'Free time']
+        ]
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(7)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(topBorderNode).be.not.ok()
+            }
+
+            should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+            should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+            should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+            should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+
+            if (cellIdx === 0) {
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(leftBorderNode).be.not.ok()
+            }
+
+            should(widthType).be.eql('dxa')
+            should(widthValue).be.eql('750')
+
+            if ([0, 1, 2, 3, 4].includes(cellIdx)) {
+              should(backgroundColor).be.eql('D7D9F2')
+            } else {
+              should(backgroundColor).be.eql('FFE8D4')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(expectedCellsContent[rowIdx][cellIdx])
+          }
+        }
+      })
+
       if (mode === 'block') {
         it(`${mode} mode - <table> have a default border`, async () => {
           const templateStr = [
@@ -12037,7 +13192,7 @@ describe('docx html embed', () => {
                 should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
                 should(leftBorderNode).be.not.ok()
                 should(leftBorderNode).be.not.ok()
-                should(leftBorderNode ).be.not.ok()
+                should(leftBorderNode).be.not.ok()
               } else if (rowIdx === 0 && cellIdx === 2) {
                 should(topBorderNode).be.not.ok()
                 should(rightBorderNode).be.not.ok()
