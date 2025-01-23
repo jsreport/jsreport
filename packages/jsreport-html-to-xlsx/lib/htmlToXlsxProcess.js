@@ -3,7 +3,7 @@ const fs = require('fs').promises
 const { htmlEngines } = require('./autoDetectHtmlEngines')()
 const chromePageEval = require('chrome-page-eval')
 const phantomPageEval = require('phantom-page-eval')
-const htmlToXlsx = require('html-to-xlsx')
+const htmlToXlsx = require('@jsreport/html-to-xlsx')
 const opentype = require('opentype.js')
 
 const defaultFontPath = path.join(__dirname, '../static/Calibri 400.ttf')

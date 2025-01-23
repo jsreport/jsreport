@@ -1,0 +1,36 @@
+# EditorConfig helps developers define and maintain consistent
+# coding styles between different editors and IDEs
+# editorconfig.org
+
+root = true
+
+
+[*]
+# Change these settings to your own preference
+indent_style = space
+indent_size = 2
+
+# Recommend you to keep these unchanged
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.js]
+indent_style = space
+indent_size = 2
+
+[*.css]
+indent_style = space
+indent_size = 2
+
+[*.jade]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
