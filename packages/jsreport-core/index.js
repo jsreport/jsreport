@@ -21,6 +21,7 @@ module.exports.Request = Request
 module.exports.createListenerCollection = createListenerCollection
 module.exports.loggerFormat = winston.format
 module.exports.createDefaultLoggerFormat = createDefaultLoggerFormat
+module.exports.createError = require('./lib/shared/createError')
 
 module.exports.tests = {
   documentStore: () => require('./test/store/common.js'),

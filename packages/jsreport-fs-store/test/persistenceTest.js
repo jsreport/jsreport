@@ -84,17 +84,6 @@ describe('persistence', () => {
     sinon.assert.calledWith(fs.remove, 'foo')
   })
 
-  it('should use crash safe approach to update doc', async () => {
-    fs.rename.twice()
-    fs.exists.twice()
-    fs.readdir.returns([])
-    await persistence.update({ $entitySet: 'templates', name: 'foo', shortid: 'a' }, { $entitySet: 'templates', name: 'foo', shortid: 'b' }, {}, true)
-    sinon.assert.calledWith(fs.mkdir, '~~foo~foo')
-    sinon.assert.calledWith(fs.writeFile, path.join('~~foo~foo', 'config.json'), JSON.stringify({ $entitySet: 'templates', name: 'foo', shortid: 'a' }, null, 4))
-    sinon.assert.calledWith(fs.rename, path.join('~foo~foo'), path.join('foo'))
-    sinon.assert.calledWith(fs.rename, path.join('~~foo~foo'), path.join('~foo~foo'))
-  })
-
   it('compact should crash safe approach', async () => {
     fs.readdir.returns(['reports'])
     fs.stat.returns({
@@ -105,17 +94,5 @@ describe('persistence', () => {
     await persistence.compact({ reports: {} })
     sinon.assert.calledWith(fs.writeFile, '~reports', serialize({ _id: 'aaa', name: 'a', $entitySet: 'reports' }, false) + '\n')
     sinon.assert.calledWith(fs.rename, '~reports', 'reports')
-  })
-
-  it('should remove inconsistent folders on load', async () => {
-    fs.stat.twice()
-    fs.readdir.twice()
-    fs.readdir.returns(['~~foo~foo'])
-    fs.stat.returns({
-      isDirectory: () => true,
-      isFile: () => false
-    })
-    await persistence.load()
-    sinon.assert.calledWith(fs.remove, '~~foo~foo')
   })
 })

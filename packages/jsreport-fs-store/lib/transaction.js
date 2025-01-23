@@ -1,31 +1,76 @@
-const path = require('path')
-const { copy, lock, infiniteRetry } = require('./customUtils')
+const { lock } = require('./customUtils')
 const Store = require('./store')
-const transactionDirectory = '~.tran'
-const transactionConsistencyFile = '.tran'
+const TransactionJournal = require('./transactionJournal')
 
-module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs, logger, documentsModel }) => {
-  let blobStorageDirectoryName
-
-  if (blobStorageDirectory && blobStorageDirectory.startsWith(dataDirectory)) {
-    blobStorageDirectoryName = path.basename(blobStorageDirectory, '')
-  }
-
+module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
   let commitedStore = Store({}, {
     documentsModel
   })
 
-  const unsafePersistence = {
-    insert: (doc, documents, rootDirectory) => persistence.insert(doc, documents, false, rootDirectory),
-    update: (doc, originalDoc, documents, rootDirectory) => persistence.update(doc, originalDoc, documents, false, rootDirectory),
-    remove: (doc, documents, rootDirectory) => persistence.remove(doc, documents, false, rootDirectory)
-  }
+  const transactionJournal = TransactionJournal({ fs, logger, persistence, commitedStore })
 
-  const safePersistence = {
-    insert: (doc, documents, rootDirectory) => persistence.insert(doc, documents, true, rootDirectory),
-    update: (doc, originalDoc, documents, rootDirectory) => persistence.update(doc, originalDoc, documents, true, rootDirectory),
-    remove: (doc, documents, rootDirectory) => persistence.remove(doc, documents, true, rootDirectory)
-  }
+  const createPersistenceWithJournal = (transactional) => ({
+    insert: async (doc, documents) => {
+      if (!transactional) {
+        await transactionJournal.recover()
+      }
+
+      await transactionJournal.insert(doc)
+
+      try {
+        await persistence.insert(doc, documents)
+      } catch (e) {
+        if (e.week !== true && !transactional) {
+          await transactionJournal.recover()
+        }
+        throw e
+      }
+      if (!transactional) {
+        await transactionJournal.clean()
+      }
+    },
+    update: async (doc, originalDoc, documents) => {
+      if (!transactional) {
+        await transactionJournal.recover()
+      }
+
+      await transactionJournal.update(doc, originalDoc)
+
+      try {
+        await persistence.update(doc, originalDoc, documents)
+      } catch (e) {
+        if (e.week !== true && !transactional) {
+          await transactionJournal.recover()
+        }
+        throw e
+      }
+      if (!transactional) {
+        await transactionJournal.clean()
+      }
+    },
+    remove: async (doc, documents) => {
+      if (!transactional) {
+        await transactionJournal.recover()
+      }
+
+      await transactionJournal.remove(doc)
+
+      try {
+        await persistence.remove(doc, documents)
+      } catch (e) {
+        if (e.week !== true && !transactional) {
+          await transactionJournal.recover()
+        }
+        throw e
+      }
+      if (!transactional) {
+        await transactionJournal.clean()
+      }
+    }
+  })
+
+  const normalPersistence = createPersistenceWithJournal(false)
+  const transactionalPersistence = createPersistenceWithJournal(true)
 
   const persistenceQueueTimeoutInterval = setInterval(() => {
     queue.rejectItemsWithTimeout()
@@ -37,30 +82,15 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
     },
 
     async init () {
-      if (await fs.exists(transactionDirectory)) {
-        if (await fs.exists(transactionConsistencyFile)) {
-          const ignoreDuringCopy = [transactionDirectory]
-
-          if (blobStorageDirectoryName != null) {
-            ignoreDuringCopy.push(blobStorageDirectoryName)
-          }
-
-          await copy(fs, transactionDirectory, '', ignoreDuringCopy, true)
-          await fs.remove(transactionConsistencyFile)
-        }
-
-        await fs.remove(transactionDirectory)
-      }
+      return transactionJournal.recover()
     },
 
     begin () {
-      return queue.push(() => lock(fs, async () => {
-        return {
-          store: commitedStore.clone(),
-          operations: [],
-          beginTime: Date.now()
-        }
-      }))
+      return queue.push(() => lock(fs, () => ({
+        store: commitedStore.clone(),
+        operations: [],
+        beginTime: Date.now()
+      })))
     },
 
     async operation (opts, fn) {
@@ -85,29 +115,18 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
 
       return queue.push(() => lock(fs, async () => {
         await this.journal.sync()
-        return fn(commitedStore, safePersistence)
+        return fn(commitedStore, normalPersistence)
       }))
     },
 
     async commit (transaction) {
       return queue.push(() => lock(fs, async () => {
         try {
-          await fs.remove(transactionDirectory)
-          await fs.remove(transactionConsistencyFile)
-
-          const ignoreDuringInitialCopy = []
-
-          if (blobStorageDirectoryName != null) {
-            ignoreDuringInitialCopy.push(blobStorageDirectoryName)
-          }
-
-          await copy(fs, '', transactionDirectory, ignoreDuringInitialCopy)
-
           const storeClone = commitedStore.clone()
 
           // eslint-disable-next-line no-unused-vars
           for (const op of transaction.operations) {
-            await op(storeClone, unsafePersistence, transactionDirectory)
+            await op(storeClone, transactionalPersistence)
           }
 
           // eslint-disable-next-line no-unused-vars
@@ -124,33 +143,18 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
             }
           }
 
-          await fs.writeFile(transactionConsistencyFile, '')
-
-          const ignoreDuringFinalCopy = [transactionDirectory]
-
-          if (blobStorageDirectoryName != null) {
-            ignoreDuringFinalCopy.push(blobStorageDirectoryName)
-          }
-
-          await infiniteRetry(() => copy(fs, transactionDirectory, '', ignoreDuringFinalCopy, true), (e, delay) => {
-            logger.error(`copy consistent transaction to the data directory crashed, trying again in ${delay}ms`, e)
-          })
-
           commitedStore = storeClone
-
+          await transactionJournal.clean()
           await this.journal.commit()
-        } finally {
-          await infiniteRetry(async () => {
-            await fs.remove(transactionDirectory)
-            await fs.remove(transactionConsistencyFile)
-          }, (e, delay) => {
-            logger.error(`cleanup of transaction files ~tran failed, trying again in ${delay}ms`, e)
-          })
+        } catch (e) {
+          logger.error('Transaction commit failed', e)
+          throw e
         }
       }))
     },
 
-    async rollback (transaction) {
+    async rollback () {
+      return queue.push(() => lock(fs, () => transactionJournal.recover()))
     },
 
     close () {
