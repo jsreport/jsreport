@@ -17899,20 +17899,6 @@ phantomjs@1.9.20:
     request-progress "~2.0.1"
     which "~1.2.2"
 
-phantomjs@2.1.7:
-  version "2.1.7"
-  resolved "https://registry.yarnpkg.com/phantomjs/-/phantomjs-2.1.7.tgz#c6910f67935c37285b6114329fc2f27d5f3e3134"
-  integrity sha512-hw9ShqlOOeBD7qXTB7HAPJzqscG15AUymngJFRJt4gex3MVdBykWrGV1Js21CsnZ35A6/x3KFbHxZd3xu6boBA==
-  dependencies:
-    extract-zip "~1.5.0"
-    fs-extra "~0.26.4"
-    hasha "^2.2.0"
-    kew "~0.7.0"
-    progress "~1.1.8"
-    request "~2.67.0"
-    request-progress "~2.0.1"
-    which "~1.2.2"
-
 picocolors@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/picocolors/-/picocolors-1.0.0.tgz"
