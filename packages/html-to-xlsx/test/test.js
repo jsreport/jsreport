@@ -8,7 +8,7 @@ const { parseCell } = require('xlsx-coordinates')
 const chromePageEval = require('chrome-page-eval')
 const phantomPageEval = require('phantom-page-eval')
 const puppeteer = require('puppeteer')
-const phantomPath = require('phantomjs').path
+const phantomPath = require('phantomjs-prebuilt').path
 const { getDocumentsFromXlsxBuf } = require('./utils')
 
 const tmpDir = path.join(__dirname, 'temp')
