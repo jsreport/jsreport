@@ -1,4 +1,4 @@
-const { serialize, parse, infiniteRetry } = require('./customUtils')
+const { serialize, parse, infiniteRetry, retry } = require('./customUtils')
 
 function collectDocsInHierarchy (folder, store, singlelLevel = false) {
   const entities = [folder]
@@ -66,7 +66,7 @@ module.exports = ({ persistence, fs, logger, commitedStore }) => {
 
       const contentToWrite = serialize(content, false) + '\n'
 
-      await fs.appendFile('tran.journal', contentToWrite)
+      return retry(() => fs.appendFile('tran.journal', contentToWrite))
     },
     update: async (doc, originalDoc) => {
       if (doc.$entitySet === 'folders' && (doc.folder?.shortid !== originalDoc.folder?.shortid || doc.name !== originalDoc.name)) {
@@ -79,7 +79,7 @@ module.exports = ({ persistence, fs, logger, commitedStore }) => {
           }
           const contentToWrite = serialize(content, false) + '\n'
 
-          await fs.appendFile('tran.journal', contentToWrite)
+          await retry(() => fs.appendFile('tran.journal', contentToWrite))
         }
         const content = {
           operation: 'insert',
@@ -87,7 +87,7 @@ module.exports = ({ persistence, fs, logger, commitedStore }) => {
         }
         const contentToWrite = serialize(content, false) + '\n'
 
-        await fs.appendFile('tran.journal', contentToWrite)
+        await retry(() => fs.appendFile('tran.journal', contentToWrite))
       } else {
         const content = {
           operation: 'update',
@@ -98,7 +98,7 @@ module.exports = ({ persistence, fs, logger, commitedStore }) => {
         }
         const contentToWrite = serialize(content, false) + '\n'
 
-        await fs.appendFile('tran.journal', contentToWrite)
+        await retry(() => fs.appendFile('tran.journal', contentToWrite))
       }
     },
     remove: async (doc) => {
@@ -114,7 +114,7 @@ module.exports = ({ persistence, fs, logger, commitedStore }) => {
           }
           lines += serialize(content, false) + '\n'
         }
-        await fs.appendFile('tran.journal', lines)
+        await retry(() => fs.appendFile('tran.journal', lines))
       } else {
         const content = {
           operation: 'remove',
@@ -122,11 +122,11 @@ module.exports = ({ persistence, fs, logger, commitedStore }) => {
         }
         const contentToWrite = serialize(content, false) + '\n'
 
-        await fs.appendFile('tran.journal', contentToWrite)
+        await retry(() => fs.appendFile('tran.journal', contentToWrite))
       }
     },
     clean: () => {
-      return fs.remove('tran.journal')
+      return retry(() => fs.remove('tran.journal'))
     }
   }
 }

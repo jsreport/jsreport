@@ -61,7 +61,14 @@ async function createIndexes (type, path, entitySet, model, db) {
     if (type[key].type.startsWith('jsreport.')) {
       const complexTypeName = type[key].type.replace(model.namespace + '.', '')
       const complexType = model.complexTypes[complexTypeName]
-      await createIndexes(complexType, [path, key].filter(t => t).join('.'), entitySet, model, db)
+      if (complexTypeName === 'FolderRefType') {
+        // mongo somehow doesnt use index folder.shortid and needs just the index on folder
+        await db.collection(entitySet).createIndex({
+          folder: 1
+        })
+      } else {
+        await createIndexes(complexType, [path, key].filter(t => t).join('.'), entitySet, model, db)
+      }
     }
   }
 }

@@ -12,7 +12,7 @@ function getDirectoryPath (fs, model, doc, documents) {
   const folders = []
 
   while (doc.folder) {
-    const folderEntity = documents.folders.find((f) => f.shortid === doc.folder.shortid)
+    const folderEntity = (documents.folders || []).find((f) => f.shortid === doc.folder.shortid)
 
     if (!folderEntity) {
       throw createError(`Can not find parent folder for entity "${doc.name}" (entitySet: ${doc.$entitySet})`, { week: true })

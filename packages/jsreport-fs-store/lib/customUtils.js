@@ -68,7 +68,7 @@ function parse (rawData) {
   })
 }
 
-async function retry (fn, maxCount = 10) {
+async function retry (fn, maxCount = 50) {
   let error
   for (let i = 0; i < maxCount; i++) {
     try {
