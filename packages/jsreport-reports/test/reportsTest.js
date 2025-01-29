@@ -150,6 +150,10 @@ describe('with reports extension', () => {
       }
     }
 
+    reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
+      res.meta.headers = { test: 'foo' }
+    })
+
     const response = await reporter.render(request)
 
     return supertest(reporter.express.app)
@@ -162,6 +166,7 @@ describe('with reports extension', () => {
       })
       .expect((res) => {
         res.body.should.be.eql('hello')
+        res.headers.test.should.be.eql('foo')
       })
   })
 

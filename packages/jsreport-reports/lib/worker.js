@@ -35,7 +35,8 @@ module.exports = (reporter, definition) => {
         templateShortid: request.template.shortid,
         creationDate: new Date(),
         contentType: response.meta.contentType,
-        public: reportsOptions.public === true
+        public: reportsOptions.public === true,
+        meta: JSON.stringify(response.meta)
       })
 
       if (!reportsOptions._id) {
