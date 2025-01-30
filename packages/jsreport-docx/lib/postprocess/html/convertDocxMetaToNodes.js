@@ -9,7 +9,7 @@ const { resolveImageSrc, getImageSizeInEMU } = require('../../imageUtils')
 const { nodeListToArray, clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP, ptToEOAP } = require('../../utils')
 const xmlTemplatesCache = new Map()
 
-module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode } = {}) {
+module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode, numberingLock } = {}) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid conversion mode "${mode}"`)
   }
@@ -91,7 +91,7 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
       }
 
       if (currentDocxMeta.list != null) {
-        const numId = await addOrGetNumbering(files, currentDocxMeta.list, numberingListsCache)
+        const numId = await addOrGetNumbering(files, currentDocxMeta.list, numberingListsCache, numberingLock)
 
         if (numId != null) {
           const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
@@ -1161,7 +1161,7 @@ function addHyperlinkRel (relsDoc, linkInfo) {
   return newRelId
 }
 
-async function addOrGetNumbering (files, listInfo, cache) {
+async function addOrGetNumbering (files, listInfo, cache, lock) {
   let numberingDoc
   let numId
 
@@ -1173,205 +1173,213 @@ async function addOrGetNumbering (files, listInfo, cache) {
     return
   }
 
-  const numberingFile = files.find(f => f.path === 'word/numbering.xml')
+  // we need to lock this operation because the numbering is a shared document for main
+  // document, header and footer, and we need to increase the id for each list sequentially
+  await lock.acquire()
 
-  if (cache.has(listInfo.id)) {
-    numberingDoc = numberingFile.doc
-    numId = cache.get(listInfo.id)
-  } else {
-    if (numberingFile == null) {
-      const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
+  try {
+    const numberingFile = files.find(f => f.path === 'word/numbering.xml')
 
-      const numberingTypeRefEl = findChildNode((n) => (
-        n.nodeName === 'Override' &&
-        n.getAttribute('PartName') === '/word/numbering.xml'
-      ), contentTypesDoc.documentElement)
-
-      if (numberingTypeRefEl == null) {
-        contentTypesDoc.documentElement.appendChild(
-          createNode(contentTypesDoc, 'Override', {
-            attributes: {
-              PartName: '/word/numbering.xml',
-              ContentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml'
-            }
-          })
-        )
-      }
-
-      const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
-
-      const numberingRelEl = findChildNode((n) => (
-        n.nodeName === 'Relationship' &&
-        n.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering'
-      ), contentTypesDoc.documentElement)
-
-      if (numberingRelEl == null) {
-        const newNumberingRelId = getNewRelId(documentRelsDoc)
-
-        documentRelsDoc.documentElement.appendChild(
-          createNode(documentRelsDoc, 'Relationship', {
-            attributes: {
-              Id: newNumberingRelId,
-              Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering',
-              Target: 'numbering.xml'
-            }
-          })
-        )
-      }
-
-      const numberingTemplate = await loadTemplate('numbering.template.xml')
-      numberingDoc = new DOMParser().parseFromString(numberingTemplate)
-
-      files.push({
-        path: 'word/numbering.xml',
-        data: numberingDoc.toString(),
-        // creates new doc
-        doc: numberingDoc
-      })
-    } else {
+    if (cache.has(listInfo.id)) {
       numberingDoc = numberingFile.doc
-    }
+      numId = cache.get(listInfo.id)
+    } else {
+      if (numberingFile == null) {
+        const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
 
-    if (listInfo.type === 'ul') {
-      const fontTableDoc = files.find(f => f.path === 'word/fontTable.xml').doc
-      ensureFontDefinition(fontTableDoc, 'Symbol')
-      ensureFontDefinition(fontTableDoc, 'Courier New')
-      ensureFontDefinition(fontTableDoc, 'Wingdings')
-    }
+        const numberingTypeRefEl = findChildNode((n) => (
+          n.nodeName === 'Override' &&
+          n.getAttribute('PartName') === '/word/numbering.xml'
+        ), contentTypesDoc.documentElement)
 
-    const numberingEl = numberingDoc.documentElement
-
-    const existingNumEls = findChildNode('w:num', numberingEl, true)
-    const existingAbstractNumEls = findChildNode('w:abstractNum', numberingEl, true)
-
-    const getMaxId = (els, idAttr, defaultId) => {
-      return els.reduce((lastId, node) => {
-        const nodeId = node.getAttribute(idAttr)
-        const num = parseInt(nodeId, 10)
-
-        if (num == null || isNaN(num)) {
-          return lastId
+        if (numberingTypeRefEl == null) {
+          contentTypesDoc.documentElement.appendChild(
+            createNode(contentTypesDoc, 'Override', {
+              attributes: {
+                PartName: '/word/numbering.xml',
+                ContentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml'
+              }
+            })
+          )
         }
 
-        if (num > lastId) {
-          return num
+        const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
+
+        const numberingRelEl = findChildNode((n) => (
+          n.nodeName === 'Relationship' &&
+          n.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering'
+        ), documentRelsDoc.documentElement)
+
+        if (numberingRelEl == null) {
+          const newNumberingRelId = getNewRelId(documentRelsDoc)
+
+          documentRelsDoc.documentElement.appendChild(
+            createNode(documentRelsDoc, 'Relationship', {
+              attributes: {
+                Id: newNumberingRelId,
+                Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering',
+                Target: 'numbering.xml'
+              }
+            })
+          )
         }
 
-        return lastId
-      }, defaultId)
-    }
+        const numberingTemplate = await loadTemplate('numbering.template.xml')
+        numberingDoc = new DOMParser().parseFromString(numberingTemplate)
 
-    numId = (getMaxId(existingNumEls, 'w:numId', 0) + 1).toString()
-    const abstractNumId = getMaxId(existingAbstractNumEls, 'w:abstractNumId', -1) + 1
-
-    const numEl = createNode(numberingDoc, 'w:num', {
-      attributes: { 'w:numId': numId },
-      children: [
-        createNode(numberingDoc, 'w:abstractNumId', { attributes: { 'w:val': abstractNumId } })
-      ]
-    })
-
-    const abstractNumAttributes = { 'w:abstractNumId': abstractNumId }
-
-    if (listInfo.type === 'ol') {
-      abstractNumAttributes['w15:restartNumberingAfterBreak'] = '0'
-    }
-
-    const abstractNumEl = createNode(numberingDoc, 'w:abstractNum', {
-      attributes: abstractNumAttributes,
-      children: [
-        createNode(numberingDoc, 'w:multiLevelType', { attributes: { 'w:val': 'hybridMultilevel' } }),
-        ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((cLvl) => {
-          const fontsPool = ['Symbol', 'Courier New', 'Wingdings']
-          const poolIdx = cLvl % 3
-          const currentFont = fontsPool[poolIdx]
-
-          let numFmt = 'bullet'
-          let text = ''
-
-          if (listInfo.type === 'ol') {
-            numFmt = 'decimal'
-          }
-
-          if (listInfo.type === 'ul') {
-            if ([1, 4, 7].includes(cLvl)) {
-              text = 'o'
-            } else if ([2, 5, 8].includes(cLvl)) {
-              // NOTE: be aware that this is a different symbol than the default
-              // they may look the same rendered in the editor but they are different
-              text = ''
-            }
-          } else if (listInfo.type === 'ol') {
-            text = `%${cLvl + 1}.`
-          }
-
-          const opts = {
-            start: listInfo.start ?? 1,
-            numFmt,
-            text,
-            jc: 'left',
-            indLeft: 720 * (cLvl + 1),
-            indHanging: 360
-          }
-
-          if (listInfo.type === 'ul') {
-            opts.fontAscii = currentFont
-            opts.fontHansi = currentFont
-
-            if (poolIdx === 1) {
-              opts.fontCs = currentFont
-            }
-
-            opts.fontHint = 'default'
-          }
-
-          return createLvl(numberingDoc, cLvl, opts)
+        files.push({
+          path: 'word/numbering.xml',
+          data: numberingDoc.toString(),
+          // creates new doc
+          doc: numberingDoc
         })
-      ]
-    })
+      } else {
+        numberingDoc = numberingFile.doc
+      }
 
-    const lastAbstractNumEl = existingAbstractNumEls.at(-1)
+      if (listInfo.type === 'ul') {
+        const fontTableDoc = files.find(f => f.path === 'word/fontTable.xml').doc
+        ensureFontDefinition(fontTableDoc, 'Symbol')
+        ensureFontDefinition(fontTableDoc, 'Courier New')
+        ensureFontDefinition(fontTableDoc, 'Wingdings')
+      }
 
-    if (lastAbstractNumEl == null) {
-      numberingEl.appendChild(abstractNumEl)
-    } else {
-      numberingEl.insertBefore(abstractNumEl, lastAbstractNumEl.nextSibling)
+      const numberingEl = numberingDoc.documentElement
+
+      const existingNumEls = findChildNode('w:num', numberingEl, true)
+      const existingAbstractNumEls = findChildNode('w:abstractNum', numberingEl, true)
+
+      const getMaxId = (els, idAttr, defaultId) => {
+        return els.reduce((lastId, node) => {
+          const nodeId = node.getAttribute(idAttr)
+          const num = parseInt(nodeId, 10)
+
+          if (num == null || isNaN(num)) {
+            return lastId
+          }
+
+          if (num > lastId) {
+            return num
+          }
+
+          return lastId
+        }, defaultId)
+      }
+
+      numId = (getMaxId(existingNumEls, 'w:numId', 0) + 1).toString()
+      const abstractNumId = getMaxId(existingAbstractNumEls, 'w:abstractNumId', -1) + 1
+
+      const numEl = createNode(numberingDoc, 'w:num', {
+        attributes: { 'w:numId': numId },
+        children: [
+          createNode(numberingDoc, 'w:abstractNumId', { attributes: { 'w:val': abstractNumId } })
+        ]
+      })
+
+      const abstractNumAttributes = { 'w:abstractNumId': abstractNumId }
+
+      if (listInfo.type === 'ol') {
+        abstractNumAttributes['w15:restartNumberingAfterBreak'] = '0'
+      }
+
+      const abstractNumEl = createNode(numberingDoc, 'w:abstractNum', {
+        attributes: abstractNumAttributes,
+        children: [
+          createNode(numberingDoc, 'w:multiLevelType', { attributes: { 'w:val': 'hybridMultilevel' } }),
+          ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((cLvl) => {
+            const fontsPool = ['Symbol', 'Courier New', 'Wingdings']
+            const poolIdx = cLvl % 3
+            const currentFont = fontsPool[poolIdx]
+
+            let numFmt = 'bullet'
+            let text = ''
+
+            if (listInfo.type === 'ol') {
+              numFmt = 'decimal'
+            }
+
+            if (listInfo.type === 'ul') {
+              if ([1, 4, 7].includes(cLvl)) {
+                text = 'o'
+              } else if ([2, 5, 8].includes(cLvl)) {
+                // NOTE: be aware that this is a different symbol than the default
+                // they may look the same rendered in the editor but they are different
+                text = ''
+              }
+            } else if (listInfo.type === 'ol') {
+              text = `%${cLvl + 1}.`
+            }
+
+            const opts = {
+              start: listInfo.start ?? 1,
+              numFmt,
+              text,
+              jc: 'left',
+              indLeft: 720 * (cLvl + 1),
+              indHanging: 360
+            }
+
+            if (listInfo.type === 'ul') {
+              opts.fontAscii = currentFont
+              opts.fontHansi = currentFont
+
+              if (poolIdx === 1) {
+                opts.fontCs = currentFont
+              }
+
+              opts.fontHint = 'default'
+            }
+
+            return createLvl(numberingDoc, cLvl, opts)
+          })
+        ]
+      })
+
+      const lastAbstractNumEl = existingAbstractNumEls.at(-1)
+
+      if (lastAbstractNumEl == null) {
+        numberingEl.appendChild(abstractNumEl)
+      } else {
+        numberingEl.insertBefore(abstractNumEl, lastAbstractNumEl.nextSibling)
+      }
+
+      const lastNumEl = existingNumEls.at(-1)
+
+      if (lastNumEl == null) {
+        numberingEl.appendChild(numEl)
+      } else {
+        numberingEl.insertBefore(numEl, lastNumEl.nextSibling)
+      }
+
+      cache.set(listInfo.id, numId)
     }
 
-    const lastNumEl = existingNumEls.at(-1)
+    // we have created all levels with tentative, now remove such attribute
+    // for the current level so we indicate the docx that the level is being used
+    const currentNumEl = findChildNode((n) => (
+      n.nodeName === 'w:num' &&
+      n.getAttribute('w:numId') === numId
+    ), numberingDoc.documentElement)
 
-    if (lastNumEl == null) {
-      numberingEl.appendChild(numEl)
-    } else {
-      numberingEl.insertBefore(numEl, lastNumEl.nextSibling)
+    const currentAbstractNumIdEl = findChildNode('w:abstractNumId', currentNumEl)
+
+    const currentAbstractNumEl = findChildNode((n) => (
+      n.nodeName === 'w:abstractNum' &&
+      n.getAttribute('w:abstractNumId') === currentAbstractNumIdEl.getAttribute('w:val')
+    ), numberingDoc.documentElement)
+
+    const targetLvl = currentLvl.toString()
+
+    const currentLvlEl = findChildNode((n) => (
+      n.nodeName === 'w:lvl' &&
+      n.getAttribute('w:ilvl') === targetLvl
+    ), currentAbstractNumEl)
+
+    if (currentLvlEl.hasAttribute('w:tentative')) {
+      currentLvlEl.removeAttribute('w:tentative')
     }
-
-    cache.set(listInfo.id, numId)
-  }
-
-  // we have created all levels with tentative, now remove such attribute
-  // for the current level so we indicate the docx that the level is being used
-  const currentNumEl = findChildNode((n) => (
-    n.nodeName === 'w:num' &&
-    n.getAttribute('w:numId') === numId
-  ), numberingDoc.documentElement)
-
-  const currentAbstractNumIdEl = findChildNode('w:abstractNumId', currentNumEl)
-
-  const currentAbstractNumEl = findChildNode((n) => (
-    n.nodeName === 'w:abstractNum' &&
-    n.getAttribute('w:abstractNumId') === currentAbstractNumIdEl.getAttribute('w:val')
-  ), numberingDoc.documentElement)
-
-  const targetLvl = currentLvl.toString()
-
-  const currentLvlEl = findChildNode((n) => (
-    n.nodeName === 'w:lvl' &&
-    n.getAttribute('w:ilvl') === targetLvl
-  ), currentAbstractNumEl)
-
-  if (currentLvlEl.hasAttribute('w:tentative')) {
-    currentLvlEl.removeAttribute('w:tentative')
+  } finally {
+    lock.release()
   }
 
   return numId
