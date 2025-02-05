@@ -28,6 +28,7 @@ module.exports = {
           database: { type: 'string' },
           user: { type: 'string' },
           password: { type: 'string' },
+          schema: { type: 'string' },
           prefix: { type: 'string', default: 'jsreport_' }
         }
       }
