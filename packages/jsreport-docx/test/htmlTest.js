@@ -15347,6 +15347,669 @@ describe('docx html embed', () => {
     })
   }
 
+  describe('complex html with lists', () => {
+    const templateStr = `
+      <p>
+        <strong>Use Case Description: Integrating AI in a Communication Products Line</strong>
+      </p>
+      <p>
+        <strong>Overview:</strong> Incorporating AI into a communication products line
+        can revolutionize user experiences by enhancing efficiency, personalization,
+        and overall satisfaction.
+      </p>
+      <p><strong>Use Case:</strong> <strong>AI-Powered Customer Support</strong></p>
+      <ul>
+        <li>
+          <strong>Objective:</strong> Improve customer support efficiency and response
+          time by implementing AI-driven chatbots and virtual assistants.
+        </li>
+        <li>
+          <strong>Description:</strong> Deploy AI chatbots to handle routine
+          inquiries, troubleshoot common issues, and guide users through setup
+          processes in real-time. These AI assistants can also escalate complex issues
+          to human agents, ensuring seamless and efficient support.
+        </li>
+        <li>
+          <strong>Benefits:</strong>
+          <ul>
+            <li>
+              <strong>24/7 Availability:</strong> Provides constant support without
+              the need for human intervention.
+            </li>
+            <li>
+              <strong>Personalized Interactions:</strong> Tailors responses based on
+              user data and previous interactions.
+            </li>
+            <li>
+              <strong>Efficiency:</strong> Reduces wait times and operational costs by
+              handling multiple queries simultaneously.
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <p><strong>Implementation:</strong></p>
+      <ol>
+        <li>
+          <strong>Chatbot Development:</strong> Create AI chatbots using natural
+          language processing (NLP) to understand and respond to user inquiries
+          accurately.
+        </li>
+        <li>
+          <strong>Integration:</strong> Embed chatbots within communication platforms
+          (e.g., email, messaging apps, customer portals).
+        </li>
+        <li>
+          <strong>Training:</strong> Continuously train AI with new data to enhance
+          its understanding and capabilities.
+        </li>
+      </ol>
+      <p>
+        <strong>Outcome:</strong> By integrating AI, companies can provide swift,
+        accurate, and personalized customer support, enhancing user satisfaction and
+        loyalty while optimizing operational efficiency.
+      </p>
+    `
+
+    /* eslint-disable quotes */
+    const templateStr2 = `
+      <p>
+        for the above use case wtite and example for a Feedback Summary for 4 week POC
+      </p>
+      <p>
+        <strong>Feedback Summary: AI-Powered Customer Support - 4 Week POC</strong>
+      </p>
+      <p>
+        <strong>Overview:</strong> The proof of concept (POC) for integrating
+        AI-powered customer support into our communication products line has
+        successfully concluded. Over the past four weeks, we aimed to evaluate the
+        efficacy, user experience, and operational benefits of the AI chatbots and
+        virtual assistants.
+      </p>
+      <p><strong>Key Achievements:</strong></p>
+      <ol>
+        <li><strong>Efficiency Gains:</strong></li>
+      </ol>
+      <ul>
+        <li>
+          The AI chatbots handled 60% of customer inquiries autonomously, reducing the
+          workload on human agents.
+        </li>
+        <li>
+          Average response time decreased from 5 minutes to under 1 minute for routine
+          queries.
+        </li>
+      </ul>
+      <ol>
+        <li><strong>Customer Satisfaction:</strong></li>
+      </ol>
+      <ul>
+        <li>
+          Positive feedback was received from 80% of users, highlighting the prompt
+          and helpful responses provided by the AI.
+        </li>
+        <li>
+          The seamless escalation process ensured complex issues were efficiently
+          addressed by human agents.
+        </li>
+      </ul>
+      <ol>
+        <li><strong>Operational Benefits:</strong></li>
+      </ol>
+      <ul>
+        <li>
+          Reduction in operational costs by 30%, attributed to the AI's capability to
+          manage multiple queries simultaneously.
+        </li>
+        <li>
+          Enhanced 24/7 support availability, significantly improving customer
+          engagement and retention.
+        </li>
+      </ul>
+      <p><strong>Challenges and Learnings:</strong></p>
+      <ul>
+        <li>
+          <strong>Initial Training Phase:</strong> Some inaccuracies were noted during
+          the initial phase, necessitating continuous training and refinement of the
+          AI models.
+        </li>
+        <li>
+          <strong>Integration Hurdles:</strong> Minor integration issues with existing
+          communication platforms were resolved in the second week.
+        </li>
+      </ul>
+      <p><strong>Recommendations:</strong></p>
+      <ul>
+        <li>
+          <strong>Ongoing Training:</strong> Regular updates and training of AI models
+          to improve accuracy and adapt to evolving customer needs.
+        </li>
+        <li>
+          <strong>Full-Scale Implementation:</strong> Considering the positive
+          outcomes, we recommend rolling out the AI-powered customer support system
+          across all communication channels.
+        </li>
+      </ul>
+      <p><strong>Next Steps:</strong></p>
+      <ul>
+        <li>
+          <strong>User Training Sessions:</strong> Conduct training sessions for users
+          to maximize the benefits of the new system.
+        </li>
+        <li>
+          <strong>Feedback Loop:</strong> Establish a continuous feedback loop to
+          monitor performance and gather user insights for further enhancements.
+        </li>
+      </ul>
+      <p>
+        Overall, the POC has demonstrated significant potential for improving customer
+        support efficiency, satisfaction, and operational efficiency. The next phase
+        involves scaling up the implementation and fine-tuning based on user feedback.
+      </p>
+    `
+    /* eslint-enable quotes */
+
+    const listParagraphAssert = (paragraphNode, extra) => {
+      const [stylesDoc, numberingDoc] = extra.outputDocuments
+      const pPrNode = findChildNode('w:pPr', paragraphNode)
+      const pStyleNode = findChildNode('w:pStyle', pPrNode)
+      const listParagraphStyleId = pStyleNode.getAttribute('w:val')
+
+      const listParagraphStyleNode = findChildNode((n) => (
+        n.nodeName === 'w:style' &&
+        n.getAttribute('w:type') === 'paragraph' &&
+        n.getAttribute('w:styleId') === listParagraphStyleId
+      ), stylesDoc.documentElement)
+
+      should(listParagraphStyleNode).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:name' &&
+        n.getAttribute('w:val') === 'List Paragraph'
+      ), listParagraphStyleNode)).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:basedOn' &&
+        n.getAttribute('w:val') != null &&
+        n.getAttribute('w:val') !== ''
+      ), listParagraphStyleNode)).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:uiPriority' &&
+        n.getAttribute('w:val') != null &&
+        n.getAttribute('w:val') !== ''
+      ), listParagraphStyleNode)).be.ok()
+
+      should(findChildNode('w:qFormat', listParagraphStyleNode)).be.ok()
+
+      should(findChildNode('w:pPr', listParagraphStyleNode)).be.ok()
+
+      const numPrNode = findChildNode('w:numPr', pPrNode)
+
+      should(numPrNode).be.ok()
+
+      const ilvlNode = findChildNode('w:ilvl', numPrNode)
+
+      should(ilvlNode).be.ok()
+
+      const ilvlVal = ilvlNode.getAttribute('w:val')
+
+      should(parseInt(ilvlVal, 10)).be.not.NaN()
+
+      should(parseInt(ilvlVal, 10)).be.eql(extra.ilvl, 'ilvl does not match')
+
+      const numIdNode = findChildNode('w:numId', numPrNode)
+
+      should(numIdNode).be.ok()
+
+      const numId = numIdNode.getAttribute('w:val')
+      should(parseInt(numId, 10)).be.not.NaN()
+
+      should(parseInt(numId, 10)).be.eql(extra.numId, 'numId does not match')
+
+      should(numberingDoc).be.ok()
+
+      const numberingNumNode = findChildNode((n) => (
+        n.nodeName === 'w:num' &&
+        n.getAttribute('w:numId') === numId
+      ), numberingDoc.documentElement)
+
+      should(numberingNumNode).be.ok()
+
+      const numberingAbstractNumIdNode = findChildNode('w:abstractNumId', numberingNumNode)
+
+      should(numberingAbstractNumIdNode).be.ok()
+
+      const abstractNumId = numberingAbstractNumIdNode.getAttribute('w:val')
+
+      should(parseInt(abstractNumId, 10)).be.not.NaN()
+
+      should(parseInt(abstractNumId, 10)).be.eql(extra.abstractNumId, 'abstractNumId does not match')
+
+      const numberingAbstractNumNode = findChildNode((n) => (
+        n.nodeName === 'w:abstractNum' &&
+        n.getAttribute('w:abstractNumId') === abstractNumId
+      ), numberingDoc.documentElement)
+
+      should(numberingAbstractNumNode).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:multiLevelType' &&
+        n.getAttribute('w:val') === 'hybridMultilevel'
+      ), numberingAbstractNumNode)).be.ok()
+
+      const lvlNode = findChildNode((n) => (
+        n.nodeName === 'w:lvl' &&
+        n.getAttribute('w:ilvl') === ilvlVal
+      ), numberingAbstractNumNode)
+
+      should(lvlNode).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:start' &&
+        n.getAttribute('w:val') != null &&
+        n.getAttribute('w:val') !== ''
+      ), lvlNode)).be.ok()
+
+      if (extra.listStart != null) {
+        should(findChildNode((n) => (
+          n.nodeName === 'w:start' &&
+          n.getAttribute('w:val') === extra.listStart.toString()
+        ), lvlNode)).be.ok()
+      }
+
+      const expectedFmt = extra.format
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:numFmt' &&
+        n.getAttribute('w:val') === expectedFmt
+      ), lvlNode), 'format does not match').be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:lvlText' &&
+        n.getAttribute('w:val') != null &&
+        n.getAttribute('w:val') !== ''
+      ), lvlNode)).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:lvlJc' &&
+        n.getAttribute('w:val') === 'left'
+      ), lvlNode)).be.ok()
+
+      should(findChildNode('w:pPr', lvlNode)).be.ok()
+
+      if (extra.format === 'bullet') {
+        should(findChildNode('w:rPr', lvlNode)).be.ok()
+      }
+    }
+
+    const outputDocuments = ['word/styles.xml', 'word/numbering.xml']
+
+    it('block mode - html with different lists with multiple items', async () => {
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-complex-list-block.docx'))
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: docxTemplateBuf
+            }
+          }
+        },
+        data: {
+          myRecord: {
+            Name: 'Test 1',
+            Use_Case_Description: templateStr,
+            Feedback_Summary: templateStr2
+          }
+        }
+      })
+
+      // Write document for easier debugging
+      fs.writeFileSync(outputPath, result.content)
+
+      const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+
+      const numberingDoc = restOfDocuments[1]
+
+      const numberingNumNodes = findChildNode((n) => (
+        n.nodeName === 'w:num'
+      ), numberingDoc.documentElement, true)
+
+      should(numberingNumNodes.length).eql(12)
+
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(44)
+
+      const assertExtra = {
+        outputDocuments: restOfDocuments
+      }
+
+      for (const [paragraphIdx, paragraphNode] of paragraphNodes.entries()) {
+        switch (paragraphIdx) {
+          case 0:
+            should(paragraphNode.textContent).be.eql('Test 1')
+            break
+          case 1:
+          case 2:
+          case 17:
+          case 18:
+          case 19:
+          case 20:
+            should(paragraphNode.textContent).be.eql('')
+            break
+          case 3:
+            should(paragraphNode.textContent).be.eql('Use Case Description: Integrating AI in a Communication Products Line')
+            break
+          case 4:
+            should(paragraphNode.textContent).be.eql('Overview: Incorporating AI into a communication products line can revolutionize user experiences by enhancing efficiency, personalization, and overall satisfaction.')
+            break
+          case 5:
+            should(paragraphNode.textContent).be.eql('Use Case:AI-Powered Customer Support')
+            break
+          case 6:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 1,
+              abstractNumId: 0
+            })
+
+            should(paragraphNode.textContent).be.eql('Objective: Improve customer support efficiency and response time by implementing AI-driven chatbots and virtual assistants.')
+            break
+          case 7:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 1,
+              abstractNumId: 0
+            })
+
+            should(paragraphNode.textContent).be.eql('Description: Deploy AI chatbots to handle routine inquiries, troubleshoot common issues, and guide users through setup processes in real-time. These AI assistants can also escalate complex issues to human agents, ensuring seamless and efficient support.')
+            break
+          case 8:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 1,
+              abstractNumId: 0
+            })
+
+            should(paragraphNode.textContent).be.eql('Benefits:')
+            break
+          case 9:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 1,
+              numId: 4,
+              abstractNumId: 3
+            })
+
+            should(paragraphNode.textContent).be.eql('24/7 Availability: Provides constant support without the need for human intervention.')
+            break
+          case 10:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 1,
+              numId: 4,
+              abstractNumId: 3
+            })
+
+            should(paragraphNode.textContent).be.eql('Personalized Interactions: Tailors responses based on user data and previous interactions.')
+            break
+          case 11:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 1,
+              numId: 4,
+              abstractNumId: 3
+            })
+
+            should(paragraphNode.textContent).be.eql('Efficiency: Reduces wait times and operational costs by handling multiple queries simultaneously.')
+            break
+          case 12:
+            should(paragraphNode.textContent).be.eql('Implementation:')
+            break
+          case 13:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 7,
+              abstractNumId: 6
+            })
+
+            should(paragraphNode.textContent).be.eql('Chatbot Development: Create AI chatbots using natural language processing (NLP) to understand and respond to user inquiries accurately.')
+            break
+          case 14:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 7,
+              abstractNumId: 6
+            })
+
+            should(paragraphNode.textContent).be.eql('Integration: Embed chatbots within communication platforms (e.g., email, messaging apps, customer portals).')
+            break
+          case 15:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 7,
+              abstractNumId: 6
+            })
+
+            should(paragraphNode.textContent).be.eql('Training: Continuously train AI with new data to enhance its understanding and capabilities.')
+            break
+          case 16:
+            should(paragraphNode.textContent).be.eql('Outcome: By integrating AI, companies can provide swift, accurate, and personalized customer support, enhancing user satisfaction and loyalty while optimizing operational efficiency.')
+            break
+          case 21:
+            should(paragraphNode.textContent).be.eql('for the above use case wtite and example for a Feedback Summary for 4 week POC')
+            break
+          case 22:
+            should(paragraphNode.textContent).be.eql('Feedback Summary: AI-Powered Customer Support - 4 Week POC')
+            break
+          case 23:
+            should(paragraphNode.textContent).be.eql('Overview: The proof of concept (POC) for integrating AI-powered customer support into our communication products line has successfully concluded. Over the past four weeks, we aimed to evaluate the efficacy, user experience, and operational benefits of the AI chatbots and virtual assistants.')
+            break
+          case 24:
+            should(paragraphNode.textContent).be.eql('Key Achievements:')
+            break
+          case 25:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 2,
+              abstractNumId: 1
+            })
+
+            should(paragraphNode.textContent).be.eql('Efficiency Gains:')
+            break
+          case 26:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 3,
+              abstractNumId: 2
+            })
+
+            should(paragraphNode.textContent).be.eql('The AI chatbots handled 60% of customer inquiries autonomously, reducing the workload on human agents.')
+            break
+          case 27:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 3,
+              abstractNumId: 2
+            })
+
+            should(paragraphNode.textContent).be.eql('Average response time decreased from 5 minutes to under 1 minute for routine queries.')
+            break
+          case 28:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 5,
+              abstractNumId: 4
+            })
+
+            should(paragraphNode.textContent).be.eql('Customer Satisfaction:')
+            break
+          case 29:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 6,
+              abstractNumId: 5
+            })
+
+            should(paragraphNode.textContent).be.eql('Positive feedback was received from 80% of users, highlighting the prompt and helpful responses provided by the AI.')
+            break
+          case 30:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 6,
+              abstractNumId: 5
+            })
+
+            should(paragraphNode.textContent).be.eql('The seamless escalation process ensured complex issues were efficiently addressed by human agents.')
+            break
+          case 31:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 8,
+              abstractNumId: 7
+            })
+
+            should(paragraphNode.textContent).be.eql('Operational Benefits:')
+            break
+          case 32:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 9,
+              abstractNumId: 8
+            })
+
+            should(paragraphNode.textContent).be.eql('Reduction in operational costs by 30%, attributed to the AI\'s capability to manage multiple queries simultaneously.')
+            break
+          case 33:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 9,
+              abstractNumId: 8
+            })
+
+            should(paragraphNode.textContent).be.eql('Enhanced 24/7 support availability, significantly improving customer engagement and retention.')
+            break
+          case 34:
+            should(paragraphNode.textContent).be.eql('Challenges and Learnings:')
+            break
+          case 35:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 10,
+              abstractNumId: 9
+            })
+
+            should(paragraphNode.textContent).be.eql('Initial Training Phase: Some inaccuracies were noted during the initial phase, necessitating continuous training and refinement of the AI models.')
+            break
+          case 36:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 10,
+              abstractNumId: 9
+            })
+
+            should(paragraphNode.textContent).be.eql('Integration Hurdles: Minor integration issues with existing communication platforms were resolved in the second week.')
+            break
+          case 37:
+            should(paragraphNode.textContent).be.eql('Recommendations:')
+            break
+          case 38:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 11,
+              abstractNumId: 10
+            })
+
+            should(paragraphNode.textContent).be.eql('Ongoing Training: Regular updates and training of AI models to improve accuracy and adapt to evolving customer needs.')
+            break
+          case 39:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 11,
+              abstractNumId: 10
+            })
+
+            should(paragraphNode.textContent).be.eql('Full-Scale Implementation: Considering the positive outcomes, we recommend rolling out the AI-powered customer support system across all communication channels.')
+            break
+          case 40:
+            should(paragraphNode.textContent).be.eql('Next Steps:')
+            break
+          case 41:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 12,
+              abstractNumId: 11
+            })
+
+            should(paragraphNode.textContent).be.eql('User Training Sessions: Conduct training sessions for users to maximize the benefits of the new system.')
+            break
+          case 42:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 12,
+              abstractNumId: 11
+            })
+
+            should(paragraphNode.textContent).be.eql('Feedback Loop: Establish a continuous feedback loop to monitor performance and gather user insights for further enhancements.')
+            break
+          case 43:
+            should(paragraphNode.textContent).be.eql('Overall, the POC has demonstrated significant potential for improving customer support efficiency, satisfaction, and operational efficiency. The next phase involves scaling up the implementation and fine-tuning based on user feedback.')
+            break
+          default:
+            break
+        }
+      }
+    })
+  })
+
   // NOTE: when dealing with white space related issues, always remember
   // that we want to match what the browser produces as the rendered/visual output.
   // we don't care if internally in the browser the DOM node keeps preserving the white space

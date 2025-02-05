@@ -433,4 +433,32 @@ describe('html to xlsx', () => {
     const response = await reporter.render(request)
     response.content.toString().should.containEql('PK')
   })
+
+  it('should allow using empty array when using htmlToXlsxEachRows helper', async () => {
+    const request = {
+      template: {
+        content: `
+          <table>
+            {{#htmlToXlsxEachRows people}}
+              <tr>
+                <td>{{name}}</td>
+                <td>{{address}}</td>
+              </tr>
+            {{/htmlToXlsxEachRows}}
+          </table>
+        `,
+        recipe: 'html-to-xlsx',
+        engine: 'handlebars',
+        htmlToXlsx: {
+          htmlEngine: 'chrome'
+        }
+      },
+      data: {
+        people: []
+      }
+    }
+
+    const response = await reporter.render(request)
+    response.content.toString().should.containEql('PK')
+  })
 })

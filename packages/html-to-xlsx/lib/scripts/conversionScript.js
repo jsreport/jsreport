@@ -16,7 +16,7 @@ function conversion () {
     var isPlaceholder = row.dataset != null ? row.dataset.rowsPlaceholder != null : false
 
     if (isPlaceholder) {
-      return { id: row.id, files: row.dataset.files.split(',') }
+      return { id: row.id, files: row.dataset.files === '' ? [] : row.dataset.files.split(',') }
     }
 
     for (var c = 0, m = row.cells.length; c < m; c++) {
