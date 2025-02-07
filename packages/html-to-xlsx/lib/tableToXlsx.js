@@ -221,10 +221,10 @@ function addRow (sheet, row, context) {
     } else if (cellInfo.type === 'bool' || cellInfo.type === 'boolean') {
       cell.value = cellInfo.valueText === 'true' || cellInfo.valueText === '1'
     } else if (cellInfo.type === 'date') {
-      cell.value = moment(cellInfo.valueText).toDate()
+      cell.value = moment.utc(cellInfo.valueText).toDate()
       cell.numFmt = 'yyyy-mm-dd'
     } else if (cellInfo.type === 'datetime') {
-      cell.value = moment(cellInfo.valueText).toDate()
+      cell.value = moment.utc(cellInfo.valueText).toDate()
       cell.numFmt = 'yyyy-mm-dd h:mm:ss'
     } else if (cellInfo.type === 'formula') {
       cell.value = {
