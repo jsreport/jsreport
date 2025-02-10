@@ -122,3 +122,7 @@ exe-temp-resources
 compileDetection
 vfs.json
 # end exe compilation
+
+# license files
+license-key.txt
+jsreport.license.json
