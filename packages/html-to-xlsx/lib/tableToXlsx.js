@@ -54,7 +54,7 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
 
       const pendingCellStylesByRow = context.pendingCellStylesByRow
       const rowId = currentRowInFile + 1
-      const sortedPendingRows = [...pendingCellStylesByRow.keys()].sort()
+      const sortedPendingRows = [...pendingCellStylesByRow.keys()].sort((a, b) => a - b)
 
       if (sortedPendingRows.length >= 3 && rowId > sortedPendingRows[2]) {
         processPendingCellStyle(
@@ -69,7 +69,7 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
     })
 
     while (context.pendingCellStylesByRow.size > 0) {
-      const sortedPendingRows = [...context.pendingCellStylesByRow.keys()].sort()
+      const sortedPendingRows = [...context.pendingCellStylesByRow.keys()].sort((a, b) => a - b)
 
       processPendingCellStyle(
         sheet,
@@ -111,7 +111,7 @@ function processPendingCellStyle (
     normalizedBordersInRowSet.add(rowIdToProcess)
   }
 
-  const pendingColIds = [...pendingCellStylesByRow.get(rowIdToCommit).keys()].sort()
+  const pendingColIds = [...pendingCellStylesByRow.get(rowIdToCommit).keys()].sort((a, b) => a - b)
 
   // apply styles for all the cells in the row that is going to be committed
   for (const colId of pendingColIds) {
@@ -380,7 +380,7 @@ function addRow (sheet, row, context) {
 
 function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorders, rowsCountMeta) {
   const pendingCellStylesInRow = pendingCellStylesByRow.get(rowId)
-  const colIds = [...pendingCellStylesByRow.get(rowId).keys()].sort()
+  const colIds = [...pendingCellStylesByRow.get(rowId).keys()].sort((a, b) => a - b)
   const totalRows = rowsCountMeta.totalRows
   const rowsInFile = rowsCountMeta.rowsInFile
 
@@ -504,6 +504,11 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
             }
 
             if (currentIsMergeCell && isPartOfMerge(currentCell.merge, nextRowId, colId)) {
+              break
+            }
+
+            // stop processing if there is no cell to normalize in the next row
+            if (pendingCellStylesByRow.get(nextRowId)?.get(colId) == null) {
               break
             }
 

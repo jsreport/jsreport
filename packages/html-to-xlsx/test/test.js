@@ -2077,6 +2077,204 @@ describe('html to xlsx conversion with strategy', () => {
       should(cellC3Border.bottom.color).be.eql('ffff0000')
     })
 
+    it('should work when using cell border collapsing styles and last row does not have same number of cols of previos row', async () => {
+      const stream = await conversion(`
+        <table  style="line-height: 0;">
+            <thead>
+                <tr>
+                <td>Employee Data</td>
+                </tr>
+                    <tr>
+                    <td style="height:25px;font-size:14px;width:120px;background-color:#7FB1DE;color:white;font-weight:bold;border-color:#000000  ;border-width:1px ;border-style:solid ;">Rank</td>
+                    <td style="height:25px;font-size:14px;width:120px;background-color:#7FB1DE;color:white;font-weight:bold;text-align:center;border-color:#000000  ;border-width:1px ;border-style:solid ;">ID</td>
+                    <td style="height:25px;font-size:14px;width:150px;background-color:#7FB1DE;color:white;font-weight:bold;border-color:#000000  ;border-width:1px ;border-style:solid ; ">Name</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-size:14px;height:25px;width:120px;background-color:#7FB1DE ;color: #FFFFFF ;font-weight: bold;border-color:#000000  ;border-width:1px ;border-style:solid ; ">Master SDPO</td>
+                    <td style="font-size:14px;height:25px;width:120px;font-weight: normal;text-align:center;border-color:#000000  ;border-width:1px ;border-style:solid ; " >0101</td>
+                    <td style="font-size:14px;height:25px;width:150px;font-weight: normal;border-color:#000000  ;border-width:1px ;border-style:solid ;" >ABC DEF</td>
+                </tr>
+                <tr>
+                    <td style="font-size:14px;height:25px;width:120px;background-color:#7FB1DE ;color: #FFFFFF ;font-weight: bold;border-color:#000000  ;border-width:1px ;border-style:solid ; ">Master</td>
+                    <td style="font-size:14px;height:25px;width:120px;font-weight: normal;text-align:center;border-color:#000000  ;border-width:1px ;border-style:solid ; " >0102</td>
+                    <td style="font-size:14px;height:25px;width:150px;font-weight: normal;border-color:#000000  ;border-width:1px ;border-style:solid ;" >ABCD .</td>
+                </tr>
+                <tr>
+                    <td style="font-size:14px;height:25px;width:120px;background-color:#7FB1DE ;color: #FFFFFF ;font-weight: bold;border-color:#000000  ;border-width:1px ;border-style:solid ; ">Master</td>
+                    <td style="font-size:14px;height:25px;width:120px;font-weight: normal;text-align:center;border-color:#000000  ;border-width:1px ;border-style:solid ; " >0103</td>
+                    <td style="font-size:14px;height:25px;width:150px;font-weight: normal;border-color:#000000  ;border-width:1px ;border-style:solid ;" >ABCD Abc</td>
+                </tr>
+                <tr>
+                    <td>Doc Data</td>
+                </tr>
+            </tbody>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('Employee Data')
+      should(getStyle(sheetDoc, stylesDoc, 'A1', 'b')).be.not.ok()
+
+      should(getCell(sheetDoc, 'A2', 'v')).be.eql('Rank')
+
+      const cellA2Border = getStyle(sheetDoc, stylesDoc, 'A2', 'b')
+
+      should(cellA2Border.left.style).be.eql('thin')
+      should(cellA2Border.left.color).be.eql('ff000000')
+      should(cellA2Border.top.style).be.eql('thin')
+      should(cellA2Border.top.color).be.eql('ff000000')
+      should(cellA2Border.right.style).be.eql('thin')
+      should(cellA2Border.right.color).be.eql('ff000000')
+      should(cellA2Border.bottom.style).be.eql('thin')
+      should(cellA2Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'B2', 'v')).be.eql('ID')
+
+      const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
+
+      should(cellB2Border.left).be.not.ok()
+      should(cellB2Border.top.style).be.eql('thin')
+      should(cellB2Border.top.color).be.eql('ff000000')
+      should(cellB2Border.right.style).be.eql('thin')
+      should(cellB2Border.right.color).be.eql('ff000000')
+      should(cellB2Border.bottom.style).be.eql('thin')
+      should(cellB2Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'C2', 'v')).be.eql('Name')
+
+      const cellC2Border = getStyle(sheetDoc, stylesDoc, 'C2', 'b')
+
+      should(cellC2Border.left).be.not.ok()
+      should(cellC2Border.top.style).be.eql('thin')
+      should(cellC2Border.top.color).be.eql('ff000000')
+      should(cellC2Border.right.style).be.eql('thin')
+      should(cellC2Border.right.color).be.eql('ff000000')
+      should(cellC2Border.bottom.style).be.eql('thin')
+      should(cellC2Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'A3', 'v')).be.eql('Master SDPO')
+
+      const cellA3Border = getStyle(sheetDoc, stylesDoc, 'A3', 'b')
+
+      should(cellA3Border.left.style).be.eql('thin')
+      should(cellA3Border.left.color).be.eql('ff000000')
+      should(cellA3Border.top).be.not.ok()
+      should(cellA3Border.right.style).be.eql('thin')
+      should(cellA3Border.right.color).be.eql('ff000000')
+      should(cellA3Border.bottom.style).be.eql('thin')
+      should(cellA3Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'B3', 'v')).be.eql('0101')
+
+      const cellB3Border = getStyle(sheetDoc, stylesDoc, 'B3', 'b')
+
+      should(cellB3Border.left).be.not.ok()
+      should(cellB3Border.top).be.not.ok()
+      should(cellB3Border.right.style).be.eql('thin')
+      should(cellB3Border.right.color).be.eql('ff000000')
+      should(cellB3Border.bottom.style).be.eql('thin')
+      should(cellB3Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'C3', 'v')).be.eql('ABC DEF')
+
+      const cellC3Border = getStyle(sheetDoc, stylesDoc, 'C3', 'b')
+
+      should(cellC3Border.left).be.not.ok()
+      should(cellC3Border.top).be.not.ok()
+      should(cellC3Border.right.style).be.eql('thin')
+      should(cellC3Border.right.color).be.eql('ff000000')
+      should(cellC3Border.bottom.style).be.eql('thin')
+      should(cellC3Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'A4', 'v')).be.eql('Master')
+
+      const cellA4Border = getStyle(sheetDoc, stylesDoc, 'A4', 'b')
+
+      should(cellA4Border.left.style).be.eql('thin')
+      should(cellA4Border.left.color).be.eql('ff000000')
+      should(cellA4Border.top).be.not.ok()
+      should(cellA4Border.right.style).be.eql('thin')
+      should(cellA4Border.right.color).be.eql('ff000000')
+      should(cellA4Border.bottom.style).be.eql('thin')
+      should(cellA4Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'B4', 'v')).be.eql('0102')
+
+      const cellB4Border = getStyle(sheetDoc, stylesDoc, 'B4', 'b')
+
+      should(cellB4Border.left).be.not.ok()
+      should(cellB4Border.top).be.not.ok()
+      should(cellB4Border.right.style).be.eql('thin')
+      should(cellB4Border.right.color).be.eql('ff000000')
+      should(cellB4Border.bottom.style).be.eql('thin')
+      should(cellB4Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'C4', 'v')).be.eql('ABCD .')
+
+      const cellC4Border = getStyle(sheetDoc, stylesDoc, 'C4', 'b')
+
+      should(cellC4Border.left).be.not.ok()
+      should(cellC4Border.top).be.not.ok()
+      should(cellC4Border.right.style).be.eql('thin')
+      should(cellC4Border.right.color).be.eql('ff000000')
+      should(cellC4Border.bottom.style).be.eql('thin')
+      should(cellC4Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'A5', 'v')).be.eql('Master')
+
+      const cellA5Border = getStyle(sheetDoc, stylesDoc, 'A5', 'b')
+
+      should(cellA5Border.left.style).be.eql('thin')
+      should(cellA5Border.left.color).be.eql('ff000000')
+      should(cellA5Border.top).be.not.ok()
+      should(cellA5Border.right.style).be.eql('thin')
+      should(cellA5Border.right.color).be.eql('ff000000')
+      should(cellA5Border.bottom.style).be.eql('thin')
+      should(cellA5Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'B5', 'v')).be.eql('0103')
+
+      const cellB5Border = getStyle(sheetDoc, stylesDoc, 'B5', 'b')
+
+      should(cellB5Border.left).be.not.ok()
+      should(cellB5Border.top).be.not.ok()
+      should(cellB5Border.right.style).be.eql('thin')
+      should(cellB5Border.right.color).be.eql('ff000000')
+      should(cellB5Border.bottom.style).be.eql('thin')
+      should(cellB5Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'C5', 'v')).be.eql('ABCD Abc')
+
+      const cellC5Border = getStyle(sheetDoc, stylesDoc, 'C5', 'b')
+
+      should(cellC5Border.left).be.not.ok()
+      should(cellC5Border.top).be.not.ok()
+      should(cellC5Border.right.style).be.eql('thin')
+      should(cellC5Border.right.color).be.eql('ff000000')
+      should(cellC5Border.bottom.style).be.eql('thin')
+      should(cellC5Border.bottom.color).be.eql('ff000000')
+
+      should(getCell(sheetDoc, 'A6', 'v')).be.eql('Doc Data')
+      should(getStyle(sheetDoc, stylesDoc, 'A6', 'b')).be.not.ok()
+    })
+
     it('should work when using cell border collapsing styles #2', async () => {
       const stream = await conversion(`
         <table>
