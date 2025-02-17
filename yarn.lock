@@ -7798,13 +7798,12 @@ cron-builder@0.3.0:
   resolved "https://registry.npmjs.org/cron-builder/-/cron-builder-0.3.0.tgz"
   integrity sha512-b+lLRMWadV3Lv0983rujYGwBSBDPEOw4yJTOK0skhKZlWZrEY2j5bkPvoCdkAmzrT4+wGatcybY75q3qrkuFuA==
 
-cron-parser@2.7.3:
-  version "2.7.3"
-  resolved "https://registry.npmjs.org/cron-parser/-/cron-parser-2.7.3.tgz"
-  integrity sha512-t9Kc7HWBWPndBzvbdQ1YG9rpPRB37Tb/tTviziUOh1qs3TARGh3b1p+tnkOHNe1K5iI3oheBPgLqwotMM7+lpg==
+cron-parser@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/cron-parser/-/cron-parser-5.0.1.tgz#51d4c7ff3ec3631db06066a7f0e4184bef5be154"
+  integrity sha512-68XxRk0eyNMZ5pAB/5eMXoXbMbULDLhSRPW/aqZY2eh/9Lulp1jaTMRW+CkStu9Ulwbe6EzpOtcMXN/Uo3Dcig==
   dependencies:
-    is-nan "^1.2.1"
-    moment-timezone "^0.5.23"
+    luxon "^3.5.0"
 
 cronstrue@1.64.0:
   version "1.64.0"
@@ -15339,6 +15338,11 @@ lru_map@^0.3.3:
   resolved "https://registry.npmjs.org/lru_map/-/lru_map-0.3.3.tgz"
   integrity sha512-Pn9cox5CsMYngeDbmChANltQl+5pi6XmTrraMSzhPmMBbmgcxmqWry0U3PGapCU1yB4/LqCcom7qhHZiF/jGfQ==
 
+luxon@^3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.5.0.tgz#6b6f65c5cd1d61d1fd19dbf07ee87a50bf4b8e20"
+  integrity sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==
+
 magic-string@^0.14.0:
   version "0.14.0"
   resolved "https://registry.npmjs.org/magic-string/-/magic-string-0.14.0.tgz"
@@ -16086,14 +16090,7 @@ mold-source-map@~0.4.0:
     convert-source-map "^1.1.0"
     through "~2.2.7"
 
-moment-timezone@^0.5.23:
-  version "0.5.34"
-  resolved "https://registry.npmjs.org/moment-timezone/-/moment-timezone-0.5.34.tgz"
-  integrity sha512-3zAEHh2hKUs3EXLESx/wsgw6IQdusOT8Bxm3D9UrHPQR7zlMmzwybC8zHEM1tQ4LJwP7fcxrWr8tuBg05fFCbg==
-  dependencies:
-    moment ">= 2.9.0"
-
-moment@2.29.4, "moment@>= 2.9.0", moment@^2.18.1:
+moment@2.29.4, moment@^2.18.1:
   version "2.29.4"
   resolved "https://registry.npmjs.org/moment/-/moment-2.29.4.tgz"
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
