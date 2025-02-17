@@ -705,7 +705,7 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
 
       relsEl.appendChild(relEl)
 
-      const imageSizeEMU = getImageSizeInEMU(imageContent.data, {
+      const imageSizeEMU = await getImageSizeInEMU(imageContent, {
         width: currentDocxMeta.width,
         height: currentDocxMeta.height
       })

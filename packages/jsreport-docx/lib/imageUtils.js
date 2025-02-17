@@ -1,3 +1,4 @@
+const fsAsync = require('fs/promises')
 const { pipeline } = require('stream/promises')
 const sizeOf = require('image-size')
 const axios = require('axios')
@@ -77,8 +78,22 @@ module.exports.resolveImageSrc = async function resolveImageSrc (reporter, src) 
   return { imageSource, imageContent, imageExtension }
 }
 
-module.exports.getImageSizeInEMU = function getImageSizeInEMU (imageBufferOrPath, customSize = {}) {
-  const imageDimension = sizeOf(imageBufferOrPath)
+module.exports.getImageSizeInEMU = async function getImageSizeInEMU (imageContent, customSize = {}) {
+  let imageBuffer
+
+  // NOTE: size-of supports passing a path to a file in order to read the first bytes of it
+  // and identify the image type, but it has issues when reading certain JPG files (with CMYK color code),
+  // in those cases if we let it read from path it throws "Corrupt JPG, exceeded buffer limits",
+  // however it does not throw if we pass whole buffer, and that is what we do now.
+  // in the future, likely in v2 of image-size, we should try to check if the issue is solved
+  // and we can just pass it a file and read it from there.
+  if (imageContent.type === 'path') {
+    imageBuffer = await fsAsync.readFile(imageContent.data)
+  } else {
+    imageBuffer = imageContent.data
+  }
+
+  const imageDimension = sizeOf(imageBuffer)
   let imageWidthEMU
   let imageHeightEMU
 

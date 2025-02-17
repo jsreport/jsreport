@@ -216,7 +216,7 @@ module.exports = async function processImage (reporter, files, referenceDrawingE
     imageWidthEMU = parseFloat(aExtEl.getAttribute('cx'))
     imageHeightEMU = parseFloat(aExtEl.getAttribute('cy'))
   } else {
-    const imageSizeEMU = getImageSizeInEMU(imageContent.data, {
+    const imageSizeEMU = await getImageSizeInEMU(imageContent, {
       width: imageConfig.width,
       height: imageConfig.height
     })
