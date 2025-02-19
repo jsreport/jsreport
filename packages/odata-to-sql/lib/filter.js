@@ -31,9 +31,6 @@ function lte (table, col, el, v, entityType) {
 }
 
 function eq (table, col, el, v, entityType) {
-  if (!entityType[el]) {
-    console.log(entityType, el)
-  }
   if (entityType[el].complexType) {
     if (v == null) {
       // we check that all columns on complex prop are null in case the root prop is null
