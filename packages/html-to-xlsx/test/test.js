@@ -171,6 +171,24 @@ describe('html extraction', () => {
       table.rows[0][0].fontSize.should.be.eql('19px')
     })
 
+    it('should parse transform', async () => {
+      const table = await pageEval('<table><tr><td style="transform: rotate(45deg)">1</td></tr></table>')
+
+      table.rows[0][0].transform.should.be.eql('rotate(45deg)')
+    })
+
+    it('should parse writingMode', async () => {
+      const table = await pageEval('<table><tr><td style="writing-mode: vertical-lr">1</td></tr></table>')
+
+      table.rows[0][0].writingMode.should.be.eql('vertical-lr')
+    })
+
+    it('should parse textOrientation', async () => {
+      const table = await pageEval('<table><tr><td style="text-orientation: upright">1</td></tr></table>')
+
+      table.rows[0][0].textOrientation.should.be.eql('upright')
+    })
+
     it('should parse verticalAlign', async () => {
       const table = await pageEval('<table><tr><td style="vertical-align:bottom">1</td></tr></table>')
 
@@ -537,6 +555,147 @@ describe('html to xlsx conversion with strategy', () => {
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.v).be.eql('col2')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B2.v).be.eql('2')
+    })
+
+    it('should be able to modify text orientation with transform (in different units)', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td style="transform: rotate(90deg)">col1-1</td>
+            <td style="transform: rotate(100grad)">col1-2</td>
+            <td style="transform: rotate(0.25turn)">col1-3</td>
+            <td style="transform: rotate(1.5707963268rad)">col1-4</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('col1-1')
+      should(getStyle(sheetDoc, stylesDoc, 'A1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('col1-2')
+      should(getStyle(sheetDoc, stylesDoc, 'B1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'C1', 'v')).be.eql('col1-3')
+      should(getStyle(sheetDoc, stylesDoc, 'C1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'D1', 'v')).be.eql('col1-4')
+      should(getStyle(sheetDoc, stylesDoc, 'D1', 'tr')).be.eql('180')
+    })
+
+    it('should ignore text orientation with transform with value not supported in xlsx', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td style="transform: rotate(180deg)">col1-1</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('col1-1')
+      should(getStyle(sheetDoc, stylesDoc, 'A1', 'tr')).be.eql('')
+    })
+
+    it('should be able to modify text orientation with writing-mode and text-orientation', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td style="writing-mode: sideways-lr; text-orientation: upright">col1-1</td>
+            <td style="writing-mode: sideways-rl; text-orientation: upright">col1-2</td>
+            <td style="writing-mode: vertical-lr; text-orientation: upright">col1-3</td>
+            <td style="writing-mode: vertical-rl; text-orientation: upright">col1-4</td>
+            <td style="writing-mode: sideways-lr; text-orientation: mixed">col1-5</td>
+            <td style="writing-mode: sideways-rl; text-orientation: mixed">col1-6</td>
+            <td style="writing-mode: vertical-lr; text-orientation: mixed">col1-7</td>
+            <td style="writing-mode: vertical-rl; text-orientation: mixed">col1-8</td>
+            <td style="writing-mode: sideways-lr; text-orientation: sideways">col1-9</td>
+            <td style="writing-mode: sideways-rl; text-orientation: sideways">col1-10</td>
+            <td style="writing-mode: vertical-lr; text-orientation: sideways">col1-11</td>
+            <td style="writing-mode: vertical-rl; text-orientation: sideways">col1-12</td>
+            <td style="writing-mode: sideways-lr; text-orientation: sideways-right">col1-13</td>
+            <td style="writing-mode: sideways-rl; text-orientation: sideways-right">col1-14</td>
+            <td style="writing-mode: vertical-lr; text-orientation: sideways-right">col1-15</td>
+            <td style="writing-mode: vertical-rl; text-orientation: sideways-right">col1-16</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('col1-1')
+      should(getStyle(sheetDoc, stylesDoc, 'A1', 'tr')).be.eql('90')
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('col1-2')
+      should(getStyle(sheetDoc, stylesDoc, 'B1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'C1', 'v')).be.eql('col1-3')
+      should(getStyle(sheetDoc, stylesDoc, 'C1', 'tr')).be.eql('255')
+      should(getCell(sheetDoc, 'D1', 'v')).be.eql('col1-4')
+      should(getStyle(sheetDoc, stylesDoc, 'D1', 'tr')).be.eql('255')
+      should(getCell(sheetDoc, 'E1', 'v')).be.eql('col1-5')
+      should(getStyle(sheetDoc, stylesDoc, 'E1', 'tr')).be.eql('90')
+      should(getCell(sheetDoc, 'F1', 'v')).be.eql('col1-6')
+      should(getStyle(sheetDoc, stylesDoc, 'F1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'G1', 'v')).be.eql('col1-7')
+      should(getStyle(sheetDoc, stylesDoc, 'G1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'H1', 'v')).be.eql('col1-8')
+      should(getStyle(sheetDoc, stylesDoc, 'H1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'I1', 'v')).be.eql('col1-9')
+      should(getStyle(sheetDoc, stylesDoc, 'I1', 'tr')).be.eql('90')
+      should(getCell(sheetDoc, 'J1', 'v')).be.eql('col1-10')
+      should(getStyle(sheetDoc, stylesDoc, 'J1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'K1', 'v')).be.eql('col1-11')
+      should(getStyle(sheetDoc, stylesDoc, 'K1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'L1', 'v')).be.eql('col1-12')
+      should(getStyle(sheetDoc, stylesDoc, 'L1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'M1', 'v')).be.eql('col1-13')
+      should(getStyle(sheetDoc, stylesDoc, 'M1', 'tr')).be.eql('90')
+      should(getCell(sheetDoc, 'N1', 'v')).be.eql('col1-14')
+      should(getStyle(sheetDoc, stylesDoc, 'N1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'O1', 'v')).be.eql('col1-15')
+      should(getStyle(sheetDoc, stylesDoc, 'O1', 'tr')).be.eql('180')
+      should(getCell(sheetDoc, 'P1', 'v')).be.eql('col1-16')
+      should(getStyle(sheetDoc, stylesDoc, 'P1', 'tr')).be.eql('180')
     })
 
     it('should not fail when last cell of a row has rowspan', async () => {
@@ -4998,7 +5157,7 @@ function getStyle (sheetDoc, styleDoc, cellAddress, property) {
   const styleId = cell.getAttribute('s')
   const style = styleDoc.getElementsByTagName('cellXfs')[0].getElementsByTagName('xf')[styleId]
 
-  const validProperties = ['b']
+  const validProperties = ['b', 'tr']
 
   if (!validProperties.includes(property)) {
     throw new Error(`Not supported property: ${property}`)
@@ -5053,6 +5212,18 @@ function getStyle (sheetDoc, styleDoc, cellAddress, property) {
       if (Object.keys(parsedBorder).length > 0) {
         result = parsedBorder
       }
+
+      break
+    }
+
+    case 'tr': {
+      const alignment = style.getElementsByTagName('alignment')[0]
+
+      if (alignment == null) {
+        break
+      }
+
+      result = alignment.getAttribute('textRotation')
 
       break
     }

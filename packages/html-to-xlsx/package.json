@@ -28,6 +28,7 @@
     "@jsreport/exceljs": "0.0.0",
     "moment": "2.29.4",
     "tinycolor2": "1.4.2",
+    "transform-parser": "1.0.1",
     "uuid": "8.3.2"
   },
   "devDependencies": {

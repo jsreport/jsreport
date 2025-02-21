@@ -25,6 +25,7 @@ function conversion () {
       var type = cell.dataset.cellType != null && cell.dataset.cellType !== '' ? cell.dataset.cellType.toLowerCase() : undefined
       var formatStr = cell.dataset.cellFormatStr != null ? cell.dataset.cellFormatStr : undefined
       var formatEnum = cell.dataset.cellFormatEnum != null && !isNaN(parseInt(cell.dataset.cellFormatEnum, 10)) ? parseInt(cell.dataset.cellFormatEnum, 10) : undefined
+      var inlineStyles = parseStyle(cell.getAttribute('style'))
 
       rowResult.push({
         type: type,
@@ -40,9 +41,21 @@ function conversion () {
         fontSize: cs.getPropertyValue('font-size'),
         fontStyle: cs.getPropertyValue('font-style'),
         fontWeight: cs.getPropertyValue('font-weight'),
+        // we take transform as inline style value because computed style does not return
+        // the original style instead it returns the transformed value in form of
+        // matrix(.., .., .., etc)
+        transform: inlineStyles.transform,
         textDecoration: {
           line: cs.getPropertyValue('text-decoration').split(' ')[0]
         },
+        // we parse writing-mode from inline styles first because some of its values
+        // are not fully supported for all browsers (even on latest versions of Chrome)
+        // so we instead take the value from the style attribute because computed style does
+        // not return the original style if it is not supported by the browser
+        writingMode: inlineStyles['writing-mode'] != null ? inlineStyles['writing-mode'] : cs.getPropertyValue('writing-mode'),
+        // phantomjs does not return text-orientation from computed style, we need to take
+        // it from the style attribute
+        textOrientation: inlineStyles['text-orientation'],
         verticalAlign: cs.getPropertyValue('vertical-align'),
         horizontalAlign: cs.getPropertyValue('text-align'),
         wrapText: cs.getPropertyValue('overflow'),
@@ -72,6 +85,36 @@ function conversion () {
     }
 
     return rowResult
+  }
+
+  function parseStyle (styleStr) {
+    var style = {}
+    var styleText = styleStr == null ? '' : styleStr
+
+    var styleArr = styleText.split(';').filter(function (value) {
+      return value.trim() !== ''
+    })
+
+    for (var i = 0; i < styleArr.length; i++) {
+      var parsed = styleArr[i].split(':')
+      var propName = parsed[0]
+      var propValue = parsed[1]
+
+      if (propName == null || propValue == null) {
+        continue
+      }
+
+      propName = parsed[0].trim()
+      propValue = parsed[1].trim()
+
+      if (propName === '' || propValue === '') {
+        continue
+      }
+
+      style[propName] = propValue
+    }
+
+    return style
   }
 
   for (i = 0; i < tables.length; i++) {
