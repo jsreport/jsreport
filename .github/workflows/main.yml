@@ -25,4 +25,4 @@ jobs:
       - name: Install dependencies        
         run: yarn install --no-progress --non-interactive
 
-      - run: yarn test
+      - run: OPENSSL_CONF=/dev/null yarn test
