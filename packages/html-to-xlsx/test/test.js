@@ -23,7 +23,10 @@ const extractTableScriptFn = fs.readFileSync(
 ).toString()
 
 const chromeEval = chromePageEval({
-  puppeteer
+  puppeteer,
+  launchOptions: {
+    args: ['--no-sandbox']
+  }
 })
 
 const phantomEval = phantomPageEval({
