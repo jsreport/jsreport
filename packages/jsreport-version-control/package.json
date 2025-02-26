@@ -34,7 +34,7 @@
     "isbinaryfile": "3.0.3",
     "lodash.omit": "4.5.0",
     "mime-types": "2.1.27",
-    "nanoid": "3.2.0",
+    "nanoid": "3.3.8",
     "node.extend.without.arrays": "1.1.6",
     "p-each-series": "2.2.0",
     "p-reduce": "2.1.0",

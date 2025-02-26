@@ -60,7 +60,7 @@
     "liftoff": "4.0.0",
     "lockfile": "1.0.4",
     "lodash.omit": "4.5.0",
-    "nanoid": "3.2.0",
+    "nanoid": "3.3.8",
     "npm-install-package": "2.1.0",
     "nssocket": "0.6.0",
     "once": "1.4.0",

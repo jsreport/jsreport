@@ -42,7 +42,7 @@
     "image-size": "1.1.1",
     "js-excel-date-convert": "1.0.2",
     "moment": "2.29.4",
-    "nanoid": "3.2.0",
+    "nanoid": "3.3.8",
     "parse-css-sides": "3.0.1",
     "semaphore-async-await": "1.5.1",
     "string-replace-async": "2.0.0",
