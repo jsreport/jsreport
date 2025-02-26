@@ -17767,6 +17767,14 @@ phantom-page-eval@2.0.1:
     debug "3.1.0"
     nanoid "3.2.0"
 
+phantom-page-eval@2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/phantom-page-eval/-/phantom-page-eval-2.0.2.tgz#c17430c1890715e52c9731d77de2a01baa4f7198"
+  integrity sha512-D9XiGskzV6yiCZgbUhK8PliIEGKuYSeyJrKIM1c/SRLODDfxWWri/QgAzYhUO7ELvay/ly7u3RAjY54RshvU9A==
+  dependencies:
+    debug "3.1.0"
+    nanoid "3.3.8"
+
 phantom-workers@0.6.0:
   version "0.6.0"
   resolved "https://registry.npmjs.org/phantom-workers/-/phantom-workers-0.6.0.tgz"
