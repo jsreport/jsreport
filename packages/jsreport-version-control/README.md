@@ -9,6 +9,12 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 4.1.0
+
+- update deps to fix audit
+- move not so much used "commits" button to the settings toolbar
+- add clear all commits button
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

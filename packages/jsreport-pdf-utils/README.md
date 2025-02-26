@@ -7,6 +7,13 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.3.0
+
+- update deps to fix audit
+- support chrome 133 generated structures
+- improve perf processSMask pdfA
+- copy aria tags for chrome 131 generated pdfs
+
 ### 4.2.2
 
 - improve manipulation support for more cases of external pdf files

@@ -128,5 +128,13 @@ main()
 - `html` **string** - the html source that will be transformed to an xlsx, the html should contain a table element
 - `extractOptions` **object** - additional options to pass to the specified `extract` function
 
+## Changelog
+
+### 1.0.0
+
+- support for vertical text (transform: rotate() to rotate text at certain angles, using together writing-mode and text-orientation)
+- border styles now are normalized according to html table border collapsing rules
+- first release after integrating it in the jsreport monorepo
+
 ## License
 See [license](https://github.com/jsreport/jsreport/blob/master/packages/html-to-xlsx/LICENSE)

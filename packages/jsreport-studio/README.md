@@ -18,6 +18,11 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.3.0
+
+- implement canceling requests from profiler
+- add duration column to the profiler page
+
 ### 4.2.0
 
 - fix npm audit

@@ -7,6 +7,11 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.4.0
+
+- update deps to fix audit
+- vertical loop complete support test cases with formulas
+
 ### 4.3.0
 
 - generation step: add vertical loop support as beta

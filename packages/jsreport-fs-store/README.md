@@ -18,6 +18,12 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 4.1.0
+
+- remove external sync modifications code based on old transactions model
+- optimizations for big workspaces
+- reimplement and optimize fs transactions
+
 ### 4.0.5
 
 - update socket.io, socket.io-client deps to fix audit

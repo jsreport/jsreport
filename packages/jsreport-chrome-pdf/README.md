@@ -29,7 +29,11 @@ chrome-image
 
 ## Changelog
 
-### 4.1.0
+### 4.1.1
+
+- set chrome protocolTimeout based on reportTimeout
+
+### 4.1.0
 
 - save generated pdf chrome as file streams to avoid keeping whole pdf in memory
 - internal changes to support new `response.output` api

@@ -7,6 +7,12 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.2.0
+
+- update express to fix audit
+- propagate res.meta.headers to the Location responses
+- implement canceling requests from profiler
+
 ### 4.1.3
 
 - update deps to fix npm audit

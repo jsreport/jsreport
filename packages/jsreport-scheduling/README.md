@@ -7,6 +7,12 @@ See https://jsreport.net/learn/scheduling
 
 ## Changelog
 
+### 4.1.0
+
+- update cron-parser dep to support nth weekday of month like 0 0 * * 1#1
+- create store indexes during schema creation
+- implement canceling requests from profiler
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`
@@ -28,4 +34,3 @@ See https://jsreport.net/learn/scheduling
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
-

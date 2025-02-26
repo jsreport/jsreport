@@ -7,6 +7,11 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.4.0
+
+- update deps to fix audit
+- pptxTable support col width customization
+
 ### 4.3.2
 
 - update axios to fix audit

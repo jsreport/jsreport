@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 4.2.1
+
+- update deps to fix audit
+
 ### 4.2.0
 
 - add support for encoding `buffer` (handy when working in scripts/helpers that work directly with binary data)

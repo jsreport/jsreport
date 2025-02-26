@@ -282,6 +282,15 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.6.0
+
+- update nanoid to fix security issue
+- optimize fs store operations for big workspaces
+- reimplement and optimize fs transactions
+- fix async reports with mongo store
+- create store indexes during schema creation fix
+- implement canceling requests from profiler
+
 ### 4.5.0
 
 - fix blobStorage failing to save reports bigger than 1gb

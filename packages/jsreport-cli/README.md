@@ -7,6 +7,11 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 4.1.0
+
+- update deps to fix audit
+- add graceful shutdown to the server.js
+
 ### 4.0.5
 
 - update dev prompt to prompts to fix audit

@@ -7,6 +7,13 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.2.0
+
+- update nanoid, @jsreport/office to fix audit
+- fix htmlToXlsxEachRows not working with using empty array as data
+- support for vertical text (transform: rotate() to rotate text at certain angles, using together writing-mode and text-orientation)
+- border styles now are normalized according to html table border collapsing rules
+
 ### 4.1.4
 
 - update html-to-xlsx to fix audit

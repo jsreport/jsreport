@@ -7,6 +7,10 @@ See https://jsreport.net/learn/scripts
 
 ## Changelog
 
+### 4.2.0
+
+- modify script entity type to support creating store indexes
+
 ### 4.1.0
 
 - internal changes to support new `response.output` api
