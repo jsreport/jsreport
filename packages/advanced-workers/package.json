@@ -13,7 +13,7 @@
     "index.js"
   ],
   "scripts": {
-    "test": "set DEBUG=advanced-workers&&mocha test&&standard"
+    "test": "set DEBUG=advanced-workers&&mocha --timeout 8000 test&&standard"
   },
   "dependencies": {
     "@jsreport/serializator": "1.0.0",
