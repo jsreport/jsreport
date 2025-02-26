@@ -114,7 +114,9 @@ function findStructsForPageAndReplaceOldPg (structTreeRoot, newPage, originalPag
     }
 
     if (nodeOrDict.object) {
-      for (const child of nodeOrDict.object.properties.get('K')) {
+      const childNodeOrArray = nodeOrDict.object.properties.get('K')
+      const childNodes = Array.isArray(childNodeOrArray) ? childNodeOrArray : [childNodeOrArray]
+      for (const child of childNodes) {
         f(child, nodeOrDict.object)
       }
     }

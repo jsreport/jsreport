@@ -122,7 +122,8 @@ function mergeStructTree (ext, doc) {
     return
   }
 
-  const firstExtNodes = extStructTreeRoot.properties.get('K').object.properties.get('K')
+  const firstExtNodeOrArray = extStructTreeRoot.properties.get('K').object.properties.get('K')
+  const firstExtNodes = Array.isArray(firstExtNodeOrArray) ? firstExtNodeOrArray : [firstExtNodeOrArray]
 
   const idTreePresent = docStructTreeRoot.properties.get('IDTree') && extStructTreeRoot.properties.get('IDTree')
 
@@ -166,7 +167,9 @@ function mergeStructTree (ext, doc) {
   }
 
   const docMainNode = docStructTreeRoot.properties.get('K').object
-  docMainNode.properties.set('K', new PDF.Array([...docMainNode.properties.get('K'), ...firstExtNodes]))
+  const docMainNodeChildsOrOne = docMainNode.properties.get('K')
+  const docMainNodeChilds = Array.isArray(docMainNodeChildsOrOne) ? docMainNodeChildsOrOne : [docMainNodeChildsOrOne]
+  docMainNode.properties.set('K', new PDF.Array([...docMainNodeChilds, ...firstExtNodes]))
 }
 
 function updateStructP (node, docDocument, extDocument) {
@@ -178,7 +181,9 @@ function updateStructP (node, docDocument, extDocument) {
     node.properties.set('P', docDocument.toReference())
   }
 
-  for (const child of node.properties.get('K')) {
+  const childNodeOrArray = node.properties.get('K')
+  const childNodes = Array.isArray(childNodeOrArray) ? childNodeOrArray : [childNodeOrArray]
+  for (const child of childNodes) {
     updateStructP(child.object, docDocument, extDocument)
   }
 }
