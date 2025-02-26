@@ -1,4 +1,5 @@
 const color = require('tinycolor2')
+const { parse: parseCssTransform } = require('transform-parser')
 
 const numFmtMap = Object.create(null)
 
@@ -55,6 +56,20 @@ function parsePx (value) {
   }
 
   return 0
+}
+
+function parseTransform (value) {
+  if (!value) {
+    return null
+  }
+
+  const result = parseCssTransform(value)
+
+  if (!result) {
+    return null
+  }
+
+  return result
 }
 
 function sizeToPx (value) {
@@ -167,6 +182,7 @@ function getBorder (cellInfo, type) {
 
 module.exports.sizePxToPt = sizePxToPt
 module.exports.parsePx = parsePx
+module.exports.parseTransform = parseTransform
 module.exports.isColorDefined = isColorDefined
 module.exports.numFmtMap = numFmtMap
 module.exports.colorToArgb = colorToArgb

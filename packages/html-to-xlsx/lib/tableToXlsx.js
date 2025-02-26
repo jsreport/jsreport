@@ -7,11 +7,13 @@ const styleNames = Object.entries(stylesMap)
 const utils = require('./utils')
 
 const styleProperties = [
-  'formatStr', 'formatEnum', 'horizontalAlign', 'verticalAlign',
-  'wrapText', 'backgroundColor', 'foregroundColor', 'fontSize',
-  'fontFamily', 'fontWeight', 'fontStyle', 'textDecoration',
-  'border'
+  'formatStr', 'formatEnum', 'backgroundColor', 'foregroundColor',
+  'fontFamily', 'fontSize', 'fontStyle', 'fontWeight',
+  'transform', 'textDecoration', 'writingMode', 'textOrientation',
+  'verticalAlign', 'horizontalAlign', 'wrapText', 'width',
+  'height', 'border'
 ]
+
 async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
   const outputFilePath = path.join(options.tmpDir, `${id}.xlsx`)
 
