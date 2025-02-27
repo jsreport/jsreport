@@ -42,7 +42,7 @@ module.exports = function (model, dialect, prefix, schema) {
     },
     drop: function () {
       return tableList.map(function (t) {
-        return t.drop().toQuery()
+        return t.def.drop().toQuery()
       })
     },
     insert: function (entitySetName, doc) {
