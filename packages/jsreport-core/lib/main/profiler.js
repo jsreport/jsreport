@@ -441,12 +441,12 @@ module.exports = (reporter) => {
       clearInterval(profilesCleanupInterval)
     }
 
-    if (profilesCleanupInterval) {
-      clearInterval(profilesCleanupInterval)
-    }
-
     if (fullModeDurationCheckInterval) {
       clearInterval(fullModeDurationCheckInterval)
+    }
+
+    if (profilesCancelingCheckInterval) {
+      clearInterval(profilesCancelingCheckInterval)
     }
 
     try {
