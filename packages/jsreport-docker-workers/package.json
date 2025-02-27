@@ -17,7 +17,7 @@
   "dependencies": {
     "@jsreport/multipart": "1.0.0",
     "@jsreport/serializator": "1.0.0",
-    "axios": "1.7.7",
+    "axios": "1.8.1",
     "express": "4.21.2",
     "fs-extra": "9.1.0",
     "ip": "1.1.5",
