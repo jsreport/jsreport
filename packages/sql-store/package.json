@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/sql-store",
-  "version": "3.1.1",
+  "version": "3.2.1",
   "description": "Base implementation for stores using sql",
   "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/sql-store#readme",
   "repository": {
@@ -20,7 +20,7 @@
     "test": "standard"
   },
   "dependencies": {
-    "@jsreport/odata-to-sql": "0.13.0",
+    "@jsreport/odata-to-sql": "0.14.1",
     "uuid": "8.3.2"
   },
   "devDependencies": {

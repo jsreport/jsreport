@@ -19,6 +19,10 @@
 
 ## Changelog
 
+### 4.0.1
+
+- update deps to fix audit
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`
@@ -49,6 +53,3 @@ Fix jsreport-studio-start
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
-
-
-

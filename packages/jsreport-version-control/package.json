@@ -47,7 +47,7 @@
     "@jsreport/jsreport-core": "4.6.0",
     "@jsreport/jsreport-data": "4.1.0",
     "@jsreport/jsreport-express": "4.2.0",
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
     "puppeteer": "24.3.0",
     "rimraf": "2.6.3",

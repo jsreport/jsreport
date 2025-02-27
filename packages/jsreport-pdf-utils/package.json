@@ -48,7 +48,7 @@
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/jsreport-scripts": "4.2.0",
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/studio-dev": "4.0.1",
     "handlebars": "4.7.7",
     "mocha": "10.1.0",
     "pdfjs-dist": "2.16.105",

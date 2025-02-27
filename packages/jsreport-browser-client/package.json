@@ -32,7 +32,7 @@
     "@jsreport/browser-client": "3.1.1"
   },
   "devDependencies": {
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/studio-dev": "4.0.1",
     "@jsreport/jsreport-core": "4.6.0",
     "@jsreport/jsreport-express": "4.2.0",
     "@jsreport/jsreport-handlebars": "4.0.1",

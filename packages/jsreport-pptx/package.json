@@ -45,7 +45,7 @@
     "@jsreport/jsreport-assets": "4.2.1",
     "@jsreport/jsreport-core": "4.6.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/studio-dev": "4.0.1",
     "handlebars": "4.7.7",
     "mocha": "10.1.0",
     "nock": "11.7.2",

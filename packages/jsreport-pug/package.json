@@ -28,7 +28,7 @@
     "pug": "3.0.3"
   },
   "devDependencies": {
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
     "should": "13.2.3",
     "standard": "16.0.4"

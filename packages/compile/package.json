@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/compile",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Compile jsreport into single executable",
   "keywords": [
     "jsreport"
