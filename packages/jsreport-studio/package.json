@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "6.4.0",
-    "@jsreport/jsreport-core": "4.6.0",
+    "@jsreport/jsreport-core": "4.6.1",
     "@jsreport/jsreport-express": "4.2.0",
     "@jsreport/studio-dev": "4.0.1",
     "@redux-devtools/extension": "3.2.5",

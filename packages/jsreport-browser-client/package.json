@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@jsreport/studio-dev": "4.0.1",
-    "@jsreport/jsreport-core": "4.6.0",
+    "@jsreport/jsreport-core": "4.6.1",
     "@jsreport/jsreport-express": "4.2.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "mocha": "10.1.0",

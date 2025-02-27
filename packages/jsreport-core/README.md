@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.6.1
+
+- clear profiles canceling check interval during reporter close
+
 ### 4.6.0
 
 - update nanoid to fix security issue

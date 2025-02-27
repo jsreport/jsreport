@@ -43,7 +43,7 @@
     "phantom-page-eval": "2.0.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.0",
+    "@jsreport/jsreport-core": "4.6.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/studio-dev": "4.0.1",
     "handlebars": "4.7.7",
