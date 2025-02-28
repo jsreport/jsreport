@@ -38,9 +38,9 @@ RUN addgroup -g "${GID}" -S jsreport && adduser --shell /bin/bash -u "${UID}" -S
 # this condition is useful when the alpine registry contain different latest versions
 # per architecture, if the versions match then just use the same version number on both paths
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="130.0.6723.69-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="133.0.6943.126-r0"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="130.0.6723.69-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="133.0.6943.126-r0"; \
     fi && \
     echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
     apk update --no-cache && \
@@ -55,8 +55,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
-    libcurl@edge=8.10.1-r0 \
-    git@edge=2.46.2-r0 \
+    libcurl@edge=8.12.1-r0 \
+    git@edge=2.48.1-r0 \
     # so user can docker exec -it test /bin/bash
     bash
 

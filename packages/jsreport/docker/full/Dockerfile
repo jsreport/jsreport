@@ -6,7 +6,7 @@ ARG UID=2500
 ARG GID=2500
 
 RUN set -eux; \
-    apt-get update; \    
+    apt-get update; \
     apt-get install -y gosu adduser; \
     rm -rf /var/lib/apt/lists/*; \
     # verify that the binary works
@@ -17,8 +17,12 @@ RUN groupadd -g "${GID}" jsreport && adduser --disabled-password --uid "${UID}" 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends apt-transport-https apt-utils software-properties-common wget gnupg bzip2 git curl && \    
+    apt-get install -y --no-install-recommends apt-transport-https apt-utils software-properties-common wget gnupg bzip2 git curl && \
     apt update && apt install -y libgbm-dev libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libappindicator3-1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libnss3 lsb-release xdg-utils && \
+    # adding custom ppa repository to get access to custom version of chromium for macOS Apple Silicon hardware
+    # this ppa has builds available for architectures amd64, arm64 (which we care because we produce arm64 builds)
+    # the default puppeteer download does not work for arm, because there is no arm version for chromium
+    # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
     apt install -y chromium=133.0.6943.126-1xtradeb1.2404.1 && \
@@ -47,7 +51,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs
 
 WORKDIR /app
-ENV PUPPETEER_SKIP_DOWNLOAD=true 
 ENV PUPPETEER_CACHE_DIR=/app/.puppeteer-cache
 
 # ====== COMMENT THIS WHEN CHECKING trivy audit ======
@@ -70,18 +73,18 @@ RUN jsreport init
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.0.1 \
     @jsreport/jsreport-pug@5.0.1 \
     @jsreport/jsreport-aws-s3-storage@4.0.1 \
-    @jsreport/jsreport-azure-storage@4.0.1 \
-    @jsreport/jsreport-docxtemplater@4.1.2 \
-    @jsreport/jsreport-mssql-store@4.0.0 \
-    @jsreport/jsreport-postgres-store@4.0.0 \
-    @jsreport/jsreport-mongodb-store@4.0.0 \
+    @jsreport/jsreport-azure-storage@4.1.0 \
+    @jsreport/jsreport-docxtemplater@4.1.3 \
+    @jsreport/jsreport-mssql-store@4.1.0 \
+    @jsreport/jsreport-postgres-store@4.1.0 \
+    @jsreport/jsreport-mongodb-store@4.1.0 \
     @jsreport/jsreport-office-password@4.1.0 \
     @jsreport/jsreport-html-to-text@4.2.0 \
-    @jsreport/jsreport-html-embedded-in-docx@4.1.2 \
+    @jsreport/jsreport-html-embedded-in-docx@4.1.3 \
     @jsreport/jsreport-fs-store-aws-s3-persistence@4.0.2 \
-    @jsreport/jsreport-fs-store-azure-storage-persistence@4.0.1 \
+    @jsreport/jsreport-fs-store-azure-storage-persistence@4.1.0 \
     @jsreport/jsreport-unoconv@4.1.0 \
-    cheerio-page-eval@1.1.1
+    cheerio-page-eval@1.2.0
 
 COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js install-or-build-oracledb-for-store.js
 COPY ./packages/jsreport/docker/full/build-oracledb-src.sh build-oracledb-src.sh
@@ -98,7 +101,6 @@ RUN node editConfig.js
 RUN chown -R jsreport:jsreport /app
 USER jsreport:jsreport
 
-ENV chrome_launchOptions_executablePath=/usr/bin/chromium
 ENV chrome_launchOptions_args=--no-sandbox,--disable-dev-shm-usage
 
 CMD ["bash", "run.sh"]
