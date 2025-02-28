@@ -23,7 +23,6 @@
     "node": ">=18.15"
   },
   "standard": {
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true
@@ -33,11 +32,8 @@
     "test": "mocha --timeout 5000 test/test.js && standard"
   },
   "devDependencies": {
-    "babel-eslint": "8.2.6",
-    "eslint": "5.4.0",
-    "eslint-plugin-babel": "5.1.0",
     "mocha": "10.1.0",
     "should": "13.2.3",
-    "standard": "11.0.1"
+    "standard": "16.0.4"
   }
 }

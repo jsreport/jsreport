@@ -75,7 +75,7 @@
     "@jsreport/jsreport-express": "4.2.0",
     "@jsreport/jsreport-fs-store": "4.1.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
-    "cross-env": "5.2.1",
+    "cross-env": "7.0.3",
     "execa": "1.0.0",
     "handlebars": "4.7.7",
     "mkdirp": "0.5.5",

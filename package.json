@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "archiver": "7.0.1",
-    "cross-env": "5.2.1",
+    "cross-env": "7.0.3",
     "standard": "16.0.4"
   },
   "standard": {
