@@ -25,7 +25,9 @@ RUN apt-get update && \
     # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
-    apt install -y chromium=133.0.6943.126-1xtradeb1.2404.1 && \
+    if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    apt install -y chromium=133.0.6943.126-1xtradeb1.2404.1; \
+    fi && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
