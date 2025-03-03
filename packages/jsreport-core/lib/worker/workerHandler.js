@@ -1,8 +1,8 @@
 const WorkerReporter = require('./reporter')
 const omit = require('lodash.omit')
 
-module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
-  const reporter = new WorkerReporter(userInitData, async (actionName, data, req) => {
+module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer, workerId }) => {
+  const reporter = new WorkerReporter({ ...userInitData, workerId }, async (actionName, data, req) => {
     const actionRes = await executeMain({
       actionName,
       data

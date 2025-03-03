@@ -1,0 +1,58 @@
+{
+  "name": "@jsreport/jsreport-libreoffice",
+  "version": "0.0.1",
+  "description": "jsreport extension for converting office documents",
+  "keywords": [
+    "jsreport",
+    "office"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages//jsreport-libreoffice",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
+  ],
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublishOnly": "jsreport-studio-build",
+    "test": "mocha test --timeout 15000 && standard"
+  },
+  "dependencies": {
+    "mime": "4.0.6"
+  },
+  "devDependencies": {
+    "@jsreport/jsreport-core": "4.6.0",
+    "@jsreport/jsreport-html-to-xlsx": "4.1.4",
+    "@jsreport/jsreport-scripts": "4.2.0",
+    "@jsreport/studio-dev": "4.0.0",
+    "mocha": "11.1.0",
+    "should": "13.2.3",
+    "standard": "17.1.2"
+  },
+  "engines": {
+    "node": ">=18.15"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

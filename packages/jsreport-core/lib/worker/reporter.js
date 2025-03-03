@@ -14,10 +14,11 @@ const engineStream = require('./render/engineStream.js')
 
 class WorkerReporter extends Reporter {
   constructor (workerData, executeMain) {
-    const { options, documentStore, extensionsDefs } = workerData
+    const { options, documentStore, extensionsDefs, workerId } = workerData
 
     super(options)
 
+    this.workerId = workerId
     this._executeMain = executeMain
     this._initialized = false
     this._lockedDown = false
