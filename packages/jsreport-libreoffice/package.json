@@ -31,7 +31,7 @@
     "test": "mocha test --timeout 15000 && standard"
   },
   "dependencies": {
-    "mime": "4.0.6"
+    "mime": "2.4.4"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "4.6.0",
