@@ -38,7 +38,7 @@
     "@jsreport/jsreport-html-to-xlsx": "4.1.4",
     "@jsreport/jsreport-scripts": "4.2.0",
     "@jsreport/studio-dev": "4.0.0",
-    "mocha": "11.1.0",
+    "mocha": "10.1.0",
     "should": "13.2.3",
     "standard": "17.1.2"
   },
