@@ -1,4 +1,7 @@
-const { nodeListToArray, getPictureElInfo, decodeURIComponentRecursive } = require('../utils')
+const {
+  nodeListToArray, getPictureElInfo, processOpeningTag, processClosingTag,
+  decodeURIComponentRecursive
+} = require('../utils')
 
 module.exports = (files, headerFooterRefs) => {
   const documentDoc = files.find(f => f.path === 'word/document.xml').doc
@@ -251,18 +254,4 @@ function getBookmarkId (bookmarkEl) {
   }
 
   return id
-}
-
-function processOpeningTag (doc, refElement, helperCall) {
-  const fakeElement = doc.createElement('docxRemove')
-  fakeElement.textContent = helperCall
-  refElement.parentNode.insertBefore(fakeElement, refElement)
-  return fakeElement
-}
-
-function processClosingTag (doc, refElement, closeCall) {
-  const fakeElement = doc.createElement('docxRemove')
-  fakeElement.textContent = closeCall
-  refElement.parentNode.insertBefore(fakeElement, refElement.nextSibling)
-  return fakeElement
 }

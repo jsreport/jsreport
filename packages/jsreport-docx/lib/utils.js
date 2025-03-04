@@ -678,6 +678,20 @@ module.exports.findDefaultStyleIdForName = (stylesDoc, name, type = 'paragraph')
   return styleEl.getAttribute('w:styleId')
 }
 
+function processOpeningTag (doc, refElement, helperCall) {
+  const fakeElement = doc.createElement('docxRemove')
+  fakeElement.textContent = helperCall
+  refElement.parentNode.insertBefore(fakeElement, refElement)
+  return fakeElement
+}
+
+function processClosingTag (doc, refElement, closeCall) {
+  const fakeElement = doc.createElement('docxRemove')
+  fakeElement.textContent = closeCall
+  refElement.parentNode.insertBefore(fakeElement, refElement.nextSibling)
+  return fakeElement
+}
+
 module.exports.contentIsXML = (content) => {
   if (!Buffer.isBuffer(content) && typeof content !== 'string') {
     return false
@@ -721,3 +735,5 @@ module.exports.findChildNode = findChildNode
 module.exports.createNode = createNode
 module.exports.nodeListToArray = nodeListToArray
 module.exports.decodeURIComponentRecursive = decodeURIComponentRecursive
+module.exports.processOpeningTag = processOpeningTag
+module.exports.processClosingTag = processClosingTag

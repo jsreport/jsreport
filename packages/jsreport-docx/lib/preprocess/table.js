@@ -1,4 +1,4 @@
-const { nodeListToArray } = require('../utils')
+const { nodeListToArray, processOpeningTag, processClosingTag } = require('../utils')
 const regexp = /{{#?docxTable [^{}]{0,500}}}/
 
 // the same idea as list, check the docs there
@@ -15,7 +15,7 @@ module.exports = (files) => {
 
       if (el.textContent.includes('{{/docxTable}}') && openTags.length > 0) {
         const tag = openTags.pop()
-        processClosingTag(doc, el, tag.mode === 'column')
+        processTableClosingTag(doc, el, tag.mode === 'column')
       }
 
       if (
@@ -141,14 +141,14 @@ module.exports = (files) => {
           openTags.push({ mode: 'column' })
         }
 
-        processOpeningTag(doc, cellNode, helperCall.replace('rows=', 'ignore='))
+        processTableOpeningTag(doc, cellNode, helperCall.replace('rows=', 'ignore='))
 
         if (!isBlock) {
-          processClosingTag(doc, cellNode)
+          processTableClosingTag(doc, cellNode)
         } else {
           if (el.textContent.includes('{{/docxTable')) {
             openTags.pop()
-            processClosingTag(doc, el, true)
+            processTableClosingTag(doc, el, true)
           }
 
           const clonedTextNodes = nodeListToArray(newRowNode.getElementsByTagName('w:t'))
@@ -164,11 +164,11 @@ module.exports = (files) => {
         rowNode.parentNode.insertBefore(newRowNode, rowNode.nextSibling)
         const cellInNewRowNode = nodeListToArray(newRowNode.childNodes).find((node) => node.nodeName === 'w:tc')
 
-        processOpeningTag(doc, cellInNewRowNode, helperCall.replace('rows=', 'ignore=').replace('columns=', 'ignore='))
-        processClosingTag(doc, cellInNewRowNode)
+        processTableOpeningTag(doc, cellInNewRowNode, helperCall.replace('rows=', 'ignore=').replace('columns=', 'ignore='))
+        processTableClosingTag(doc, cellInNewRowNode)
 
-        processOpeningTag(doc, newRowNode, helperCall)
-        processClosingTag(doc, newRowNode)
+        processTableOpeningTag(doc, newRowNode, helperCall)
+        processTableClosingTag(doc, newRowNode)
 
         const tableGridNode = nodeListToArray(tableNode.childNodes).find((node) => node.nodeName === 'w:tblGrid')
         const tableGridColNodes = nodeListToArray(tableGridNode.getElementsByTagName('w:gridCol'))
@@ -176,8 +176,8 @@ module.exports = (files) => {
         // add loop for column definitions (technically docx table does not requires the
         // col to be defined here in order to show the new cells, however we still create
         // them in order to be able to normalize col widths if needed)
-        processOpeningTag(doc, tableGridColNodes[0], helperCall.replace('rows=', 'ignore='))
-        processClosingTag(doc, tableGridColNodes[0])
+        processTableOpeningTag(doc, tableGridColNodes[0], helperCall.replace('rows=', 'ignore='))
+        processTableClosingTag(doc, tableGridColNodes[0])
       } else if (el.textContent.includes('{{#docxTable')) {
         const helperCall = el.textContent.match(regexp)[0]
         const isVertical = el.textContent.includes('vertical=')
@@ -190,8 +190,8 @@ module.exports = (files) => {
         const cellNode = el.parentNode.parentNode.parentNode
         const tableNode = cellNode.parentNode.parentNode
 
-        processOpeningTag(doc, tableNode, '{{#docxTable wrapper="main"}}')
-        processClosingTag(doc, tableNode, isVertical)
+        processTableOpeningTag(doc, tableNode, '{{#docxTable wrapper="main"}}')
+        processTableClosingTag(doc, tableNode, isVertical)
 
         tablesFoundMap.set(tableNode, helperCall)
 
@@ -209,28 +209,28 @@ module.exports = (files) => {
           // add loop for column definitions (technically docx table does not requires the
           // col to be defined here in order to show the new cells, however we still create
           // them in order to be able to normalize col widths if needed)
-          processOpeningTag(doc, tableGridColNodes[cellIndex], helperCall, isVertical)
-          processClosingTag(doc, tableGridColNodes[cellIndex], isVertical)
+          processTableOpeningTag(doc, tableGridColNodes[cellIndex], helperCall, isVertical)
+          processTableClosingTag(doc, tableGridColNodes[cellIndex], isVertical)
 
-          processOpeningTag(doc, el, helperCall, isVertical)
-          processClosingTag(doc, el, isVertical)
+          processTableOpeningTag(doc, el, helperCall, isVertical)
+          processTableClosingTag(doc, el, isVertical)
 
           for (const rowNode of affectedRows) {
             const cellNodes = nodeListToArray(rowNode.childNodes).filter((node) => node.nodeName === 'w:tc')
             const cellNode = cellNodes[cellIndex]
 
             if (cellNode) {
-              processOpeningTag(doc, cellNode, helperCall, isVertical)
-              processClosingTag(doc, cellNode, isVertical)
+              processTableOpeningTag(doc, cellNode, helperCall, isVertical)
+              processTableClosingTag(doc, cellNode, isVertical)
             }
           }
         } else {
-          processOpeningTag(doc, el, helperCall, isVertical)
+          processTableOpeningTag(doc, el, helperCall, isVertical)
         }
 
         if (isNormal && el.textContent.includes('{{/docxTable')) {
           openTags.pop()
-          processClosingTag(doc, el)
+          processTableClosingTag(doc, el)
         }
       }
     }
@@ -308,14 +308,14 @@ module.exports = (files) => {
         extraAttrs.push(`colsWidth=${colsWidthParameterValue}`)
       }
 
-      processOpeningTag(doc, tableGridEl, `{{#docxTable ${extraAttrs.join(' ')}}}`)
-      processClosingTag(doc, tableGridEl)
+      processTableOpeningTag(doc, tableGridEl, `{{#docxTable ${extraAttrs.join(' ')}}}`)
+      processTableClosingTag(doc, tableGridEl)
 
       const tableRowEls = nodeListToArray(tableEl.childNodes).filter((node) => node.nodeName === 'w:tr')
 
       for (const tableRowEl of tableRowEls) {
-        processOpeningTag(doc, tableRowEl, '{{#docxTable check="row"}}')
-        processClosingTag(doc, tableRowEl)
+        processTableOpeningTag(doc, tableRowEl, '{{#docxTable check="row"}}')
+        processTableClosingTag(doc, tableRowEl)
 
         const tableCellEls = nodeListToArray(tableRowEl.childNodes).filter((node) => node.nodeName === 'w:tc')
 
@@ -337,22 +337,18 @@ module.exports = (files) => {
             extraAttrs.push(`gs=${gridSpanEl.getAttribute('w:val')}`)
           }
 
-          processOpeningTag(doc, tableCellEl, `{{#docxTable ${extraAttrs.join(' ')}}}`)
-          processClosingTag(doc, tableCellEl)
+          processTableOpeningTag(doc, tableCellEl, `{{#docxTable ${extraAttrs.join(' ')}}}`)
+          processTableClosingTag(doc, tableCellEl)
         }
       }
     }
   }
 }
 
-function processOpeningTag (doc, el, helperCall, useColumnRef = false) {
+function processTableOpeningTag (doc, el, helperCall, useColumnRef = false) {
   if (el.nodeName === 'w:t') {
     el.textContent = el.textContent.replace(regexp, '')
   }
-
-  const fakeElement = doc.createElement('docxRemove')
-
-  fakeElement.textContent = helperCall
 
   let refElement
 
@@ -368,17 +364,13 @@ function processOpeningTag (doc, el, helperCall, useColumnRef = false) {
     }
   }
 
-  refElement.parentNode.insertBefore(fakeElement, refElement)
+  processOpeningTag(doc, refElement, helperCall)
 }
 
-function processClosingTag (doc, el, useColumnRef = false) {
+function processTableClosingTag (doc, el, useColumnRef = false) {
   if (el.nodeName === 'w:t') {
     el.textContent = el.textContent.replace('{{/docxTable}}', '')
   }
-
-  const fakeElement = doc.createElement('docxRemove')
-
-  fakeElement.textContent = '{{/docxTable}}'
 
   let refElement
 
@@ -392,7 +384,7 @@ function processClosingTag (doc, el, useColumnRef = false) {
     }
   }
 
-  refElement.parentNode.insertBefore(fakeElement, refElement.nextSibling)
+  processClosingTag(doc, refElement, '{{/docxTable}}')
 }
 
 function getCellIndex (cellEl) {
