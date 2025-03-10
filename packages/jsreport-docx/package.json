@@ -57,6 +57,7 @@
     "handlebars": "4.7.7",
     "mocha": "10.1.0",
     "nock": "11.7.2",
+    "sax": "1.4.1",
     "should": "13.2.3",
     "standard": "16.0.4",
     "word-extractor": "1.0.4"

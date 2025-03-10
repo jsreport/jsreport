@@ -1,0 +1,397 @@
+{
+  "meta": {
+    "organization": "IDEC",
+    "logo": "https://storage.googleapis.com/arquivos-sigalei/organizations/acd97f4b-e851-4c90-8b3f-c2a3120fcf8c/logo.jpg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=api-application-files-bucket%40sigalei-data-vault.iam.gserviceaccount.com%2F20250220%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250220T225316Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=6f55faac32758caa2b7a8d54480a3fc1f9ab2d1161ae6f22e453343f41e5a3bc8d71d71d3b98da14dff609604b7f112192a9b4d9a3eb0b73ab00ac9ca13958ee0179bde10bc0014e1a51ff89f9871e9bad25d330d4659c2c3dd040af1bbee1e671a62d7b2c4e983a90f3839649a7392e59ce55ce0c45ccb6c81123855b3e6d3ea8a17f8b2098a63fb98509a1aefce72ed2bd8dfb26e5e5f3e1794e7f3cbe2ba351661abf48af21cc54605695e5b023ad331cc5b8aeefc272bfc5021f41e85d07862c5c5d8f629ab704803d8cf16c0cf4a014f12f4e84a0e4ea1355450b02ed0d94192c151a14c852666300859557ac4babb2852e22226261ee4caa6f62c2b71f",
+    "startDate": "17/02/2025 00:00",
+    "endDate": "20/02/2025 18:42"
+  },
+  "data": [
+    {
+      "id": "QmlsbDpzbF9iaWxsLlNGLlBMLjUxNC4yMDI1",
+      "name": "SF PL 514/2025",
+      "hyperlink": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/167253>SF PL 514/2025</a>",
+      "linkSigalei": "<a href=https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjUxNC4yMDI1>Link na Sigalei</a>",
+      "rawLinkSigalei": "https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjUxNC4yMDI1",
+      "linkExternal": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/167253>Link na casa</a>",
+      "rawLinkExternal": "http://www25.senado.leg.br/web/atividade/materias/-/materia/167253",
+      "summary": "Disp\u00f5e sobre a convers\u00e3o de pastagens degradadas em sistemas de produ\u00e7\u00e3o agropecu\u00e1rios e florestais sustent\u00e1veis.",
+      "mainSponsor": "Zequinha Marinho (PODE/PA)",
+      "house": "SF",
+      "houseName": "Senado Federal",
+      "local": "PLEN",
+      "lastUpdate": {
+        "local": "SF - Plen\u00e1rio do Senado Federal (PLEN)",
+        "description": "18/02/2025 - Autuado o Projeto de Lei n\u00ba 514/2025. O projeto vai \u00e0 publica\u00e7\u00e3o."
+      },
+      "currentAnalyst": null,
+      "properties": {
+        "hasImpact": false,
+        "impact": "Sem Classifica\u00e7\u00e3o",
+        "impactValue": -1,
+        "impactColor": "c2c2c2",
+        "impactEmotes": "\u2753",
+        "position": null,
+        "positionColor": "c2c2c2",
+        "positionEmoji": "\u25fb\ufe0f",
+        "teams": [
+          "SUSTENT\u00c1VEL"
+        ],
+        "summary": null,
+        "advancedProperties": []
+      },
+      "actionsByDate": {
+        "18/02/2025": {
+          "meta": {
+            "total": 1
+          },
+          "actions": [
+            {
+              "description": "Autuado o Projeto de Lei n\u00ba 514/2025. O projeto vai \u00e0 publica\u00e7\u00e3o.",
+              "itemDate": "18/02/2025",
+              "house": "Senado Federal",
+              "houseInitials": "SF",
+              "local": "Plen\u00e1rio do Senado Federal (PLEN)",
+              "localInitials": "PLEN",
+              "localName": "Plen\u00e1rio do Senado Federal",
+              "isRetroactive": false,
+              "documents": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QmlsbDpzbF9iaWxsLlNGLlBMLjUyMy4yMDI1",
+      "name": "SF PL 523/2025",
+      "hyperlink": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/167256>SF PL 523/2025</a>",
+      "linkSigalei": "<a href=https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjUyMy4yMDI1>Link na Sigalei</a>",
+      "rawLinkSigalei": "https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjUyMy4yMDI1",
+      "linkExternal": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/167256>Link na casa</a>",
+      "rawLinkExternal": "http://www25.senado.leg.br/web/atividade/materias/-/materia/167256",
+      "summary": "Altera a Lei n\u00ba 13.105, de 16 de mar\u00e7o de 2015 (C\u00f3digo de Processo Civil), para incluir de modo expresso, na lista de bens penhor\u00e1veis, pontos de programas de fidelidade oferecidos por companhias a\u00e9reas, operadoras de cart\u00e3o de cr\u00e9dito e outras empresas.",
+      "mainSponsor": "Daniella Ribeiro (PSD/PB)",
+      "house": "SF",
+      "houseName": "Senado Federal",
+      "local": "PLEN",
+      "lastUpdate": {
+        "local": "SF - Plen\u00e1rio do Senado Federal (PLEN)",
+        "description": "18/02/2025 - Autuado o Projeto de Lei n\u00ba 523/2025. O projeto vai \u00e0 publica\u00e7\u00e3o."
+      },
+      "currentAnalyst": null,
+      "properties": {
+        "hasImpact": false,
+        "impact": "Sem Classifica\u00e7\u00e3o",
+        "impactValue": -1,
+        "impactColor": "c2c2c2",
+        "impactEmotes": "\u2753",
+        "position": null,
+        "positionColor": "c2c2c2",
+        "positionEmoji": "\u25fb\ufe0f",
+        "teams": [
+          "FINANCEIRO/GERAL"
+        ],
+        "summary": null,
+        "advancedProperties": []
+      },
+      "actionsByDate": {
+        "18-02-2025": {
+          "meta": {
+            "total": 1
+          },
+          "actions": [
+            {
+              "description": "Autuado o Projeto de Lei",
+              "itemDate": "18-02-2025",
+              "house": "Senado Federal",
+              "houseInitials": "SF",
+              "local": "Plen\u00e1rio do Senado Federal (PLEN)",
+              "localInitials": "PLEN",
+              "localName": "Senado Federal",
+              "isRetroactive": false,
+              "documents": [
+                {
+                  "link": "<span>OI 1 </span>",
+                  "title": "PL 523 /2025",
+                  "rawLink": "http://legis.senado.leg.br/sdleg-getter/documento?dm=9902575&disposition=inline"
+                },
+                {
+                    "link": "<span>OI 2 </span>",
+                    "title": "PL 523/2025",
+                    "rawLink": "http://legis.senado.leg.br/sdleg-getter/documento?dm=9902575&disposition=inline"
+                  }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QmlsbDpzbF9iaWxsLlNGLlBMLjQ5MDguMjAyNA==",
+      "name": "SF PL 4908/2024",
+      "hyperlink": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/166711>SF PL 4908/2024</a>",
+      "linkSigalei": "<a href=https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjQ5MDguMjAyNA==>Link na Sigalei</a>",
+      "rawLinkSigalei": "https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjQ5MDguMjAyNA==",
+      "linkExternal": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/166711>Link na casa</a>",
+      "rawLinkExternal": "http://www25.senado.leg.br/web/atividade/materias/-/materia/166711",
+      "summary": "Cria o Selo de Seguran\u00e7a Digital e estabelece requisitos para a transpar\u00eancia e qualidade das informa\u00e7\u00f5es veiculadas nos an\u00fancios digitais.",
+      "mainSponsor": "Eduardo Braga (MDB/AM)",
+      "house": "SF",
+      "houseName": "Senado Federal",
+      "local": "CTFC",
+      "lastUpdate": {
+        "local": "SF - Comiss\u00e3o de Transpar\u00eancia, Governan\u00e7a, Fiscaliza\u00e7\u00e3o e Controle e Defesa do Consumidor (CTFC)",
+        "description": "19/02/2025 - Esgotado o prazo regimental sem apresenta\u00e7\u00e3o de emendas ao projeto. A mat\u00e9ria aguarda distribui\u00e7\u00e3o."
+      },
+      "currentAnalyst": null,
+      "properties": {
+        "hasImpact": false,
+        "impact": "Sem Classifica\u00e7\u00e3o",
+        "impactValue": -1,
+        "impactColor": "c2c2c2",
+        "impactEmotes": "\u2753",
+        "position": null,
+        "positionColor": "c2c2c2",
+        "positionEmoji": "\u25fb\ufe0f",
+        "teams": [
+          "TELECOM"
+        ],
+        "summary": null,
+        "advancedProperties": []
+      },
+      "actionsByDate": {
+        "19/02/2025": {
+          "meta": {
+            "total": 1
+          },
+          "actions": [
+            {
+              "description": "Esgotado o prazo regimental sem apresenta\u00e7\u00e3o de emendas ao projeto. A mat\u00e9ria aguarda distribui\u00e7\u00e3o.",
+              "itemDate": "19/02/2025",
+              "house": "Senado Federal",
+              "houseInitials": "SF",
+              "local": "Comiss\u00e3o de Transpar\u00eancia, Governan\u00e7a, Fiscaliza\u00e7\u00e3o e Controle e Defesa do Consumidor (CTFC)",
+              "localInitials": "CTFC",
+              "localName": "Comiss\u00e3o de Transpar\u00eancia, Governan\u00e7a, Fiscaliza\u00e7\u00e3o e Controle e Defesa do Consumidor",
+              "isRetroactive": false,
+              "documents": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QmlsbDpzbF9iaWxsLlNGLlBMLjQ4NzEuMjAyNA==",
+      "name": "SF PL 4871/2024",
+      "hyperlink": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/166693>SF PL 4871/2024</a>",
+      "linkSigalei": "<a href=https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjQ4NzEuMjAyNA==>Link na Sigalei</a>",
+      "rawLinkSigalei": "https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjQ4NzEuMjAyNA==",
+      "linkExternal": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/166693>Link na casa</a>",
+      "rawLinkExternal": "http://www25.senado.leg.br/web/atividade/materias/-/materia/166693",
+      "summary": "Disp\u00f5e sobre os direitos da pessoa natural usu\u00e1ria de servi\u00e7os financeiros.",
+      "mainSponsor": "Carlos Bezerra",
+      "house": "SF",
+      "houseName": "Senado Federal",
+      "local": "PLEN",
+      "lastUpdate": {
+        "local": "SF - Plen\u00e1rio do Senado Federal (PLEN)",
+        "description": "20/02/2025 - A mat\u00e9ria vai \u00e0 Comiss\u00e3o de Transpar\u00eancia, Governan\u00e7a, Fiscaliza\u00e7\u00e3o e Controle e Defesa do Consumidor, seguindo posteriormente \u00e0 Comiss\u00e3o de Assuntos Econ\u00f4micos."
+      },
+      "currentAnalyst": null,
+      "properties": {
+        "hasImpact": false,
+        "impact": "Sem Classifica\u00e7\u00e3o",
+        "impactValue": -1,
+        "impactColor": "c2c2c2",
+        "impactEmotes": "\u2753",
+        "position": null,
+        "positionColor": "c2c2c2",
+        "positionEmoji": "\u25fb\ufe0f",
+        "teams": [],
+        "summary": null,
+        "advancedProperties": []
+      },
+      "actionsByDate": {
+        "20/02/2025": {
+          "meta": {
+            "total": 1
+          },
+          "actions": [
+            {
+              "description": "A mat\u00e9ria vai \u00e0 Comiss\u00e3o de Transpar\u00eancia, Governan\u00e7a, Fiscaliza\u00e7\u00e3o e Controle e Defesa do Consumidor, seguindo posteriormente \u00e0 Comiss\u00e3o de Assuntos Econ\u00f4micos.",
+              "itemDate": "20/02/2025",
+              "house": "Senado Federal",
+              "houseInitials": "SF",
+              "local": "Plen\u00e1rio do Senado Federal (PLEN)",
+              "localInitials": "PLEN",
+              "localName": "Plen\u00e1rio do Senado Federal",
+              "isRetroactive": false,
+              "documents": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QmlsbDpzbF9iaWxsLlNGLlBMLjI5MTQuMjAyMg==",
+      "name": "SF PL 2914/2022",
+      "hyperlink": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/155324>SF PL 2914/2022</a>",
+      "linkSigalei": "<a href=https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjI5MTQuMjAyMg==>Link na Sigalei</a>",
+      "rawLinkSigalei": "https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjI5MTQuMjAyMg==",
+      "linkExternal": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/155324>Link na casa</a>",
+      "rawLinkExternal": "http://www25.senado.leg.br/web/atividade/materias/-/materia/155324",
+      "summary": "Disp\u00f5e sobre a representa\u00e7\u00e3o de interesse realizada por pessoas naturais ou jur\u00eddicas perante agentes p\u00fablicos com o fim de efetivar as garantias constitucionais, a transpar\u00eancia e o acesso a informa\u00e7\u00f5es.",
+      "mainSponsor": "Carlos Zarattini",
+      "house": "SF",
+      "houseName": "Senado Federal",
+      "local": "CCJ",
+      "lastUpdate": {
+        "local": "SF - Comiss\u00e3o de Constitui\u00e7\u00e3o, Justi\u00e7a e Cidadania (CCJ)",
+        "description": "19/02/2025 - Distribu\u00eddo ao Senador Efraim Filho, para emitir relat\u00f3rio."
+      },
+      "currentAnalyst": "Efraim Filho (UNI\u00c3O/PB)",
+      "properties": {
+        "hasImpact": false,
+        "impact": "Sem Classifica\u00e7\u00e3o",
+        "impactValue": -1,
+        "impactColor": "c2c2c2",
+        "impactEmotes": "\u2753",
+        "position": null,
+        "positionColor": "c2c2c2",
+        "positionEmoji": "\u25fb\ufe0f",
+        "teams": [
+          "GERAL"
+        ],
+        "summary": null,
+        "advancedProperties": []
+      },
+      "actionsByDate": {
+        "19/02/2025": {
+          "meta": {
+            "total": 1
+          },
+          "actions": [
+            {
+              "description": "Distribu\u00eddo ao Senador Efraim Filho, para emitir relat\u00f3rio.",
+              "itemDate": "19/02/2025",
+              "house": "Senado Federal",
+              "houseInitials": "SF",
+              "local": "Comiss\u00e3o de Constitui\u00e7\u00e3o, Justi\u00e7a e Cidadania (CCJ)",
+              "localInitials": "CCJ",
+              "localName": "Comiss\u00e3o de Constitui\u00e7\u00e3o, Justi\u00e7a e Cidadania",
+              "isRetroactive": false,
+              "documents": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QmlsbDpzbF9iaWxsLlNGLlBMLjI4NzEuMjAyMg==",
+      "name": "SF PL 2871/2022",
+      "hyperlink": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/155255>SF PL 2871/2022</a>",
+      "linkSigalei": "<a href=https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjI4NzEuMjAyMg==>Link na Sigalei</a>",
+      "rawLinkSigalei": "https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjI4NzEuMjAyMg==",
+      "linkExternal": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/155255>Link na casa</a>",
+      "rawLinkExternal": "http://www25.senado.leg.br/web/atividade/materias/-/materia/155255",
+      "summary": "Altera o \u00a7 3\u00ba do art. 26 da Lei n\u00ba 8.078, de 11 de setembro de 1990 (C\u00f3digo de Defesa do Consumidor), para prever prazo de tr\u00eas anos de garantia nas situa\u00e7\u00f5es em que houver v\u00edcio oculto.",
+      "mainSponsor": "Rogerio Carvalho Santos (PT/SE)",
+      "house": "SF",
+      "houseName": "Senado Federal",
+      "local": "CTFC",
+      "lastUpdate": {
+        "local": "SF - Comiss\u00e3o de Transpar\u00eancia, Governan\u00e7a, Fiscaliza\u00e7\u00e3o e Controle e Defesa do Consumidor (CTFC)",
+        "description": "19/02/2025 - Encerrada a relatoria devido \u00e0 ren\u00fancia do Senador Rodrigo Cunha, a mat\u00e9ria aguarda distribui\u00e7\u00e3o."
+      },
+      "currentAnalyst": null,
+      "properties": {
+        "hasImpact": false,
+        "impact": "Sem Classifica\u00e7\u00e3o",
+        "impactValue": -1,
+        "impactColor": "c2c2c2",
+        "impactEmotes": "\u2753",
+        "position": null,
+        "positionColor": "c2c2c2",
+        "positionEmoji": "\u25fb\ufe0f",
+        "teams": [
+          "GERAL"
+        ],
+        "summary": null,
+        "advancedProperties": []
+      },
+      "actionsByDate": {
+        "19/02/2025": {
+          "meta": {
+            "total": 1
+          },
+          "actions": [
+            {
+              "description": "Encerrada a relatoria devido \u00e0 ren\u00fancia do Senador Rodrigo Cunha, a mat\u00e9ria aguarda distribui\u00e7\u00e3o.",
+              "itemDate": "19/02/2025",
+              "house": "Senado Federal",
+              "houseInitials": "SF",
+              "local": "Comiss\u00e3o de Transpar\u00eancia, Governan\u00e7a, Fiscaliza\u00e7\u00e3o e Controle e Defesa do Consumidor (CTFC)",
+              "localInitials": "CTFC",
+              "localName": "Comiss\u00e3o de Transpar\u00eancia, Governan\u00e7a, Fiscaliza\u00e7\u00e3o e Controle e Defesa do Consumidor",
+              "isRetroactive": false,
+              "documents": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "QmlsbDpzbF9iaWxsLlNGLlBMLjQ1MjkuMjAyMQ==",
+      "name": "SF PL 4529/2021",
+      "hyperlink": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/151387>SF PL 4529/2021</a>",
+      "linkSigalei": "<a href=https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjQ1MjkuMjAyMQ==>Link na Sigalei</a>",
+      "rawLinkSigalei": "https://web.sigalei.com.br/app/bill/QmlsbDpzbF9iaWxsLlNGLlBMLjQ1MjkuMjAyMQ==",
+      "linkExternal": "<a href=http://www25.senado.leg.br/web/atividade/materias/-/materia/151387>Link na casa</a>",
+      "rawLinkExternal": "http://www25.senado.leg.br/web/atividade/materias/-/materia/151387",
+      "summary": "Altera a Lei n\u00ba 8.078, de 11 de setembro de 1990 (C\u00f3digo de Defesa do Consumidor) para dispor sobre a obriga\u00e7\u00e3o de motiva\u00e7\u00e3o acerca das raz\u00f5es que fundamentam a recusa de cr\u00e9dito e combater a discrimina\u00e7\u00e3o racial nas rela\u00e7\u00f5es de consumo.",
+      "mainSponsor": "Fabiano Contarato (PT/ES)",
+      "house": "SF",
+      "houseName": "Senado Federal",
+      "local": "CDH",
+      "lastUpdate": {
+        "local": "SF - Comiss\u00e3o de Direitos Humanos e Legisla\u00e7\u00e3o Participativa (CDH)",
+        "description": "19/02/2025 - Devolvido pelo relator, Senador Humberto Costa, em virtude de n\u00e3o mais pertencer aos quadros desta Comiss\u00e3o. A mat\u00e9ria ser\u00e1 redistribu\u00edda."
+      },
+      "currentAnalyst": null,
+      "properties": {
+        "hasImpact": false,
+        "impact": "Sem Classifica\u00e7\u00e3o",
+        "impactValue": -1,
+        "impactColor": "c2c2c2",
+        "impactEmotes": "\u2753",
+        "position": null,
+        "positionColor": "c2c2c2",
+        "positionEmoji": "\u25fb\ufe0f",
+        "teams": [
+          "GERAL"
+        ],
+        "summary": null,
+        "advancedProperties": []
+      },
+      "actionsByDate": {
+        "19/02/2025": {
+          "meta": {
+            "total": 1
+          },
+          "actions": [
+            {
+              "description": "Devolvido pelo relator, Senador Humberto Costa, em virtude de n\u00e3o mais pertencer aos quadros desta Comiss\u00e3o. A mat\u00e9ria ser\u00e1 redistribu\u00edda.",
+              "itemDate": "19/02/2025",
+              "house": "Senado Federal",
+              "houseInitials": "SF",
+              "local": "Comiss\u00e3o de Direitos Humanos e Legisla\u00e7\u00e3o Participativa (CDH)",
+              "localInitials": "CDH",
+              "localName": "Comiss\u00e3o de Direitos Humanos e Legisla\u00e7\u00e3o Participativa",
+              "isRetroactive": false,
+              "documents": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
