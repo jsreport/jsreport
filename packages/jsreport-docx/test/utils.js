@@ -1,5 +1,6 @@
 const path = require('path')
 const { DOMParser } = require('@xmldom/xmldom')
+const sax = require('sax')
 const { decompress } = require('@jsreport/office')
 const { nodeListToArray, getPictureElInfo } = require('../lib/utils')
 
@@ -12,9 +13,27 @@ module.exports.getDocumentsFromDocxBuf = async function getDocumentsFromDocxBuf 
     targetFiles.push(fileRef)
   }
 
-  const result = targetFiles.map((file) => (
-    file != null ? new DOMParser().parseFromString(file.data.toString()) : null
-  ))
+  const result = targetFiles.map((file) => {
+    if (file == null) {
+      return null
+    }
+
+    const fileContent = file.data.toString()
+
+    if (options.strict) {
+      // strict parser will fail on invalid entities found in xml
+      const parser = sax.parser(true)
+
+      try {
+        parser.write(fileContent).close()
+      } catch (stringParsingError) {
+        stringParsingError.message = `Error parsing xml file at ${file.path}: ${stringParsingError.message}`
+        throw stringParsingError
+      }
+    }
+
+    return new DOMParser().parseFromString(fileContent)
+  })
 
   if (options.returnFiles) {
     return {

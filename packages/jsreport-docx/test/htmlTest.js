@@ -10,6 +10,7 @@ const { getSectionDetail } = require('../lib/sectionUtils')
 const { SUPPORTED_ELEMENTS, BLOCK_ELEMENTS, ELEMENTS } = require('../lib/postprocess/html/supportedElements')
 const extractor = new WordExtractor()
 
+const dataDirPath = path.join(__dirname, './data')
 const docxDirPath = path.join(__dirname, './docx')
 const outputPath = path.join(__dirname, '../out.docx')
 
@@ -15347,7 +15348,7 @@ describe('docx html embed', () => {
     })
   }
 
-  describe('complex html with lists', () => {
+  describe('complex html cases', () => {
     const templateStr = `
       <p>
         <strong>Use Case Description: Integrating AI in a Communication Products Line</strong>
@@ -16007,6 +16008,43 @@ describe('docx html embed', () => {
             break
         }
       }
+    })
+
+    it('block mode - loop with multiple docxHtml calls and conditionals', async () => {
+      const data = JSON.parse(fs.readFileSync(path.join(dataDirPath, 'html-multiple-calls-and-conditionals.json')).toString())
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-multiple-calls-and-conditionals.docx'))
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: docxTemplateBuf
+            }
+          },
+          helpers: `
+            function join (collection, separator) {
+                const sep = typeof separator === 'string' ? separator : ', '
+                return collection.join(sep)
+            }
+          `
+        },
+        data
+      })
+
+      // Write document for easier debugging
+      fs.writeFileSync(outputPath, result.content)
+
+      const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'], {
+        strict: true
+      })
+
+      should(doc.toString().includes('<!--')).be.False()
+
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(91)
     })
   })
 

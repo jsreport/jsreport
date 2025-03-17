@@ -33,9 +33,7 @@ module.exports.serialize = (obj, { prettify = false, prettifySpace = 2, typeKeys
   serializingTypeKeys = typeKeys
 
   try {
-    let res
-
-    res = JSON.stringify(obj, (key, value) => {
+    const res = JSON.stringify(obj, (key, value) => {
       if (typeof value === 'undefined') {
         return null
       }

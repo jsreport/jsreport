@@ -1,3 +1,4 @@
+
 /* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
@@ -79,6 +80,31 @@ function docxContext (options) {
     data.bookmarkStartInstances = []
     data.defaultShapeTypeByObjectType = new Map()
 
+    data.htmlCalls = {
+      latest: null,
+      records: new Map()
+    }
+
+    data.htmlCalls.getTaskPrefix = (_cId) => {
+      return `htmlDelimiter${_cId}@`
+    }
+
+    data.htmlCalls.resolveLatest = (_cId, value) => {
+      const record = data.htmlCalls.records.get(_cId)
+      const oldTaskKey = record.taskKey
+      const execution = record.pending.get(oldTaskKey)
+
+      if (execution == null) {
+        return
+      }
+
+      execution.resolve(value)
+      const taskPrefix = data.htmlCalls.getTaskPrefix(_cId)
+
+      record.taskKey = `${taskPrefix}${parseInt(oldTaskKey.slice(taskPrefix.length), 10) + 1}`
+      record.pending.delete(oldTaskKey)
+    }
+
     const tasks = new Map()
 
     data.tasks = {
@@ -144,6 +170,21 @@ function docxContext (options) {
     return jsreport.templatingEngines.waitForAsyncHelpers().then(() => {
       return processFn(options.data, output)
     })
+  } else if (
+    contextType === 'document' ||
+    contextType === 'header' ||
+    contextType === 'footer'
+  ) {
+    // resolve latest html calls
+    if (data.htmlCalls.latest != null) {
+      for (const [cId, record] of data.htmlCalls.records) {
+        if (record.pending?.size === 0) {
+          continue
+        }
+
+        data.htmlCalls.resolveLatest(cId, record.counter)
+      }
+    }
   }
 
   return output
@@ -1040,6 +1081,82 @@ async function docxSData (data, options) {
     }
 
     return optionsToUse.fn(this, { data: optionsToUse.data })
+  }
+
+  if (
+    arguments.length === 1 &&
+    (type === 'htmlDelimiterStart' || type === 'htmlDelimiterEnd')
+  ) {
+    if (optionsToUse.hash.cId == null) {
+      throw new Error('docxSData "htmlDelimiter" helper cId not found')
+    }
+
+    if (optionsToUse.data.htmlCalls == null) {
+      throw new Error('docxSData "htmlDelimiter" helper htmlCalls data not found')
+    }
+
+    const cId = optionsToUse.hash.cId
+    const htmlCalls = optionsToUse.data.htmlCalls
+    const { getTaskPrefix, resolveLatest } = htmlCalls
+
+    const latestRecord = htmlCalls.records.get(htmlCalls.latest)
+    const currentType = type === 'htmlDelimiterStart' ? 'start' : 'end'
+    let result = ''
+
+    // this case indicates an error, somehow handlebars generated output
+    // does not contain valid start and end delimiters
+    if (
+      htmlCalls.latest != null &&
+      htmlCalls.latest !== cId &&
+      latestRecord != null
+    ) {
+      if (latestRecord.type === 'end') {
+        resolveLatest(htmlCalls.latest, latestRecord.counter)
+      } else {
+        resolveLatest(htmlCalls.latest, null)
+      }
+    }
+
+    if (type === 'htmlDelimiterStart') {
+      if (htmlCalls.latest === cId && latestRecord?.type === 'end') {
+        resolveLatest(htmlCalls.latest, latestRecord.counter)
+      }
+
+      if (!htmlCalls.records.has(cId)) {
+        htmlCalls.records.set(cId, {
+          taskKey: `${getTaskPrefix(cId)}1`,
+          type: null,
+          counter: 0,
+          pending: new Map()
+        })
+      }
+
+      htmlCalls.latest = cId
+      htmlCalls.records.get(cId).type = currentType
+    } else {
+      const currentRecord = htmlCalls.records.get(cId)
+      const { taskKey, counter: baseCounter, pending } = currentRecord
+
+      const [resolve, reject] = optionsToUse.data.tasks.add(taskKey)
+
+      if (!pending.has(taskKey)) {
+        pending.set(taskKey, { resolve, reject })
+      }
+
+      const currentCounter = baseCounter + 1
+      currentRecord.counter = currentCounter
+
+      htmlCalls.latest = cId
+      currentRecord.type = currentType
+
+      const latestCounter = await optionsToUse.data.tasks.wait(taskKey)
+
+      if (latestCounter === currentCounter) {
+        result = '<!--__html_embed_container__-->'
+      }
+    }
+
+    return new Handlebars.SafeString(result)
   }
 
   if (

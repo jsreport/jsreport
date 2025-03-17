@@ -28,15 +28,36 @@ module.exports = async (reporter, files, sections) => {
     '<!--__html_embed_container__--></w:p>',
     'g',
     async (val, content, hasNestedMatch) => {
-      const doc = new DOMParser().parseFromString(val)
-      const paragraphNode = doc.documentElement
+      // we parse assuming it can be multiple paragraphs, this can happen
+      // when some docxHtml get generated in a loop but just the end gets duplicated
+      // without the starting part
+      const doc = new DOMParser().parseFromString(`<docxXml>${val}</docxXml>`)
+      const paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-      let sectionIdx = parseInt(paragraphNode.getAttribute('__sectionIdx__'), 10)
+      const mainParagraphEl = paragraphEls.find((pEl) => {
+        return pEl.hasAttribute('__sectionIdx__')
+      }) ?? paragraphEls[0]
+
+      let sectionIdx = parseInt(mainParagraphEl.getAttribute('__sectionIdx__'), 10)
       sectionIdx = isNaN(sectionIdx) ? 0 : sectionIdx
-      paragraphNode.removeAttribute('__sectionIdx__')
 
-      const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(reporter, paragraphNode, sections[sectionIdx], documentFile.path, doc, documentRelsDoc, numberingLock, files)
-      return xmlNodesGenerated.map((node) => serializeXml(node)).join('')
+      const results = []
+
+      for (const el of nodeListToArray(doc.documentElement.childNodes)) {
+        let output = ''
+
+        if (el.nodeName === 'w:p') {
+          el.removeAttribute('__sectionIdx__')
+          const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(reporter, el, sections[sectionIdx], documentFile.path, doc, documentRelsDoc, numberingLock, files)
+          output = xmlNodesGenerated.map((node) => serializeXml(node)).join('')
+        } else {
+          output = el.toString()
+        }
+
+        results.push(output)
+      }
+
+      return results.join('')
     }
   )
 

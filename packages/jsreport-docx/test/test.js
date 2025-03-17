@@ -1217,6 +1217,39 @@ describe('docx', () => {
 
     should(textElements).have.length(1)
   })
+
+  it('shape with textbox enclosed in if block', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'shape-in-if.docx'))
+          }
+        }
+      },
+      data: {
+        key: 'value'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    const graphicDataElements = nodeListToArray(doc.getElementsByTagName('a:graphicData'))
+    graphicDataElements.length.should.be.eql(1)
+    should(graphicDataElements[0].parentNode.nodeName).be.eql('a:graphic')
+
+    const textElements = nodeListToArray(doc.getElementsByTagName('w:t'))
+    textElements.length.should.be.eql(2)
+    should(textElements[0].textContent).be.eql('value')
+  })
 })
 
 describe('docx with extensions.docx.previewInWordOnline === false', () => {

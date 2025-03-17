@@ -1,4 +1,7 @@
-const { nodeListToArray, getPictureElInfo, decodeURIComponentRecursive } = require('../utils')
+const {
+  nodeListToArray, getPictureElInfo, decodeURIComponentRecursive,
+  processOpeningTag, processClosingTag
+} = require('../utils')
 
 module.exports = function processImage (files, doc, drawingEl, relsDoc) {
   const pictureElInfo = getPictureElInfo(drawingEl)
@@ -111,20 +114,6 @@ module.exports = function processImage (files, doc, drawingEl, relsDoc) {
   }
 
   pictureEl.insertBefore(hyperlinkRelElClone, pictureEl.firstChild)
-}
-
-function processOpeningTag (doc, refElement, helperCall) {
-  const fakeElement = doc.createElement('docxRemove')
-  fakeElement.textContent = helperCall
-  refElement.parentNode.insertBefore(fakeElement, refElement)
-  return fakeElement
-}
-
-function processClosingTag (doc, refElement, closeCall) {
-  const fakeElement = doc.createElement('docxRemove')
-  fakeElement.textContent = closeCall
-  refElement.parentNode.insertBefore(fakeElement, refElement.nextSibling)
-  return fakeElement
 }
 
 function createCallPlaceholderEl (doc, callContent) {

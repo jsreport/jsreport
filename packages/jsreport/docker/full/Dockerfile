@@ -17,7 +17,7 @@ RUN groupadd -g "${GID}" jsreport && adduser --disabled-password --uid "${UID}" 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends apt-transport-https apt-utils software-properties-common wget gnupg bzip2 git curl && \
+    apt-get install -y --no-install-recommends apt-transport-https apt-utils build-essential software-properties-common wget gnupg bzip2 git curl && \
     apt update && apt install -y libgbm-dev libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libappindicator3-1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libnss3 lsb-release xdg-utils && \
     # adding custom ppa repository to get access to custom version of chromium for macOS Apple Silicon hardware
     # this ppa has builds available for architectures amd64, arm64 (which we care because we produce arm64 builds)
@@ -25,7 +25,7 @@ RUN apt-get update && \
     # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
-    apt install -y chromium=133.0.6943.126-1xtradeb1.2404.1 && \
+    apt install -y chromium=134.0.6998.35-3xtradeb1.2404.1 && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
@@ -90,7 +90,7 @@ COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js inst
 COPY ./packages/jsreport/docker/full/build-oracledb-src.sh build-oracledb-src.sh
 # script created with steps recommend here from oracledb repository
 # https://github.com/oracle/node-oracledb/issues/1382#issuecomment-849157748
-RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --storeVersion=4.0.0
+RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --storeVersion=4.1.0
 
 RUN npm cache clean -f && rm -rf /tmp/*
 
