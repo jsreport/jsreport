@@ -40,7 +40,9 @@ describe('libreoffice', () => {
           content: `
           const jsreport = require('jsreport-proxy')
           async function afterRender(req, res) {
-            const pdf = await jsreport.libreOffice.convert(res.content, 'pdf')
+            const pdf = await jsreport.libreOffice.convert(res.content, 'pdf', {
+              pdfExportSelectPdfVersion: 15
+            })
             res.content = pdf.content
           }
           `
@@ -49,6 +51,7 @@ describe('libreoffice', () => {
       }
     })
     result.content.toString().should.startWith('%PDF')
+    result.content.toString().should.containEql('1.5')
   })
 
   it('should export jsreport.libreOffice.print to the scripts', async () => {

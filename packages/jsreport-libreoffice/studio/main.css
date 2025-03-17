@@ -1,0 +1,19 @@
+.x-libreoffice-styles-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;    
+}
+
+.x-libreoffice-styles-column {
+    justify-content:left;
+    display: flex;
+    flex-direction: column;
+   flex-basis: 100%;
+    flex: 1 1;
+}
+
+/* dont know how to align checkboxes to left... */
+.x-libreoffice-styles-column > input[type="checkbox"] {
+    width: 1rem;
+}
