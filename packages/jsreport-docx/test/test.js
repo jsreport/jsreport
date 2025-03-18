@@ -107,6 +107,75 @@ describe('docx', () => {
     ])
   })
 
+  it('syntax error should decorate the error with text in document that may contain the syntax error', () => {
+    const prom = reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(docxDirPath, 'template-with-syntax-error.docx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    return Promise.all([
+      should(prom).be.rejectedWith(/xml file: word\/document\.xml/i),
+      should(prom).be.rejectedWith(/The docx template contains an invalid handlebars syntax/),
+      should(prom).be.rejectedWith(/Locate the text "{{#each items}}{{name}}"/)
+    ])
+  })
+
+  it('syntax error should decorate the error with text in header that may contain the syntax error', () => {
+    const prom = reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(docxDirPath, 'template-with-syntax-error-in-header.docx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    return Promise.all([
+      should(prom).be.rejectedWith(/xml file: word\/header2\.xml/i),
+      should(prom).be.rejectedWith(/The docx template contains an invalid handlebars syntax/),
+      should(prom).be.rejectedWith(/Locate the text "{{#each items}}{{name}}"/)
+    ])
+  })
+
+  it('syntax error should decorate the error with text in footer that may contain the syntax error', () => {
+    const prom = reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(docxDirPath, 'template-with-syntax-error-in-footer.docx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    return Promise.all([
+      should(prom).be.rejectedWith(/xml file: word\/footer2\.xml/i),
+      should(prom).be.rejectedWith(/The docx template contains an invalid handlebars syntax/),
+      should(prom).be.rejectedWith(/Locate the text "{{#each items}}{{name}}"/)
+    ])
+  })
+
   it('handlebars-partials', async () => {
     const result = await reporter.render({
       template: {

@@ -48,4 +48,6 @@ module.exports = (files, ctx) => {
   // we process context here to ensure we get the chance to pick all changes to ctx,
   // no transformation done here other than adding the wrapping helper calls
   context(files, headerFooterRefs, ctx)
+
+  return headerFooterRefs
 }

@@ -33,7 +33,7 @@ function docxContext (options) {
           fromMaxId: value
         })
       } else {
-        currentCtx.set(key, value)
+        currentCtx.templating.set(key, value)
       }
     }
 
