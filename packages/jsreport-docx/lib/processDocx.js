@@ -87,7 +87,7 @@ module.exports = async (reporter, inputs, req) => {
           // this because handlebars error does not expose the columnNumber for all its
           // compile errors, so we need to rely on the line number to identify the error,
           // with that in mind we include each paragraph in new lines
-          return `${paragraphSeparator}${str}${paragraphSeparator}`
+          return `${paragraphSeparator}${str}`
         }
 
         return normalizeAttributeAndTextNode(node)
@@ -106,7 +106,7 @@ module.exports = async (reporter, inputs, req) => {
       // we add 1 because that is the number of extra lines xml serialization produces for
       // each xml file (a normal document serialized produces one line of xml declaration,
       // and one line of the xml content)
-      const endLine = startLine + (paragraphsCount > 0 ? paragraphsCount + 1 : 0) + 1
+      const endLine = startLine + (paragraphsCount > 0 ? paragraphsCount : 0) + 1
 
       for (let currentLine = startLine; currentLine <= endLine; currentLine++) {
         lineToXmlFileMap.set(currentLine, f.path)

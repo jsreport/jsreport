@@ -314,8 +314,9 @@ module.exports = (files) => {
       const tableRowEls = nodeListToArray(tableEl.childNodes).filter((node) => node.nodeName === 'w:tr')
 
       for (const tableRowEl of tableRowEls) {
-        processTableOpeningTag(doc, tableRowEl, '{{#docxTable check="row"}}')
-        processTableClosingTag(doc, tableRowEl)
+        const rowCheckEl = doc.createElement('docxRemove')
+        rowCheckEl.textContent = '{{docxTable check="row"}}'
+        tableRowEl.parentNode.insertBefore(rowCheckEl, tableRowEl)
 
         const tableCellEls = nodeListToArray(tableRowEl.childNodes).filter((node) => node.nodeName === 'w:tc')
 
@@ -337,8 +338,9 @@ module.exports = (files) => {
             extraAttrs.push(`gs=${gridSpanEl.getAttribute('w:val')}`)
           }
 
-          processTableOpeningTag(doc, tableCellEl, `{{#docxTable ${extraAttrs.join(' ')}}}`)
-          processTableClosingTag(doc, tableCellEl)
+          const cellCheckEl = doc.createElement('docxRemove')
+          cellCheckEl.textContent = `{{docxTable ${extraAttrs.join(' ')}}}`
+          tableCellEl.parentNode.insertBefore(cellCheckEl, tableCellEl)
         }
       }
     }

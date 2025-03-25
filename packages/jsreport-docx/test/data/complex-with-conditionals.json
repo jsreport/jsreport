@@ -1,0 +1,482 @@
+{
+  "meta": {
+    "startDate": "01/03/2025",
+    "endDate": "10/03/2025",
+    "generatedAt": "27/03/2025 - 13:48:12",
+    "showResults": true
+  },
+  "data": [
+    {
+      "houses": [
+        {
+          "house": "House 1",
+          "dates": [
+            {
+              "eventDate": "01/03/2025",
+              "humanDate": "test",
+              "events": [
+                {
+                  "itemNumber": null,
+                  "id": "1",
+                  "base": {
+                    "title": "<a href=https://jsreport.net>Reunion</a>",
+                    "rawTitle": "Reunion",
+                    "time": "13:00",
+                    "date": "01/03/2025",
+                    "humanDate": "date",
+                    "local": "Anexo Test",
+                    "agenda": "Agenda\r\n",
+                    "agendaHtml": "<div><span>Agenda\r<br></span></div>",
+                    "guests": [],
+                    "status": "Closed"
+                  },
+                  "properties": {
+                    "teams": ["Team"]
+                  },
+                  "legislative": {
+                    "category": "Category",
+                    "house": "House",
+                    "committees": "officia dolor laborum anim nisi excepteur consequat veniam enim non",
+                    "committeesAlt": "irure non enim velit voluptate dolor non elit velit exercitation",
+                    "committeeInitials": "IRETEST",
+                    "followedbills": [
+                      {
+                        "name": "<a href=https://jsreport.net>IRETEST TESTING</a>",
+                        "contentLinkName": "<a href=https://jsreport.net>IRETEST TESTING</a>",
+                        "rawName": "REQ IRETEST TESTING",
+                        "summary": "voluptate aute cillum anim et nulla aliquip enim nulla sint enim cupidatat elit nulla nulla",
+                        "summaryExplanation": null,
+                        "actionRegime": "FOOBAR",
+                        "order": 1,
+                        "result": "commodo sit incididunt est ex commodo consectetur proident dolore adipisicing dolor sit sit commodo fugiat id laborum aliquip ut esse eu ullamco ipsum qui quis",
+                        "steps": "",
+                        "report": null,
+                        "impact": "FOOBAR",
+                        "impactColor": "f0cc89",
+                        "position": "Neutro",
+                        "positionColor": "598191",
+                        "positionEmoji": "🔹",
+                        "userSummary": null,
+                        "notes": [
+                          {
+                            "message": "<p><strong>TEST</strong></p><p>TEST</p><p></p><p></p>",
+                            "plainText": "<p>testing</p>",
+                            "date": "02/01/2025"
+                          }
+                        ],
+                        "teams": ["AMBTEST"],
+                        "currentAnalyst": null,
+                        "mainSponsor": "TESTING MASTER (TEST)",
+                        "billLinkSigalei": "https://jsreport.net",
+                        "billLinkExternal": "https://jsreport.net",
+                        "customProperties": [],
+                        "relatedTo": null
+                      },
+                      {
+                        "name": "<a href=https://jsreport.net>REQ TESTING</a>",
+                        "contentLinkName": "<a href=https://jsreport.net>REQ TESTING</a>",
+                        "rawName": "REQ TESTING TEST",
+                        "summary": "pariatur anim dolor mollit et ut ex amet ex esse enim laborum ad excepteur velit amet reprehenderit anim tempor enim consectetur aliqua pariatur dolore labore ad minim nisi amet nisi",
+                        "summaryExplanation": null,
+                        "actionRegime": "TESTING",
+                        "order": 5,
+                        "result": "duis cupidatat nostrud anim id ad velit adipisicing incididunt amet",
+                        "steps": "",
+                        "report": null,
+                        "impact": "TESTING",
+                        "impactColor": "f0cc89",
+                        "position": "Neutro",
+                        "positionColor": "598191",
+                        "positionEmoji": "🔹",
+                        "userSummary": null,
+                        "notes": [
+                          {
+                            "message": "<p><strong>TESTING XPA</strong></p><p>TESTING</p><p></p><p></p>",
+                            "plainText": "<p>testing</p>",
+                            "date": "02/03/20245"
+                          }
+                        ],
+                        "teams": ["Test group", "Test organization"],
+                        "currentAnalyst": null,
+                        "mainSponsor": "TO TEST (TESTING)",
+                        "billLinkSigalei": "https://jsreport.net",
+                        "billLinkExternal": "https://jsreport.net",
+                        "customProperties": [],
+                        "relatedTo": null
+                      },
+                      {
+                        "name": "<a href=https://jsreport.net>REQ TESTING</a>",
+                        "contentLinkName": "<a href=https://jsreport.net>CD TESTING</a>",
+                        "rawName": "REQ TESTING",
+                        "summary": "occaecat id id consequat labore cillum elit tempor ad duis duis in dolore do voluptate ipsum fugiat ea reprehenderit exercitation qui cupidatat Lorem sit sunt",
+                        "summaryExplanation": null,
+                        "actionRegime": "TESTING",
+                        "order": 6,
+                        "result": "adipisicing incididunt incididunt pariatur labore aute eiusmod culpa dolore voluptate qui eu laboris esse deserunt",
+                        "steps": "",
+                        "report": null,
+                        "impact": "TESTING",
+                        "impactColor": "f0cc89",
+                        "position": "Neutro",
+                        "positionColor": "598191",
+                        "positionEmoji": "🔹",
+                        "userSummary": null,
+                        "notes": [
+                          {
+                            "message": "<p><strong>TESTING XPA</strong></p><p>MONITORAR</p>",
+                            "plainText": "<p>testing</p>",
+                            "date": "03/02/2025"
+                          }
+                        ],
+                        "teams": ["The great testing"],
+                        "currentAnalyst": null,
+                        "mainSponsor": "the test (TEST)",
+                        "billLinkSigalei": "https://jsreport.net",
+                        "billLinkExternal": "https://jsreport.net",
+                        "customProperties": [],
+                        "relatedTo": null
+                      },
+                      {
+                        "name": "<a href=https://jsreport.net>REQ TESTING</a>",
+                        "contentLinkName": "<a href=https://jsreport.net>REQ TESTING</a>",
+                        "rawName": "REQ TESTING",
+                        "summary": "esse irure non ea proident non nostrud nostrud velit veniam amet ut magna culpa dolor in sunt qui excepteur in mollit Lorem velit eu qui adipisicing ad culpa commodo magna exercitation est laborum incididunt ea",
+                        "summaryExplanation": null,
+                        "actionRegime": "TESTING",
+                        "order": 9,
+                        "result": "non anim et occaecat consequat ut nulla aute pariatur velit nostrud anim",
+                        "steps": "",
+                        "report": null,
+                        "impact": "TEST",
+                        "impactColor": "f0cc89",
+                        "position": "Neutro",
+                        "positionColor": "598191",
+                        "positionEmoji": "🔹",
+                        "userSummary": null,
+                        "notes": [
+                          {
+                            "message": "<p><strong>TESTING XPA</strong></p><p>MONITORAR</p>",
+                            "plainText": "<p>testing</p>",
+                            "date": "08/04/2025"
+                          }
+                        ],
+                        "teams": ["The Testing", "Test"],
+                        "currentAnalyst": null,
+                        "mainSponsor": "The real test (TEST)",
+                        "billLinkSigalei": "https://jsreport.net",
+                        "billLinkExternal": "https://jsreport.net",
+                        "customProperties": [],
+                        "relatedTo": null
+                      }
+                    ]
+                  },
+                  "authority": {
+                    "hierarchy": null,
+                    "summary": null,
+                    "role": null,
+                    "agendaFrom": null,
+                    "agendaStakeholder": null
+                  },
+                  "eventLinkSigalei": "https://jsreport.net",
+                  "eventLinkExternal": "https://jsreport.net",
+                  "type": "TESTING"
+                },
+                {
+                  "itemNumber": null,
+                  "id": "somerandomid",
+                  "base": {
+                    "title": "<a href=https://jsreport.net>The testing</a>",
+                    "rawTitle": "The testing",
+                    "time": "15:30",
+                    "date": "05/02/2025",
+                    "humanDate": "testing-here",
+                    "local": "Local of testing",
+                    "agenda": "commodo ullamco irure occaecat dolore sunt id aliquip et est\r\n",
+                    "agendaHtml": "<div><span>ipsum adipisicing ea excepteur aliquip est et ex ut duis sint excepteur\r<br></span></div>",
+                    "guests": [],
+                    "status": "Prototype (Test)"
+                  },
+                  "properties": {
+                    "teams": ["Test"]
+                  },
+                  "legislative": {
+                    "category": "Test Category",
+                    "house": "House text",
+                    "committees": "id elit qui incididunt mollit minim in sunt id commodo",
+                    "committeesAlt": "commodo Lorem minim ex laborum nostrud magna ut esse et",
+                    "committeeInitials": "TEST",
+                    "followedbills": [
+                      {
+                        "name": "<a href=https://jsreport.net>TST TESTING</a>",
+                        "contentLinkName": "<a href=https://jsreport.net>TST TESTING</a>",
+                        "rawName": "TST TS TT TESTING",
+                        "summary": "aliquip est magna culpa aute Lorem laborum ullamco cupidatat sint nostrud sit ullamco ullamco sint adipisicing ad fugiat commodo velit amet eu velit ea aliquip do eu pariatur dolore reprehenderit",
+                        "summaryExplanation": "",
+                        "actionRegime": "THE TESTING",
+                        "order": 1,
+                        "result": "The Final Test",
+                        "steps": "<span><span style=\"color: #605e5c;\">TST</span> -> <span style=\"color: #605e5c;\">TSTING</span> -> <span style=\"color: #605e5c;\">TST</span> -> <span style=\"color: #605e5c;\">TSTING</span></span>",
+                        "report": {
+                          "link": "<a href=https://jsreport.net>Parecer</a>",
+                          "rawLink": "https://jsreport.net",
+                          "type": "testing",
+                          "description": "Lorem excepteur laborum incididunt Lorem velit elit occaecat pariatur est",
+                          "author": "The Test (TST)"
+                        },
+                        "impact": "TESTING",
+                        "impactColor": "f0cc89",
+                        "position": "A test",
+                        "positionColor": "3b8c2b",
+                        "positionEmoji": "✅",
+                        "userSummary": null,
+                        "notes": [
+                          {
+                            "message": "<p><strong>TESTING XPA</strong></p><p>TEST✅</p><p></p><p><strong>TESTING ARG</strong></p><p style=\"text-align: justify\">mollit anim nulla aliquip excepteur nisi amet ut minim enim laboris sunt in laborum nisi officia ullamco culpa officia quis veniam adipisicing nulla deserunt excepteur tempor et do adipisicing aute duis sunt sint eiusmod ullamco deserunt occaecat irure sunt aliquip veniam commodo laboris culpa pariatur voluptate ipsum laborum magna irure id excepteur dolore mollit cupidatat voluptate labore adipisicing aliquip Lorem sint voluptate ipsum nisi cillum deserunt sunt commodo do elit.</p>",
+                            "plainText": "<p>testing</p>",
+                            "date": "01/02/2025"
+                          }
+                        ],
+                        "teams": ["Proto", "Testing"],
+                        "currentAnalyst": "The testing (TST)",
+                        "mainSponsor": "Sir Test",
+                        "billLinkSigalei": "https://jsreport.net",
+                        "billLinkExternal": "https://jsreport.net",
+                        "customProperties": [],
+                        "relatedTo": null
+                      },
+                      {
+                        "name": "<a href=https://jsreport.net7>TST Testing</a>",
+                        "contentLinkName": "<a href=https://jsreport.net>TST Testing</a>",
+                        "rawName": "TST Testing",
+                        "summary": "Lorem ipsum aute elit dolore eu labore elit id consectetur veniam mollit duis cillum est commodo voluptate nisi eu quis",
+                        "summaryExplanation": "",
+                        "actionRegime": "TESTING",
+                        "order": 4,
+                        "result": "Right o Wrong",
+                        "steps": "<span><span style=\"color: #605e5c;\">TST</span> -> <span style=\"color: #605e5c;\">TSIN</span> -> <span style=\"color: #605e5c;\">TSING</span></span>",
+                        "report": {
+                          "link": "<a href=https://jsreport.net>Parecer</a>",
+                          "rawLink": "https://jsreport.net",
+                          "type": "Testing",
+                          "description": "minim adipisicing voluptate est reprehenderit culpa amet quis incididunt et mollit voluptate",
+                          "author": "The great tester (Test)"
+                        },
+                        "impact": "TESTING",
+                        "impactColor": "f0cc89",
+                        "position": "Neutro",
+                        "positionColor": "598191",
+                        "positionEmoji": "🔹",
+                        "userSummary": null,
+                        "notes": [
+                          {
+                            "message": "<p><strong>TESTING XPA</strong></p><p>TST</p>",
+                            "plainText": "<p>testing</p>",
+                            "date": "02/02/2025"
+                          }
+                        ],
+                        "teams": ["Right", "Wrong"],
+                        "currentAnalyst": "The great tester (TEST)",
+                        "mainSponsor": "cupidatat id in anim labore mollit magna excepteur nulla ullamco",
+                        "billLinkSigalei": "https://jsreport.net",
+                        "billLinkExternal": "https://jsreport.net",
+                        "customProperties": [
+                          {
+                            "name": "TST",
+                            "label": "International test"
+                          }
+                        ],
+                        "relatedTo": null
+                      }
+                    ]
+                  },
+                  "authority": {
+                    "hierarchy": null,
+                    "summary": null,
+                    "role": null,
+                    "agendaFrom": null,
+                    "agendaStakeholder": null
+                  },
+                  "eventLinkSigalei": "https://jsreport.net",
+                  "eventLinkExternal": "https://jsreport.net",
+                  "type": "TESTING"
+                },
+                {
+                  "itemNumber": null,
+                  "id": "anotherrandomid",
+                  "base": {
+                    "title": "<a href=https://jsreport.net>The testing</a>",
+                    "rawTitle": "The testing test",
+                    "time": "15:00",
+                    "date": "09/04/2025",
+                    "humanDate": "tst-testing",
+                    "local": "The greatest tester of all the time",
+                    "agenda": "nulla magna minim ad duis irure\r\n",
+                    "agendaHtml": "<div><span>in aute tempor ut eu incididunt\r<br></span></div>",
+                    "guests": [],
+                    "status": "Testing (Final)"
+                  },
+                  "properties": {
+                    "teams": ["Test"]
+                  },
+                  "legislative": {
+                    "category": "Test Category",
+                    "house": "The test most important",
+                    "committees": "dolore veniam dolor aute incididunt anim (TST)",
+                    "committeesAlt": "TST - dolore veniam dolor aute incididunt anim",
+                    "committeeInitials": "TST",
+                    "followedbills": [
+                      {
+                        "name": "<a href=https://jsreport.net>TST Testing</a>",
+                        "contentLinkName": "<a href=https://jsreport.net>TST Testing</a>",
+                        "rawName": "TST 05/12/2025",
+                        "summary": "voluptate consectetur Lorem amet commodo velit elit commodo tempor esse reprehenderit aliqua id adipisicing deserunt irure et ad cupidatat sint laboris qui fugiat ipsum dolor",
+                        "summaryExplanation": "",
+                        "actionRegime": "TESTING",
+                        "order": 19,
+                        "result": "fugiat anim irure in anim aute ad ex Lorem ipsum",
+                        "steps": "<span><span style=\"color: #605e5c;\">TST</span> -> <span style=\"color: #605e5c;\">TNG</span> -> <span style=\"color: #006b2d;\"><b>TSING</b></span></span>",
+                        "report": {
+                          "link": "<a href=https://jsreport.net>Parecer</a>",
+                          "rawLink": "https://jsreport.net",
+                          "type": "Testin",
+                          "description": "voluptate ipsum sunt quis velit aliquip pariatur do ea Lorem ad proident culpa ipsum deserunt",
+                          "author": "The testing of the century (TST)"
+                        },
+                        "impact": "MASTER OF TEST",
+                        "impactColor": "f0cc89",
+                        "position": "Neutro",
+                        "positionColor": "598191",
+                        "positionEmoji": "🔹",
+                        "userSummary": null,
+                        "notes": [
+                          {
+                            "message": "<p><strong>TESTING XPA</strong></p><p>TESTEAR</p>",
+                            "plainText": "<p>testing</p>",
+                            "date": "08/04/2025"
+                          }
+                        ],
+                        "teams": ["Proto", "Testing"],
+                        "currentAnalyst": "The mighty test (TT)",
+                        "mainSponsor": "Tribunal of tests",
+                        "billLinkSigalei": "https://jsreport.net",
+                        "billLinkExternal": "https://jsreport.net",
+                        "customProperties": [
+                          {
+                            "name": "Testing resume",
+                            "label": "<p style=\"text-align: justify\"><strong>TL Test</strong></p><p style=\"text-align: justify\">Test: Test Superior</p><p style=\"text-align: justify\">New: nulla in cupidatat exercitation fugiat reprehenderit officia qui esse sunt labore officia eu aliquip eu id dolore mollit incididunt officia.</p><p style=\"text-align: justify\">Regimen of testing: -</p><p style=\"text-align: justify\">Comission of testing:</p><p style=\"text-align: justify\">•TST - Comission of testing at public</p><p style=\"text-align: justify\">•TST - Comission of testing</p><p style=\"text-align: justify\">•TSING - Comission of testing.</p><p style=\"text-align: justify\">pariatur id aute consequat occaecat in cillum et eu minim.</p><p style=\"text-align: justify\"></p><p style=\"text-align: justify\"><strong>1.FIRST TEST</strong></p><p style=\"text-align: justify\">consequat et aliquip enim nostrud ipsum incididunt laboris consectetur do fugiat dolor in anim officia in exercitation quis et duis incididunt Lorem et officia commodo fugiat eiusmod laborum ullamco pariatur</p><p style=\"text-align: justify\">in laborum mollit non deserunt ullamco enim deserunt magna nulla laboris incididunt pariatur aliquip ad.</p><p style=\"text-align: justify\"></p><p style=\"text-align: justify\"><strong>2.The Test</strong></p><p style=\"text-align: justify\">fugiat consectetur aliqua Lorem culpa ipsum cupidatat commodo amet do nulla dolore proident eiusmod cupidatat irure ut cillum Lorem aute nulla ad ad Lorem dolore duis labore nisi ipsum sunt.</p><p style=\"text-align: justify\">nostrud velit dolore officia nulla magna labore occaecat mollit duis excepteur incididunt fugiat eiusmod nostrud consequat aliquip incididunt esse ex ullamco enim incididunt.</p><p style=\"text-align: justify\">non cupidatat aliquip veniam nostrud et consectetur sit anim ad.</p><p style=\"text-align: justify\">commodo id adipisicing id reprehenderit dolor pariatur ut non proident incididunt sunt incididunt quis in exercitation labore exercitation do ex mollit est deserunt laborum amet ullamco fugiat deserunt commodo magna exercitation nostrud eiusmod fugiat non.</p><p style=\"text-align: justify\"></p><p style=\"text-align: justify\">3<strong>.TESTING</strong></p><p style=\"text-align: justify\">reprehenderit quis voluptate commodo veniam nostrud incididunt deserunt consequat fugiat Lorem id laboris ea officia exercitation minim aliquip minim consectetur elit incididunt do proident mollit deserunt excepteur adipisicing eu qui duis laborum magna culpa qui consectetur commodo qui.</p><p></p>"
+                          }
+                        ],
+                        "relatedTo": null
+                      }
+                    ]
+                  },
+                  "authority": {
+                    "hierarchy": null,
+                    "summary": null,
+                    "role": null,
+                    "agendaFrom": null,
+                    "agendaStakeholder": null
+                  },
+                  "eventLinkSigalei": "https://jsreport.net",
+                  "eventLinkExternal": "https://jsreport.net",
+                  "type": "TESTING"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "house": "House 2",
+          "dates": [
+            {
+              "eventDate": "01/04/2025",
+              "humanDate": "second-test",
+              "events": [
+                {
+                  "itemNumber": null,
+                  "id": "randomid",
+                  "base": {
+                    "title": "<a href=https://jsreport.net>Great test</a>",
+                    "rawTitle": "Great test",
+                    "time": "14:00",
+                    "date": "01/04/2025",
+                    "humanDate": "second-test",
+                    "local": "labore eu deserunt velit non",
+                    "agenda": "",
+                    "agendaHtml": null,
+                    "guests": [],
+                    "status": "Testing"
+                  },
+                  "properties": {
+                    "teams": ["Test"]
+                  },
+                  "legislative": {
+                    "category": "Testing Category",
+                    "house": "house of test",
+                    "committees": null,
+                    "committeesAlt": null,
+                    "committeeInitials": null,
+                    "followedbills": null
+                  },
+                  "authority": {
+                    "hierarchy": null,
+                    "summary": null,
+                    "role": null,
+                    "agendaFrom": null,
+                    "agendaStakeholder": null
+                  },
+                  "eventLinkSigalei": "https://jsreport.net",
+                  "eventLinkExternal": "https://jsreport.net",
+                  "type": "TESTING"
+                }
+              ]
+            },
+            {
+              "eventDate": "02/04/2025",
+              "humanDate": "third-test",
+              "events": [
+                {
+                  "itemNumber": null,
+                  "id": "somerandomidnew",
+                  "base": {
+                    "title": "<a href=https://jsreport.net>Great Test</a>",
+                    "rawTitle": "Great Test",
+                    "time": "10:00",
+                    "date": "02/04/2025",
+                    "humanDate": "third-test",
+                    "local": "laboris voluptate laborum minim ullamco",
+                    "agenda": "tempor non id qui culpa cupidatat",
+                    "agendaHtml": "<div><span>aliqua mollit in labore.</span></div>",
+                    "guests": [],
+                    "status": "Testing"
+                  },
+                  "properties": {
+                    "teams": ["Testing"]
+                  },
+                  "legislative": {
+                    "category": "SPECIAL TEST",
+                    "house": "Federal Test",
+                    "committees": null,
+                    "committeesAlt": null,
+                    "committeeInitials": null,
+                    "followedbills": null
+                  },
+                  "authority": {
+                    "hierarchy": null,
+                    "summary": null,
+                    "role": null,
+                    "agendaFrom": null,
+                    "agendaStakeholder": null
+                  },
+                  "eventLinkSigalei": "https://jsreport.net",
+                  "eventLinkExternal": "https://jsreport.net",
+                  "type": "TESTING"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

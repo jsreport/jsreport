@@ -9,6 +9,7 @@ const WordExtractor = require('word-extractor')
 const extractor = new WordExtractor()
 
 const docxDirPath = path.join(__dirname, './docx')
+const dataDirPath = path.join(__dirname, './data')
 const outputPath = path.join(__dirname, '../out.docx')
 
 describe('docx', () => {
@@ -967,6 +968,36 @@ describe('docx', () => {
     fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan Blaha')
+  })
+
+  it('complex with conditional content', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'complex-with-conditionals.docx'))
+          }
+        },
+        helpers: `
+          function eq (val, val2, options) {
+            const isEqual = val === val2
+
+            if (isEqual) {
+              return options.fn(this)
+            }
+
+            return ''
+          }
+        `
+      },
+      data: fs.readFileSync(path.join(dataDirPath, 'complex-with-conditionals.json')).toString()
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    should(text).containEql('TESTING XPA')
   })
 
   it('should not duplicate drawing object id in loop', async () => {
