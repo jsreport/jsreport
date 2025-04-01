@@ -551,6 +551,166 @@ describe('with reports extension and clean enabled but long threshold', () => {
   })
 })
 
+describe('with reports extension and authentication enabled', () => {
+  let reporter
+
+  const adminContext = { user: { _id: 'admin', isSuperAdmin: true, isAdmin: true } }
+  const reqAdmin = () => reporter.Request({ context: adminContext })
+
+  const userContext = { user: { _id: 'a', shortid: 'a' } }
+  const req1 = () => reporter.Request({ context: userContext })
+
+  const groupContext = { user: { _id: 'g', isGroup: true } }
+  const reqGroup = () => reporter.Request({ context: groupContext })
+
+  beforeEach(() => {
+    reporter = jsreport({
+      reportTimeout: 300000
+    })
+    reporter.use(require('../')())
+    reporter.use(require('@jsreport/jsreport-authentication')({
+      admin: {
+        username: 'admin',
+        password: 'password'
+      },
+      cookieSession: {
+        secret: 'secret'
+      }
+    }))
+    reporter.use(require('@jsreport/jsreport-authorization')())
+    reporter.use(jsreport.tests.listeners())
+
+    return reporter.init()
+  })
+
+  afterEach(() => reporter.close())
+
+  it('should render stored template as async report with admin user', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      name: 'mytemplate',
+      engine: 'none',
+      content: 'hello',
+      recipe: 'html'
+    }, reqAdmin())
+    await reporter.render({
+      options: { reports: { async: true } },
+      template: {
+        name: 'mytemplate'
+      },
+      context: adminContext
+    })
+
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const reports = await reporter.documentStore.collection('reports').find({})
+      if (reports.length === 0) {
+        continue
+      }
+      reports.should.have.length(1)
+      if (reports[0].state === 'success') {
+        break
+      }
+    }
+  })
+
+  it('should render stored template as async report with custom user', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      name: 'mytemplate',
+      engine: 'none',
+      content: 'hello',
+      recipe: 'html'
+    }, req1())
+    await reporter.render({
+      options: { reports: { async: true } },
+      template: {
+        name: 'mytemplate'
+      },
+      context: userContext
+    })
+
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const reports = await reporter.documentStore.collection('reports').find({}, req1())
+      if (reports.length === 0) {
+        continue
+      }
+
+      reports.should.have.length(1)
+      if (reports[0].state === 'success') {
+        break
+      }
+    }
+  })
+
+  it('should NOT render stored template as async report with custom user that dont have perms to template', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      name: 'mytemplate',
+      engine: 'none',
+      content: 'hello',
+      recipe: 'html'
+    }, reqAdmin())
+
+    await reporter.render({
+      options: { reports: { async: true } },
+      template: {
+        name: 'mytemplate'
+      },
+      context: userContext
+    })
+
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const reports = await reporter.documentStore.collection('reports').find({}, reqAdmin())
+      if (reports.length === 0) {
+        continue
+      }
+
+      reports.should.have.length(1)
+      if (reports[0].state === 'error') {
+        break
+      }
+    }
+  })
+
+  it('should render stored template as async report with custom user group', async () => {
+    await reporter.documentStore.collection('users').insert({
+      _id: 'a',
+      name: 'a',
+      password: 'a',
+      shortid: 'a'
+    })
+    await reporter.documentStore.collection('usersGroups').insert({ name: 'g', _id: 'g', users: [{ shortid: 'a' }] }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'mytemplate',
+      engine: 'none',
+      content: 'hello',
+      recipe: 'html'
+    }, reqGroup())
+
+    await reporter.render({
+      options: { reports: { async: true } },
+      template: {
+        name: 'mytemplate'
+      },
+      context: groupContext
+    })
+
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const reports = await reporter.documentStore.collection('reports').find({})
+      if (reports.length === 0) {
+        continue
+      }
+
+      reports.should.have.length(1)
+      if (reports[0].state === 'success') {
+        break
+      }
+    }
+  })
+})
+
 function delay (timeToWait) {
   return new Promise((resolve) => setTimeout(resolve, timeToWait))
 }
