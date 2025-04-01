@@ -25,15 +25,37 @@ module.exports = function (message, options = {}) {
         error.weak = originalNormalized.weak
       }
 
-      if (error.message == null || error.message === '') {
-        error.message = `${originalNormalized.message}`
-      } else {
-        error.message += `\n(because) ${lowerCaseFirstLetter(originalNormalized.message)}`
+      const initialMsg = error.message == null || error.message === '' ? '' : error.message
+      const [messages, stacks] = getErrorMessagesAndStacks(originalNormalized)
+
+      if (initialMsg !== '') {
+        messages.unshift(initialMsg)
       }
 
+      error.message = messages.reduce((acu, msg) => {
+        if (acu === '') {
+          acu += msg
+        } else {
+          acu += `\n(because) ${lowerCaseFirstLetter(msg)}`
+        }
+
+        return acu
+      }, '')
+
       // stack is printed in reverse order (from cause to more high level error)
-      if (error.stack != null && originalNormalized.stack != null) {
-        error.stack = `${originalNormalized.stack}\nwrapped by:\n${error.stack}`
+      if (error.stack != null && originalNormalized.stack != null && stacks.length > 0) {
+        stacks.unshift(error.stack)
+        stacks.reverse()
+
+        error.stack = stacks.reduce((acu, stack) => {
+          if (acu === '') {
+            acu += stack
+          } else {
+            acu += `\nwrapped by:\n${stack}`
+          }
+
+          return acu
+        }, '')
       }
     }
   }
@@ -47,6 +69,23 @@ module.exports = function (message, options = {}) {
   }
 
   return error
+}
+
+function getErrorMessagesAndStacks (err) {
+  let currentErr = err
+  const messages = []
+  const stacks = []
+
+  while (currentErr != null) {
+    if (currentErr.message) {
+      messages.push(currentErr.message)
+      stacks.push(currentErr.stack ?? '(no stack available)')
+    }
+
+    currentErr = currentErr.cause
+  }
+
+  return [messages, stacks]
 }
 
 function lowerCaseFirstLetter (str) {

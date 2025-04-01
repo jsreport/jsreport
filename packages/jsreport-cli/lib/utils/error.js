@@ -30,15 +30,15 @@ function addStack (err, stack, { stackPrefix = '', stripMessage = false } = {}) 
 }
 
 function getErrors (err) {
-  let parent = err
+  let currentErr = err
   const errors = []
 
-  while (parent != null) {
-    const customProps = Object.assign({}, parent)
-    let currentStack = parent.stack || ''
+  while (currentErr != null) {
+    const customProps = Object.assign({}, currentErr)
+    let currentStack = currentErr.stack || ''
     let cleanState = false
 
-    if (parent.cleanState === true) {
+    if (currentErr.cleanState === true) {
       cleanState = true
     }
 
@@ -47,34 +47,34 @@ function getErrors (err) {
     delete customProps.disableExit
     delete customProps.cleanState
 
-    const fakeE = { message: parent.message, stack: '' }
+    const fakeE = { message: currentErr.message, stack: '' }
 
-    addStack(fakeE, parent.stack || '', {
+    addStack(fakeE, currentErr.stack || '', {
       stripMessage: true
     })
 
     currentStack = fakeE.stack
 
     errors.push({
-      message: parent.message,
+      message: currentErr.message,
       stack: currentStack || '',
       meta: Object.keys(customProps).length > 0 ? getSimpleProperties(customProps) : undefined,
       cleanState
     })
 
-    parent = parent.originalError
+    currentErr = currentErr.originalError ?? currentErr.cause
   }
 
   return errors
 }
 
-function getErrorMessages (err) {
+function getErrorMessagesAndStacks (err) {
   const errors = getErrors(err)
   let cleanState = false
   const messages = []
   const stacks = []
 
-  errors.forEach((error) => {
+  for (const error of errors) {
     let customProps = error.meta || {}
     const currentStack = error.stack
 
@@ -97,7 +97,7 @@ function getErrorMessages (err) {
         stacks.push(`-> stack\n${currentStack}`)
       }
     }
-  })
+  }
 
   if (!cleanState && stacks.length > 0) {
     return [messages, stacks]
@@ -129,7 +129,7 @@ function getSimpleProperties (obj) {
 }
 
 function printError (err, logger) {
-  const [messages, stacks] = getErrorMessages(err)
+  const [messages, stacks] = getErrorMessagesAndStacks(err)
 
   for (let idx = 0; idx < messages.length; idx++) {
     messages[idx] += ` (${messages.length - idx})`
@@ -164,5 +164,5 @@ function lowerCaseFirstLetter (str) {
 
 module.exports.printError = printError
 module.exports.getErrors = getErrors
-module.exports.getErrorMessages = getErrorMessages
+module.exports.getErrorMessages = getErrorMessagesAndStacks
 module.exports.addStack = addStack
