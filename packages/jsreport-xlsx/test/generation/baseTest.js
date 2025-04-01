@@ -407,6 +407,34 @@ describe('xlsx generation - base', () => {
     should(sheet.A1.v).be.eql('Hello world Boris&Junior')
   })
 
+  it('helper call passing strings as values', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        helpers: `
+          function testfunction(string) {
+            return string
+          }
+        `,
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'helper-call-with-strings-as-values.xlsx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Passed in String')
+    should(sheet.A2.v).be.eql('Passed in String')
+  })
+
   it('handlebars partials', async () => {
     const result = await reporter.render({
       template: {

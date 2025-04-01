@@ -29,8 +29,8 @@ module.exports = async (reporter, files, sections) => {
     'g',
     async (val, content, hasNestedMatch) => {
       // we parse assuming it can be multiple paragraphs, this can happen
-      // when some docxHtml get generated in a loop but just the end gets duplicated
-      // without the starting part
+      // when some helper blocks get generated in a loop with conditional parts,
+      // paragraphs with start attributes are there but with single end part
       const doc = new DOMParser().parseFromString(`<docxXml>${val}</docxXml>`)
       const paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
 

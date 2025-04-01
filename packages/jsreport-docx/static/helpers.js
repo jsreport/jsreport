@@ -250,6 +250,8 @@ async function docxTable (data, options) {
 
     const newData = Handlebars.createFrame(optionsToUse.data)
 
+    newData.currentCell = null
+
     newData.colsWidth = {
       config: null,
       values: null,
@@ -271,9 +273,9 @@ async function docxTable (data, options) {
   ) {
     if (
       optionsToUse.hash.check === 'colspan' &&
-      optionsToUse.data.colspan > 1
+      optionsToUse.data.currentCell?.colspan > 1
     ) {
-      return optionsToUse.fn(optionsToUse.data.colspan)
+      return optionsToUse.fn(optionsToUse.data.currentCell.colspan)
     }
 
     if (
@@ -391,11 +393,8 @@ async function docxTable (data, options) {
     if (
       optionsToUse.hash.check === 'row'
     ) {
-      const data = Handlebars.createFrame(optionsToUse.data)
-
-      data.currentCell = { index: null, extra: 0 }
-
-      return optionsToUse.fn(this, { data })
+      optionsToUse.data.currentCell = { index: null, extra: 0 }
+      return new Handlebars.SafeString('')
     }
 
     if (
@@ -424,15 +423,13 @@ async function docxTable (data, options) {
         gridSpan = 1
       }
 
-      let dataToUse = optionsToUse.data
-
       if (gridSpan > 1) {
         currentCell.extra = gridSpan - 1
-        dataToUse = Handlebars.createFrame(optionsToUse.data)
-        dataToUse.colspan = gridSpan
       }
 
-      return optionsToUse.fn(this, { data: dataToUse })
+      currentCell.colspan = gridSpan
+
+      return new Handlebars.SafeString('')
     }
 
     if (
@@ -448,7 +445,7 @@ async function docxTable (data, options) {
         return originalWidthValue
       }
 
-      let gridSpan = optionsToUse.data.colspan
+      let gridSpan = optionsToUse.data.currentCell.colspan
 
       if (gridSpan == null) {
         gridSpan = 1
@@ -1133,7 +1130,9 @@ async function docxSData (data, options) {
 
       htmlCalls.latest = cId
       htmlCalls.records.get(cId).type = currentType
-    } else {
+    } else if (htmlCalls.records.get(cId) != null) {
+      // if there is no record it means we got a closing delimiter without a start,
+      // this means we should just ignore it
       const currentRecord = htmlCalls.records.get(cId)
       const { taskKey, counter: baseCounter, pending } = currentRecord
 
