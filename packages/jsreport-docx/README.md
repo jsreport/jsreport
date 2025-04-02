@@ -7,6 +7,12 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.7.1    
+
+- fix regression of complex template not working
+- improve errors
+- fix case with multiple docxHtml calls and conditionals
+
 ### 4.7.0
 
 - update deps to fix audit

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-docx",
-  "version": "4.7.0",
+  "version": "4.7.1",
   "description": "jsreport recipe rendering docx files",
   "keywords": [
     "jsreport",
