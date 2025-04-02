@@ -41,4 +41,42 @@ module.exports = (reporter) => (proxy, req) => {
       return reporter.folders.resolveEntityPath(entity, es, req)
     }
   }
+
+  // expose tempfile functions
+  const createTempFileFns = [
+    'getTempFilePath', 'openTempFile', 'writeTempFileSync', 'writeTempFile',
+    'writeTempFileStream', 'copyFileToTempFile'
+  ]
+
+  const restOfTempFileFns = [
+    'readTempFileSync', 'readTempFile', 'readTempFileStream'
+  ]
+
+  const allFns = [
+    ...createTempFileFns,
+    ...restOfTempFileFns
+  ]
+
+  for (const fnName of allFns) {
+    const shouldLimitCreation = createTempFileFns.includes(fnName)
+
+    proxy[fnName] = (...args) => {
+      if (shouldLimitCreation) {
+        // limiting the number of temp files to avoid breaking server, otherwise I see no
+        // reason why having more than 1000 calls per req should be valid usecase
+        const counter = reporter.runningRequests.keyValueStore.get('tmp-file-counter', req) || 0
+
+        if (counter > 1000) {
+          throw reporter.createError('Reached maximum limit of tmp file calls in sandbox', {
+            weak: true,
+            statusCode: 400
+          })
+        }
+
+        reporter.runningRequests.keyValueStore.set('tmp-file-counter', counter + 1, req)
+      }
+
+      return reporter[fnName](...args)
+    }
+  }
 }
