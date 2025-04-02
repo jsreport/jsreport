@@ -73,12 +73,12 @@ module.exports = async (reporter, inputs, req) => {
       const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
         if (validPathsForParagraphs.includes(f.path) && node.nodeType === 1 && node.tagName === 'w:p') {
           paragraphsCount++
-          // this will take care of removing xmlns, xmlns:prefix attributes that we don't want here
+
           const str = new XMLSerializer().serializeToString(
             node,
             undefined,
             normalizeAttributeAndTextNode
-          ).replace(/ xmlns(:[a-z0-9]+)?="[^"]*"/g, '')
+          )
 
           paragraphsText.push(str)
 
@@ -173,7 +173,7 @@ module.exports = async (reporter, inputs, req) => {
     // we remove NUL, VERTICAL TAB unicode characters, which are characters that are illegal in XML
     // NOTE: we should likely find a way to remove illegal characters more generally, using some kind of unicode ranges
     // eslint-disable-next-line no-control-regex
-    const contents = newContent.toString().replace(/\u0000|\u000b|/g, '').replaceAll(paragraphSeparator, '').split(filesSeparator)
+    const contents = newContent.toString().replace(/\u0000|\u000b/g, '').replaceAll(paragraphSeparator, '').split(filesSeparator)
 
     for (let i = 0; i < filesToRender.length; i++) {
       filesToRender[i].data = contents[i]

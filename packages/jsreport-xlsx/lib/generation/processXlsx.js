@@ -72,12 +72,11 @@ module.exports = (reporter) => async (inputs, req) => {
           node.removeAttribute('__CT_v__')
           node.removeAttribute('__CT_ve__')
 
-          // this will take care of removing xmlns, xmlns:prefix attributes that we don't want here
           const str = new XMLSerializer().serializeToString(
             node,
             undefined,
             normalizeAttributeAndTextNode
-          ).replace(/ xmlns(:[a-z0-9]+)?="[^"]*"/g, '')
+          )
 
           const isSelfClosing = node.childNodes.length === 0
           let attrs
