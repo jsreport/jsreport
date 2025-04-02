@@ -670,7 +670,7 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
       // inherit only the run properties of the html embed call
       clearEl(runEl, (c) => c.nodeName === 'w:rPr')
 
-      const { imageContent, imageExtension } = await resolveImageSrc(reporter, currentDocxMeta.src)
+      const { imageContent, imageExtension } = await resolveImageSrc(currentDocxMeta.src, reporter.writeTempFileStream.bind(reporter))
 
       const newImageRelId = getNewRelId(relsDoc)
 

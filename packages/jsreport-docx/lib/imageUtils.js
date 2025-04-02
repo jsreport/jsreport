@@ -1,16 +1,17 @@
 const fsAsync = require('fs/promises')
+const { Readable } = require('stream')
 const { pipeline } = require('stream/promises')
 const sizeOf = require('image-size')
 const axios = require('axios')
 const { pxToEMU, cmToEMU, getDimension } = require('./utils')
 
-module.exports.resolveImageSrc = async function resolveImageSrc (reporter, src) {
+module.exports.resolveImageSrc = async function resolveImageSrc (src, writeTempFileStream) {
   let imageContent
   let imageExtension
   let imageSource
 
   try {
-    if (src && src.startsWith('data:')) {
+    if (typeof src === 'string' && src.startsWith('data:')) {
       const imageSrc = src
 
       imageSource = 'inline'
@@ -29,22 +30,47 @@ module.exports.resolveImageSrc = async function resolveImageSrc (reporter, src) 
     } else {
       imageSource = 'remote'
 
-      const response = await axios({
-        url: src,
-        responseType: 'stream',
-        method: 'GET'
-      })
+      let imageStream
+      let imageContentTypeOrExtension
 
-      const contentType = response.headers['content-type'] || response.headers['Content-Type']
+      if (typeof src === 'function') {
+        const resolved = await src()
+        imageStream = resolved?.stream
+        imageContentTypeOrExtension = resolved?.type
+      } else {
+        const response = await axios({
+          url: src,
+          responseType: 'stream',
+          method: 'GET'
+        })
 
-      if (!contentType) {
-        throw new Error(`Empty content-type for remote image at "${src}"`)
+        imageStream = response.data
+        imageContentTypeOrExtension = response.headers['content-type'] || response.headers['Content-Type']
       }
 
-      const extensionsParts = contentType.split(';')[0].split('/').filter((p) => p)
+      if (!imageContentTypeOrExtension) {
+        throw new Error(decorateErrorMessageWithUrl('Empty content-type or extension for remote image', src))
+      }
+
+      if (!imageStream) {
+        throw new Error(decorateErrorMessageWithUrl('Empty stream for remote image', src))
+      }
+
+      if (
+        !isNodeReadableStream(imageStream) &&
+        !isWebReadableStream(imageStream)
+      ) {
+        throw new Error(decorateErrorMessageWithUrl('Expected stream but got a different value for remote image', src))
+      }
+
+      if (isWebReadableStream(imageStream)) {
+        imageStream = Readable.fromWeb(imageStream)
+      }
+
+      const extensionsParts = imageContentTypeOrExtension.split(';')[0].split('/').filter((p) => p)
 
       if (extensionsParts.length === 0 || extensionsParts.length > 2) {
-        throw new Error(`Invalid content-type "${contentType}" for remote image at "${src}"`)
+        throw new Error(decorateErrorMessageWithUrl(`Invalid content-type or extension "${imageContentTypeOrExtension}" for remote image`, src))
       }
 
       // some servers returns the image content type without the "image/" prefix
@@ -52,9 +78,9 @@ module.exports.resolveImageSrc = async function resolveImageSrc (reporter, src) 
       // we remove subtypes "+..." from the type, like in the case of "svg+xml"
       imageExtension = imageExtension.split('+')[0]
 
-      const { pathToFile: tmpImagePath, stream: tmpImageStream } = await reporter.writeTempFileStream((uuid) => `docx-rmt-img-${uuid}.${imageExtension}`)
+      const { pathToFile: tmpImagePath, stream: tmpImageStream } = await writeTempFileStream((uuid) => `docx-rmt-img-${uuid}.${imageExtension}`)
 
-      await pipeline(response.data, tmpImageStream)
+      await pipeline(imageStream, tmpImageStream)
 
       imageContent = {
         type: 'path',
@@ -65,8 +91,8 @@ module.exports.resolveImageSrc = async function resolveImageSrc (reporter, src) 
     let wrappedError = error
 
     if (imageSource === 'remote' && wrappedError?.config?.url != null) {
-      wrappedError = reporter.createError(`Unable to fetch remote image at ${wrappedError.config.url}`, {
-        original: error
+      wrappedError = new Error(`Unable to fetch remote image at ${wrappedError.config.url}`, {
+        cause: error
       })
     }
 
@@ -134,4 +160,38 @@ module.exports.getImageSizeInEMU = async function getImageSizeInEMU (imageConten
   }
 
   return { width: imageWidthEMU, height: imageHeightEMU }
+}
+
+// from https://github.com/sindresorhus/is-stream/blob/main/index.js
+function isNodeReadableStream (stream) {
+  return (
+    stream !== null &&
+    typeof stream === 'object' &&
+    typeof stream.pipe === 'function' &&
+    typeof stream.read === 'function' &&
+    typeof stream.readable === 'boolean' &&
+    typeof stream.readableObjectMode === 'boolean' &&
+    typeof stream.destroy === 'function' &&
+    typeof stream.destroyed === 'boolean'
+  )
+}
+
+function isWebReadableStream (stream) {
+  return (
+    stream !== null &&
+    typeof stream === 'object' &&
+    typeof stream.locked === 'boolean' &&
+    typeof stream.cancel === 'function' &&
+    typeof stream.getReader === 'function' &&
+    typeof stream.pipeTo === 'function' &&
+    typeof stream.pipeThrough === 'function'
+  )
+}
+
+function decorateErrorMessageWithUrl (msg, src) {
+  if (typeof src === 'string') {
+    return `${msg} at ${src}`
+  }
+
+  return msg
 }

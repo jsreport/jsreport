@@ -95,7 +95,7 @@ module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx)
       }
     }
 
-    const newImageDrawingEl = await processImage(reporter, files, drawingEl, doc, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
+    const newImageDrawingEl = await processImage(files, drawingEl, doc, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
 
     if (newImageDrawingEl != null) {
       return newImageDrawingEl

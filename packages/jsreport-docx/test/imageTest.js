@@ -14,6 +14,9 @@ describe('docx image', () => {
 
   beforeEach(() => {
     reporter = jsreport({
+      sandbox: {
+        allowedModules: ['fs']
+      },
       store: {
         provider: 'memory'
       }
@@ -96,6 +99,60 @@ describe('docx image', () => {
               return new Promise((resolve) => resolve('${getImageDataUri(format, imageBuf)}') )
             }
             `
+          }
+        })
+
+        const outputImageMeta = await getImageMeta(result.content)
+        const outputImageSize = outputImageMeta.size
+
+        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+        // should preserve original image size by default
+        outputImageSize.width.should.be.eql(targetImageSize.width)
+        outputImageSize.height.should.be.eql(targetImageSize.height)
+
+        fs.writeFileSync(outputPath, result.content)
+      })
+
+      it('image from custom loader function', async () => {
+        const { imageBuf, imagePath, imageExtension } = readImage(format, 'image')
+        const imageDimensions = sizeOf(imageBuf)
+
+        const targetImageSize = {
+          width: pxToEMU(imageDimensions.width),
+          height: pxToEMU(imageDimensions.height)
+        }
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: fs.readFileSync(path.join(docxDirPath, 'image-with-loader.docx'))
+              }
+            },
+            helpers: `
+            function imageLoader(src) {
+              // a loader should always return a stream and type (extension or content type for image)
+              return function loader () {
+                const fs = require('fs')
+
+                // the idea here is that user can load the image from anywhere, user can use
+                // a custom http request library, load from fs or from S3, etc.
+                // the idea of allowing this is that user can still benefit from our
+                // parallel limits and logic of batching images on disk to prevent
+                // loading all images on memory and failing to render when using a lot of images
+                return new Promise((resolve) => resolve({
+                  type: '${format}',
+                  stream: fs.createReadStream(src)
+                }))
+              }
+            }
+            `
+          },
+          data: {
+            src: imagePath
           }
         })
 
@@ -855,7 +912,7 @@ describe('docx image', () => {
     }
   })
 
-  it('image with custom helper', async () => {
+  it('image with custom helper wrapping docxImage', async () => {
     const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
 
     const data = {
@@ -941,7 +998,7 @@ describe('docx image', () => {
     }
   })
 
-  it('image with custom async helper', async () => {
+  it('image with custom async helper wrapping docxImage', async () => {
     const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
 
     const data = {
@@ -1268,6 +1325,89 @@ describe('docx image', () => {
       .should.be.rejectedWith(
         /docxImage helper requires src parameter to be valid data uri/
       )
+  })
+
+  it('image error message when no src as image loader did not return valid value', async () => {
+    return reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(docxDirPath, 'image-with-loader.docx'))
+            }
+          },
+          helpers: `
+          function imageLoader(src) {
+            return function loader () {
+              return null
+            }
+          }
+          `
+        },
+        data: {
+          src: null
+        }
+      })
+      .should.be.rejectedWith(/empty content-type or extension for remote image/)
+  })
+
+  it('image error message when no src as image loader did not return type value', async () => {
+    return reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(docxDirPath, 'image-with-loader.docx'))
+            }
+          },
+          helpers: `
+          function imageLoader(src) {
+            return function loader () {
+              return {
+                stream: true
+              }
+            }
+          }
+          `
+        },
+        data: {
+          src: null
+        }
+      })
+      .should.be.rejectedWith(/empty content-type or extension for remote image/)
+  })
+
+  it('image error message when no src as image loader did not return stream value', async () => {
+    return reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(docxDirPath, 'image-with-loader.docx'))
+            }
+          },
+          helpers: `
+          function imageLoader(src) {
+            return function loader () {
+              return {
+                stream: true,
+                type: 'jpg'
+              }
+            }
+          }
+          `
+        },
+        data: {
+          src: null
+        }
+      })
+      .should.be.rejectedWith(/expected stream but got a different value for remote image/)
   })
 
   it('image error message when width not valid param', async () => {

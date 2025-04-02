@@ -117,6 +117,9 @@ module.exports = async (reporter, inputs, req) => {
       return xmlStr.replace(/<\/?docxRemove>/g, '')
     }).join(filesSeparator) // the extra lines is to help to map the files to content
 
+    // NOTE: Consider exposing all the options object if we find there are options
+    ctx.templating.setGlobalValue('imageFetchParallelLimit', ctx.options.imageFetchParallelLimit)
+
     // get the last ids to share it with templating
     for (const [key, idManager] of ctx.idManagers.all()) {
       ctx.templating.setGlobalValue(`${key}MaxNumId`, idManager.last.numId)

@@ -1,8 +1,8 @@
 const fs = require('fs')
-const { resolveImageSrc, getImageSizeInEMU } = require('../imageUtils')
+const { getImageSizeInEMU } = require('../imageUtils')
 const { nodeListToArray, findOrCreateChildNode, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
 
-module.exports = async function processImage (reporter, files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
+module.exports = async function processImage (files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
   const types = contentTypesFile.doc.getElementsByTagName('Types')[0]
@@ -127,48 +127,21 @@ module.exports = async function processImage (reporter, files, referenceDrawingE
 
   const imageConfig = docxImageMeta.config
 
-  const pendingSources = []
-
-  if (imageConfig.src != null) {
-    pendingSources.push(imageConfig.src)
-  }
-
-  if (imageConfig.fallbackSrc != null) {
-    pendingSources.push(imageConfig.fallbackSrc)
-  }
-
-  let resolveImageSrcError
-  let imageContent
-  let imageExtension
-
-  while (pendingSources.length > 0) {
-    const currentSource = pendingSources.shift()
-
-    try {
-      const resolved = await resolveImageSrc(reporter, currentSource)
-      imageContent = resolved.imageContent
-      imageExtension = resolved.imageExtension
-    } catch (resolveError) {
-      if (
-        pendingSources.length === 0 ||
-        resolveError.imageSource !== 'remote'
-      ) {
-        resolveImageSrcError = resolveError
-      }
+  if (imageConfig.image == null) {
+    if (imageConfig.failurePlaceholderAction === 'preserve') {
+      return drawingEl
     }
+
+    // remove case
+    return ''
   }
 
-  if (resolveImageSrcError != null || imageContent == null) {
-    if (resolveImageSrcError != null && imageConfig.failurePlaceholderAction == null) {
-      throw resolveImageSrcError
-    } else {
-      if (imageConfig.failurePlaceholderAction === 'preserve') {
-        return drawingEl
-      }
+  const imageExtension = imageConfig.image.extension
+  const imageContent = imageConfig.image.content
 
-      // remove case
-      return ''
-    }
+  if (imageContent.type === 'base64') {
+    imageContent.type = 'buffer'
+    imageContent.data = Buffer.from(imageContent.data, 'base64')
   }
 
   const newImageRelId = getNewRelId(relsDoc)

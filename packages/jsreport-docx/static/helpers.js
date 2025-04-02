@@ -33,7 +33,15 @@ function docxContext (options) {
           fromMaxId: value
         })
       } else {
-        currentCtx.templating.set(key, value)
+        if (key === 'imageFetchParallelLimit') {
+          currentCtx.options = {
+            get imageFetchParallelLimit () {
+              return value
+            }
+          }
+        } else {
+          currentCtx.templating.set(key, value)
+        }
       }
     }
 
@@ -53,6 +61,8 @@ function docxContext (options) {
     data.newDefaultContentTypes = new Map()
     data.newDocumentRels = new Set()
     data.newFiles = new Map()
+    const createLock = require('docxCreateLock')
+    data.imageLoaderLock = createLock(data.ctx.options.imageFetchParallelLimit)
   } else if (contextType === 'contentTypes' || contextType === 'documentRels') {
     data = Handlebars.createFrame(options.data)
   } else if (contextType === 'document') {
@@ -910,6 +920,10 @@ async function docxImage (optionsToUse) {
   }
 
   const isValidSrc = (value) => {
+    if (typeof value === 'function') {
+      return true
+    }
+
     return (
       typeof value === 'string' &&
       (
@@ -927,7 +941,7 @@ async function docxImage (optionsToUse) {
     !isValidSrc(optionsToUse.hash.src)
   ) {
     throw new Error(
-      'docxImage helper requires src parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
+      'docxImage helper requires src parameter to be valid data uri (for png, jpeg, svg image), a valid url or a custom loader function. Got ' +
       optionsToUse.hash.src
     )
   }
@@ -937,7 +951,7 @@ async function docxImage (optionsToUse) {
     !isValidSrc(optionsToUse.hash.fallbackSrc)
   ) {
     throw new Error(
-      'docxImage helper requires fallbackSrc parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
+      'docxImage helper requires fallbackSrc parameter to be valid data uri (for png, jpeg, svg image), a valid url or a custom loader function. Got ' +
       optionsToUse.hash.fallbackSrc
     )
   }
@@ -980,9 +994,24 @@ async function docxImage (optionsToUse) {
     )
   }
 
+  const processImageLoader = require('docxProcessImageLoader')
+  let imageResolved
+
+  try {
+    imageResolved = await processImageLoader(
+      optionsToUse.hash.src,
+      optionsToUse.hash.fallbackSrc,
+      jsreport.writeTempFileStream,
+      optionsToUse.data.imageLoaderLock
+    )
+  } catch (imageLoaderError) {
+    if (optionsToUse.hash.failurePlaceholderAction == null) {
+      throw imageLoaderError
+    }
+  }
+
   const imageConfig = {
-    src: optionsToUse.hash.src,
-    fallbackSrc: optionsToUse.hash.fallbackSrc,
+    image: imageResolved,
     failurePlaceholderAction: optionsToUse.hash.failurePlaceholderAction,
     width: optionsToUse.hash.width,
     height: optionsToUse.hash.height,

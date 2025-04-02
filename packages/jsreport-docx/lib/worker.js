@@ -20,6 +20,11 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.options.sandbox.modules.push({
+    alias: 'docxCreateLock',
+    path: path.join(__dirname, './createLock.js')
+  })
+
+  reporter.options.sandbox.modules.push({
     alias: 'docxCtx',
     path: path.join(__dirname, './ctx.js')
   })
@@ -47,6 +52,11 @@ module.exports = (reporter, definition) => {
   reporter.options.sandbox.modules.push({
     alias: 'docxProcessDocumentRels',
     path: path.join(__dirname, './processDocumentRels.js')
+  })
+
+  reporter.options.sandbox.modules.push({
+    alias: 'docxProcessImageLoader',
+    path: path.join(__dirname, './processImageLoader.js')
   })
 
   reporter.options.sandbox.modules.push({
