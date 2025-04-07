@@ -105,7 +105,7 @@ function common (strategy, imageExecution, connectOptions = () => ({})) {
       template: {
         content: `
           <script>
-            document.write(window.location='${__filename.replace(/\\/g, '/')}')
+            document.write(window.location='file:///${__filename.replace(/\\/g, '/')}')
           </script>
           `,
         recipe,

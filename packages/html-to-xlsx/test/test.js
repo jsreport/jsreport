@@ -5285,27 +5285,6 @@ async function createHtmlFile (html) {
 }
 
 function rmDir (dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath)
-  }
-
-  let files
-
-  try {
-    files = fs.readdirSync(dirPath)
-  } catch (e) {
-    return
-  }
-
-  if (files.length > 0) {
-    for (let i = 0; i < files.length; i++) {
-      const filePath = `${dirPath}/${files[i]}`
-
-      try {
-        if (fs.statSync(filePath).isFile()) {
-          fs.unlinkSync(filePath)
-        }
-      } catch (e) { }
-    }
-  }
+  fs.rmSync(dirPath, { recursive: true, force: true, maxRetries: 5 })
+  fs.mkdirSync(dirPath, { recursive: true })
 }
