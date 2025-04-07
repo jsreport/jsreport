@@ -3,7 +3,6 @@
  *
  * Recipe rendering pdf files using headless chrome.
  */
-const url = require('url')
 
 async function renderHeaderOrFooter (type, reporter, req, content) {
   reporter.logger.debug(`Starting child request to render pdf ${type}`, req)
@@ -46,22 +45,6 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
 
     const chrome = Object.assign({}, imageExecution ? req.template.chromeImage : req.template.chrome)
 
-    let htmlUrl
-
-    if (chrome.url) {
-      htmlUrl = chrome.url
-    } else {
-      const { pathToFile } = await res.output.writeToTempFile((uuid) => `${uuid}-${imageExecution ? 'chrome-image' : 'chrome-pdf'}.html`)
-
-      // when running docker on windows host the isAbsolute is not able to correctly determine
-      // if path is absolute
-      // if (!path.isAbsolute(htmlPath)) {
-      //  throw new Error(`generated htmlPath option must be an absolute path to a file. path: ${htmlPath}`)
-      // }
-
-      htmlUrl = url.pathToFileURL(pathToFile)
-    }
-
     if (!imageExecution) {
       if (chrome.headerTemplate) {
         chrome.headerTemplate = await renderHeaderOrFooter('header', reporter, req, chrome.headerTemplate)
@@ -73,12 +56,13 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
     }
 
     const result = await strategyCall({
-      htmlUrl,
       strategy,
       puppeteer,
       launchOptions,
+      connectOptions: definition.options.connectOptions,
       allowLocalFilesAccess,
       req,
+      res,
       conversionOptions: chrome,
       imageExecution,
       // we need to copy the stream before the browser instance get recycled
@@ -104,10 +88,13 @@ function initRecipe (reporter, definition) {
   }
   const dedicatedProcessStrategy = require('./dedicatedProcessStrategy')
   const chromePoolStrategy = require('./chromePoolStrategy')
+  const connectStrategy = require('./connectStrategy')
 
   puppeteer = definition.options.puppeteerInstance != null ? definition.options.puppeteerInstance : require('puppeteer')
 
-  if (definition.options.strategy === 'dedicated-process') {
+  if (definition.options.strategy === 'connect') {
+    strategyCall = connectStrategy({ reporter, puppeteer, options: definition.options })
+  } else if (definition.options.strategy === 'dedicated-process') {
     strategyCall = dedicatedProcessStrategy({ reporter, puppeteer, options: definition.options })
   } else if (definition.options.strategy === 'chrome-pool') {
     strategyCall = chromePoolStrategy({ reporter, puppeteer, options: definition.options })

@@ -5,6 +5,7 @@ const JsReport = require('@jsreport/jsreport-core')
 const should = require('should')
 const parsePdf = require('parse-pdf')
 const http = require('http')
+const puppeteer = require('puppeteer')
 
 describe('chrome pdf', () => {
   describe('dedicated-process strategy', () => {
@@ -23,6 +24,23 @@ describe('chrome pdf', () => {
     describe('chrome pdf with small timeout', () => {
       commonTimeout('chrome-pool')
     })
+  })
+
+  describe('connect strategy', () => {
+    let browser
+    beforeEach(async () => {
+      browser = await puppeteer.launch({
+        args: ['--no-sandbox']
+      })
+    })
+
+    afterEach(async () => {
+      if (browser) {
+        await browser.close()
+      }
+    })
+
+    common('connect', false, () => ({ browserWSEndpoint: browser.wsEndpoint() }))
   })
 })
 
@@ -46,7 +64,7 @@ describe('chrome image', () => {
   })
 })
 
-function common (strategy, imageExecution) {
+function common (strategy, imageExecution, connectOptions = () => ({})) {
   let reporter
   let resourceServer
   const recipe = imageExecution ? 'chrome-image' : 'chrome-pdf'
@@ -58,10 +76,11 @@ function common (strategy, imageExecution) {
 
     reporter.use(require('../')({
       strategy,
-      numberOfWorkers: 2,
+      numberOfWorkers: 1,
       launchOptions: {
         args: ['--no-sandbox']
-      }
+      },
+      connectOptions: connectOptions()
     }))
 
     resourceServer = http.createServer((req, res) => setTimeout(() => {
@@ -95,7 +114,8 @@ function common (strategy, imageExecution) {
     }
 
     const res = await reporter.render(request)
-    JSON.stringify(res.meta.logs).should.containEql('ERR_ACCESS_DENIED')
+    const str = JSON.stringify(res.meta.logs);
+    (str.includes('ERR_ACCESS_DENIED') || str.includes('Not allowed to load local resource')).should.be.true()
   })
 
   it('should block file requests with file protocol', async () => {
@@ -112,7 +132,8 @@ function common (strategy, imageExecution) {
     }
 
     const res = await reporter.render(request)
-    JSON.stringify(res.meta.logs).should.containEql('ERR_ACCESS_DENIED')
+    const str = JSON.stringify(res.meta.logs);
+    (str.includes('ERR_ACCESS_DENIED') || str.includes('Not allowed to load local resource')).should.be.true()
   })
 
   it('should not fail when rendering', async () => {

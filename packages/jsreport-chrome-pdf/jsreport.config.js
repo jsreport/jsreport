@@ -21,6 +21,13 @@ const chromeSchema = {
           }]
         }
       }
+    },
+    connectOptions: {
+      type: 'object',
+      properties: {
+        browserWSEndpoint: { type: 'string' },
+        browserURL: { type: 'string' }
+      }
     }
   }
 }

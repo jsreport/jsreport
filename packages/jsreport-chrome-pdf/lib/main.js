@@ -67,7 +67,8 @@ module.exports = function (reporter, definition) {
 
   if (
     definition.options.strategy !== 'dedicated-process' &&
-    definition.options.strategy !== 'chrome-pool'
+    definition.options.strategy !== 'chrome-pool' &&
+    definition.options.strategy !== 'connect'
   ) {
     throw new Error(`Unsupported strategy "${definition.options.strategy}" for chrome-pdf`)
   }

@@ -1,4 +1,5 @@
 const conversion = require('./conversion')
+const url = require('url')
 
 module.exports = ({ reporter, puppeteer, options }) => {
   const pool = []
@@ -9,12 +10,21 @@ module.exports = ({ reporter, puppeteer, options }) => {
     throw new Error('"numberOfWorkers" must be a number greater or equal than 1')
   }
 
-  const execute = async ({ htmlUrl, strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess, onOutput }) => {
+  const execute = async ({ strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess, onOutput, res }) => {
     let browserInfo
     let page
     let releaseBrowser
     let crashError = false
     let timeoutError = false
+
+    let htmlUrl
+
+    if (conversionOptions.url) {
+      htmlUrl = conversionOptions.url
+    } else {
+      const { pathToFile } = await res.output.writeToTempFile((uuid) => `${uuid}-${imageExecution ? 'chrome-image' : 'chrome-pdf'}.html`)
+      htmlUrl = url.pathToFileURL(pathToFile)
+    }
 
     try {
       const result = await conversion({
