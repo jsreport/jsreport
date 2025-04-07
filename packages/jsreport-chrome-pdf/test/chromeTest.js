@@ -114,8 +114,12 @@ function common (strategy, imageExecution, connectOptions = () => ({})) {
     }
 
     const res = await reporter.render(request)
-    const str = JSON.stringify(res.meta.logs);
-    (str.includes('ERR_ACCESS_DENIED') || str.includes('Not allowed to load local resource')).should.be.true()
+    const str = JSON.stringify(res.meta.logs)
+    const ok = str.includes('ERR_ACCESS_DENIED') || str.includes('Not allowed to load local resource')
+    if (ok === false) {
+      console.log(str)
+      throw new Error(str)
+    }
   })
 
   it('should block file requests with file protocol', async () => {
