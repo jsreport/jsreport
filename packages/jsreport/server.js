@@ -16,19 +16,20 @@ if (process.env.FULL_BUILD != null) {
   const fullExtensions = [
     '@jsreport/jsreport-ejs',
     '@jsreport/jsreport-pug',
+    '@jsreport/jsreport-aws-s3-storage',
     '@jsreport/jsreport-azure-storage',
-    // '@jsreport/jsreport-phantom-pdf',
-    // '@jsreport/jsreport-phantom-image',
+    '@jsreport/jsreport-docxtemplater',
     '@jsreport/jsreport-mssql-store',
     '@jsreport/jsreport-postgres-store',
     '@jsreport/jsreport-mongodb-store',
-    // '@jsreport/jsreport-wkhtmltopdf',
+    '@jsreport/jsreport-oracle-store',
+    '@jsreport/jsreport-office-password',
     '@jsreport/jsreport-html-to-text',
     '@jsreport/jsreport-html-embedded-in-docx',
     '@jsreport/jsreport-fs-store-aws-s3-persistence',
     '@jsreport/jsreport-fs-store-azure-storage-persistence',
-    '@jsreport/jsreport-electron-pdf',
-    '@jsreport/jsreport-unoconv'
+    '@jsreport/jsreport-unoconv',
+    '@jsreport/jsreport-libreoffice'
   ]
 
   for (const extName of fullExtensions) {
