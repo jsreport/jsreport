@@ -4,7 +4,8 @@ const fs = require('fs')
 const path = require('path')
 const { DOMParser } = require('@xmldom/xmldom')
 const { decompress } = require('@jsreport/office')
-const { nodeListToArray } = require('../lib/utils')
+const { nodeListToArray, getDimension } = require('../lib/utils')
+const { getDocumentsFromDocxBuf } = require('./utils')
 const WordExtractor = require('word-extractor')
 const extractor = new WordExtractor()
 
@@ -914,6 +915,87 @@ describe('docx', () => {
     text.should.containEql('Joe is a member')
     text.should.containEql('Allan is a member')
     text.should.containEql('of Pet owners')
+  })
+
+  it('tables with html calls in cells', async () => {
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'tables-and-html-calls-in-cells.docx'))
+
+    const dataItems = [
+      {
+        html1: ' item 0_1',
+        html2: ' item 0_2'
+      },
+      {
+        html1: ' item 1_1',
+        html2: ' item 1_2'
+      },
+      {
+        html1: ' item 2_1',
+        html2: ' item 2_2'
+      },
+      {
+        html1: ' item 3_1',
+        html2: ' item 3_2'
+      },
+      {
+        html1: ' item 4_1',
+        html2: ' item 4_2'
+      },
+      {
+        html1: ' item 5_1',
+        html2: ' item 5_2'
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        items: dataItems
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'], { strict: true })
+    const tableEls = nodeListToArray(doc.getElementsByTagName('w:tbl'))
+
+    should(tableEls.length).be.eql(3)
+
+    for (const tableEl of tableEls) {
+      const gridColEls = nodeListToArray(tableEl.getElementsByTagName('w:gridCol'))
+
+      should(gridColEls.length).be.eql(2)
+
+      for (const gridColEl of gridColEls) {
+        should(getDimension(gridColEl.getAttribute('w:w'), { defaultUnit: 'dxa' })?.value).be.Number()
+      }
+
+      const rowEls = nodeListToArray(tableEl.getElementsByTagName('w:tr'))
+
+      should(rowEls.length).be.eql(dataItems.length)
+
+      for (const rowEl of rowEls) {
+        const cellEls = nodeListToArray(rowEl.getElementsByTagName('w:tc'))
+
+        should(cellEls.length).be.eql(2)
+
+        for (const [, cellEl] of cellEls.entries()) {
+          const cellPrEl = nodeListToArray(cellEl.childNodes).find((node) => node.nodeName === 'w:tcPr')
+          const cellWidthEl = nodeListToArray(cellPrEl.childNodes).find((node) => node.nodeName === 'w:tcW')
+
+          should(getDimension(cellWidthEl.getAttribute('w:w'), { defaultUnit: 'dxa' })?.value).be.Number()
+          should(cellWidthEl.getAttribute('w:type')).be.eql('dxa')
+        }
+      }
+    }
   })
 
   it('complex', async () => {

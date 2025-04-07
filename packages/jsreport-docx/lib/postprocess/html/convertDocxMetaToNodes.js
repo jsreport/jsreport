@@ -861,6 +861,30 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
     contentTypesFile.doc.documentElement.setAttribute('drawingMaxDocPrId', maxDocPrId)
   }
 
+  // comments are getting removed here as part of html content replacement,
+  // we are going to reintroduce the block container if it needs it,
+  // we need this otherwise the remove blocks logic will break and may produce
+  // invalid parsing results (xml dom warnings)
+  if (mode === 'block') {
+    for (const el of result) {
+      if (el.nodeName === 'w:p' && el.getAttribute('__block_helper_container__') === 'true') {
+        const commentEl = nodeListToArray(el.childNodes).find((node) => (
+          node.nodeName === '#comment' &&
+          node.nodeValue === '__block_helper_container__'
+        ))
+
+        if (commentEl != null) {
+          // if it has the comment, we are going to reintroduce it,
+          // so it is ensured to be at the last child
+          el.removeChild(commentEl)
+        }
+
+        const commentNode = doc.createComment('__block_helper_container__')
+        el.appendChild(commentNode)
+      }
+    }
+  }
+
   return result
 }
 

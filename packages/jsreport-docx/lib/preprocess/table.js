@@ -1,4 +1,4 @@
-const { nodeListToArray, processOpeningTag, processClosingTag } = require('../utils')
+const { nodeListToArray, processOpeningTag, processClosingTag, getDimension, ptToTOAP } = require('../utils')
 const regexp = /{{#?docxTable [^{}]{0,500}}}/
 
 // the same idea as list, check the docs there
@@ -239,7 +239,7 @@ module.exports = (files) => {
       const tablePrEl = nodeListToArray(tableEl.childNodes).find((node) => node.nodeName === 'w:tblPr')
       const tableWidthEl = nodeListToArray(tablePrEl.childNodes).find((node) => node.nodeName === 'w:tblW')
 
-      tableWidthEl.setAttribute('w:w', `{{docxTable check="tableWidthValue" o=${tableWidthEl.getAttribute('w:w')}}}`)
+      tableWidthEl.setAttribute('w:w', `{{docxTable check="tableWidthValue" o=${getTableOrCellWidthInDXA(tableWidthEl.getAttribute('w:w'))}}}`)
       tableWidthEl.setAttribute('w:type', `{{docxTable check="tableWidthType" o="${tableWidthEl.getAttribute('w:type')}"}}`)
 
       const searchTerm = 'colsWidth='
@@ -325,7 +325,7 @@ module.exports = (files) => {
           const tableCellWidthEl = nodeListToArray(tableCellPrEl.childNodes).find((node) => node.nodeName === 'w:tcW')
           const gridSpanEl = nodeListToArray(tableCellPrEl.childNodes).find((node) => node.nodeName === 'w:gridSpan')
 
-          tableCellWidthEl.setAttribute('w:w', `{{docxTable check="cellWidthValue" o=${tableCellWidthEl.getAttribute('w:w')}}}`)
+          tableCellWidthEl.setAttribute('w:w', `{{docxTable check="cellWidthValue" o=${getTableOrCellWidthInDXA(tableCellWidthEl.getAttribute('w:w'))}}}`)
           tableCellWidthEl.setAttribute('w:type', `{{docxTable check="cellWidthType" o="${tableCellWidthEl.getAttribute('w:type')}"}}`)
 
           const extraAttrs = ['check="cell"']
@@ -460,4 +460,25 @@ function getNextRowsUntilTableClose (rowEl) {
   }
 
   return [rows, tableCloseNode]
+}
+
+function getTableOrCellWidthInDXA (inputValue) {
+  const targetWidth = getDimension(inputValue, { units: ['pt'], defaultUnit: 'dxa' })
+  let value
+
+  if (targetWidth == null) {
+    throw new Error(`Can not parse table/cell width value. value: "${inputValue}"`)
+  }
+
+  if (targetWidth.unit === 'pt') {
+    value = ptToTOAP(targetWidth.value)
+  } else {
+    if (targetWidth.unit !== 'dxa') {
+      throw new Error(`Can not parse table/cell width value. value: "${inputValue}"`)
+    }
+
+    value = targetWidth.value
+  }
+
+  return value
 }
