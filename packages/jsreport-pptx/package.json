@@ -37,7 +37,7 @@
     "@xmldom/xmldom": "0.8.6",
     "axios": "1.6.7",
     "html-entities": "2.4.0",
-    "image-size": "1.1.1",
+    "image-size": "2.0.2",
     "js-excel-date-convert": "1.0.2",
     "moment": "2.29.4"
   },
