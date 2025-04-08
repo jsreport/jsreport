@@ -468,6 +468,20 @@ describe('render', () => {
       abortEmitter
     }).should.be.rejectedWith(/cancelled/)
   })
+
+  it('beforeRenderWorkerAllocatedListeners listener should have request marked with __isJsreportRequest__', async () => {
+    reporter.beforeRenderWorkerAllocatedListeners.add('test', (req) => {
+      req.__isJsreportRequest__.should.be.true()
+    })
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      }
+    })
+  })
 })
 
 describe('render (single timeout)', () => {

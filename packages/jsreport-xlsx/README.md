@@ -7,6 +7,17 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.4.0
+
+- update deps to fix audit
+- vertical loop complete support test cases with formulas
+
+### 4.3.0
+
+- generation step: add vertical loop support as beta
+- fix generation step not working when the using loop with block parameters
+- fix using folder scoped asset helpers in xlsx generation
+
 ### 4.2.0
 
 - keep existing dimension when appropriate

@@ -1,3 +1,4 @@
+
 /* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
@@ -32,7 +33,7 @@ function docxContext (options) {
           fromMaxId: value
         })
       } else {
-        currentCtx.set(key, value)
+        currentCtx.templating.set(key, value)
       }
     }
 
@@ -57,12 +58,8 @@ function docxContext (options) {
   } else if (contextType === 'document') {
     data = Handlebars.createFrame(options.data)
     data.currentSectionIdx = 0
-    data.bookmarkStartInstances = []
-    data.defaultShapeTypeByObjectType = new Map()
   } else if (contextType === 'header' || contextType === 'footer') {
     data = Handlebars.createFrame(options.data)
-    data.bookmarkStartInstances = []
-    data.defaultShapeTypeByObjectType = new Map()
   } else if (contextType === 'sectionIdx') {
     const idx = options.data.currentSectionIdx
 
@@ -73,6 +70,66 @@ function docxContext (options) {
     return idx
   } else if (contextType === 'childContentPartial') {
     return options.data.childPartialId
+  }
+
+  if (
+    contextType === 'document' ||
+    contextType === 'header' ||
+    contextType === 'footer'
+  ) {
+    data.bookmarkStartInstances = []
+    data.defaultShapeTypeByObjectType = new Map()
+
+    data.htmlCalls = {
+      latest: null,
+      records: new Map()
+    }
+
+    data.htmlCalls.getTaskPrefix = (_cId) => {
+      return `htmlDelimiter${_cId}@`
+    }
+
+    data.htmlCalls.resolveLatest = (_cId, value) => {
+      const record = data.htmlCalls.records.get(_cId)
+      const oldTaskKey = record.taskKey
+      const execution = record.pending.get(oldTaskKey)
+
+      if (execution == null) {
+        return
+      }
+
+      execution.resolve(value)
+      const taskPrefix = data.htmlCalls.getTaskPrefix(_cId)
+
+      record.taskKey = `${taskPrefix}${parseInt(oldTaskKey.slice(taskPrefix.length), 10) + 1}`
+      record.pending.delete(oldTaskKey)
+    }
+
+    const tasks = new Map()
+
+    data.tasks = {
+      wait (key) {
+        return tasks.get(key)?.promise
+      },
+      add (key) {
+        let taskExecution = tasks.get(key)
+
+        if (taskExecution != null) {
+          return [taskExecution.resolve, taskExecution.reject]
+        }
+
+        taskExecution = {}
+
+        taskExecution.promise = new Promise((resolve, reject) => {
+          taskExecution.resolve = resolve
+          taskExecution.reject = reject
+        })
+
+        tasks.set(key, taskExecution)
+
+        return [taskExecution.resolve, taskExecution.reject]
+      }
+    }
   }
 
   const context = {}
@@ -113,6 +170,21 @@ function docxContext (options) {
     return jsreport.templatingEngines.waitForAsyncHelpers().then(() => {
       return processFn(options.data, output)
     })
+  } else if (
+    contextType === 'document' ||
+    contextType === 'header' ||
+    contextType === 'footer'
+  ) {
+    // resolve latest html calls
+    if (data.htmlCalls.latest != null) {
+      for (const [cId, record] of data.htmlCalls.records) {
+        if (record.pending?.size === 0) {
+          continue
+        }
+
+        data.htmlCalls.resolveLatest(cId, record.counter)
+      }
+    }
   }
 
   return output
@@ -146,7 +218,7 @@ function docxList (data, options) {
   return Handlebars.helpers.each(data, options)
 }
 
-function docxTable (data, options) {
+async function docxTable (data, options) {
   const Handlebars = require('handlebars')
   const optionsToUse = options == null ? data : options
   let currentData
@@ -174,10 +246,24 @@ function docxTable (data, options) {
     Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'wrapper') &&
     optionsToUse.hash.wrapper === 'main'
   ) {
+    optionsToUse.data.tasks.add('grid')
+
     const newData = Handlebars.createFrame(optionsToUse.data)
-    newData.rows = optionsToUse.hash.rows
-    newData.columns = optionsToUse.hash.columns
-    newData.activeMergedCellsItems = []
+
+    newData.currentCell = null
+
+    newData.colsWidth = {
+      config: null,
+      values: null,
+      customized: false
+    }
+
+    if (optionsToUse.hash.rows != null && optionsToUse.hash.columns != null) {
+      newData.rows = optionsToUse.hash.rows
+      newData.columns = optionsToUse.hash.columns
+      newData.activeMergedCellsItems = []
+    }
+
     return optionsToUse.fn(this, { data: newData })
   }
 
@@ -187,9 +273,9 @@ function docxTable (data, options) {
   ) {
     if (
       optionsToUse.hash.check === 'colspan' &&
-      optionsToUse.data.colspan > 1
+      optionsToUse.data.currentCell?.colspan > 1
     ) {
-      return optionsToUse.fn(optionsToUse.data.colspan)
+      return optionsToUse.fn(optionsToUse.data.currentCell.colspan)
     }
 
     if (
@@ -202,6 +288,207 @@ function docxTable (data, options) {
         data.empty = matchedMergedCell.rowStart !== optionsToUse.data.rowIndex
         return optionsToUse.fn({}, { data })
       }
+    }
+
+    if (
+      optionsToUse.hash.check === 'tableWidthValue'
+    ) {
+      const originalTableWidthValue = optionsToUse.hash.o
+
+      await optionsToUse.data.tasks.wait('grid')
+
+      if (!optionsToUse.data.colsWidth.customized) {
+        return originalTableWidthValue
+      }
+
+      const newTableWidthValue = optionsToUse.data.colsWidth.values.reduce((acu, width) => {
+        return acu + width
+      }, 0)
+
+      return newTableWidthValue
+    }
+
+    if (
+      optionsToUse.hash.check === 'tableWidthType'
+    ) {
+      const originalTableWidthType = optionsToUse.hash.o
+
+      await optionsToUse.data.tasks.wait('grid')
+
+      if (!optionsToUse.data.colsWidth.customized) {
+        return originalTableWidthType
+      }
+
+      return 'dxa'
+    }
+
+    if (
+      optionsToUse.hash.check === 'grid'
+    ) {
+      const jsreport = require('jsreport-proxy')
+      const [resolveTask, rejectTask] = optionsToUse.data.tasks.add('grid')
+
+      try {
+        const data = Handlebars.createFrame(optionsToUse.data)
+        data.currentCol = { index: null }
+        const colsWidthConfig = optionsToUse.hash.colsWidth ?? []
+        data.colsWidth.config = colsWidthConfig
+        data.colsWidth.values = []
+        data.colsWidth.customized = optionsToUse.hash.colsWidth != null
+        const result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data }))
+        resolveTask()
+        return result
+      } catch (e) {
+        rejectTask(e)
+        throw e
+      }
+    }
+
+    if (
+      optionsToUse.hash.check === 'colWidth'
+    ) {
+      const currentCol = optionsToUse.data.currentCol
+      const colsWidth = optionsToUse.data.colsWidth
+      const originalWidth = optionsToUse.hash.o
+
+      if (currentCol == null) {
+        throw new Error('docxTable check="colWidth" helper invalid usage, currentCol was not found')
+      }
+
+      if (colsWidth == null) {
+        throw new Error('docxTable check="colWidth" helper invalid usage, colsWidth was not found')
+      }
+
+      if (currentCol.index == null) {
+        currentCol.index = 0
+      } else {
+        currentCol.index += 1
+      }
+
+      const currentColIdx = currentCol.index
+      const colsWidthConfig = colsWidth.config
+      const colsWidthValues = colsWidth.values
+      let colWidth
+
+      if (colsWidthConfig[currentColIdx] != null) {
+        const getColWidth = require('docxGetColWidth')
+        colWidth = getColWidth(colsWidthConfig[currentColIdx])
+
+        if (colWidth == null) {
+          throw new Error(
+            `docxTable helper requires colsWidth parameter to contain valid values. widths passed should be valid number with unit (cm or px). got ${
+              colsWidthConfig[currentColIdx]
+            } at index ${currentColIdx}`
+          )
+        }
+      } else {
+        colWidth = originalWidth
+      }
+
+      colsWidthValues.push(colWidth)
+
+      return colWidth
+    }
+
+    if (
+      optionsToUse.hash.check === 'row'
+    ) {
+      optionsToUse.data.currentCell = { index: null, extra: 0 }
+      return new Handlebars.SafeString('')
+    }
+
+    if (
+      optionsToUse.hash.check === 'cell'
+    ) {
+      const currentCell = optionsToUse.data.currentCell
+
+      if (currentCell.index == null) {
+        currentCell.index = 0
+      } else {
+        currentCell.index += 1
+      }
+
+      if (currentCell.extra > 0) {
+        currentCell.index += currentCell.extra
+        currentCell.extra = 0
+      }
+
+      let gridSpan = optionsToUse.data.colspan
+
+      if (gridSpan == null) {
+        gridSpan = optionsToUse.hash.gs
+      }
+
+      if (gridSpan == null) {
+        gridSpan = 1
+      }
+
+      if (gridSpan > 1) {
+        currentCell.extra = gridSpan - 1
+      }
+
+      currentCell.colspan = gridSpan
+
+      return new Handlebars.SafeString('')
+    }
+
+    if (
+      optionsToUse.hash.check === 'cellWidthValue'
+    ) {
+      const originalWidthValue = optionsToUse.hash.o
+      const colsWidth = optionsToUse.data.colsWidth
+      const currentCellIndex = optionsToUse.data.currentCell.index
+
+      const colsWidthValues = colsWidth.values
+
+      if (!colsWidth.customized) {
+        return originalWidthValue
+      }
+
+      let gridSpan = optionsToUse.data.currentCell.colspan
+
+      if (gridSpan == null) {
+        gridSpan = 1
+      }
+
+      let cellWidthValue = colsWidthValues[currentCellIndex]
+
+      if (cellWidthValue == null) {
+        cellWidthValue = originalWidthValue
+      }
+
+      if (gridSpan > 1) {
+        const lastIdx = (currentCellIndex + gridSpan) - 1
+
+        for (let idx = currentCellIndex + 1; idx <= lastIdx; idx++) {
+          const currentWidthValue = colsWidthValues[idx] ?? 0
+          cellWidthValue += currentWidthValue
+        }
+      }
+
+      return cellWidthValue
+    }
+
+    if (
+      optionsToUse.hash.check === 'cellWidthType'
+    ) {
+      const originalWidthType = optionsToUse.hash.o
+      const colsWidth = optionsToUse.data.colsWidth
+      const currentCellIndex = optionsToUse.data.currentCell.index
+
+      const colsWidthValues = colsWidth.values
+
+      if (!colsWidth.customized) {
+        return originalWidthType
+      }
+
+      const cellWidthValue = colsWidthValues[currentCellIndex]
+
+      if (cellWidthValue == null) {
+        return originalWidthType
+      }
+
+      return 'dxa'
     }
 
     return new Handlebars.SafeString('')
@@ -795,6 +1082,84 @@ async function docxSData (data, options) {
 
   if (
     arguments.length === 1 &&
+    (type === 'htmlDelimiterStart' || type === 'htmlDelimiterEnd')
+  ) {
+    if (optionsToUse.hash.cId == null) {
+      throw new Error('docxSData "htmlDelimiter" helper cId not found')
+    }
+
+    if (optionsToUse.data.htmlCalls == null) {
+      throw new Error('docxSData "htmlDelimiter" helper htmlCalls data not found')
+    }
+
+    const cId = optionsToUse.hash.cId
+    const htmlCalls = optionsToUse.data.htmlCalls
+    const { getTaskPrefix, resolveLatest } = htmlCalls
+
+    const latestRecord = htmlCalls.records.get(htmlCalls.latest)
+    const currentType = type === 'htmlDelimiterStart' ? 'start' : 'end'
+    let result = ''
+
+    // this case indicates an error, somehow handlebars generated output
+    // does not contain valid start and end delimiters
+    if (
+      htmlCalls.latest != null &&
+      htmlCalls.latest !== cId &&
+      latestRecord != null
+    ) {
+      if (latestRecord.type === 'end') {
+        resolveLatest(htmlCalls.latest, latestRecord.counter)
+      } else {
+        resolveLatest(htmlCalls.latest, null)
+      }
+    }
+
+    if (type === 'htmlDelimiterStart') {
+      if (htmlCalls.latest === cId && latestRecord?.type === 'end') {
+        resolveLatest(htmlCalls.latest, latestRecord.counter)
+      }
+
+      if (!htmlCalls.records.has(cId)) {
+        htmlCalls.records.set(cId, {
+          taskKey: `${getTaskPrefix(cId)}1`,
+          type: null,
+          counter: 0,
+          pending: new Map()
+        })
+      }
+
+      htmlCalls.latest = cId
+      htmlCalls.records.get(cId).type = currentType
+    } else if (htmlCalls.records.get(cId) != null) {
+      // if there is no record it means we got a closing delimiter without a start,
+      // this means we should just ignore it
+      const currentRecord = htmlCalls.records.get(cId)
+      const { taskKey, counter: baseCounter, pending } = currentRecord
+
+      const [resolve, reject] = optionsToUse.data.tasks.add(taskKey)
+
+      if (!pending.has(taskKey)) {
+        pending.set(taskKey, { resolve, reject })
+      }
+
+      const currentCounter = baseCounter + 1
+      currentRecord.counter = currentCounter
+
+      htmlCalls.latest = cId
+      currentRecord.type = currentType
+
+      const latestCounter = await optionsToUse.data.tasks.wait(taskKey)
+
+      if (latestCounter === currentCounter) {
+        result = '<!--__html_embed_container__-->'
+      }
+    }
+
+    return new Handlebars.SafeString(result)
+  }
+
+  if (
+    arguments.length === 1 &&
     type === 'image'
   ) {
     const jsreport = require('jsreport-proxy')
@@ -917,11 +1282,12 @@ async function docxSData (data, options) {
     arguments.length === 1 &&
     type === 'styles'
   ) {
+    const jsreport = require('jsreport-proxy')
     const newData = Handlebars.createFrame(optionsToUse.data)
 
     newData.styles = new Map()
 
-    let result = optionsToUse.fn(this, { data: newData })
+    let result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
 
     const processStyles = require('docxProcessStyles')
 

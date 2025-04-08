@@ -1,3 +1,4 @@
+const extend = require('node.extend.without.arrays')
 const { getDimension, pxToEMU, cmToEMU, emuToTOAP } = require('../../utils')
 
 module.exports = function transformTableMeta (tableItemMeta, sectionDetail) {
@@ -121,6 +122,21 @@ function generateTableItems (tableItemMeta, tableWidth) {
     cMeta[prop] = value
   }
 
+  const colgroupsMap = new Map()
+
+  if (Array.isArray(tableItemMeta.colgroups)) {
+    let colIdx = 0
+
+    for (const colgroup of tableItemMeta.colgroups) {
+      for (const col of colgroup.cols) {
+        for (let idx = 0; idx < col.span; idx++) {
+          colgroupsMap.set(colIdx, col)
+          colIdx++
+        }
+      }
+    }
+  }
+
   // scan table and extract data (cols, cell/row data) for use it later
   // to generate the new row items
   scanTableByCol(rows, {
@@ -147,6 +163,31 @@ function generateTableItems (tableItemMeta, tableWidth) {
       return
     }
 
+    // take styles from colgroups and apply to cell if needed
+    const colFromColgroup = colgroupsMap.get(colIdx)
+
+    if (colFromColgroup != null) {
+      if (colFromColgroup.backgroundColor != null && cell.backgroundColor == null) {
+        cell.backgroundColor = colFromColgroup.backgroundColor
+      }
+
+      if (colFromColgroup.border != null) {
+        cell.border = extend(true, {}, colFromColgroup.border, cell.border)
+      }
+
+      if (cell.width == null) {
+        let targetWidth = colFromColgroup.width
+
+        if (targetWidth == null && colFromColgroup.minWidth != null) {
+          targetWidth = colFromColgroup.minWidth
+        }
+
+        if (targetWidth != null) {
+          cell.width = colFromColgroup.width
+        }
+      }
+    }
+
     if (cell.border != null) {
       setCellMeta(rowIdx, colIdx, 'border', cell.border)
 
@@ -158,6 +199,16 @@ function generateTableItems (tableItemMeta, tableWidth) {
     }
 
     ctx.getOrInitializeColMeta(colIdx)
+
+    // apply cell minWidth if needed
+    if (cell.minWidth != null) {
+      const minWidth = cell.minWidth
+      delete cell.minWidth
+
+      if (cell.width == null) {
+        cell.width = minWidth
+      }
+    }
 
     if (cell.colspan > 1) {
       ctx.colOffsetPerRow[rowIdx] += cell.colspan - 1
@@ -302,7 +353,7 @@ function generateTableItems (tableItemMeta, tableWidth) {
           }
           case 'left': {
             const isCollapsed = borderColIdx !== 0
-            const previousBorderColIdx = borderRowIdx - 1
+            const previousBorderColIdx = borderColIdx - 1
             const previousBorder = rowsMeta.get(borderRowIdx)?.cellsMeta?.get(previousBorderColIdx)?.border || {}
 
             if (

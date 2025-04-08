@@ -2,6 +2,7 @@ const path = require('path')
 const extend = require('node.extend.without.arrays')
 const pMap = require('p-map')
 const { copy, deepGet, deepSet, deepDelete, serialize, parse, retry, uid } = require('./customUtils')
+const { createError } = require('@jsreport/jsreport-core')
 
 function getDirectoryPath (fs, model, doc, documents) {
   if (!doc.folder) {
@@ -11,10 +12,10 @@ function getDirectoryPath (fs, model, doc, documents) {
   const folders = []
 
   while (doc.folder) {
-    const folderEntity = documents.folders.find((f) => f.shortid === doc.folder.shortid)
+    const folderEntity = (documents.folders || []).find((f) => f.shortid === doc.folder.shortid)
 
     if (!folderEntity) {
-      throw new Error(`Can not find parent folder for entity "${doc.name}" (entitySet: ${doc.$entitySet})`)
+      throw createError(`Can not find parent folder for entity "${doc.name}" (entitySet: ${doc.$entitySet})`, { week: true })
     }
 
     folders.push(folderEntity.name)
@@ -116,7 +117,7 @@ async function load (fs, directory, model, documents, { dataDirectory, blobStora
 
   documents.push(...loadedDocuments)
 
-  let dirNames = contentStats.filter((e) => {
+  const dirNames = contentStats.filter((e) => {
     let result = e.stat.isDirectory()
 
     if (blobStorageDirectory && blobStorageDirectory.startsWith(dataDirectory)) {
@@ -124,48 +125,20 @@ async function load (fs, directory, model, documents, { dataDirectory, blobStora
       result = result && e.name !== blobStorageDirectoryName
     }
 
-    result = result && !e.name.startsWith('~.tran')
-
     return result
   }).map((e) => e.name)
-
-  // eslint-disable-next-line no-unused-vars
-  for (const dir of dirNames.filter((n) => n.startsWith('~'))) {
-    // inconsistent tmp entity, remove...
-    if (dir.startsWith('~~')) {
-      dirNames = dirNames.filter((n) => n !== dir)
-      await fs.remove(fs.path.join(directory, dir))
-      continue
-    }
-
-    // consistent tmp entity, remove the original one and rename
-    const originalName = dir.substring(1).split('~')[0]
-    const newName = dir.substring(1).split('~')[1]
-
-    if (!originalName || !newName) {
-      throw new Error(`Wrong name pattern for ${fs.path.join(directory, dir)}.`)
-    }
-
-    await fs.remove(fs.path.join(directory, originalName))
-    await fs.rename(fs.path.join(directory, dir), fs.path.join(directory, newName))
-    dirNames = dirNames.filter((n) => n !== dir)
-    // when renaming (~c~c) to (c) and (c) exist, we don't add
-    if (!dirNames.find((n) => n === newName)) {
-      dirNames.push(newName)
-    }
-  }
 
   await pMap(dirNames, (n) => load(fs, fs.path.join(directory, n), model, documents, { parentDirectoryEntity, dataDirectory, blobStorageDirectory, loadConcurrency }), { concurrency: loadConcurrency })
   return documents
 }
 
-async function persistToPath (fs, resolveFileExtension, model, docPath, doc, originalDoc, documents, rootDirectory) {
+async function persistToPath (fs, resolveFileExtension, model, docPath, doc, originalDoc, documents) {
   if (!(await fs.exists(docPath))) {
     await fs.mkdir(docPath)
   }
 
   if (originalDoc && doc.$entitySet === 'folders') {
-    const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
+    const originalDocPath = fs.path.join(getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
 
     if (originalDocPath !== docPath) {
       await copy(fs, originalDocPath, docPath)
@@ -205,21 +178,18 @@ async function persistToPath (fs, resolveFileExtension, model, docPath, doc, ori
   await fs.writeFile(fs.path.join(docPath, 'config.json'), serialize(doc))
 }
 
-async function persist (fs, resolveFileExtension, model, doc, originalDoc, documents, safeWrite, rootDirectory) {
+async function persist (fs, resolveFileExtension, model, doc, originalDoc, documents) {
   if (!model.entitySets[doc.$entitySet].splitIntoDirectories) {
-    const docFinalPath = fs.path.join(rootDirectory, doc.$entitySet)
+    const docFinalPath = doc.$entitySet
 
     return fs.appendFile(docFinalPath, serialize(doc, false) + '\n')
   }
 
-  if (doc.name.indexOf('/') !== -1) {
-    throw new Error('Document cannot contain / in the name')
-  }
-
-  const docFinalPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), doc.name)
+  const docFinalPath = fs.path.join(getDirectoryPath(fs, model, doc, documents), doc.name)
 
   if (!originalDoc && (await fs.exists(docFinalPath))) {
-    throw new Error('Duplicated entry for key ' + doc.name)
+    // this can happen when recovering failed remove
+    await fs.remove(docFinalPath)
   }
 
   const docClone = extend(true, {}, doc)
@@ -227,51 +197,25 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
   // don't store the folder reference, it is computed from the file system hierarchy
   deepDelete(docClone, 'folder')
 
-  const originalDocPrefix = originalDoc ? (originalDoc.name + '~') : ''
-  const docInconsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~~${originalDocPrefix}${doc.name}`)
-  const docConsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~${originalDocPrefix}${doc.name}`)
-
-  // performance optimization, we don't need to slower safe writes when running in the transaction
-  if (safeWrite === false) {
-    await persistToPath(fs, resolveFileExtension, model, docFinalPath, docClone, originalDoc, documents, rootDirectory)
-
-    if (originalDoc) {
-      const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
-      if (originalDocPath !== docFinalPath) {
-        await fs.remove(originalDocPath)
-      }
-    }
-    return
-  }
-
-  await persistToPath(fs, resolveFileExtension, model, docInconsistentPath, docClone, originalDoc, documents, rootDirectory)
-
-  if (await fs.exists(docConsistentPath)) {
-    await fs.remove(docConsistentPath)
-  }
-
-  await retry(() => fs.rename(docInconsistentPath, docConsistentPath), 5)
+  await persistToPath(fs, resolveFileExtension, model, docFinalPath, docClone, originalDoc, documents)
 
   if (originalDoc) {
-    const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
-
-    await fs.remove(originalDocPath)
+    const originalDocPath = fs.path.join(getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
+    if (originalDocPath !== docFinalPath) {
+      await fs.remove(originalDocPath)
+    }
   }
-
-  // the final rename sometimes throws EPERM error, because the folder is still somehow
-  // blocked because of previous reload, the retry should help in the case
-  await retry(() => fs.rename(docConsistentPath, docFinalPath), 5)
 }
 
-async function remove (fs, model, doc, documents, safeWrite, rootDirectory) {
+async function remove (fs, model, doc, documents) {
   if (!model.entitySets[doc.$entitySet].splitIntoDirectories) {
     const removal = { $$deleted: true, _id: doc._id }
-    const docFinalPath = fs.path.join(rootDirectory, doc.$entitySet)
+    const docFinalPath = doc.$entitySet
 
     return fs.appendFile(docFinalPath, serialize(removal, false) + '\n')
   }
 
-  const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), doc.name)
+  const originalDocPath = fs.path.join(getDirectoryPath(fs, model, doc, documents), doc.name)
 
   await fs.remove(originalDocPath)
 }
@@ -361,9 +305,9 @@ async function compactFlatFiles (fs, model, memoryDocumentsByEntitySet, corruptA
 }
 
 module.exports = ({ fs, documentsModel, corruptAlertThreshold, resolveFileExtension, dataDirectory, blobStorageDirectory, loadConcurrency = 8 }) => ({
-  update: (doc, originalDoc, documents, safeWrite, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, originalDoc, documents, safeWrite, rootDirectory),
-  insert: (doc, documents, safeWrite, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, null, documents, safeWrite, rootDirectory),
-  remove: (doc, documents, safeWrite, rootDirectory = '') => remove(fs, documentsModel, doc, documents, safeWrite, rootDirectory),
+  update: (doc, originalDoc, documents) => persist(fs, resolveFileExtension, documentsModel, doc, originalDoc, documents),
+  insert: (doc, documents) => persist(fs, resolveFileExtension, documentsModel, doc, null, documents),
+  remove: (doc, documents) => remove(fs, documentsModel, doc, documents),
   reload: async (doc, documents) => {
     const loadedDocuments = []
     const docPath = fs.path.join(getDirectoryPath(fs, documentsModel, doc, documents), doc.name)

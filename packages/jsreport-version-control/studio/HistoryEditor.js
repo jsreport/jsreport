@@ -91,12 +91,25 @@ export default class HistoryEditor extends Component {
     Studio.openTab({ key: 'versionControlLocalChanges', editorComponentKey: 'versionControlLocalChanges', title: 'Uncommitted changes' })
   }
 
+  async clearAllCommits () {
+    if (window.confirm('This will permanently delete all commits. Are you sure you want to perform this action?')) {
+      try {
+        const res = await Studio.api.get('/odata/versions')
+        await Promise.all(res.value.map(v => Studio.api.del(`/odata/versions('${v._id}')`)))
+        this.load()
+      } catch (e) {
+        alert(e)
+      }
+    }
+  }
+
   render () {
     return (
       <div className='block custom-editor'>
         <h2>
           <i className='fa fa-history' /> Commits history
           <button className='button confirmation' onClick={() => this.localChanges()}>Uncommitted changes</button>
+          <button className='button danger' onClick={() => this.clearAllCommits()}>Clear all commits</button>
         </h2>
         <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
           {this.state.history.length > 0 ? 'Select a commit from the list to inspect the changes..' : ''}

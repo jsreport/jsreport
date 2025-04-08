@@ -13,7 +13,13 @@ module.exports = (files, headerFooterRefs, ctx) => {
       endRefEl: contentTypesFile.doc.documentElement.lastChild,
       contextType: 'contentTypes'
     },
-    { doc: documentFile.doc, path: documentFile.path, startRefEl: bodyEl, endRefEl: bodyEl, contextType: 'document' },
+    {
+      doc: documentFile.doc,
+      path: documentFile.path,
+      startRefEl: bodyEl,
+      endRefEl: bodyEl,
+      contextType: 'document'
+    },
     {
       doc: documentRelsFile.doc,
       path: documentRelsFile.path,

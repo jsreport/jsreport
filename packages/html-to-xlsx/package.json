@@ -1,0 +1,61 @@
+{
+  "name": "@jsreport/html-to-xlsx",
+  "version": "1.0.0",
+  "description": "Convert html to xlsx",
+  "keywords": [
+    "html",
+    "xlsx",
+    "conversion"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --timeout 15000 test/test.js && standard"
+  },
+  "dependencies": {
+    "@jsreport/exceljs": "1.0.0",
+    "moment": "2.29.4",
+    "tinycolor2": "1.4.2",
+    "transform-parser": "1.0.1",
+    "uuid": "8.3.2"
+  },
+  "devDependencies": {
+    "@jsreport/office": "4.1.3",
+    "@xmldom/xmldom": "0.8.6",
+    "chrome-page-eval": "1.3.2",
+    "mocha": "10.1.0",
+    "phantom-page-eval": "2.0.1",
+    "phantomjs-prebuilt": "2.1.16",
+    "puppeteer": "24.3.0",
+    "sax": "1.4.1",
+    "should": "13.2.3",
+    "standard": "16.0.4",
+    "xlsx": "0.18.5",
+    "xlsx-coordinates": "1.0.1"
+  },
+  "engines": {
+    "node": ">=18.15.0"
+  },
+  "standard": {
+    "ignore": [
+      "lib/scripts/conversionScript.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

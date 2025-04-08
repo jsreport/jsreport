@@ -26,13 +26,13 @@ module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
   },
   async readFile (p) {
     const res = await fs.readFile(path.join(dataDirectory, p))
-    if (externalModificationsSync && !p.includes('~')) {
+    if (externalModificationsSync) {
       this.memoryState[path.join(dataDirectory, p)] = { content: res, isDirectory: false }
     }
     return res
   },
   writeFile (p, c) {
-    if (externalModificationsSync && !p.includes('~')) {
+    if (externalModificationsSync) {
       this.memoryState[path.join(dataDirectory, p)] = { content: Buffer.from(c), isDirectory: false }
     }
 
@@ -41,7 +41,7 @@ module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
   appendFile (p, c) {
     const fpath = path.join(dataDirectory, p)
 
-    if (externalModificationsSync && !p.includes('~')) {
+    if (externalModificationsSync) {
       this.memoryState[fpath] = this.memoryState[fpath] || { content: Buffer.from(''), isDirectory: false }
       this.memoryState[fpath].content = Buffer.concat([this.memoryState[fpath].content, Buffer.from(c)])
     }
@@ -49,7 +49,7 @@ module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
     return fs.appendFile(fpath, c)
   },
   async rename (p, pp) {
-    if (externalModificationsSync && p.includes('~') && !pp.includes('~')) {
+    if (externalModificationsSync) {
       const readDirMemoryState = async (sp, dp) => {
         this.memoryState[dp] = { isDirectory: true }
         const contents = await fs.readdir(sp)
@@ -85,13 +85,13 @@ module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
   },
   async stat (p) {
     const stat = await fs.stat(path.join(dataDirectory, p))
-    if (externalModificationsSync && !p.includes('~') && stat.isDirectory()) {
+    if (externalModificationsSync && stat.isDirectory()) {
       this.memoryState[path.join(dataDirectory, p)] = { isDirectory: true }
     }
     return stat
   },
   async mkdir (p) {
-    if (externalModificationsSync && !p.includes('~')) {
+    if (externalModificationsSync) {
       this.memoryState[path.join(dataDirectory, p)] = { isDirectory: true }
     }
 

@@ -124,6 +124,7 @@ const __xlsxD = (function () {
       },
       mergeCells: [],
       trackedCells: null,
+      nonExistingCellsByLoopHierarchyMap: null,
       updatedOriginalCells: {},
       lazyFormulas: {},
       lastCellRef: null
@@ -144,7 +145,7 @@ const __xlsxD = (function () {
 
       options.data.meta.calcChainCellRefsSet = new Set(options.hash.calcChainCellRefs != null ? options.hash.calcChainCellRefs.split(',') : [])
 
-      let nonExistingCellRefs = options.hash.nonExistingCellRefs != null ? options.hash.nonExistingCellRefs.split(',') : []
+      const nonExistingCellRefs = options.hash.nonExistingCellRefs != null ? options.hash.nonExistingCellRefs.split(',') : []
       const autofitEnabledFor = options.hash.autofit != null ? options.hash.autofit.split(',') : []
 
       const autofitBaseCols = options.hash.autofitBCols != null
@@ -161,40 +162,54 @@ const __xlsxD = (function () {
       }
 
       const trackedCells = {}
+      const nonExistingCellsByLoopHierarchyMap = new Map()
 
       if (nonExistingCellRefs.length > 0) {
-        nonExistingCellRefs = nonExistingCellRefs.map((cellRef) => {
-          const parts = cellRef.split('|')
-          const result = {
-            ref: parts[0]
-          }
+        for (const data of nonExistingCellRefs) {
+          const parts = data.split('|')
+          const ref = parts[0]
+          let fromNonExistingLoopHierarchyId
 
           if (parts.length === 2) {
-            result.inLoop = true
-            result.loopHierarchyId = parts[1]
+            fromNonExistingLoopHierarchyId = parts[1]
           }
 
-          return result
-        })
-
-        for (const cellRefEntry of nonExistingCellRefs) {
-          trackedCells[cellRefEntry.ref] = {
-            first: cellRefEntry.ref,
-            last: cellRefEntry.ref,
+          trackedCells[ref] = {
+            first: ref,
+            last: ref,
             count: 0
           }
 
-          if (cellRefEntry.inLoop) {
-            trackedCells[cellRefEntry.ref].inLoop = cellRefEntry.inLoop
-            trackedCells[cellRefEntry.ref].loopHierarchyId = cellRefEntry.loopHierarchyId
-          } else {
-            trackedCells[cellRefEntry.ref].inLoop = false
+          if (fromNonExistingLoopHierarchyId == null) {
+            continue
           }
+
+          let collection
+
+          if (nonExistingCellsByLoopHierarchyMap.has(fromNonExistingLoopHierarchyId)) {
+            collection = nonExistingCellsByLoopHierarchyMap.get(fromNonExistingLoopHierarchyId)
+          } else {
+            collection = []
+            nonExistingCellsByLoopHierarchyMap.set(fromNonExistingLoopHierarchyId, collection)
+          }
+
+          const item = {
+            ref,
+            trackedCell: trackedCells[ref]
+          }
+
+          collection.push(item)
+
+          // we set empty string here, just as a signal that this is going to be set
+          // at runtime
+          trackedCells[ref].currentLoopId = ''
+          trackedCells[ref].fromNonExistingLoopHierarchyId = fromNonExistingLoopHierarchyId
         }
       }
 
       options.data.meta.autofit.enabledFor = autofitEnabledFor
       options.data.meta.trackedCells = trackedCells
+      options.data.meta.nonExistingCellsByLoopHierarchyMap = nonExistingCellsByLoopHierarchyMap
 
       const result = options.fn(this, { data: options.data })
       resolveTask()
@@ -226,19 +241,19 @@ const __xlsxD = (function () {
     const parsedEndCellRef = parseCellRef(refsParts[1])
     const parsedLastCellRef = parseCellRef(lastCellRef)
 
-    // if existing dimension is bigger than the last cell with content
-    // then we keep the existing dimension
-    if (
-      parsedEndCellRef.rowNumber > parsedLastCellRef.rowNumber ||
-      (
-        parsedEndCellRef.rowNumber === parsedLastCellRef.rowNumber &&
-        parsedEndCellRef.columnNumber > parsedLastCellRef.columnNumber
-      )
-    ) {
-      return originalCellRefRange
+    let dimensionLetter = parsedEndCellRef.letter
+
+    if (parsedLastCellRef.columnNumber > parsedEndCellRef.columnNumber) {
+      dimensionLetter = parsedLastCellRef.letter
     }
 
-    return `${refsParts[0]}:${parsedEndCellRef.letter}${parsedLastCellRef.rowNumber}`
+    let dimensionRowNumber = parsedEndCellRef.rowNumber
+
+    if (parsedLastCellRef.rowNumber > parsedEndCellRef.rowNumber) {
+      dimensionRowNumber = parsedLastCellRef.rowNumber
+    }
+
+    return `${refsParts[0]}:${dimensionLetter}${dimensionRowNumber}`
   }
 
   function loop (data, options) {
@@ -248,6 +263,7 @@ const __xlsxD = (function () {
     const end = options.hash.end
     const columnEnd = options.hash.columnEnd
     const hierarchyId = options.hash.hierarchyId
+    const nonExistingCellsByLoopHierarchyMap = options.data.meta.nonExistingCellsByLoopHierarchyMap
     const newData = Handlebars.createFrame(options.data)
     const isVertical = Object.hasOwn(options.hash, 'vertical')
 
@@ -291,6 +307,7 @@ const __xlsxD = (function () {
 
     if (type === 'vertical') {
       loopItem.rowNumber = options.data.r
+      loopItem.trackedCells = new Map()
     }
 
     const parentLoopItem = getParentLoopItemByHierarchy(loopItem, newData.loopItems)
@@ -309,6 +326,13 @@ const __xlsxD = (function () {
 
     newData.currentLoopId = loopItem.id
     newData.evaluatedLoopsIds.push(loopItem.id)
+
+    const nonExistingCellsInCurrentLoop = nonExistingCellsByLoopHierarchyMap.get(hierarchyId) ?? []
+
+    // updating the currentLoopId for the non existing cells that are part of this loop
+    for (const item of nonExistingCellsInCurrentLoop) {
+      item.trackedCell.currentLoopId = loopItem.id
+    }
 
     const result = Handlebars.helpers.each(targetData, { ...options, data: newData })
 
@@ -367,7 +391,12 @@ const __xlsxD = (function () {
 
     const newData = Handlebars.createFrame(options.data)
 
-    const { increment, currentLoopIncrement, previousRootLoopIncrement, previousLoopIncrement } = getIncrementWithLoop(
+    const {
+      increment: rowIncrement,
+      currentLoopIncrement: rowCurrentLoopIncrement,
+      previousRootLoopIncrement: rowPreviousRootLoopIncrement,
+      previousLoopIncrement: rowPreviousLoopIncrement
+    } = getIncrementWithLoop(
       'row',
       {
         loopId: newData.currentLoopId,
@@ -378,15 +407,18 @@ const __xlsxD = (function () {
     )
 
     newData.originalRowNumber = originalRowNumber
-    newData.r = originalRowNumber + increment
+    newData.r = originalRowNumber + rowIncrement
     // only a value that represents the increment of previous loops defined before the cell
-    newData.previousLoopIncrement = previousRootLoopIncrement
+    newData.rowPreviousLoopIncrement = rowPreviousRootLoopIncrement
     // this is a value that represents all the executions of the current loop (considering nested loops too)
-    newData.currentLoopIncrement = currentLoopIncrement + (previousLoopIncrement - previousRootLoopIncrement)
+    newData.rowCurrentLoopIncrement = rowCurrentLoopIncrement + (rowPreviousLoopIncrement - rowPreviousRootLoopIncrement)
 
-    newData.columnLetter = null
+    newData.originalColumnLetter = null
     newData.originalCellRef = null
+    newData.l = null
     newData.currentCellRef = null
+    newData.columnPreviousLoopIncrement = null
+    newData.columnCurrentLoopIncrement = null
 
     const result = options.fn(this, { data: newData })
 
@@ -410,18 +442,25 @@ const __xlsxD = (function () {
     const { parseCellRef, getNewCellLetter } = require('cellUtils')
     const originalCellRef = `${originalCellLetter}${originalRowNumber}`
 
+    const {
+      increment: columnIncrement,
+      currentLoopIncrement: columnCurrentLoopIncrement,
+      previousRootLoopIncrement: columnPreviousRootLoopIncrement,
+      previousLoopIncrement: columnPreviousLoopIncrement
+    } = getIncrementWithLoop(
+      'column',
+      {
+        loopId: options.data.currentLoopId,
+        loopIndex: options.data.index,
+        rowNumber: options.data.r,
+        evaluatedLoopsIds: options.data.evaluatedLoopsIds,
+        loopItems: options.data.loopItems
+      }
+    )
+
     const cellLetter = getNewCellLetter(
       originalCellLetter,
-      getIncrementWithLoop(
-        'column',
-        {
-          loopId: options.data.currentLoopId,
-          loopIndex: options.data.index,
-          rowNumber: options.data.r,
-          evaluatedLoopsIds: options.data.evaluatedLoopsIds,
-          loopItems: options.data.loopItems
-        }
-      ).increment
+      columnIncrement
     )
 
     const updatedCellRef = `${cellLetter}${rowNumber}`
@@ -458,8 +497,24 @@ const __xlsxD = (function () {
 
     trackedCells[originalCellRef] = trackedCells[originalCellRef] || { first: null, last: null, count: 0 }
 
-    if (trackedCells[originalCellRef].inLoop == null) {
-      trackedCells[originalCellRef].inLoop = options.data.currentLoopId != null
+    if (options.data.currentLoopId != null) {
+      const loopItem = getCurrentLoopItem(options.data.currentLoopId, options.data.loopItems)
+
+      if (loopItem?.type === 'vertical') {
+        const parsedUpdatedCellRef = parseCellRef(updatedCellRef)
+        let item
+
+        if (loopItem.trackedCells.has(originalCellRef)) {
+          item = loopItem.trackedCells.get(originalCellRef)
+        } else {
+          item = new Map()
+          loopItem.trackedCells.set(originalCellRef, item)
+        }
+
+        item.set(parsedUpdatedCellRef.letter, updatedCellRef)
+      }
+
+      trackedCells[originalCellRef].currentLoopId = options.data.currentLoopId
     }
 
     if (trackedCells[originalCellRef].first == null) {
@@ -484,9 +539,14 @@ const __xlsxD = (function () {
       calcChainUpdatesForCellRef.push(updatedCellRef)
     }
 
-    options.data.columnLetter = originalCellLetter
+    options.data.originalColumnLetter = originalCellLetter
     options.data.originalCellRef = originalCellRef
+    options.data.l = cellLetter
     options.data.currentCellRef = updatedCellRef
+    // only a value that represents the increment of previous loops defined before the cell
+    options.data.columnPreviousLoopIncrement = columnPreviousRootLoopIncrement
+    // this is a value that represents all the executions of the current loop (considering nested loops too)
+    options.data.columnCurrentLoopIncrement = columnCurrentLoopIncrement + (columnPreviousLoopIncrement - columnPreviousRootLoopIncrement)
 
     if (!generateCellTag) {
       return updatedCellRef
@@ -586,6 +646,7 @@ const __xlsxD = (function () {
 
   function mergeOrFormulaCell (type, options) {
     const Handlebars = require('handlebars')
+    const columnLetter = options.data.l
     const rowNumber = options.data.r
 
     assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
@@ -597,16 +658,23 @@ const __xlsxD = (function () {
 
       assertOk(originalCellRefRange != null, 'originalCellRefRange arg is required')
 
-      const { evaluateCellRefsFromExpression, generateNewCellRefFromRow } = require('cellUtils')
+      const { evaluateCellRefsFromExpression, generateNewCellRefFrom, getNewCellLetter } = require('cellUtils')
 
       const { newValue } = evaluateCellRefsFromExpression(originalCellRefRange, (cellRefInfo) => {
         const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
 
         assertOk(isRange, `cell ref expected to be a range. value: "${originalCellRefRange}`)
 
-        const increment = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+        const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
+        const newColumnLetter = getNewCellLetter(columnLetter, columnIncrement)
 
-        const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, rowNumber + increment)
+        const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+        const newRowNumber = rowNumber + rowIncrement
+
+        const newCellRef = generateNewCellRefFrom(cellRefInfo.parsed, {
+          columnLetter: newColumnLetter,
+          rowNumber: newRowNumber
+        })
 
         return newCellRef
       })
@@ -626,15 +694,18 @@ const __xlsxD = (function () {
       // formulas can contain characters that are encoded as part of the xlsx processing,
       // we ensure here that we decode the xml entities
       const originalFormula = options.hash.o != null ? decodeXML(options.hash.o) : null
-      const previousLoopIncrement = options.data.previousLoopIncrement
-      const currentLoopIncrement = options.data.currentLoopIncrement
+      const rowPreviousLoopIncrement = options.data.rowPreviousLoopIncrement
+      const rowCurrentLoopIncrement = options.data.rowCurrentLoopIncrement
+      const columnPreviousLoopIncrement = options.data.columnPreviousLoopIncrement
+      const columnCurrentLoopIncrement = options.data.columnCurrentLoopIncrement
 
       assertOk(currentCellRef != null, 'currentCellRef needs to exists on internal data')
       assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
       assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
       assertOk(originalCellRef != null, 'originalCellRef needs to exists on internal data')
       assertOk(originalFormula != null, 'originalFormula arg is required')
-      assertOk(currentLoopIncrement != null, 'currentLoopIncrement needs to exists on internal data')
+      assertOk(rowCurrentLoopIncrement != null, 'currentLoopIncrement needs to exists on internal data')
+      assertOk(columnCurrentLoopIncrement != null, 'columnCurrentLoopIncrement needs to exists on internal data')
 
       const parsedOriginCellRef = parseCellRef(originalCellRef)
       const originCellIsFromLoop = options.data.currentLoopId != null
@@ -642,14 +713,20 @@ const __xlsxD = (function () {
       const { lazyCellRefs = {}, formula: newFormula } = getNewFormula(originalFormula, parsedOriginCellRef, {
         type: 'normal',
         originCellIsFromLoop,
-        previousLoopIncrement,
-        currentLoopIncrement,
+        rowPreviousLoopIncrement,
+        rowCurrentLoopIncrement,
+        columnPreviousLoopIncrement,
+        columnCurrentLoopIncrement,
         trackedCells,
+        getCurrentLoopItem: (currentLoopId) => {
+          return getCurrentLoopItem(currentLoopId, options.data.loopItems)
+        },
         includeLoopIncrementResolver: (cellRefIsFromLoop, cellRefInfo) => {
+          // this is used when referencing a cell that it is not defined in the sheet
           return (
             cellRefIsFromLoop &&
             trackedCells[cellRefInfo.localRef] != null &&
-            trackedCells[cellRefInfo.localRef].loopHierarchyId === getCurrentLoopItem(options.data.currentLoopId, options.data.loopItems)?.hierarchyId
+            trackedCells[cellRefInfo.localRef].fromNonExistingLoopHierarchyId === getCurrentLoopItem(options.data.currentLoopId, options.data.loopItems)?.hierarchyId
           )
         },
         lazyFormulas,
@@ -658,7 +735,6 @@ const __xlsxD = (function () {
 
       // ensure we encode just some basic xml entities, formula values does not need to
       // have the full xml entities escaped
-
       if (Object.keys(lazyCellRefs).length > 0) {
         return options.data.tasks.wait('lazyFormulas').then(() => {
           const finalFormula = lazyFormulas.data[newFormula].newFormula
@@ -747,6 +823,7 @@ const __xlsxD = (function () {
   }
 
   function formulaShared (options) {
+    const columnLetter = options.data.l
     const rowNumber = options.data.r
 
     assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
@@ -755,11 +832,24 @@ const __xlsxD = (function () {
 
     assertOk(originalSharedRefRange != null, 'originalSharedRefRange arg is required')
 
-    const { evaluateCellRefsFromExpression, generateNewCellRefFromRow } = require('cellUtils')
+    const { evaluateCellRefsFromExpression, generateNewCellRefFrom, getNewCellLetter } = require('cellUtils')
 
     const { newValue } = evaluateCellRefsFromExpression(originalSharedRefRange, (cellRefInfo) => {
-      const increment = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
-      const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, rowNumber + increment)
+      const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
+
+      assertOk(isRange, `cell ref expected to be a range. value: "${originalSharedRefRange}`)
+
+      const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
+      const newColumnLetter = getNewCellLetter(columnLetter, columnIncrement)
+
+      const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+      const newRowNumber = rowNumber + rowIncrement
+
+      const newCellRef = generateNewCellRefFrom(cellRefInfo.parsed, {
+        columnLetter: newColumnLetter,
+        rowNumber: newRowNumber
+      })
+
       return newCellRef
     })
 
@@ -852,17 +942,24 @@ const __xlsxD = (function () {
           formula,
           parsedOriginCellRef,
           originCellIsFromLoop,
-          previousLoopIncrement,
-          currentLoopIncrement,
+          rowPreviousLoopIncrement,
+          rowCurrentLoopIncrement,
+          columnPreviousLoopIncrement,
+          columnCurrentLoopIncrement,
           cellRefs
         } = lazyFormulaInfo
 
         const { formula: newFormula } = getNewFormula(formula, parsedOriginCellRef, {
           type: 'lazy',
           originCellIsFromLoop,
-          previousLoopIncrement,
-          currentLoopIncrement,
+          rowPreviousLoopIncrement,
+          rowCurrentLoopIncrement,
+          columnPreviousLoopIncrement,
+          columnCurrentLoopIncrement,
           trackedCells,
+          getCurrentLoopItem: (currentLoopId) => {
+            return getCurrentLoopItem(currentLoopId, options.data.loopItems)
+          },
           lazyCellRefs: cellRefs
         })
 
@@ -985,7 +1082,10 @@ const __xlsxD = (function () {
       parents.reverse()
 
       for (const parentLoopItem of parents) {
-        currentLoopIncrement += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
+        if (isValid(parentLoopItem)) {
+          currentLoopIncrement += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
+        }
+
         parentLoopIndex = parentLoopItem.parentLoopIndex
       }
 

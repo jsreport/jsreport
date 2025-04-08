@@ -4,6 +4,8 @@ const fs = require('fs')
 const JsReport = require('@jsreport/jsreport-core')
 const should = require('should')
 const parsePdf = require('parse-pdf')
+const http = require('http')
+const puppeteer = require('puppeteer')
 
 describe('chrome pdf', () => {
   describe('dedicated-process strategy', () => {
@@ -22,6 +24,23 @@ describe('chrome pdf', () => {
     describe('chrome pdf with small timeout', () => {
       commonTimeout('chrome-pool')
     })
+  })
+
+  describe('connect strategy', () => {
+    let browser
+    beforeEach(async () => {
+      browser = await puppeteer.launch({
+        args: ['--no-sandbox']
+      })
+    })
+
+    afterEach(async () => {
+      if (browser) {
+        await browser.close()
+      }
+    })
+
+    common('connect', false, () => ({ browserWSEndpoint: browser.wsEndpoint() }))
   })
 })
 
@@ -45,8 +64,9 @@ describe('chrome image', () => {
   })
 })
 
-function common (strategy, imageExecution) {
+function common (strategy, imageExecution, connectOptions = () => ({})) {
   let reporter
+  let resourceServer
   const recipe = imageExecution ? 'chrome-image' : 'chrome-pdf'
 
   beforeEach(() => {
@@ -56,16 +76,25 @@ function common (strategy, imageExecution) {
 
     reporter.use(require('../')({
       strategy,
-      numberOfWorkers: 2,
+      numberOfWorkers: 1,
       launchOptions: {
         args: ['--no-sandbox']
-      }
+      },
+      connectOptions: connectOptions()
     }))
+
+    resourceServer = http.createServer((req, res) => setTimeout(() => {
+      res.end('ok')
+    }, 100)).listen(8080)
 
     return reporter.init()
   })
 
   afterEach(async () => {
+    if (resourceServer) {
+      resourceServer.close()
+    }
+
     if (reporter) {
       await reporter.close()
     }
@@ -76,7 +105,7 @@ function common (strategy, imageExecution) {
       template: {
         content: `
           <script>
-            document.write(window.location='${__filename.replace(/\\/g, '/')}')
+            document.write(window.location='file:///${__filename.replace(/\\/g, '/')}')
           </script>
           `,
         recipe,
@@ -85,7 +114,12 @@ function common (strategy, imageExecution) {
     }
 
     const res = await reporter.render(request)
-    JSON.stringify(res.meta.logs).should.containEql('ERR_ACCESS_DENIED')
+    const str = JSON.stringify(res.meta.logs)
+    const ok = str.includes('ERR_ACCESS_DENIED') || str.includes('Not allowed to load local resource')
+    if (ok === false) {
+      console.log(str)
+      throw new Error(str)
+    }
   })
 
   it('should block file requests with file protocol', async () => {
@@ -102,7 +136,8 @@ function common (strategy, imageExecution) {
     }
 
     const res = await reporter.render(request)
-    JSON.stringify(res.meta.logs).should.containEql('ERR_ACCESS_DENIED')
+    const str = JSON.stringify(res.meta.logs);
+    (str.includes('ERR_ACCESS_DENIED') || str.includes('Not allowed to load local resource')).should.be.true()
   })
 
   it('should not fail when rendering', async () => {
@@ -617,6 +652,35 @@ function common (strategy, imageExecution) {
         reportName: request.options.reportName
       })}`)
     }
+  })
+
+  it('should timeout when timeout lower', async () => {
+    const res = await reporter.render({
+      template: {
+        content: `
+         <img src="{{chromeResourceWithTimeout 'http://localhost:${resourceServer.address().port}' 10}}" />
+        `,
+        recipe: 'chrome-pdf',
+        engine: 'handlebars'
+      }
+    })
+    res.meta.logs.find((log) => log.message.startsWith('Page request with timeout: GET (image) http://localhost:8080')).should.be.ok()
+    res.meta.logs.find((log) => log.message.includes('the server responded with a status of 504')).should.be.ok()
+  })
+
+  it('should not timeout when timeout higher', async () => {
+    const res = await reporter.render({
+      template: {
+        content: `
+         <img src="{{chromeResourceWithTimeout 'http://localhost:${resourceServer.address().port}' 150}}" />
+        `,
+        recipe: 'chrome-pdf',
+        engine: 'handlebars'
+      }
+    })
+
+    res.meta.logs.find((log) => log.message.startsWith('Page request with timeout: GET (image) http://localhost:8080')).should.be.ok()
+    res.meta.logs.find((log) => log.message.startsWith('Page request finished')).should.be.ok()
   })
 }
 

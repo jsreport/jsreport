@@ -9,6 +9,7 @@ const WordExtractor = require('word-extractor')
 const extractor = new WordExtractor()
 
 const docxDirPath = path.join(__dirname, './docx')
+const dataDirPath = path.join(__dirname, './data')
 const outputPath = path.join(__dirname, '../out.docx')
 
 describe('docx', () => {
@@ -104,6 +105,75 @@ describe('docx', () => {
       should(prom).be.rejectedWith(/Parse error/i),
       // this text that error contains proper location of syntax error
       should(prom).be.rejectedWith(/<w:t>{{<\/w:t>/)
+    ])
+  })
+
+  it('syntax error should decorate the error with text in document that may contain the syntax error', () => {
+    const prom = reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(docxDirPath, 'template-with-syntax-error.docx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    return Promise.all([
+      should(prom).be.rejectedWith(/xml file: word\/document\.xml/i),
+      should(prom).be.rejectedWith(/The docx template contains an invalid handlebars syntax/),
+      should(prom).be.rejectedWith(/Locate the text "{{#each items}}{{name}}"/)
+    ])
+  })
+
+  it('syntax error should decorate the error with text in header that may contain the syntax error', () => {
+    const prom = reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(docxDirPath, 'template-with-syntax-error-in-header.docx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    return Promise.all([
+      should(prom).be.rejectedWith(/xml file: word\/header2\.xml/i),
+      should(prom).be.rejectedWith(/The docx template contains an invalid handlebars syntax/),
+      should(prom).be.rejectedWith(/Locate the text "{{#each items}}{{name}}"/)
+    ])
+  })
+
+  it('syntax error should decorate the error with text in footer that may contain the syntax error', () => {
+    const prom = reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(docxDirPath, 'template-with-syntax-error-in-footer.docx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    return Promise.all([
+      should(prom).be.rejectedWith(/xml file: word\/footer2\.xml/i),
+      should(prom).be.rejectedWith(/The docx template contains an invalid handlebars syntax/),
+      should(prom).be.rejectedWith(/Locate the text "{{#each items}}{{name}}"/)
     ])
   })
 
@@ -900,6 +970,36 @@ describe('docx', () => {
     text.should.containEql('Jan Blaha')
   })
 
+  it('complex with conditional content', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'complex-with-conditionals.docx'))
+          }
+        },
+        helpers: `
+          function eq (val, val2, options) {
+            const isEqual = val === val2
+
+            if (isEqual) {
+              return options.fn(this)
+            }
+
+            return ''
+          }
+        `
+      },
+      data: fs.readFileSync(path.join(dataDirPath, 'complex-with-conditionals.json')).toString()
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    should(text).containEql('TESTING XPA')
+  })
+
   it('should not duplicate drawing object id in loop', async () => {
     // drawing object should not contain duplicated id, otherwhise it produce a warning in ms word
     const result = await reporter.render({
@@ -1216,6 +1316,39 @@ describe('docx', () => {
     const textElements = nodeListToArray(doc.getElementsByTagName('w:t'))
 
     should(textElements).have.length(1)
+  })
+
+  it('shape with textbox enclosed in if block', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'shape-in-if.docx'))
+          }
+        }
+      },
+      data: {
+        key: 'value'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    const graphicDataElements = nodeListToArray(doc.getElementsByTagName('a:graphicData'))
+    graphicDataElements.length.should.be.eql(1)
+    should(graphicDataElements[0].parentNode.nodeName).be.eql('a:graphic')
+
+    const textElements = nodeListToArray(doc.getElementsByTagName('w:t'))
+    textElements.length.should.be.eql(2)
+    should(textElements[0].textContent).be.eql('value')
   })
 })
 

@@ -5,9 +5,11 @@ import resolveUrl from '../../helpers/resolveUrl'
 import openProfileFromStreamReader from '../../helpers/openProfileFromStreamReader'
 import storeMethods from '../../redux/methods'
 import { actions as settingsActions } from '../../redux/settings'
+import { actions as editorActions } from '../../redux/editor'
 import moment from 'moment'
 import { values as configuration } from '../../lib/configuration'
 import EntityRefSelect from '../../components/common/EntityRefSelect'
+import humanizeReportDuration from '../../helpers/humanizeReportDuration'
 
 class Profiler extends Component {
   constructor (props) {
@@ -24,6 +26,15 @@ class Profiler extends Component {
     this.setState({
       profilerMode: (profilerSettings != null && profilerSettings.mode != null) ? profilerSettings.mode : (configuration.extensions.studio.options.profiler.defaultMode || 'standard')
     })
+    this.props.openProfile(null)
+  }
+
+  onTabActive () {
+    this.setState({
+      profiles: []
+    })
+    this.props.openProfile(null)
+    return this.loadProfiles()
   }
 
   async loadProfiles () {
@@ -66,6 +77,7 @@ class Profiler extends Component {
 
   componentWillUnmount () {
     clearInterval(this._interval)
+    this.props.openProfile(null)
   }
 
   componentDidUpdate () {
@@ -86,7 +98,7 @@ class Profiler extends Component {
       style.backgroundColor = '#4CAF50'
     }
 
-    if (state === 'error') {
+    if (state === 'error' || state === 'canceling') {
       style.backgroundColor = '#da532c'
     }
 
@@ -103,7 +115,7 @@ class Profiler extends Component {
 
   renderProfiles (profiles) {
     const { openTab } = this.props
-
+    const { loadingProfile } = this.state
     return (
       <div>
         <div>
@@ -112,16 +124,18 @@ class Profiler extends Component {
               <tr>
                 <th>template</th>
                 <th>started</th>
+                <th>duration</th>
                 <th>state</th>
               </tr>
             </thead>
             <tbody>
               {(profiles).map((p, k) => (
-                <tr key={k} onClick={() => this.openProfile(p)}>
+                <tr key={k} onClick={() => this.openProfile(p)} className={(this.props.activeProfile?._id === p._id) ? 'active' : ''}>
                   <td className='selection'>
                     <a style={{ textDecoration: 'underline' }} onClick={() => p.template._id ? openTab({ _id: p.template._id }) : null}>
                       {p.template.path}
                     </a>
+                    <i className='fa fa-circle-o-notch fa-spin' style={{ marginLeft: '0.5rem', display: (loadingProfile && this.props.activeProfile?._id === p._id) ? 'inline-block' : 'none' }} />
                   </td>
                   <td>{
                     (new Date().getTime() - new Date(p.timestamp).getTime()) > (1000 * 60 * 60 * 24)
@@ -129,6 +143,7 @@ class Profiler extends Component {
                       : moment.duration(moment(new Date()).diff(moment(new Date(p.timestamp)))).humanize() + ' ago'
                       }
                   </td>
+                  <td>{p.finishedOn ? humanizeReportDuration(p.finishedOn - p.timestamp) : ''}</td>
                   <td><span style={this.stateStyle(p.state)}>{p.state}</span></td>
                 </tr>
               ))}
@@ -140,6 +155,10 @@ class Profiler extends Component {
   }
 
   async openProfile (p) {
+    this.props.openProfile(p)
+    this.setState({
+      loadingProfile: true
+    })
     try {
       await openProfileFromStreamReader(async () => {
         if (p.blobName == null && p.state === 'error' && p.error) {
@@ -154,7 +173,7 @@ class Profiler extends Component {
         })
 
         if (response.status !== 200) {
-          throw new Error(`Got not ok response, status: ${response.status}`)
+          throw new Error(await response.text())
         }
 
         return response.body.getReader()
@@ -163,12 +182,11 @@ class Profiler extends Component {
         shortid: p.template.shortid
       })
     } catch (e) {
-      const newError = new Error(`Open profile "${p._id}" failed. ${e.message}`)
 
-      newError.stack = e.stack
-      Object.assign(newError, e)
-
-      throw newError
+    } finally {
+      this.setState({
+        loadingProfile: false
+      })
     }
   }
 
@@ -197,6 +215,7 @@ class Profiler extends Component {
     this.setState({
       filterState: ev.target.value === '__blank' ? null : ev.target.value
     })
+    this.props.openProfile(null)
   }
 
   filterTemplatesChanged (selected) {
@@ -288,9 +307,10 @@ class Profiler extends Component {
   }
 }
 
-export default connect(
-  undefined,
-  { ...settingsActions },
-  undefined,
-  { forwardRef: true }
+export default connect((state) => ({
+  activeProfile: state.editor.activeProfile
+}),
+{ ...settingsActions, ...editorActions },
+undefined,
+{ forwardRef: true }
 )(Profiler)

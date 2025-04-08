@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/studio-dev",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Utils for developing jsreport studio extensions",
   "keywords": [
     "jsreport"
@@ -46,7 +46,7 @@
     "css-loader": "6.8.1",
     "html-webpack-plugin": "5.5.3",
     "mini-css-extract-plugin": "2.7.6",
-    "nanoid": "3.3.6",
+    "nanoid": "3.3.8",
     "postcss": "8.4.26",
     "postcss-flexbugs-fixes": "5.0.2",
     "postcss-loader": "7.3.3",

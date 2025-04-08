@@ -75,6 +75,11 @@ const DocumentStore = (options, validator, encryption) => {
         es.entityTypeDef = this.model.entityTypes[es.normalizedEntityTypeName]
         const entityType = es.entityTypeDef
 
+        if (entityType.name) {
+          entityType.name.index = true
+          entityType.name.length = 1024
+        }
+
         if (!entityType._id) {
           entityType._id = { type: 'Edm.String' }
 
@@ -94,7 +99,7 @@ const DocumentStore = (options, validator, encryption) => {
         }
 
         if (!entityType.shortid) {
-          entityType.shortid = { type: 'Edm.String' }
+          entityType.shortid = { type: 'Edm.String', index: true, length: 255 }
         }
 
         const referenceProperties = findReferencePropertiesInType(this.model, entityType)

@@ -105,6 +105,14 @@ class Reports {
         const { report, content } = await findReport(req.params.id, req)
         res.setHeader('Content-Type', report.contentType)
         res.setHeader('File-Extension', report.fileExtension)
+
+        if (report.meta) {
+          const headers = JSON.parse(report.meta).headers
+          for (const key in headers) {
+            res.setHeader(key, headers[key])
+          }
+        }
+
         res.send(content)
       } catch (e) {
         next(e)
@@ -116,6 +124,14 @@ class Reports {
         const { report, content } = await findReport(req.params.id, req)
         res.setHeader('Content-Type', report.contentType)
         res.setHeader('File-Extension', report.fileExtension)
+
+        if (report.meta) {
+          const headers = JSON.parse(report.meta).headers
+          for (const key in headers) {
+            res.setHeader(key, headers[key])
+          }
+        }
+
         res.send(content)
       } catch (e) {
         next(e)
@@ -127,6 +143,14 @@ class Reports {
         const { report, content } = await findReport(req.params.id, req)
         res.setHeader('Content-Type', report.contentType)
         res.setHeader('File-Extension', report.fileExtension)
+
+        if (report.meta) {
+          const headers = JSON.parse(report.meta).headers
+          for (const key in headers) {
+            res.setHeader(key, headers[key])
+          }
+        }
+
         res.setHeader('Content-Disposition', `attachment; filename="${report.reportName}.${report.fileExtension}"`)
         res.send(content)
       } catch (e) {
@@ -206,7 +230,8 @@ class Reports {
       public: { type: 'Edm.Boolean' },
       templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
       state: { type: 'Edm.String' },
-      error: { type: 'Edm.String' }
+      error: { type: 'Edm.String' },
+      meta: { type: 'Edm.String' }
     })
 
     this.reporter.documentStore.registerEntitySet('reports', {
@@ -215,27 +240,31 @@ class Reports {
     })
   }
 
+  // user that has permissions to the template should be able to read all the reports that are based on it
   async _reportsFiltering (collection, query, req) {
-    if (collection.name === 'reports') {
-      if (query.templateShortid) {
-        const templates = await this.reporter.documentStore.collection('templates').find({ shortid: query.templateShortid })
-        if (templates.length !== 1) {
-          return
-        }
+    if (collection.name !== 'reports') {
+      return
+    }
 
-        delete query.readPermissions
+    if (query.templateShortid) {
+      const templates = await this.reporter.documentStore.collection('templates').find({ shortid: query.templateShortid })
+      if (templates.length !== 1) {
+        return
       }
 
-      const templates = await this.reporter.documentStore.collection('templates').find({}, req)
       delete query.readPermissions
-      query.$or = [{
-        templateShortid: {
-          $in: templates.map(function (t) {
-            return t.shortid
-          })
-        }
-      }, { readPermissions: req.context.user._id.toString() }]
+      delete query.inheritedReadPermissions
     }
+
+    const templates = await this.reporter.documentStore.collection('templates').find({}, { shortid: 1 }, req)
+    delete query.readPermissions
+    query.$or = [{
+      templateShortid: {
+        $in: templates.map(function (t) {
+          return t.shortid
+        })
+      }
+    }, { readPermissions: req.context.user._id.toString() }, { inheritedReadPermissions: req.context.user._id.toString() }]
   }
 
   async _handleRenderError (request, response, e) {

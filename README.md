@@ -77,7 +77,7 @@ More in the [backlog](https://github.com/jsreport/jsreport/issues).
 We update vulnerable jsreport dependencies based on npm and Snyk audits during every release. Please wait until we release the next version when you notice a security warning in your audit. There is no need to create a ticket for it. In case you see a direct impact on jsreport security that you can replicate, please send us an email to support@jsreport.net and we will make sure it's fixed ASAP. Note there is no need to panic when there is a vulnerability mentioned in the audit because it is the most likely in the code path that is not used. A typical example of a vulnerability is an eventual DDoS attack through a dependency parsing some internal config, which in fact can't happen and isn't a vulnerability at all.
 
 ## Licensing
-Copyright (C) 2024 Jan Blaha
+Copyright (C) 2025 Jan Blaha
 
 Do you want to use jsreport for a personal purpose, in a school project or a non-profit organization?
 Then you don't need the author's permission, just go on and use it. You can use jsreport without the author's permission

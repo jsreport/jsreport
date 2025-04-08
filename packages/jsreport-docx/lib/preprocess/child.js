@@ -1,4 +1,7 @@
-const { normalizeSingleTextElInRun, normalizeSingleContentInText, nodeListToArray, getClosestEl, clearEl } = require('../utils')
+const {
+  normalizeSingleTextElInRun, normalizeSingleContentInText, nodeListToArray,
+  processOpeningTag, processClosingTag, getClosestEl, clearEl
+} = require('../utils')
 
 module.exports = (files, headerFooterRefs) => {
   const documentDoc = files.find(f => f.path === 'word/document.xml').doc
@@ -70,7 +73,7 @@ module.exports = (files, headerFooterRefs) => {
       paragraphEl.parentNode.insertBefore(newChildEmbedElement, paragraphEl.nextSibling)
 
       // wrap the paragraph into a wrapper so we can know the content of paragraph at runtime
-      processOpeningTag(targetDoc, paragraphEl, '{{#docxSData type="childCaller" }}')
+      processOpeningTag(targetDoc, paragraphEl, "{{#docxSData type='childCaller' }}")
       processClosingTag(targetDoc, paragraphEl, '{{/docxSData}}')
     }
   }
@@ -78,18 +81,4 @@ module.exports = (files, headerFooterRefs) => {
 
 function getDocxChildCallRegexp () {
   return /{{docxChild ([^{}]{0,500})}}/
-}
-
-function processOpeningTag (doc, refElement, helperCall) {
-  const fakeElement = doc.createElement('docxRemove')
-  fakeElement.textContent = helperCall
-  refElement.parentNode.insertBefore(fakeElement, refElement)
-  return fakeElement
-}
-
-function processClosingTag (doc, refElement, closeCall) {
-  const fakeElement = doc.createElement('docxRemove')
-  fakeElement.textContent = closeCall
-  refElement.parentNode.insertBefore(fakeElement, refElement.nextSibling)
-  return fakeElement
 }

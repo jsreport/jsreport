@@ -13,7 +13,7 @@ describe('browser client', () => {
       .use(require('../')())
       .init()
 
-    browser = await puppeteer.launch({ headless: 'old' })
+    browser = await puppeteer.launch({ headless: 'old', args: ['--no-sandbox'] })
     page = await browser.newPage()
   })
 

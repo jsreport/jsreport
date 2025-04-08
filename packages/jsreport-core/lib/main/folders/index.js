@@ -15,18 +15,19 @@ module.exports = (reporter) => {
   })
 
   reporter.documentStore.registerComplexType('FolderRefType', {
-    shortid: { type: 'Edm.String', referenceTo: 'folders' }
+    shortid: { type: 'Edm.String', referenceTo: 'folders', index: true, length: 255 }
   })
 
   // before document store initialization, extend all entity types with folder information
   reporter.documentStore.on('before-init', (documentStore) => {
     Object.entries(documentStore.model.entitySets).forEach(([k, entitySet]) => {
       const entityTypeName = entitySet.entityType.replace(documentStore.model.namespace + '.', '')
-
-      documentStore.model.entityTypes[entityTypeName].folder = {
-        type: 'jsreport.FolderRefType',
-        // folder reference can be null when entity is at the root level
-        schema: { type: 'null' }
+      if (entitySet.exportable !== false) {
+        documentStore.model.entityTypes[entityTypeName].folder = {
+          type: 'jsreport.FolderRefType',
+          // folder reference can be null when entity is at the root level
+          schema: { type: 'null' }
+        }
       }
     })
   })

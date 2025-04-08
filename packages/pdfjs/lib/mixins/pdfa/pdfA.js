@@ -135,16 +135,22 @@ function processSMask (xobj) {
 
   const maskBytes = []
   let maskInex = 0
-  for (let y = 0; y < xobj.properties.get('Height'); y++) {
-    for (let x = 0; x < xobj.properties.get('Width'); x++) {
+
+  const height = xobj.properties.get('Height')
+  const width = xobj.properties.get('Width')
+
+  for (let y = 0; y < height; y++) {
+    const yOffset = y * width
+
+    for (let x = 0; x < width; x++) {
       if (x % 8 === 0 && x !== 0) {
         maskInex++
       }
-      const gray = smaskBuf[x + y * xobj.properties.get('Width')] || 0
-      const alpha = (1 / 255) * gray
+      const gray = smaskBuf[x + yOffset] || 0
+      const alpha = gray / 255
 
       // apply alpha to the image pixels
-      const indexInImageBytes = x * 3 + y * xobj.properties.get('Width') * 3
+      const indexInImageBytes = x * 3 + yOffset * 3
       contentBuf[indexInImageBytes] = Math.round(((1 - alpha) * 255) + (alpha * contentBuf[indexInImageBytes]))
       contentBuf[indexInImageBytes + 1] = Math.round(((1 - alpha) * 255) + (alpha * contentBuf[indexInImageBytes + 1]))
       contentBuf[indexInImageBytes + 2] = Math.round(((1 - alpha) * 255) + (alpha * contentBuf[indexInImageBytes + 2]))
@@ -157,7 +163,10 @@ function processSMask (xobj) {
       // we hide ty pixel based on the smask value, so a gues would be that we hide pixel when its fully transparent
       // but that makes for example logo in stock showcase a bit blury in edges, so I pick for now the magic value 86
       // determining if the pixel is transparent or not
-      maskBytes[maskInex] -= ((gray < 86) ? 0 : 1) * Math.pow(2, 7 - (x % 8))
+      if (gray >= 86) {
+        // Precompute bit-shift mask
+        maskBytes[maskInex] -= 1 << (7 - (x % 8))
+      }
     }
     maskInex++
   }

@@ -1,5 +1,5 @@
 const yargs = require('yargs')
-const prompt = require('prompt')
+const prompts = require('prompts')
 const startCommand = require('./startCommand')
 const jsreportInstance = require('./jsreportInstance')
 const cliPackageJson = require('../../package.json')
@@ -158,37 +158,27 @@ module.exports = async function startProcessing (commander, logger, args) {
         argv.password = needsPassword
       }, true)
     } else {
-      await new Promise((resolve, reject) => {
-        prompt.start()
-
-        prompt.message = ''
-
-        prompt.get([{
+      try {
+        const response = await prompts({
+          type: 'password',
           name: 'password',
-          description: 'Password',
-          message: 'Password can\'t be empty',
-          type: 'string',
-          hidden: true,
-          required: true
-        }], (err, result) => {
-          if (err) {
-            const errorToReject = new Error('No value for password option')
-            errorToReject.cleanState = true
-
-            commander.emit('started', errorToReject, null)
-
-            return reject(errorToReject)
-          }
-
-          // we add middleware to pre-define the "p/password" option to
-          commander._cli.middleware((argv) => {
-            argv.p = result.password
-            argv.password = result.password
-          }, true)
-
-          resolve()
+          message: 'Password',
+          validate: value => value.trim() === '' ? 'Password can\'t be empty' : true
         })
-      })
+
+        // we add middleware to pre-define the "p/password" option to
+        commander._cli.middleware((argv) => {
+          argv.p = response.password
+          argv.password = response.password
+        }, true)
+      } catch (error) {
+        const errorToReject = new Error('No value for password option')
+        errorToReject.cleanState = true
+
+        commander.emit('started', errorToReject, null)
+
+        throw errorToReject
+      }
     }
   }
 

@@ -4,7 +4,7 @@ const fs = require('fs')
 const fsAsync = require('fs/promises')
 const jsreport = require('@jsreport/jsreport-core')
 const { extractTextResponse, getDocumentsFromPptx } = require('./utils')
-const { nodeListToArray } = require('../lib/utils')
+const { nodeListToArray, getDimension, pxToEMU } = require('../lib/utils')
 
 const pptxDirPath = path.join(__dirname, './pptx')
 const outputPath = path.join(__dirname, '../out.pptx')
@@ -112,6 +112,62 @@ describe('pptx table', () => {
     text.should.containEql('Go to the site3')
   })
 
+  it('table with custom col width', async () => {
+    const data = [
+      {
+        name: 'Jan',
+        email: 'jan.blaha@foo.com'
+      },
+      {
+        name: 'Boris',
+        email: 'boris@foo.met'
+      },
+      {
+        name: 'Pavel',
+        email: 'pavel@foo.met'
+      }
+    ]
+
+    const colsWidth = ['500px']
+
+    const templateBuf = fs.readFileSync(path.join(pptxDirPath, 'table-custom-col-width.pptx'))
+    const [templateSlideDoc] = await getDocumentsFromPptx(templateBuf, ['ppt/slides/slide1.xml'])
+    const templateGridColEls = nodeListToArray(templateSlideDoc.getElementsByTagName('a:gridCol'))
+    const templateFirstColWidth = templateGridColEls[0].getAttribute('w')
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        people: data,
+        colsWidth
+      }
+    })
+
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
+
+    const text = await extractTextResponse(result)
+
+    for (const item of data) {
+      should(text).containEql(item.name)
+      should(text).containEql(item.email)
+    }
+
+    const [slideDoc] = await getDocumentsFromPptx(result.content, ['ppt/slides/slide1.xml'])
+    const gridColEls = nodeListToArray(slideDoc.getElementsByTagName('a:gridCol'))
+    const outputFirstColWidth = gridColEls[0].getAttribute('w')
+
+    should(templateFirstColWidth).be.not.eql(outputFirstColWidth)
+    should(outputFirstColWidth).be.eql(pxToEMU(getDimension(colsWidth[0]).value).toString())
+  })
+
   it('table vertical', async () => {
     const people = [
       {
@@ -170,6 +226,75 @@ describe('pptx table', () => {
 
     for (const gridColEl of gridColEls) {
       should(gridColEl.getAttribute('w')).be.eql(colWidth.toString())
+    }
+  })
+
+  it('table vertical with custom col width', async () => {
+    const people = [
+      {
+        name: 'Jan',
+        email: 'jan.blaha@foo.com'
+      },
+      {
+        name: 'Boris',
+        email: 'boris@foo.met'
+      },
+      {
+        name: 'Pavel',
+        email: 'pavel@foo.met'
+      }
+    ]
+
+    const colsWidth = [null, '500px']
+
+    const templateBuf = fs.readFileSync(path.join(pptxDirPath, 'table-vertical-custom-col-width.pptx'))
+
+    const [templateSlideDoc] = await getDocumentsFromPptx(templateBuf, ['ppt/slides/slide1.xml'])
+    const templateGridColEls = nodeListToArray(templateSlideDoc.getElementsByTagName('a:gridCol'))
+    const templateFirstColWidth = templateGridColEls[0].getAttribute('w')
+    const templateSecondColWidth = templateGridColEls[1].getAttribute('w')
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        people,
+        colsWidth
+      }
+    })
+
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
+
+    const text = await extractTextResponse(result)
+
+    should(text).containEql('Jan')
+    should(text).containEql('jan.blaha@foo.com')
+    should(text).containEql('Boris')
+    should(text).containEql('boris@foo.met')
+    should(text).containEql('Pavel')
+    should(text).containEql('pavel@foo.met')
+
+    const [slideDoc] = await getDocumentsFromPptx(result.content, ['ppt/slides/slide1.xml'])
+    const gridColEls = nodeListToArray(slideDoc.getElementsByTagName('a:gridCol'))
+    const totalCols = people.length + 1
+
+    should(gridColEls.length).be.eql(totalCols)
+
+    for (const [colIdx, gridColEl] of gridColEls.entries()) {
+      if (colIdx === 0) {
+        should(gridColEl.getAttribute('w')).be.eql(templateFirstColWidth)
+      } else if (colIdx === 1) {
+        should(gridColEl.getAttribute('w')).be.eql(pxToEMU(getDimension(colsWidth[1]).value).toString())
+      } else {
+        should(gridColEl.getAttribute('w')).be.eql(templateSecondColWidth)
+      }
     }
   })
 
@@ -691,6 +816,66 @@ describe('pptx table', () => {
     ].map(([id, colspanOrigin, rowspanOrigin, colspan, rowspan]) => ({ id, colspanOrigin, rowspanOrigin, colspan, rowspan }))
 
     checkMergedCells(tableEl, 7, 4, expectedMergedCellsStart, expectedPlaceholders, true)
+  })
+
+  it('table rows, columns with custom col width', async () => {
+    const rowsItems = [
+      ['Jan', 'jan.blaha@foo.com'],
+      ['Boris', 'boris@foo.met'],
+      ['Pavel', 'pavel@foo.met']
+    ]
+
+    const columnsItems = ['Name', 'Email']
+
+    const colsWidth = ['500px']
+
+    const templateBuf = fs.readFileSync(path.join(pptxDirPath, 'table-rows-columns-custom-col-width.pptx'))
+
+    const [templateSlideDoc] = await getDocumentsFromPptx(templateBuf, ['ppt/slides/slide1.xml'])
+    const templateGridColEls = nodeListToArray(templateSlideDoc.getElementsByTagName('a:gridCol'))
+    const templateFirstColWidth = templateGridColEls[0].getAttribute('w')
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        rowsItems,
+        columnsItems,
+        colsWidth
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const text = await extractTextResponse(result)
+
+    text.should.containEql('Name')
+    text.should.containEql('Email')
+    text.should.containEql('Jan')
+    text.should.containEql('jan.blaha@foo.com')
+    text.should.containEql('Boris')
+    text.should.containEql('boris@foo.met')
+    text.should.containEql('Pavel')
+    text.should.containEql('pavel@foo.met')
+
+    const [slideDoc] = await getDocumentsFromPptx(result.content, ['ppt/slides/slide1.xml'])
+    const gridColEls = nodeListToArray(slideDoc.getElementsByTagName('a:gridCol'))
+    should(gridColEls.length).be.eql(columnsItems.length)
+
+    for (const [colIdx, gridColEl] of gridColEls.entries()) {
+      if (colIdx === 0) {
+        should(gridColEl.getAttribute('w')).be.eql(pxToEMU(getDimension(colsWidth[0]).value).toString())
+      } else {
+        should(gridColEl.getAttribute('w')).be.eql(templateFirstColWidth)
+      }
+    }
   })
 })
 

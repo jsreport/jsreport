@@ -649,7 +649,9 @@ function Authentication (reporter, admin) {
         } else {
           const adminGroupsForUser = await groupCol.find({
             isAdmin: true,
-            'users.shortid': userInStore.shortid
+            users: {
+              shortid: userInStore.shortid
+            }
           }, { name: 1 })
 
           result.isAdmin = adminGroupsForUser.length > 0

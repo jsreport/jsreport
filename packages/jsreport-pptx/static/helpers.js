@@ -69,6 +69,59 @@ function pptxTable (data, options) {
       }
     }
 
+    if (
+      optionsToUse.hash.check === 'grid'
+    ) {
+      const data = Handlebars.createFrame(optionsToUse.data)
+      data.currentCol = { index: null }
+      data.explicitColsWidth = optionsToUse.hash.colsWidth ?? []
+      data.explicitColsWidth = { values: data.explicitColsWidth, customized: optionsToUse.hash.colsWidth != null }
+      const pptxProcessTableGrid = require('pptxProcessTableGrid')
+      const tableGridXMLStr = optionsToUse.fn(this, { data })
+      return pptxProcessTableGrid(tableGridXMLStr, data.explicitColsWidth.customized)
+    }
+
+    if (
+      optionsToUse.hash.check === 'colWidth'
+    ) {
+      const currentCol = optionsToUse.data.currentCol
+      const colsWidth = optionsToUse.data.explicitColsWidth?.values
+      const originalWidth = optionsToUse.hash.o
+
+      if (currentCol == null) {
+        throw new Error('pptxTable check="colWidth" helper invalid usage, currentCol was not found')
+      }
+
+      if (colsWidth == null) {
+        throw new Error('pptxTable check="colWidth" helper invalid usage, explicitColsWidth was not found')
+      }
+
+      if (currentCol.index == null) {
+        currentCol.index = 0
+      } else {
+        currentCol.index += 1
+      }
+
+      const currentColIdx = currentCol.index
+
+      if (colsWidth[currentColIdx] != null) {
+        const getColWidth = require('pptxGetColWidth')
+        const colWidth = getColWidth(colsWidth[currentColIdx])
+
+        if (colWidth == null) {
+          throw new Error(
+            `pptxTable helper requires colsWidth parameter to contain valid values. widths passed should be valid number with unit (cm or px). got ${
+              colsWidth[currentColIdx]
+            } at index ${currentColIdx}`
+          )
+        }
+
+        return colWidth
+      }
+
+      return originalWidth
+    }
+
     return new Handlebars.SafeString('')
   }
 

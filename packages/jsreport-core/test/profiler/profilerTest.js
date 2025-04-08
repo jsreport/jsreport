@@ -614,3 +614,64 @@ describe('profiler full mode duration check', () => {
     profilerVal.mode.should.be.eql('standard')
   })
 })
+
+describe('profiler with fast cancelingCheck interval', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport({
+      profiler: {
+        cancelingCheckInterval: '100ms'
+      }
+    })
+    reporter.use(jsreport.tests.listeners())
+    return reporter.init()
+  })
+
+  afterEach(() => reporter.close())
+
+  it('should support cancelling requests ', async () => {
+    let profile
+
+    reporter.tests.beforeRenderEval(async (req) => {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    })
+
+    let cancelError
+    reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    }).catch((e) => {
+      cancelError = e
+    })
+
+    while (true) {
+      profile = await reporter.documentStore.collection('profiles').findOne({})
+      if (profile && profile.state === 'running') {
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    }
+
+    await reporter.documentStore.collection('profiles').update({
+      _id: profile._id
+    }, {
+      $set: {
+        state: 'canceling'
+      }
+    })
+
+    while (true) {
+      if (cancelError) {
+        break
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    }
+
+    cancelError.message.should.containEql('Report cancelled by the client')
+  })
+})

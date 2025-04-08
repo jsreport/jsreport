@@ -13,7 +13,7 @@ module.exports = ({
 
       for (let i = 0; i < numberOfWorkers; i++) {
         workersCreateFn.push(async () => {
-          const worker = createWorker()
+          const worker = createWorker(i)
           await worker.init()
           this.workers.push(worker)
         })
@@ -48,7 +48,7 @@ module.exports = ({
             if (worker.needRestart || worker.running) {
               this.workers = this.workers.filter(w => w !== worker)
               worker.close()
-              const newWorker = createWorker()
+              const newWorker = createWorker(this.workers.length)
               newWorker.isBusy = true
               this.workers.push(newWorker)
               await newWorker.init({ timeout: initTimeout })

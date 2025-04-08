@@ -6,6 +6,10 @@ async function collectEntitiesInHierarchy (reporter, items, sourceEntity, req) {
     const oneLevelItems = []
 
     for (const es in reporter.documentStore.model.entitySets) {
+      if (!reporter.documentStore.model.entitySets[es].entityTypeDef.folder) {
+        continue
+      }
+
       const entities = await reporter.documentStore.collection(es).find(
         {
           folder: {
@@ -39,6 +43,10 @@ async function collectParentFolders (reporter, folder, req) {
 async function collectEntitiesAtSameLevel (reporter, folder, req) {
   const result = []
   for (const es in reporter.documentStore.model.entitySets) {
+    if (!reporter.documentStore.model.entitySets[es].entityTypeDef.folder) {
+      continue
+    }
+
     const entities = await reporter.documentStore.collection(es).findAdmin(
       {
         folder: {

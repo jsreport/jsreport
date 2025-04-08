@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 4.1.3
+
+- propagate res.meta.headers to the Location responses
+
 ### 4.1.2
 
 - trigger async report using header to avoid allocating worker

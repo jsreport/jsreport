@@ -122,43 +122,54 @@ function mergeStructTree (ext, doc) {
     return
   }
 
-  const docIDTree = docStructTreeRoot.properties.get('IDTree').object.properties.get('Kids')[0].object
-  const extIDTree = extStructTreeRoot.properties.get('IDTree').object.properties.get('Kids')[0].object
+  const firstExtNodeOrArray = extStructTreeRoot.properties.get('K').object.properties.get('K')
+  const firstExtNodes = Array.isArray(firstExtNodeOrArray) ? firstExtNodeOrArray : [firstExtNodeOrArray]
 
-  const docNames = docIDTree.properties.get('Names')
-  const extNames = extIDTree.properties.get('Names')
+  const idTreePresent = docStructTreeRoot.properties.get('IDTree') && extStructTreeRoot.properties.get('IDTree')
 
-  const lastDocName = docIDTree.properties.get('Limits')[1].str
+  if (idTreePresent) {
+    const docIDTree = docStructTreeRoot.properties.get('IDTree').object.properties.get('Kids')[0].object
+    const extIDTree = extStructTreeRoot.properties.get('IDTree').object.properties.get('Kids')[0].object
 
-  // this is expected format produced by chrome
-  // node00000002
-  if (lastDocName.length !== 'node00000002'.length && !lastDocName.startsWith('node')) {
-    return
-  }
+    const docNames = docIDTree.properties.get('Names')
+    const extNames = extIDTree.properties.get('Names')
 
-  let lastDocNameId = parseInt(lastDocName.substring('node'.length))
+    const lastDocName = docIDTree.properties.get('Limits')[1].str
 
-  const extNamesMapping = {}
+    // this is expected format produced by chrome
+    // node00000002
+    if (lastDocName.length !== 'node00000002'.length && !lastDocName.startsWith('node')) {
+      return
+    }
 
-  for (let i = 0; i < extNames.length; i += 2) {
-    if (extNames[i + 1].object.properties.get('S').name !== 'Document') {
-      const newName = 'node' + (++lastDocNameId).toString().padStart('00000002'.length, '0')
-      docNames.push(new PDF.String(newName))
-      docNames.push(extNames[i + 1])
-      extNamesMapping[extNames[i].str] = newName
+    let lastDocNameId = parseInt(lastDocName.substring('node'.length))
+
+    const extNamesMapping = {}
+
+    for (let i = 0; i < extNames.length; i += 2) {
+      if (extNames[i + 1].object.properties.get('S').name !== 'Document') {
+        const newName = 'node' + (++lastDocNameId).toString().padStart('00000002'.length, '0')
+        docNames.push(new PDF.String(newName))
+        docNames.push(extNames[i + 1])
+        extNamesMapping[extNames[i].str] = newName
+      }
+    }
+
+    docIDTree.properties.get('Limits')[1] = docNames[docNames.length - 2]
+
+    for (const node of firstExtNodes) {
+      updateStructIds(node.object, extNamesMapping)
     }
   }
 
-  docIDTree.properties.get('Limits')[1] = docNames[docNames.length - 2]
-
-  const firstExtNodes = extStructTreeRoot.properties.get('K').object.properties.get('K')
   for (const node of firstExtNodes) {
-    updateStructIds(node.object, extNamesMapping)
     updateStructP(node.object, docStructTreeRoot.properties.get('K').object, extStructTreeRoot.properties.get('K').object)
   }
 
   const docMainNode = docStructTreeRoot.properties.get('K').object
-  docMainNode.properties.set('K', new PDF.Array([...docMainNode.properties.get('K'), ...firstExtNodes]))
+  const docMainNodeChildsOrOne = docMainNode.properties.get('K')
+  const docMainNodeChilds = Array.isArray(docMainNodeChildsOrOne) ? docMainNodeChildsOrOne : [docMainNodeChildsOrOne]
+  docMainNode.properties.set('K', new PDF.Array([...docMainNodeChilds, ...firstExtNodes]))
 }
 
 function updateStructP (node, docDocument, extDocument) {
@@ -170,7 +181,9 @@ function updateStructP (node, docDocument, extDocument) {
     node.properties.set('P', docDocument.toReference())
   }
 
-  for (const child of node.properties.get('K')) {
+  const childNodeOrArray = node.properties.get('K')
+  const childNodes = Array.isArray(childNodeOrArray) ? childNodeOrArray : [childNodeOrArray]
+  for (const child of childNodes) {
     updateStructP(child.object, docDocument, extDocument)
   }
 }

@@ -70,13 +70,13 @@ module.exports = {
                   },
                   retries: {
                     type: 'number',
-                    default: 3,
+                    default: 50,
                     description: 'Number of retries when acquiring lock fails.'
                   },
                   retryWait: {
                     type: ['string', 'number'],
                     '$jsreport-acceptsDuration': true,
-                    default: 100,
+                    default: 200,
                     description: 'How long to wait before the retries.'
                   }
                 },

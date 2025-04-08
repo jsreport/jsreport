@@ -10,6 +10,7 @@ const { getSectionDetail } = require('../lib/sectionUtils')
 const { SUPPORTED_ELEMENTS, BLOCK_ELEMENTS, ELEMENTS } = require('../lib/postprocess/html/supportedElements')
 const extractor = new WordExtractor()
 
+const dataDirPath = path.join(__dirname, './data')
 const docxDirPath = path.join(__dirname, './docx')
 const outputPath = path.join(__dirname, '../out.docx')
 
@@ -10839,6 +10840,1161 @@ describe('docx html embed', () => {
         }
       })
 
+      it(`${mode} mode <table> colgroup`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup style="background-color: red; border: 2px solid green; width: 50px">',
+          '</colgroup>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(topBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else if (rowIdx === 1 && cellIdx === 0) {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode).be.not.ok()
+              should(bottomBorderNode).be.not.ok()
+
+              if (cellIdx === 1) {
+                should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+                should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+                should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              } else {
+                should(leftBorderNode).be.not.ok()
+              }
+
+              should(backgroundColor).be.not.ok()
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('4044')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with span`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup span="5" style="background-color: #d7d9f2; width: 50px">',
+          '</colgroup>',
+          '<colgroup span="2" style="background-color: #ffe8d4; width: 50px">',
+          '</colgroup>',
+          '<tr>',
+          '<th>Mon</th>',
+          '<th>Tue</th>',
+          '<th>Wed</th>',
+          '<th>Thu</th>',
+          '<th>Fri</th>',
+          '<th>Sat</th>',
+          '<th>Sun</th>',
+          '</tr>',
+          '<tr>',
+          '<td>Clean room</td>',
+          '<td>Football training</td>',
+          '<td>Dance Course</td>',
+          '<td>History Class</td>',
+          '<td>Buy drinks</td>',
+          '<td>Study hour</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '<tr>',
+          '<td>Yoga</td>',
+          '<td>Chess Club</td>',
+          '<td>Meet friends</td>',
+          '<td>Gymnastics</td>',
+          '<td>Birthday party</td>',
+          '<td>Fishing trip</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(7)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        const expectedCellsContent = [
+          ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          ['Clean room', 'Football training', 'Dance Course', 'History Class', 'Buy drinks', 'Study hour', 'Free time'],
+          ['Yoga', 'Chess Club', 'Meet friends', 'Gymnastics', 'Birthday party', 'Fishing trip', 'Free time']
+        ]
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(7)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(topBorderNode).be.not.ok()
+            }
+
+            should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+            should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+            should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+            should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+
+            if (cellIdx === 0) {
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(leftBorderNode).be.not.ok()
+            }
+
+            should(widthType).be.eql('dxa')
+            should(widthValue).be.eql('750')
+
+            if ([0, 1, 2, 3, 4].includes(cellIdx)) {
+              should(backgroundColor).be.eql('D7D9F2')
+            } else {
+              should(backgroundColor).be.eql('FFE8D4')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(expectedCellsContent[rowIdx][cellIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with col`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup>',
+          '<col style="background-color: red; border: 2px solid green; width: 50px" />',
+          '</colgroup>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(topBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else if (rowIdx === 1 && cellIdx === 0) {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode).be.not.ok()
+              should(bottomBorderNode).be.not.ok()
+
+              if (cellIdx === 1) {
+                should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+                should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+                should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              } else {
+                should(leftBorderNode).be.not.ok()
+              }
+
+              should(backgroundColor).be.not.ok()
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('4044')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with col in middle with no styles`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup>',
+          '<col style="background-color: red; border: 2px solid green; width: 50px" />',
+          '<col />',
+          '<col style="background-color: red; border: 2px solid green; width: 50px" />',
+          '</colgroup>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (
+              (rowIdx === 0 && cellIdx === 0) ||
+              (rowIdx === 0 && cellIdx === 2)
+            ) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(topBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else if (
+              (rowIdx === 1 && cellIdx === 0) ||
+              (rowIdx === 1 && cellIdx === 2)
+            ) {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+              should(rightBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(rightBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+              should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              should(backgroundColor).be.eql('FF0000')
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('750')
+            } else {
+              should(topBorderNode).be.not.ok()
+              should(rightBorderNode).be.not.ok()
+              should(bottomBorderNode).be.not.ok()
+
+              if (cellIdx === 1) {
+                should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+                should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
+                should(leftBorderNode.getAttribute('w:color')).be.eql('#008000')
+              } else {
+                should(leftBorderNode).be.not.ok()
+              }
+
+              should(backgroundColor).be.not.ok()
+              should(widthType).be.eql('dxa')
+              should(widthValue).be.eql('7338')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with col with span`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup>',
+          '<col span="5" style="background-color: #d7d9f2; width: 50px" />',
+          '<col span="2" style="background-color: #ffe8d4; width: 50px" />',
+          '</colgroup>',
+          '<tr>',
+          '<th>Mon</th>',
+          '<th>Tue</th>',
+          '<th>Wed</th>',
+          '<th>Thu</th>',
+          '<th>Fri</th>',
+          '<th>Sat</th>',
+          '<th>Sun</th>',
+          '</tr>',
+          '<tr>',
+          '<td>Clean room</td>',
+          '<td>Football training</td>',
+          '<td>Dance Course</td>',
+          '<td>History Class</td>',
+          '<td>Buy drinks</td>',
+          '<td>Study hour</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '<tr>',
+          '<td>Yoga</td>',
+          '<td>Chess Club</td>',
+          '<td>Meet friends</td>',
+          '<td>Gymnastics</td>',
+          '<td>Birthday party</td>',
+          '<td>Fishing trip</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(7)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        const expectedCellsContent = [
+          ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          ['Clean room', 'Football training', 'Dance Course', 'History Class', 'Buy drinks', 'Study hour', 'Free time'],
+          ['Yoga', 'Chess Club', 'Meet friends', 'Gymnastics', 'Birthday party', 'Fishing trip', 'Free time']
+        ]
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(7)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(topBorderNode).be.not.ok()
+            }
+
+            should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+            should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+            should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+            should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+
+            if (cellIdx === 0) {
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(leftBorderNode).be.not.ok()
+            }
+
+            should(widthType).be.eql('dxa')
+            should(widthValue).be.eql('750')
+
+            if ([0, 1, 2, 3, 4].includes(cellIdx)) {
+              should(backgroundColor).be.eql('D7D9F2')
+            } else {
+              should(backgroundColor).be.eql('FFE8D4')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(expectedCellsContent[rowIdx][cellIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode <table> colgroup with col with span in different groups`, async () => {
+        const templateStr = [
+          '<table>',
+          '<colgroup>',
+          '<col span="5" style="background-color: #d7d9f2; width: 50px" />',
+          '</colgroup>',
+          '<colgroup>',
+          '<col span="2" style="background-color: #ffe8d4; width: 50px" />',
+          '</colgroup>',
+          '<tr>',
+          '<th>Mon</th>',
+          '<th>Tue</th>',
+          '<th>Wed</th>',
+          '<th>Thu</th>',
+          '<th>Fri</th>',
+          '<th>Sat</th>',
+          '<th>Sun</th>',
+          '</tr>',
+          '<tr>',
+          '<td>Clean room</td>',
+          '<td>Football training</td>',
+          '<td>Dance Course</td>',
+          '<td>History Class</td>',
+          '<td>Buy drinks</td>',
+          '<td>Study hour</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '<tr>',
+          '<td>Yoga</td>',
+          '<td>Chess Club</td>',
+          '<td>Meet friends</td>',
+          '<td>Gymnastics</td>',
+          '<td>Birthday party</td>',
+          '<td>Fishing trip</td>',
+          '<td>Free time</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync(outputPath, result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(0)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(1)
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(7)
+
+        const tblBorderNode = tableAtRootNodes[0].getElementsByTagName('w:tblBorders')[0]
+        const topBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:top')
+        const rightBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:right')
+        const bottomBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:bottom')
+        const leftBorderNode = nodeListToArray(tblBorderNode.childNodes).find((el) => el.nodeName === 'w:left')
+
+        should(topBorderNode.getAttribute('w:val')).be.eql('single')
+        should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+        should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+        should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+        should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+        should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+        should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        const findTcBorder = (tcNode, side) => {
+          const tcBordersNode = tcNode.getElementsByTagName('w:tcBorders')[0]
+
+          if (tcBordersNode == null) {
+            return
+          }
+
+          return nodeListToArray(tcBordersNode.childNodes).find((el) => el.nodeName === `w:${side}`)
+        }
+
+        const findShd = (tcNode) => {
+          const tcShd = tcNode.getElementsByTagName('w:shd')[0]
+
+          if (tcShd == null) {
+            return
+          }
+
+          return tcShd
+        }
+
+        const findWidth = (tcNode) => {
+          const tcW = tcNode.getElementsByTagName('w:tcW')[0]
+
+          if (tcW == null) {
+            return
+          }
+
+          return tcW
+        }
+
+        const expectedCellsContent = [
+          ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          ['Clean room', 'Football training', 'Dance Course', 'History Class', 'Buy drinks', 'Study hour', 'Free time'],
+          ['Yoga', 'Chess Club', 'Meet friends', 'Gymnastics', 'Birthday party', 'Fishing trip', 'Free time']
+        ]
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(7)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const topBorderNode = findTcBorder(cellNodes[cellIdx], 'top')
+            const rightBorderNode = findTcBorder(cellNodes[cellIdx], 'right')
+            const bottomBorderNode = findTcBorder(cellNodes[cellIdx], 'bottom')
+            const leftBorderNode = findTcBorder(cellNodes[cellIdx], 'left')
+            const backgroundColor = findShd(cellNodes[cellIdx])?.getAttribute?.('w:fill')
+            const widthType = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:type')
+            const widthValue = findWidth(cellNodes[cellIdx])?.getAttribute?.('w:w')
+
+            if (rowIdx === 0) {
+              should(topBorderNode.getAttribute('w:val')).be.eql('single')
+              should(topBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(topBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(topBorderNode).be.not.ok()
+            }
+
+            should(rightBorderNode.getAttribute('w:val')).be.eql('single')
+            should(rightBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(rightBorderNode.getAttribute('w:color')).be.eql('auto')
+            should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
+            should(bottomBorderNode.getAttribute('w:sz')).be.eql('4')
+            should(bottomBorderNode.getAttribute('w:color')).be.eql('auto')
+
+            if (cellIdx === 0) {
+              should(leftBorderNode.getAttribute('w:val')).be.eql('single')
+              should(leftBorderNode.getAttribute('w:sz')).be.eql('4')
+              should(leftBorderNode.getAttribute('w:color')).be.eql('auto')
+            } else {
+              should(leftBorderNode).be.not.ok()
+            }
+
+            should(widthType).be.eql('dxa')
+            should(widthValue).be.eql('750')
+
+            if ([0, 1, 2, 3, 4].includes(cellIdx)) {
+              should(backgroundColor).be.eql('D7D9F2')
+            } else {
+              should(backgroundColor).be.eql('FFE8D4')
+            }
+
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(expectedCellsContent[rowIdx][cellIdx])
+          }
+        }
+      })
+
       if (mode === 'block') {
         it(`${mode} mode - <table> have a default border`, async () => {
           const templateStr = [
@@ -12035,9 +13191,9 @@ describe('docx html embed', () => {
                 should(bottomBorderNode.getAttribute('w:val')).be.eql('single')
                 should(bottomBorderNode.getAttribute('w:sz')).be.eql('16')
                 should(bottomBorderNode.getAttribute('w:color')).be.eql('#008000')
-                should(leftBorderNode.getAttribute('w:val')).be.eql('single')
-                should(leftBorderNode.getAttribute('w:sz')).be.eql('16')
-                should(leftBorderNode.getAttribute('w:color')).be.eql('#FF0000')
+                should(leftBorderNode).be.not.ok()
+                should(leftBorderNode).be.not.ok()
+                should(leftBorderNode).be.not.ok()
               } else if (rowIdx === 0 && cellIdx === 2) {
                 should(topBorderNode).be.not.ok()
                 should(rightBorderNode).be.not.ok()
@@ -14191,6 +15347,706 @@ describe('docx html embed', () => {
       }
     })
   }
+
+  describe('complex html cases', () => {
+    const templateStr = `
+      <p>
+        <strong>Use Case Description: Integrating AI in a Communication Products Line</strong>
+      </p>
+      <p>
+        <strong>Overview:</strong> Incorporating AI into a communication products line
+        can revolutionize user experiences by enhancing efficiency, personalization,
+        and overall satisfaction.
+      </p>
+      <p><strong>Use Case:</strong> <strong>AI-Powered Customer Support</strong></p>
+      <ul>
+        <li>
+          <strong>Objective:</strong> Improve customer support efficiency and response
+          time by implementing AI-driven chatbots and virtual assistants.
+        </li>
+        <li>
+          <strong>Description:</strong> Deploy AI chatbots to handle routine
+          inquiries, troubleshoot common issues, and guide users through setup
+          processes in real-time. These AI assistants can also escalate complex issues
+          to human agents, ensuring seamless and efficient support.
+        </li>
+        <li>
+          <strong>Benefits:</strong>
+          <ul>
+            <li>
+              <strong>24/7 Availability:</strong> Provides constant support without
+              the need for human intervention.
+            </li>
+            <li>
+              <strong>Personalized Interactions:</strong> Tailors responses based on
+              user data and previous interactions.
+            </li>
+            <li>
+              <strong>Efficiency:</strong> Reduces wait times and operational costs by
+              handling multiple queries simultaneously.
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <p><strong>Implementation:</strong></p>
+      <ol>
+        <li>
+          <strong>Chatbot Development:</strong> Create AI chatbots using natural
+          language processing (NLP) to understand and respond to user inquiries
+          accurately.
+        </li>
+        <li>
+          <strong>Integration:</strong> Embed chatbots within communication platforms
+          (e.g., email, messaging apps, customer portals).
+        </li>
+        <li>
+          <strong>Training:</strong> Continuously train AI with new data to enhance
+          its understanding and capabilities.
+        </li>
+      </ol>
+      <p>
+        <strong>Outcome:</strong> By integrating AI, companies can provide swift,
+        accurate, and personalized customer support, enhancing user satisfaction and
+        loyalty while optimizing operational efficiency.
+      </p>
+    `
+
+    /* eslint-disable quotes */
+    const templateStr2 = `
+      <p>
+        for the above use case wtite and example for a Feedback Summary for 4 week POC
+      </p>
+      <p>
+        <strong>Feedback Summary: AI-Powered Customer Support - 4 Week POC</strong>
+      </p>
+      <p>
+        <strong>Overview:</strong> The proof of concept (POC) for integrating
+        AI-powered customer support into our communication products line has
+        successfully concluded. Over the past four weeks, we aimed to evaluate the
+        efficacy, user experience, and operational benefits of the AI chatbots and
+        virtual assistants.
+      </p>
+      <p><strong>Key Achievements:</strong></p>
+      <ol>
+        <li><strong>Efficiency Gains:</strong></li>
+      </ol>
+      <ul>
+        <li>
+          The AI chatbots handled 60% of customer inquiries autonomously, reducing the
+          workload on human agents.
+        </li>
+        <li>
+          Average response time decreased from 5 minutes to under 1 minute for routine
+          queries.
+        </li>
+      </ul>
+      <ol>
+        <li><strong>Customer Satisfaction:</strong></li>
+      </ol>
+      <ul>
+        <li>
+          Positive feedback was received from 80% of users, highlighting the prompt
+          and helpful responses provided by the AI.
+        </li>
+        <li>
+          The seamless escalation process ensured complex issues were efficiently
+          addressed by human agents.
+        </li>
+      </ul>
+      <ol>
+        <li><strong>Operational Benefits:</strong></li>
+      </ol>
+      <ul>
+        <li>
+          Reduction in operational costs by 30%, attributed to the AI's capability to
+          manage multiple queries simultaneously.
+        </li>
+        <li>
+          Enhanced 24/7 support availability, significantly improving customer
+          engagement and retention.
+        </li>
+      </ul>
+      <p><strong>Challenges and Learnings:</strong></p>
+      <ul>
+        <li>
+          <strong>Initial Training Phase:</strong> Some inaccuracies were noted during
+          the initial phase, necessitating continuous training and refinement of the
+          AI models.
+        </li>
+        <li>
+          <strong>Integration Hurdles:</strong> Minor integration issues with existing
+          communication platforms were resolved in the second week.
+        </li>
+      </ul>
+      <p><strong>Recommendations:</strong></p>
+      <ul>
+        <li>
+          <strong>Ongoing Training:</strong> Regular updates and training of AI models
+          to improve accuracy and adapt to evolving customer needs.
+        </li>
+        <li>
+          <strong>Full-Scale Implementation:</strong> Considering the positive
+          outcomes, we recommend rolling out the AI-powered customer support system
+          across all communication channels.
+        </li>
+      </ul>
+      <p><strong>Next Steps:</strong></p>
+      <ul>
+        <li>
+          <strong>User Training Sessions:</strong> Conduct training sessions for users
+          to maximize the benefits of the new system.
+        </li>
+        <li>
+          <strong>Feedback Loop:</strong> Establish a continuous feedback loop to
+          monitor performance and gather user insights for further enhancements.
+        </li>
+      </ul>
+      <p>
+        Overall, the POC has demonstrated significant potential for improving customer
+        support efficiency, satisfaction, and operational efficiency. The next phase
+        involves scaling up the implementation and fine-tuning based on user feedback.
+      </p>
+    `
+    /* eslint-enable quotes */
+
+    const listParagraphAssert = (paragraphNode, extra) => {
+      const [stylesDoc, numberingDoc] = extra.outputDocuments
+      const pPrNode = findChildNode('w:pPr', paragraphNode)
+      const pStyleNode = findChildNode('w:pStyle', pPrNode)
+      const listParagraphStyleId = pStyleNode.getAttribute('w:val')
+
+      const listParagraphStyleNode = findChildNode((n) => (
+        n.nodeName === 'w:style' &&
+        n.getAttribute('w:type') === 'paragraph' &&
+        n.getAttribute('w:styleId') === listParagraphStyleId
+      ), stylesDoc.documentElement)
+
+      should(listParagraphStyleNode).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:name' &&
+        n.getAttribute('w:val') === 'List Paragraph'
+      ), listParagraphStyleNode)).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:basedOn' &&
+        n.getAttribute('w:val') != null &&
+        n.getAttribute('w:val') !== ''
+      ), listParagraphStyleNode)).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:uiPriority' &&
+        n.getAttribute('w:val') != null &&
+        n.getAttribute('w:val') !== ''
+      ), listParagraphStyleNode)).be.ok()
+
+      should(findChildNode('w:qFormat', listParagraphStyleNode)).be.ok()
+
+      should(findChildNode('w:pPr', listParagraphStyleNode)).be.ok()
+
+      const numPrNode = findChildNode('w:numPr', pPrNode)
+
+      should(numPrNode).be.ok()
+
+      const ilvlNode = findChildNode('w:ilvl', numPrNode)
+
+      should(ilvlNode).be.ok()
+
+      const ilvlVal = ilvlNode.getAttribute('w:val')
+
+      should(parseInt(ilvlVal, 10)).be.not.NaN()
+
+      should(parseInt(ilvlVal, 10)).be.eql(extra.ilvl, 'ilvl does not match')
+
+      const numIdNode = findChildNode('w:numId', numPrNode)
+
+      should(numIdNode).be.ok()
+
+      const numId = numIdNode.getAttribute('w:val')
+      should(parseInt(numId, 10)).be.not.NaN()
+
+      should(parseInt(numId, 10)).be.eql(extra.numId, 'numId does not match')
+
+      should(numberingDoc).be.ok()
+
+      const numberingNumNode = findChildNode((n) => (
+        n.nodeName === 'w:num' &&
+        n.getAttribute('w:numId') === numId
+      ), numberingDoc.documentElement)
+
+      should(numberingNumNode).be.ok()
+
+      const numberingAbstractNumIdNode = findChildNode('w:abstractNumId', numberingNumNode)
+
+      should(numberingAbstractNumIdNode).be.ok()
+
+      const abstractNumId = numberingAbstractNumIdNode.getAttribute('w:val')
+
+      should(parseInt(abstractNumId, 10)).be.not.NaN()
+
+      should(parseInt(abstractNumId, 10)).be.eql(extra.abstractNumId, 'abstractNumId does not match')
+
+      const numberingAbstractNumNode = findChildNode((n) => (
+        n.nodeName === 'w:abstractNum' &&
+        n.getAttribute('w:abstractNumId') === abstractNumId
+      ), numberingDoc.documentElement)
+
+      should(numberingAbstractNumNode).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:multiLevelType' &&
+        n.getAttribute('w:val') === 'hybridMultilevel'
+      ), numberingAbstractNumNode)).be.ok()
+
+      const lvlNode = findChildNode((n) => (
+        n.nodeName === 'w:lvl' &&
+        n.getAttribute('w:ilvl') === ilvlVal
+      ), numberingAbstractNumNode)
+
+      should(lvlNode).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:start' &&
+        n.getAttribute('w:val') != null &&
+        n.getAttribute('w:val') !== ''
+      ), lvlNode)).be.ok()
+
+      if (extra.listStart != null) {
+        should(findChildNode((n) => (
+          n.nodeName === 'w:start' &&
+          n.getAttribute('w:val') === extra.listStart.toString()
+        ), lvlNode)).be.ok()
+      }
+
+      const expectedFmt = extra.format
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:numFmt' &&
+        n.getAttribute('w:val') === expectedFmt
+      ), lvlNode), 'format does not match').be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:lvlText' &&
+        n.getAttribute('w:val') != null &&
+        n.getAttribute('w:val') !== ''
+      ), lvlNode)).be.ok()
+
+      should(findChildNode((n) => (
+        n.nodeName === 'w:lvlJc' &&
+        n.getAttribute('w:val') === 'left'
+      ), lvlNode)).be.ok()
+
+      should(findChildNode('w:pPr', lvlNode)).be.ok()
+
+      if (extra.format === 'bullet') {
+        should(findChildNode('w:rPr', lvlNode)).be.ok()
+      }
+    }
+
+    const outputDocuments = ['word/styles.xml', 'word/numbering.xml']
+
+    it('block mode - html with different lists with multiple items', async () => {
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-complex-list-block.docx'))
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: docxTemplateBuf
+            }
+          }
+        },
+        data: {
+          myRecord: {
+            Name: 'Test 1',
+            Use_Case_Description: templateStr,
+            Feedback_Summary: templateStr2
+          }
+        }
+      })
+
+      // Write document for easier debugging
+      fs.writeFileSync(outputPath, result.content)
+
+      const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+
+      const numberingDoc = restOfDocuments[1]
+
+      const numberingNumNodes = findChildNode((n) => (
+        n.nodeName === 'w:num'
+      ), numberingDoc.documentElement, true)
+
+      should(numberingNumNodes.length).eql(12)
+
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(44)
+
+      const assertExtra = {
+        outputDocuments: restOfDocuments
+      }
+
+      for (const [paragraphIdx, paragraphNode] of paragraphNodes.entries()) {
+        switch (paragraphIdx) {
+          case 0:
+            should(paragraphNode.textContent).be.eql('Test 1')
+            break
+          case 1:
+          case 2:
+          case 17:
+          case 18:
+          case 19:
+          case 20:
+            should(paragraphNode.textContent).be.eql('')
+            break
+          case 3:
+            should(paragraphNode.textContent).be.eql('Use Case Description: Integrating AI in a Communication Products Line')
+            break
+          case 4:
+            should(paragraphNode.textContent).be.eql('Overview: Incorporating AI into a communication products line can revolutionize user experiences by enhancing efficiency, personalization, and overall satisfaction.')
+            break
+          case 5:
+            should(paragraphNode.textContent).be.eql('Use Case:AI-Powered Customer Support')
+            break
+          case 6:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 1,
+              abstractNumId: 0
+            })
+
+            should(paragraphNode.textContent).be.eql('Objective: Improve customer support efficiency and response time by implementing AI-driven chatbots and virtual assistants.')
+            break
+          case 7:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 1,
+              abstractNumId: 0
+            })
+
+            should(paragraphNode.textContent).be.eql('Description: Deploy AI chatbots to handle routine inquiries, troubleshoot common issues, and guide users through setup processes in real-time. These AI assistants can also escalate complex issues to human agents, ensuring seamless and efficient support.')
+            break
+          case 8:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 1,
+              abstractNumId: 0
+            })
+
+            should(paragraphNode.textContent).be.eql('Benefits:')
+            break
+          case 9:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 1,
+              numId: 4,
+              abstractNumId: 3
+            })
+
+            should(paragraphNode.textContent).be.eql('24/7 Availability: Provides constant support without the need for human intervention.')
+            break
+          case 10:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 1,
+              numId: 4,
+              abstractNumId: 3
+            })
+
+            should(paragraphNode.textContent).be.eql('Personalized Interactions: Tailors responses based on user data and previous interactions.')
+            break
+          case 11:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 1,
+              numId: 4,
+              abstractNumId: 3
+            })
+
+            should(paragraphNode.textContent).be.eql('Efficiency: Reduces wait times and operational costs by handling multiple queries simultaneously.')
+            break
+          case 12:
+            should(paragraphNode.textContent).be.eql('Implementation:')
+            break
+          case 13:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 7,
+              abstractNumId: 6
+            })
+
+            should(paragraphNode.textContent).be.eql('Chatbot Development: Create AI chatbots using natural language processing (NLP) to understand and respond to user inquiries accurately.')
+            break
+          case 14:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 7,
+              abstractNumId: 6
+            })
+
+            should(paragraphNode.textContent).be.eql('Integration: Embed chatbots within communication platforms (e.g., email, messaging apps, customer portals).')
+            break
+          case 15:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 7,
+              abstractNumId: 6
+            })
+
+            should(paragraphNode.textContent).be.eql('Training: Continuously train AI with new data to enhance its understanding and capabilities.')
+            break
+          case 16:
+            should(paragraphNode.textContent).be.eql('Outcome: By integrating AI, companies can provide swift, accurate, and personalized customer support, enhancing user satisfaction and loyalty while optimizing operational efficiency.')
+            break
+          case 21:
+            should(paragraphNode.textContent).be.eql('for the above use case wtite and example for a Feedback Summary for 4 week POC')
+            break
+          case 22:
+            should(paragraphNode.textContent).be.eql('Feedback Summary: AI-Powered Customer Support - 4 Week POC')
+            break
+          case 23:
+            should(paragraphNode.textContent).be.eql('Overview: The proof of concept (POC) for integrating AI-powered customer support into our communication products line has successfully concluded. Over the past four weeks, we aimed to evaluate the efficacy, user experience, and operational benefits of the AI chatbots and virtual assistants.')
+            break
+          case 24:
+            should(paragraphNode.textContent).be.eql('Key Achievements:')
+            break
+          case 25:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 2,
+              abstractNumId: 1
+            })
+
+            should(paragraphNode.textContent).be.eql('Efficiency Gains:')
+            break
+          case 26:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 3,
+              abstractNumId: 2
+            })
+
+            should(paragraphNode.textContent).be.eql('The AI chatbots handled 60% of customer inquiries autonomously, reducing the workload on human agents.')
+            break
+          case 27:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 3,
+              abstractNumId: 2
+            })
+
+            should(paragraphNode.textContent).be.eql('Average response time decreased from 5 minutes to under 1 minute for routine queries.')
+            break
+          case 28:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 5,
+              abstractNumId: 4
+            })
+
+            should(paragraphNode.textContent).be.eql('Customer Satisfaction:')
+            break
+          case 29:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 6,
+              abstractNumId: 5
+            })
+
+            should(paragraphNode.textContent).be.eql('Positive feedback was received from 80% of users, highlighting the prompt and helpful responses provided by the AI.')
+            break
+          case 30:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 6,
+              abstractNumId: 5
+            })
+
+            should(paragraphNode.textContent).be.eql('The seamless escalation process ensured complex issues were efficiently addressed by human agents.')
+            break
+          case 31:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'decimal',
+              ilvl: 0,
+              numId: 8,
+              abstractNumId: 7
+            })
+
+            should(paragraphNode.textContent).be.eql('Operational Benefits:')
+            break
+          case 32:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 9,
+              abstractNumId: 8
+            })
+
+            should(paragraphNode.textContent).be.eql('Reduction in operational costs by 30%, attributed to the AI\'s capability to manage multiple queries simultaneously.')
+            break
+          case 33:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 9,
+              abstractNumId: 8
+            })
+
+            should(paragraphNode.textContent).be.eql('Enhanced 24/7 support availability, significantly improving customer engagement and retention.')
+            break
+          case 34:
+            should(paragraphNode.textContent).be.eql('Challenges and Learnings:')
+            break
+          case 35:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 10,
+              abstractNumId: 9
+            })
+
+            should(paragraphNode.textContent).be.eql('Initial Training Phase: Some inaccuracies were noted during the initial phase, necessitating continuous training and refinement of the AI models.')
+            break
+          case 36:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 10,
+              abstractNumId: 9
+            })
+
+            should(paragraphNode.textContent).be.eql('Integration Hurdles: Minor integration issues with existing communication platforms were resolved in the second week.')
+            break
+          case 37:
+            should(paragraphNode.textContent).be.eql('Recommendations:')
+            break
+          case 38:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 11,
+              abstractNumId: 10
+            })
+
+            should(paragraphNode.textContent).be.eql('Ongoing Training: Regular updates and training of AI models to improve accuracy and adapt to evolving customer needs.')
+            break
+          case 39:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 11,
+              abstractNumId: 10
+            })
+
+            should(paragraphNode.textContent).be.eql('Full-Scale Implementation: Considering the positive outcomes, we recommend rolling out the AI-powered customer support system across all communication channels.')
+            break
+          case 40:
+            should(paragraphNode.textContent).be.eql('Next Steps:')
+            break
+          case 41:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 12,
+              abstractNumId: 11
+            })
+
+            should(paragraphNode.textContent).be.eql('User Training Sessions: Conduct training sessions for users to maximize the benefits of the new system.')
+            break
+          case 42:
+            listParagraphAssert(paragraphNode, {
+              ...assertExtra,
+              format: 'bullet',
+              ilvl: 0,
+              numId: 12,
+              abstractNumId: 11
+            })
+
+            should(paragraphNode.textContent).be.eql('Feedback Loop: Establish a continuous feedback loop to monitor performance and gather user insights for further enhancements.')
+            break
+          case 43:
+            should(paragraphNode.textContent).be.eql('Overall, the POC has demonstrated significant potential for improving customer support efficiency, satisfaction, and operational efficiency. The next phase involves scaling up the implementation and fine-tuning based on user feedback.')
+            break
+          default:
+            break
+        }
+      }
+    })
+
+    it('block mode - loop with multiple docxHtml calls and conditionals', async () => {
+      const data = JSON.parse(fs.readFileSync(path.join(dataDirPath, 'html-multiple-calls-and-conditionals.json')).toString())
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-multiple-calls-and-conditionals.docx'))
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: docxTemplateBuf
+            }
+          },
+          helpers: `
+            function join (collection, separator) {
+                const sep = typeof separator === 'string' ? separator : ', '
+                return collection.join(sep)
+            }
+          `
+        },
+        data
+      })
+
+      // Write document for easier debugging
+      fs.writeFileSync(outputPath, result.content)
+
+      const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'], {
+        strict: true
+      })
+
+      should(doc.toString().includes('<!--')).be.False()
+
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(91)
+    })
+  })
 
   // NOTE: when dealing with white space related issues, always remember
   // that we want to match what the browser produces as the rendered/visual output.

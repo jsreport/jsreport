@@ -21,7 +21,7 @@
   },
   "resolutions": {},
   "dependencies": {
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/studio-dev": "4.0.1",
     "extract-zip": "2.0.1",
     "ignore": "5.2.0",
     "snyk": "1.1228.0",
@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "archiver": "7.0.1",
-    "cross-env": "5.2.1",
+    "cross-env": "7.0.3",
     "standard": "16.0.4"
   },
   "standard": {
@@ -42,5 +42,6 @@
       "browser": true,
       "node": true
     }
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

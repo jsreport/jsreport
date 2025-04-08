@@ -14,10 +14,11 @@ const engineStream = require('./render/engineStream.js')
 
 class WorkerReporter extends Reporter {
   constructor (workerData, executeMain) {
-    const { options, documentStore, extensionsDefs } = workerData
+    const { options, documentStore, extensionsDefs, workerId } = workerData
 
     super(options)
 
+    this.workerId = workerId
     this._executeMain = executeMain
     this._initialized = false
     this._lockedDown = false
@@ -54,7 +55,7 @@ class WorkerReporter extends Reporter {
     await this.extensionsManager.init()
 
     this.documentStore = DocumentStore(this._documentStoreData, this.executeMainAction.bind(this))
-    this.blobStorage = BlobStorage(this.executeMainAction.bind(this))
+    this.blobStorage = BlobStorage(this.executeMainAction.bind(this), { writeTempFile: this.writeTempFile.bind(this), readTempFile: this.readTempFile.bind(this) })
 
     this.addRequestContextMetaConfig('rootId', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('id', { sandboxReadOnly: true })

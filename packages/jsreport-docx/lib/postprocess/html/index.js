@@ -1,4 +1,5 @@
 const { DOMParser } = require('@xmldom/xmldom')
+const Lock = require('semaphore-async-await').Lock
 const recursiveStringReplaceAsync = require('../../recursiveStringReplaceAsync')
 const { nodeListToArray, serializeXml, getClosestEl, clearEl } = require('../../utils')
 const parseHtmlToDocxMeta = require('./parseHtmlToDocxMeta')
@@ -19,22 +20,44 @@ module.exports = async (reporter, files, sections) => {
     return acu
   }, [])
 
+  const numberingLock = new Lock()
+
   documentFile.data = await recursiveStringReplaceAsync(
     documentFile.data.toString(),
     '<w:p[^>]*__html_embed_container__="true"[^>]*>',
     '<!--__html_embed_container__--></w:p>',
     'g',
     async (val, content, hasNestedMatch) => {
-      const doc = new DOMParser().parseFromString(val)
-      const paragraphNode = doc.documentElement
+      // we parse assuming it can be multiple paragraphs, this can happen
+      // when some helper blocks get generated in a loop with conditional parts,
+      // paragraphs with start attributes are there but with single end part
+      const doc = new DOMParser().parseFromString(`<docxXml>${val}</docxXml>`)
+      const paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-      let sectionIdx = parseInt(paragraphNode.getAttribute('__sectionIdx__'), 10)
+      const mainParagraphEl = paragraphEls.find((pEl) => {
+        return pEl.hasAttribute('__sectionIdx__')
+      }) ?? paragraphEls[0]
+
+      let sectionIdx = parseInt(mainParagraphEl.getAttribute('__sectionIdx__'), 10)
       sectionIdx = isNaN(sectionIdx) ? 0 : sectionIdx
-      paragraphNode.removeAttribute('__sectionIdx__')
 
-      const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(reporter, paragraphNode, sections[sectionIdx], documentFile.path, doc, documentRelsDoc, files)
+      const results = []
 
-      return xmlNodesGenerated.map((node) => serializeXml(node)).join('')
+      for (const el of nodeListToArray(doc.documentElement.childNodes)) {
+        let output = ''
+
+        if (el.nodeName === 'w:p') {
+          el.removeAttribute('__sectionIdx__')
+          const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(reporter, el, sections[sectionIdx], documentFile.path, doc, documentRelsDoc, numberingLock, files)
+          output = xmlNodesGenerated.map((node) => serializeXml(node)).join('')
+        } else {
+          output = el.toString()
+        }
+
+        results.push(output)
+      }
+
+      return results.join('')
     }
   )
 
@@ -45,7 +68,7 @@ module.exports = async (reporter, files, sections) => {
     })
 
     for (const paragraphEl of paragraphEls) {
-      const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(reporter, paragraphEl, sections[sectionIdx], headerFooterPath, headerFooterDoc, headerFooterRelsDoc, files)
+      const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(reporter, paragraphEl, sections[sectionIdx], headerFooterPath, headerFooterDoc, headerFooterRelsDoc, numberingLock, files)
 
       for (const xmlNode of xmlNodesGenerated) {
         paragraphEl.parentNode.insertBefore(xmlNode, paragraphEl)
@@ -56,7 +79,7 @@ module.exports = async (reporter, files, sections) => {
   }
 }
 
-async function processParagraphHtmlEmbedContainer (reporter, referenceParagraphEl, sectionDetail, docPath, doc, relsDoc, files) {
+async function processParagraphHtmlEmbedContainer (reporter, referenceParagraphEl, sectionDetail, docPath, doc, relsDoc, numberingLock, files) {
   const paragraphEl = referenceParagraphEl.cloneNode(true)
 
   paragraphEl.removeAttribute('__html_embed_container__')
@@ -127,12 +150,27 @@ async function processParagraphHtmlEmbedContainer (reporter, referenceParagraphE
   if (embedType === 'block') {
     const htmlEmbedDef = htmlEmbedDefs[0]
     const docxMeta = parseHtmlToDocxMeta(htmlEmbedDef.config.content, embedType, sectionDetail)
-    const xmlNodes = await convertDocxMetaToNodes(reporter, docxMeta, htmlEmbedDef, embedType, { docPath, doc, relsDoc, files, paragraphNode: paragraphEl })
+
+    const xmlNodes = await convertDocxMetaToNodes(reporter, docxMeta, htmlEmbedDef, embedType, {
+      docPath,
+      doc,
+      relsDoc,
+      files,
+      paragraphNode: paragraphEl,
+      numberingLock
+    })
     xmlNodesGenerated.push(...xmlNodes)
   } else {
     for (const htmlEmbedDef of htmlEmbedDefs) {
       const docxMeta = parseHtmlToDocxMeta(htmlEmbedDef.config.content, embedType, sectionDetail)
-      const xmlNodes = await convertDocxMetaToNodes(reporter, docxMeta, htmlEmbedDef, embedType, { docPath, doc, relsDoc, files })
+
+      const xmlNodes = await convertDocxMetaToNodes(reporter, docxMeta, htmlEmbedDef, embedType, {
+        docPath,
+        doc,
+        relsDoc,
+        files,
+        numberingLock
+      })
       const rContainerNode = getClosestEl(htmlEmbedDef.tEl, 'w:r')
 
       for (const xmlNode of xmlNodes) {

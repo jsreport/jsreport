@@ -50,7 +50,7 @@ async function openProfileFromServer (profile = {}, openTemplateEditor = false) 
       })
 
       if (response.status !== 200) {
-        throw new Error(`Got not ok response, status: ${response.status}`)
+        throw new Error(await response.text())
       }
 
       return response.body.getReader()
@@ -59,7 +59,7 @@ async function openProfileFromServer (profile = {}, openTemplateEditor = false) 
       shortid: template.shortid
     })
   } catch (e) {
-    console.warn(`Error while trying to open profile "${p._id}"`, e)
+
   }
 }
 

@@ -20,17 +20,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-// extracted by mini-css-extract-plugin
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"runCaret":"x-version-control-VersionControl-runCaret fa fa-caret-down","listContainer":"x-version-control-VersionControl-listContainer"});
-
-/***/ }),
-/* 3 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _DownloadBigFileModal__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
@@ -109,6 +98,17 @@ const renderChange = c => {
 });
 
 /***/ }),
+/* 3 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+// extracted by mini-css-extract-plugin
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"runCaret":"x-version-control-VersionControl-runCaret fa fa-caret-down","listContainer":"x-version-control-VersionControl-listContainer"});
+
+/***/ }),
 /* 4 */,
 /* 5 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
@@ -121,8 +121,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ChangesTable_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
-/* harmony import */ var _VersionControl_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
+/* harmony import */ var _ChangesTable_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _VersionControl_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3);
 
 
 
@@ -228,6 +228,17 @@ class HistoryEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       title: 'Uncommitted changes'
     });
   }
+  async clearAllCommits() {
+    if (window.confirm('This will permanently delete all commits. Are you sure you want to perform this action?')) {
+      try {
+        const res = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.get('/odata/versions');
+        await Promise.all(res.value.map(v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.del(`/odata/versions('${v._id}')`)));
+        this.load();
+      } catch (e) {
+        alert(e);
+      }
+    }
+  }
   render() {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "block custom-editor"
@@ -236,7 +247,10 @@ class HistoryEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }), " Commits history", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
       className: "button confirmation",
       onClick: () => this.localChanges()
-    }, "Uncommitted changes")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    }, "Uncommitted changes"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      className: "button danger",
+      onClick: () => this.clearAllCommits()
+    }, "Clear all commits")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       style: {
         marginTop: '1rem',
         marginBottom: '1rem'
@@ -350,8 +364,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ChangesTable_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
-/* harmony import */ var _VersionControl_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
+/* harmony import */ var _ChangesTable_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _VersionControl_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3);
 
 
 
@@ -566,99 +580,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _HistoryEditor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
 /* harmony import */ var _LocalChangesEditor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
-/* harmony import */ var _VersionControl_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
 
 
 
 
-
-const Popup = (jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().Popup);
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().initializeListeners.push(async () => {
   if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication) && !jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.isUserAdmin((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user)) {
     return;
   }
   jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEditorComponent('versionControlHistory', _HistoryEditor__WEBPACK_IMPORTED_MODULE_2__["default"]);
   jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEditorComponent('versionControlLocalChanges', _LocalChangesEditor__WEBPACK_IMPORTED_MODULE_3__["default"]);
-  class VCToolbar extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
-    constructor(props) {
-      super(props);
-      this.state = {
-        expandedMenu: false
-      };
-      this.handleVCMenuTrigger = this.handleVCMenuTrigger.bind(this);
-      this.vcMenuTriggerRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createRef();
-      this.vcMenuContainerRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createRef();
-    }
-    openHistory(e) {
-      e.stopPropagation();
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openTab({
-        key: 'versionControlHistory',
-        editorComponentKey: 'versionControlHistory',
-        title: 'Commits history'
-      });
-    }
-    openLocalChanges(e) {
-      e.stopPropagation();
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openTab({
-        key: 'versionControlLocalChanges',
-        editorComponentKey: 'versionControlLocalChanges',
-        title: 'Uncommited changes'
-      });
-    }
-    handleVCMenuTrigger(e) {
-      e.stopPropagation();
-      if (this.vcMenuTriggerRef.current == null || this.vcMenuContainerRef.current == null) {
-        return;
-      }
-      if (this.vcMenuTriggerRef.current.contains(e.target) && !this.vcMenuContainerRef.current.contains(e.target)) {
-        this.setState(prevState => ({
-          expandedMenu: !prevState.expandedMenu
-        }));
-      }
-    }
-    render() {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-        ref: this.vcMenuTriggerRef,
-        className: "toolbar-button",
-        onClick: e => {
-          this.openLocalChanges(e);
-          this.setState({
-            expandedMenu: false
-          });
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-        className: "fa fa-history "
-      }), "Commit", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
-        className: _VersionControl_css__WEBPACK_IMPORTED_MODULE_4__["default"].runCaret,
-        onClick: this.handleVCMenuTrigger
-      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(Popup, {
-        ref: this.vcMenuContainerRef,
-        open: this.state.expandedMenu,
-        position: {
-          top: undefined,
-          right: undefined
-        },
-        onRequestClose: () => this.setState({
-          expandedMenu: false
-        })
-      }, itemProps => {
-        if (!itemProps.open) {
-          return;
-        }
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-          title: "History",
-          className: "toolbar-button",
-          onClick: e => {
-            this.openHistory(e);
-            itemProps.closeMenu();
-          }
-        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-          className: "fa fa-history"
-        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, "History"));
-      }));
-    }
-  }
-  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(VCToolbar);
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(() => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    title: "History",
+    className: "toolbar-button",
+    onClick: () => jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openTab({
+      key: 'versionControlLocalChanges',
+      editorComponentKey: 'versionControlLocalChanges',
+      title: 'Uncommited changes'
+    })
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
+    className: "fa fa-history"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, "Version control")), 'settings');
 });
 })();
 

@@ -22,39 +22,41 @@ if (!argv.storeVersion || argv.storeVersion === '') {
   throw new Error('target is required')
 }
 
-const storeFullPackage = `@jsreport/jsreport-oracle-store@${argv.storeVersion}`
-const installArgs = ['npm', 'install', storeFullPackage, '--save', '--save-exact']
-
-console.log(`running ${installArgs.join(' ')}\n`)
-
-const { error: npmInstallError, stdout: npmInstallStdout, stderr: npmInstallStderr, status: npmInstallStatus } = spawnSync(installArgs[0], installArgs.slice(1), {
-  stdio: 'pipe',
-  shell: true
-})
-
-const installOutput = npmInstallStdout != null ? npmInstallStdout.toString().trim() : ''
-const installOutputErr = npmInstallStderr != null ? npmInstallStderr.toString().trim() : ''
-
-if (installOutput !== '') {
-  console.log(installOutput)
-}
-
-if (installOutputErr !== '') {
-  console.error(installOutputErr)
-}
-
 let npmInstallWithError = false
 
-if (npmInstallError || npmInstallStatus !== 0) {
-  npmInstallWithError = true
+const storeFullPackage = `@jsreport/jsreport-oracle-store@${argv.storeVersion}`
+if (process.env.NIGHTLY_BUILD == null) {
+  const installArgs = ['npm', 'install', storeFullPackage, '--save', '--save-exact']
 
-  if (npmInstallError) {
-    console.error('install error:', npmInstallError)
+  console.log(`running ${installArgs.join(' ')}\n`)
+
+  const { error: npmInstallError, stdout: npmInstallStdout, stderr: npmInstallStderr, status: npmInstallStatus } = spawnSync(installArgs[0], installArgs.slice(1), {
+    stdio: 'pipe',
+    shell: true
+  })
+
+  const installOutput = npmInstallStdout != null ? npmInstallStdout.toString().trim() : ''
+  const installOutputErr = npmInstallStderr != null ? npmInstallStderr.toString().trim() : ''
+
+  if (installOutput !== '') {
+    console.log(installOutput)
   }
 
-  console.error('\ninstall failed to run')
-} else {
-  console.log(`\ninstall ${storeFullPackage} finished successfully`)
+  if (installOutputErr !== '') {
+    console.error(installOutputErr)
+  }
+
+  if (npmInstallError || npmInstallStatus !== 0) {
+    npmInstallWithError = true
+
+    if (npmInstallError) {
+      console.error('install error:', npmInstallError)
+    }
+
+    console.error('\ninstall failed to run')
+  } else {
+    console.log(`\ninstall ${storeFullPackage} finished successfully`)
+  }
 }
 
 let oracledbDepInstalled = fs.existsSync('/app/node_modules/oracledb')

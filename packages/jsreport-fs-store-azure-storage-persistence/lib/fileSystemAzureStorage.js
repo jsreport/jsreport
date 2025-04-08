@@ -1,7 +1,6 @@
-const util = require('util')
+const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob')
+const { DefaultAzureCredential } = require('@azure/identity')
 const path = require('path')
-const azure = require('azure-storage')
-const stream = require('stream')
 
 async function retry (fn, maxCount = 10) {
   let error
@@ -11,7 +10,7 @@ async function retry (fn, maxCount = 10) {
       return res
     } catch (e) {
       error = e
-      await new Promise((resolve) => setTimeout(resolve, i * 10))
+      await new Promise((resolve) => setTimeout(resolve, i * 50))
     }
   }
 
@@ -22,8 +21,12 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
   if (!accountName) {
     throw new Error('The fs store is configured to use azure storage persistence but the accountName is not set. Use store.persistence.accountName or extensions.fs-store-azure-storage-persistence.accountName to set the proper value.')
   }
-  if (!accountKey) {
-    throw new Error('The fs store is configured to use azure storage persistence but the accountKey is not set. Use store.persistence.accountKey or extensions.fs-store-azure-storage-persistence.accountKey to set the proper value.')
+
+  let credentials
+  if (accountKey) {
+    credentials = new StorageSharedKeyCredential(accountName, accountKey)
+  } else {
+    credentials = new DefaultAzureCredential()
   }
 
   if (lock.enabled !== false) {
@@ -31,54 +34,40 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
     lock.retry = 100
   }
 
-  const blobService = azure.createBlobService(accountName, accountKey)
+  const blobServiceClient = new BlobServiceClient(
+    `https://${accountName}.blob.core.windows.net`,
+    credentials
+  )
 
-  const blobServiceAsync = {
-    createContainerIfNotExists: util.promisify(blobService.createContainerIfNotExists).bind(blobService),
-    createBlockBlobFromStream: util.promisify(blobService.createBlockBlobFromStream).bind(blobService),
-    listBlobsSegmentedWithPrefix: util.promisify(blobService.listBlobsSegmentedWithPrefix).bind(blobService),
-    getBlobToStream: util.promisify(blobService.getBlobToStream).bind(blobService),
-    getBlobMetadata: util.promisify(blobService.getBlobMetadata).bind(blobService),
-    startCopyBlob: util.promisify(blobService.startCopyBlob).bind(blobService),
-    deleteBlob: util.promisify(blobService.deleteBlob).bind(blobService),
-    doesBlobExist: util.promisify(blobService.doesBlobExist).bind(blobService),
-    acquireLease: util.promisify(blobService.acquireLease).bind(blobService),
-    releaseLease: util.promisify(blobService.releaseLease).bind(blobService)
-  }
+  let containerClient
 
   return {
-    init: () => blobServiceAsync.createContainerIfNotExists(container),
+    init: async () => {
+      containerClient = blobServiceClient.getContainerClient(container)
+
+      const exists = await containerClient.exists()
+      if (!exists) {
+        return blobServiceClient.createContainer(container)
+      }
+    },
     readdir: async (p) => {
-      const res = await blobServiceAsync.listBlobsSegmentedWithPrefix(container, p, null)
-      const topFilesOrDirectories = res.entries
-        .filter(e =>
-          e.name === p ||
-          e.name.startsWith(p + '/') ||
-          p === ''
-        )
-        .map(e => e.name.replace(p, '').split('/').filter(f => f)[0])
-      return [...new Set(topFilesOrDirectories)]
+      const items = await containerClient.listBlobsByHierarchy('/', { prefix: p ? p + '/' : p })
+
+      const names = []
+      for await (const item of items) {
+        names.push(item.name)
+      }
+      const topLevel = names.map(n => n.replace(p, '').split('/').filter(f => f)[0])
+
+      return [...new Set(topLevel)]
     },
     readFile: async (p) => {
-      const data = []
-      const writingStream = new stream.Writable({
-        write: function (chunk, encoding, next) {
-          data.push(chunk)
-          next()
-        }
-      })
-      await blobServiceAsync.getBlobToStream(container, p, writingStream)
-      return Buffer.concat(data)
+      return containerClient.getBlobClient(p).downloadToBuffer()
     },
     writeFile: (p, c) => {
-      const buffer = Buffer.from(c)
-      const s = new stream.Readable()
-      s._read = () => {}
-      s.push(buffer)
-      s.push(null)
-      return blobServiceAsync.createBlockBlobFromStream(container, p, s, buffer.length, {
+      return containerClient.uploadBlockBlob(p, c, Buffer.from(c).length, {
         metadata: {
-          mtime: new Date().getTime()
+          mtime: new Date().getTime() + ''
         }
       })
     },
@@ -91,30 +80,35 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
       }
 
       const finalBuffer = Buffer.concat([existingBuffer, Buffer.from(c)])
-
-      const s = new stream.Readable()
-      s._read = () => {}
-      s.push(finalBuffer)
-      s.push(null)
-      return blobServiceAsync.createBlockBlobFromStream(container, p, s, finalBuffer.length, {
+      return containerClient.uploadBlockBlob(p, finalBuffer, finalBuffer.length, {
         metadata: {
-          mtime: new Date().getTime()
+          mtime: new Date().getTime() + ''
         }
       })
     },
     rename: async (p, pp) => {
-      const blobsToRename = await blobServiceAsync.listBlobsSegmentedWithPrefix(container, p, null)
-      const entriesToRename = blobsToRename.entries.filter(e =>
-        e.name === p ||
-        e.name.startsWith(p + '/') ||
+      const items = await containerClient.listBlobsFlat({ prefix: p })
+
+      const names = []
+      for await (const item of items) {
+        names.push(item.name)
+      }
+      const namesToRename = names.filter(n =>
+        n === p ||
+        n.startsWith(p + '/') ||
         p === ''
       )
-      await Promise.all(entriesToRename.map(async (e) => {
-        const newName = e.name.replace(p, pp)
-        await blobServiceAsync.startCopyBlob(blobService.getUrl(container, e.name), container, newName)
+
+      await Promise.all(namesToRename.map(async (n) => {
+        const blobClient = containerClient.getBlobClient(n)
+        const newName = n.replace(p, pp)
+        const newBlobClient = containerClient.getBlobClient(newName)
+
+        const poller = await newBlobClient.beginCopyFromURL(blobClient.url)
+        await poller.pollUntilDone()
       }))
 
-      return Promise.all(entriesToRename.map((e) => blobServiceAsync.deleteBlob(container, e.name)))
+      return Promise.all(namesToRename.map((n) => containerClient.deleteBlob(n)))
     },
     exists: async (p) => {
       if (!p) {
@@ -122,45 +116,62 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
         return true
       }
 
-      const res = await blobServiceAsync.doesBlobExist(container, p)
-      return res.exists
+      return containerClient.getBlobClient(p).exists()
     },
     stat: async (p) => {
-      const res = await blobServiceAsync.doesBlobExist(container, p)
-      // otazka je jestli je to vlastne ok, co kdyz nekdo jiny edituje ve stejne ms?
-      // problem je azure ma ten modification date bez milisekund
-      // mozna by stacilo po locku chvilku pockat
-      if (!res.exists) {
+      const exists = await containerClient.getBlobClient(p).exists()
+      if (!exists) {
         return { isDirectory: () => true }
       }
 
-      const metaRes = await blobServiceAsync.getBlobMetadata(container, p)
-      const mtime = metaRes.metadata.mtime ? new Date(parseInt(metaRes.metadata.mtime)) : new Date(metaRes.lastModified)
+      const properties = await containerClient.getBlobClient(p).getProperties()
+      const mtime = properties.metadata?.mtime ? new Date(parseInt(properties.metadata.mtime)) : new Date(properties.lastModified)
       return { isDirectory: () => false, mtime }
     },
     mkdir: (p) => Promise.resolve(),
     remove: async (p) => {
-      const blobsToRemove = await blobServiceAsync.listBlobsSegmentedWithPrefix(container, p, null)
-      return Promise.all(blobsToRemove.entries
-        .filter(e =>
-          e.name === p ||
-          e.name.startsWith(p + '/') ||
+      const items = await containerClient.listBlobsFlat({ prefix: p })
+
+      const names = []
+      for await (const item of items) {
+        names.push(item.name)
+      }
+
+      return Promise.all(names
+        .filter(n =>
+          n === p ||
+          n.startsWith(p + '/') ||
           p === ''
-        )
-        .map(e => blobServiceAsync.deleteBlob(container, e.name)))
+        ).map(n => containerClient.deleteBlob(n)))
     },
-    copyFile: (p, pp) => blobServiceAsync.startCopyBlob(blobService.getUrl(container, p), container, pp),
+    copyFile: async (p, pp) => {
+      const blobClient = containerClient.getBlobClient(p)
+      const newBlobClient = containerClient.getBlobClient(pp)
+
+      const poller = await newBlobClient.beginCopyFromURL(blobClient.url)
+      await poller.pollUntilDone()
+    },
     path: {
       // removing leading and trailing slashes
       join: (...args) => args.filter(a => a).map(a => a.replace(/\/+$/, '').replace(/^\/+/, '')).join('/'),
       sep: '/',
       basename: path.basename
     },
-    lock: () => lock.enabled !== false ? retry(() => blobServiceAsync.acquireLease(container, null, lock), lock.retry) : null,
+    lock: () => lock.enabled !== false
+      ? retry(async () => {
+          const leaseClient = containerClient.getBlobLeaseClient()
+          const l = await leaseClient.acquireLease(lock.leaseDuration, lock)
+          if (l.leaseId == null) {
+            throw new Error(`Failed to acquire lease, error code: ${l.errorCode}.`)
+          }
+          return l
+        }, lock.retry)
+      : null,
     releaseLock: async (l) => {
       if (lock.enabled !== false) {
         try {
-          await blobServiceAsync.releaseLease(container, null, l.id)
+          const leaseClient = containerClient.getBlobLeaseClient(l.leaseId)
+          await leaseClient.releaseLease()
         } catch (e) {
           // this throws when the lease was in the meantime acquired by another process because of timeout
         }

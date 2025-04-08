@@ -1,4 +1,5 @@
 const LazyRecipe = require('./lazyRecipe')
+const proxy = require('./proxy')
 
 module.exports = function (reporter, definition) {
   // warm up of deps to make it work in trustUserCode: false (SES),
@@ -23,5 +24,15 @@ module.exports = function (reporter, definition) {
     execute: (req, res) => lazyRecipe.executeImage(req, res)
   })
 
-  reporter.closeListeners.add('chrome', () => lazyRecipe.kill())
+  reporter.chrome = { proxy }
+
+  reporter.registerHelpersListeners.add(`${definition.name}-helpers`, () => {
+    return `
+    function chromeResourceWithTimeout (url, timeout) {
+      return 'jsreport://chromeResourceWithTimeout?url=' + encodeURIComponent(url) + '&timeout=' + timeout
+    }
+    `
+  })
+
+  reporter.closeListeners.add('chrome', () => Promise.allSettled([lazyRecipe.kill(), proxy.close()]))
 }

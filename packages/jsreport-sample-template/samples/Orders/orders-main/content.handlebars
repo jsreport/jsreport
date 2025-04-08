@@ -14,7 +14,7 @@ Note: This example requires jsreport to be configured with
   <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/metro/4.1.5/css/metro.min.css">
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js'></script>
   </head>
   <body>
     {{#each orders}}
@@ -47,9 +47,7 @@ Note: This example requires jsreport to be configured with
             // convert data into js string using function from asset global helpers.js
             // this results into something like var data = { "a": "foo" }
             // which gets afterwards interpreted in chrome into object
-            var data = {{{toJS accumulated}}}
-
-            Chart.defaults.global.legend.display = false;
+            var data = {{{toJS accumulated}}}        
 
             new Chart(orders{{country}}.getContext("2d"), {
                 type: 'bar',

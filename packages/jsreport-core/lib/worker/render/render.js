@@ -110,7 +110,7 @@ module.exports = (reporter) => {
       request.context.id = reporter.generateRequestId()
     }
     if (parentReq == null) {
-      reporter.reqStorage.registerReq(request)
+      reporter.runningRequests.register(request)
     }
 
     const response = Response(reporter, request.context.id)
@@ -195,7 +195,7 @@ module.exports = (reporter) => {
     } finally {
       if (parentReq == null) {
         reporter.requestModulesCache.delete(request.context.rootId)
-        reporter.reqStorage.unregisterReq(request)
+        reporter.runningRequests.unregister(request)
       }
     }
   }

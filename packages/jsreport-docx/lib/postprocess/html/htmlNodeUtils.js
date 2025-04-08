@@ -1,4 +1,4 @@
-const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
+const { BLOCK_ELEMENTS, INLINE_ELEMENTS, META_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
 
 const HTML_NODE_TYPES = {
   DOCUMENT: 9,
@@ -38,6 +38,10 @@ function isBlockElement (node) {
 
 function isUnsupportedElement (node) {
   return node.nodeType === HTML_NODE_TYPES.ELEMENT && !SUPPORTED_ELEMENTS.includes(node.tagName)
+}
+
+function isMetaElement (node) {
+  return node.nodeType === HTML_NODE_TYPES.ELEMENT && META_ELEMENTS.includes(node.tagName)
 }
 
 function isTableItemElement (node) {
@@ -274,6 +278,7 @@ module.exports.isTextElement = isTextElement
 module.exports.isInlineElement = isInlineElement
 module.exports.isBlockElement = isBlockElement
 module.exports.isUnsupportedElement = isUnsupportedElement
+module.exports.isMetaElement = isMetaElement
 module.exports.isTableItemElement = isTableItemElement
 module.exports.getFirstChildNodeNotIgnorable = getFirstChildNodeNotIgnorable
 module.exports.getNextSiblingNodeNotIgnorable = getNextSiblingNodeNotIgnorable

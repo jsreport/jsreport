@@ -7,6 +7,7 @@ const { decompress } = require('@jsreport/office')
 const xlsx = require('xlsx')
 const { mergeCellExists } = require('../utils')
 const { nodeListToArray } = require('../../lib/utils')
+const { getNewCellLetter } = require('../../lib/cellUtils')
 
 const dataDirPath = path.join(__dirname, '../data')
 const xlsxDirPath = path.join(__dirname, '../xlsx')
@@ -34,7 +35,7 @@ describe('xlsx generation - loops', () => {
     }
   })
 
-  const modes = ['row', 'block']
+  const modes = ['row', 'block', 'vertical']
 
   it('inner loop', async () => {
     const items = [{
@@ -599,9 +600,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-and-inner-loop.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-inner-loop'))
             }
           }
         },
@@ -631,7 +630,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].colors.map((item) => item.name).join(''))
         should(sheet.F5.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -661,6 +660,23 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].colors.map((item) => item.name).join(''))
         should(sheet.F14.v).be.eql(items[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Colors')
+        should(sheet.D4.v).be.eql(items[0].colors.map((item) => item.name).join(''))
+        should(sheet.E4.v).be.eql(items[1].colors.map((item) => item.name).join(''))
+        should(sheet.F4.v).be.eql(items[2].colors.map((item) => item.name).join(''))
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
       }
     })
 
@@ -709,9 +725,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-siblings.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-siblings'))
             }
           }
         },
@@ -762,7 +776,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C14.v).be.eql(items3[2].name)
         should(sheet.D14.v).be.eql(items3[2].lastname)
         should(sheet.E14.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -821,6 +835,48 @@ describe('xlsx generation - loops', () => {
         should(sheet.C41.v).be.eql(items3[2].name)
         should(sheet.D41.v).be.eql(items3[2].lastname)
         should(sheet.E41.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.G2).be.not.ok()
+        should(sheet.H2.v).be.eql('Name')
+        should(sheet.I2.v).be.eql(items2[0].name)
+        should(sheet.J2.v).be.eql(items2[1].name)
+        should(sheet.K2).be.not.ok()
+        should(sheet.L2.v).be.eql('Name')
+        should(sheet.M2.v).be.eql(items3[0].name)
+        should(sheet.N2.v).be.eql(items3[1].name)
+        should(sheet.O2.v).be.eql(items3[2].name)
+
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.G3).be.not.ok()
+        should(sheet.H3.v).be.eql('Lastname')
+        should(sheet.I3.v).be.eql(items2[0].lastname)
+        should(sheet.J3.v).be.eql(items2[1].lastname)
+        should(sheet.K3).be.not.ok()
+        should(sheet.L3.v).be.eql('Lastname')
+        should(sheet.M3.v).be.eql(items3[0].lastname)
+        should(sheet.N3.v).be.eql(items3[1].lastname)
+        should(sheet.O3.v).be.eql(items3[2].lastname)
+
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4.v).be.eql('Age')
+        should(sheet.I4.v).be.eql(items2[0].age)
+        should(sheet.J4.v).be.eql(items2[1].age)
+        should(sheet.K4).be.not.ok()
+        should(sheet.L4.v).be.eql('Age')
+        should(sheet.M4.v).be.eql(items3[0].age)
+        should(sheet.N4.v).be.eql(items3[1].age)
+        should(sheet.O4.v).be.eql(items3[2].age)
       }
     })
 
@@ -869,9 +925,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-mixed-siblings.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-mixed-siblings'))
             }
           }
         },
@@ -925,7 +979,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C19.v).be.eql(items3[2].name)
         should(sheet.D19.v).be.eql(items3[2].lastname)
         should(sheet.E19.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -980,6 +1034,90 @@ describe('xlsx generation - loops', () => {
         should(sheet.C34.v).be.eql(items3[2].name)
         should(sheet.D34.v).be.eql(items3[2].lastname)
         should(sheet.E34.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+
+        should(sheet.C6).be.not.ok()
+        should(sheet.D6).be.not.ok()
+        should(sheet.E6).be.not.ok()
+
+        should(sheet.C7.v).be.eql('Name')
+        should(sheet.D7.v).be.eql(items2[0].name)
+        should(sheet.E7.v).be.eql(items2[1].name)
+        should(sheet.C8.v).be.eql('Lastname')
+        should(sheet.D8.v).be.eql(items2[0].lastname)
+        should(sheet.E8.v).be.eql(items2[1].lastname)
+        should(sheet.C9.v).be.eql('Age')
+        should(sheet.D9.v).be.eql(items2[0].age)
+        should(sheet.E9.v).be.eql(items2[1].age)
+        should(sheet.G7.v).be.eql('Name')
+        should(sheet.H7.v).be.eql(items2[0].name)
+        should(sheet.I7.v).be.eql(items2[1].name)
+        should(sheet.G8.v).be.eql('Lastname')
+        should(sheet.H8.v).be.eql(items2[0].lastname)
+        should(sheet.I8.v).be.eql(items2[1].lastname)
+        should(sheet.G9.v).be.eql('Age')
+        should(sheet.H9.v).be.eql(items2[0].age)
+        should(sheet.I9.v).be.eql(items2[1].age)
+
+        should(sheet.C10).be.not.ok()
+        should(sheet.D10).be.not.ok()
+        should(sheet.E10).be.not.ok()
+        should(sheet.C11).be.not.ok()
+        should(sheet.D11).be.not.ok()
+        should(sheet.E11).be.not.ok()
+
+        should(sheet.C12.v).be.eql('Name')
+        should(sheet.D12.v).be.eql('Lastname')
+        should(sheet.E12.v).be.eql('Age')
+        should(sheet.C13.v).be.eql(items3[0].name)
+        should(sheet.D13.v).be.eql(items3[0].lastname)
+        should(sheet.E13.v).be.eql(items3[0].age)
+
+        should(sheet.C14).be.not.ok()
+        should(sheet.D14).be.not.ok()
+        should(sheet.E14).be.not.ok()
+        should(sheet.C15).be.not.ok()
+        should(sheet.D15).be.not.ok()
+        should(sheet.E15).be.not.ok()
+        should(sheet.C16).be.not.ok()
+        should(sheet.D16).be.not.ok()
+        should(sheet.E16).be.not.ok()
+
+        should(sheet.C17.v).be.eql('Name')
+        should(sheet.D17.v).be.eql('Lastname')
+        should(sheet.E17.v).be.eql('Age')
+        should(sheet.C18.v).be.eql(items3[1].name)
+        should(sheet.D18.v).be.eql(items3[1].lastname)
+        should(sheet.E18.v).be.eql(items3[1].age)
+
+        should(sheet.C19).be.not.ok()
+        should(sheet.D19).be.not.ok()
+        should(sheet.E19).be.not.ok()
+        should(sheet.C20).be.not.ok()
+        should(sheet.D20).be.not.ok()
+        should(sheet.E20).be.not.ok()
+        should(sheet.C21).be.not.ok()
+        should(sheet.D21).be.not.ok()
+        should(sheet.E21).be.not.ok()
+
+        should(sheet.C22.v).be.eql('Name')
+        should(sheet.D22.v).be.eql('Lastname')
+        should(sheet.E22.v).be.eql('Age')
+        should(sheet.C23.v).be.eql(items3[2].name)
+        should(sheet.D23.v).be.eql(items3[2].lastname)
+        should(sheet.E23.v).be.eql(items3[2].age)
       }
     })
 
@@ -1007,9 +1145,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-preserve'))
             }
           }
         },
@@ -1043,7 +1179,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C5.v).be.eql(items[2].name)
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.A2.v).be.eql('preserve')
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
@@ -1070,6 +1206,27 @@ describe('xlsx generation - loops', () => {
         should(sheet.C14.v).be.eql(items[2].name)
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.D1.v).be.eql('preserve')
+        should(sheet.E1).be.not.ok()
+        should(sheet.F1).be.not.ok()
+        should(sheet.D2.v).be.eql('preserve2')
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql(items[0].name)
+        should(sheet.E3.v).be.eql(items[1].name)
+        should(sheet.F3.v).be.eql(items[2].name)
+        should(sheet.C4.v).be.eql('Lastname')
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[2].lastname)
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
       }
     })
 
@@ -1094,9 +1251,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-preserve-without-context.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-preserve-without-context'))
             }
           }
         },
@@ -1134,7 +1289,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].name)
         should(sheet.E5.v).be.eql(items[2].lastname)
         should(sheet.F5.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.A2.v).be.eql('')
         should(sheet.B2.v).be.eql('test')
         should(sheet.C2.v).be.eql('')
@@ -1163,6 +1318,30 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].name)
         should(sheet.F14.v).be.eql(items[2].lastname)
         should(sheet.G14.v).be.eql(items[2].age)
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.D1.v).be.eql('')
+        should(sheet.E1).be.not.ok()
+        should(sheet.F1).be.not.ok()
+        should(sheet.D2.v).be.eql('test')
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3).be.not.ok()
+        should(sheet.F3).be.not.ok()
+
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql(items[0].name)
+        should(sheet.E4.v).be.eql(items[1].name)
+        should(sheet.F4.v).be.eql(items[2].name)
+        should(sheet.C5.v).be.eql('Lastname')
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[1].lastname)
+        should(sheet.F5.v).be.eql(items[2].lastname)
+        should(sheet.C6.v).be.eql('Age')
+        should(sheet.D6.v).be.eql(items[0].age)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.F6.v).be.eql(items[2].age)
       }
     })
 
@@ -1187,9 +1366,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-preserve'))
             }
           }
         },
@@ -1222,7 +1399,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1251,6 +1428,27 @@ describe('xlsx generation - loops', () => {
 
         should(sheet.C16.v).be.eql('preserve')
         should(sheet.D16.v).be.eql('preserve2')
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        // preserving the cells on the right of the loop
+        should(sheet.D5.v).be.eql('preserve')
+        should(sheet.E5).be.not.ok()
+        should(sheet.F5).be.not.ok()
+        should(sheet.D6.v).be.eql('preserve2')
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
       }
     })
 
@@ -1275,9 +1473,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-preserve-without-context.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-preserve-without-context'))
             }
           }
         },
@@ -1314,7 +1510,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
         should(sheet.H5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1344,6 +1540,30 @@ describe('xlsx generation - loops', () => {
         should(sheet.C16.v).be.eql('')
         should(sheet.D16.v).be.eql('test')
         should(sheet.E16.v).be.eql('')
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        // preserving the cells on the right of the loop
+        should(sheet.D5.v).be.eql('')
+        should(sheet.E5).be.not.ok()
+        should(sheet.F5).be.not.ok()
+        should(sheet.D6.v).be.eql('test')
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
+        should(sheet.D7.v).be.eql('')
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
       }
     })
 
@@ -1368,9 +1588,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-preserve'))
             }
           }
         },
@@ -1409,7 +1627,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.A2.v).be.eql('preserve')
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
@@ -1439,6 +1657,35 @@ describe('xlsx generation - loops', () => {
 
         should(sheet.C16.v).be.eql('preserve2')
         should(sheet.D16.v).be.eql('preserve3')
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.D1.v).be.eql('preserve')
+        should(sheet.E1).be.not.ok()
+        should(sheet.F1).be.not.ok()
+        should(sheet.D2.v).be.eql('preserve2')
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql(items[0].name)
+        should(sheet.E3.v).be.eql(items[1].name)
+        should(sheet.F3.v).be.eql(items[2].name)
+        should(sheet.C4.v).be.eql('Lastname')
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[2].lastname)
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
+
+        // preserving the cells on the right of the loop
+        should(sheet.D6.v).be.eql('preserve3')
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
+        should(sheet.D7.v).be.eql('preserve4')
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
       }
     })
 
@@ -1463,9 +1710,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-preserve-without-context.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-preserve-without-context'))
             }
           }
         },
@@ -1512,7 +1757,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5).be.not.ok()
         should(sheet.H5).be.not.ok()
         should(sheet.I5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.A2.v).be.eql('')
         should(sheet.B2.v).be.eql('test')
         should(sheet.C2.v).be.eql('')
@@ -1545,6 +1790,41 @@ describe('xlsx generation - loops', () => {
         should(sheet.E16.v).be.eql('')
         should(sheet.F16.v).be.eql('test')
         should(sheet.G16.v).be.eql('')
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.D1.v).be.eql('')
+        should(sheet.E1).be.not.ok()
+        should(sheet.F1).be.not.ok()
+        should(sheet.D2.v).be.eql('test')
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3).be.not.ok()
+        should(sheet.F3).be.not.ok()
+
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql(items[0].name)
+        should(sheet.E4.v).be.eql(items[1].name)
+        should(sheet.F4.v).be.eql(items[2].name)
+        should(sheet.C5.v).be.eql('Lastname')
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[1].lastname)
+        should(sheet.F5.v).be.eql(items[2].lastname)
+        should(sheet.C6.v).be.eql('Age')
+        should(sheet.D6.v).be.eql(items[0].age)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.F6.v).be.eql(items[2].age)
+
+        // preserving the cells on the right of the loop
+        should(sheet.D7.v).be.eql('')
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
+        should(sheet.D8.v).be.eql('test')
+        should(sheet.E8).be.not.ok()
+        should(sheet.F8).be.not.ok()
+        should(sheet.D9.v).be.eql('')
+        should(sheet.E9).be.not.ok()
+        should(sheet.F9).be.not.ok()
       }
     })
 
@@ -1597,9 +1877,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'multiple' : 'multiple-row'}-loops.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-multiple'))
             }
           }
         },
@@ -1655,7 +1933,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C19.v).be.eql(items3[2].name)
         should(sheet.D19.v).be.eql(items3[2].lastname)
         should(sheet.E19.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1692,23 +1970,23 @@ describe('xlsx generation - loops', () => {
         should(sheet.C21.v).be.eql('Name')
         should(sheet.D21.v).be.eql('Lastname')
         should(sheet.E21.v).be.eql('Age')
-        should(sheet.C22.v).be.eql(items[0].name)
-        should(sheet.D22.v).be.eql(items[0].lastname)
-        should(sheet.E22.v).be.eql(items[0].age)
+        should(sheet.C22.v).be.eql(items2[0].name)
+        should(sheet.D22.v).be.eql(items2[0].lastname)
+        should(sheet.E22.v).be.eql(items2[0].age)
 
         should(sheet.C26.v).be.eql('Name')
         should(sheet.D26.v).be.eql('Lastname')
         should(sheet.E26.v).be.eql('Age')
-        should(sheet.C27.v).be.eql(items[1].name)
-        should(sheet.D27.v).be.eql(items[1].lastname)
-        should(sheet.E27.v).be.eql(items[1].age)
+        should(sheet.C27.v).be.eql(items2[1].name)
+        should(sheet.D27.v).be.eql(items2[1].lastname)
+        should(sheet.E27.v).be.eql(items2[1].age)
 
         should(sheet.C31.v).be.eql('Name')
         should(sheet.D31.v).be.eql('Lastname')
         should(sheet.E31.v).be.eql('Age')
-        should(sheet.C32.v).be.eql(items[2].name)
-        should(sheet.D32.v).be.eql(items[2].lastname)
-        should(sheet.E32.v).be.eql(items[2].age)
+        should(sheet.C32.v).be.eql(items2[2].name)
+        should(sheet.D32.v).be.eql(items2[2].lastname)
+        should(sheet.E32.v).be.eql(items2[2].age)
 
         should(sheet.B36.v).be.eql('another2')
         should(sheet.C36.v).be.eql('content2')
@@ -1719,23 +1997,71 @@ describe('xlsx generation - loops', () => {
         should(sheet.C39.v).be.eql('Name')
         should(sheet.D39.v).be.eql('Lastname')
         should(sheet.E39.v).be.eql('Age')
-        should(sheet.C40.v).be.eql(items[0].name)
-        should(sheet.D40.v).be.eql(items[0].lastname)
-        should(sheet.E40.v).be.eql(items[0].age)
+        should(sheet.C40.v).be.eql(items3[0].name)
+        should(sheet.D40.v).be.eql(items3[0].lastname)
+        should(sheet.E40.v).be.eql(items3[0].age)
 
         should(sheet.C44.v).be.eql('Name')
         should(sheet.D44.v).be.eql('Lastname')
         should(sheet.E44.v).be.eql('Age')
-        should(sheet.C45.v).be.eql(items[1].name)
-        should(sheet.D45.v).be.eql(items[1].lastname)
-        should(sheet.E45.v).be.eql(items[1].age)
+        should(sheet.C45.v).be.eql(items3[1].name)
+        should(sheet.D45.v).be.eql(items3[1].lastname)
+        should(sheet.E45.v).be.eql(items3[1].age)
 
         should(sheet.C49.v).be.eql('Name')
         should(sheet.D49.v).be.eql('Lastname')
         should(sheet.E49.v).be.eql('Age')
-        should(sheet.C50.v).be.eql(items[2].name)
-        should(sheet.D50.v).be.eql(items[2].lastname)
-        should(sheet.E50.v).be.eql(items[2].age)
+        should(sheet.C50.v).be.eql(items3[2].name)
+        should(sheet.D50.v).be.eql(items3[2].lastname)
+        should(sheet.E50.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.F1.v).be.eql('another')
+        should(sheet.K1.v).be.eql('another2')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        should(sheet.H2.v).be.eql('content')
+        should(sheet.H3.v).be.eql('here')
+
+        should(sheet.J2.v).be.eql('Name')
+        should(sheet.K2.v).be.eql(items2[0].name)
+        should(sheet.L2.v).be.eql(items2[1].name)
+        should(sheet.M2.v).be.eql(items2[2].name)
+        should(sheet.J3.v).be.eql('Lastname')
+        should(sheet.K3.v).be.eql(items2[0].lastname)
+        should(sheet.L3.v).be.eql(items2[1].lastname)
+        should(sheet.M3.v).be.eql(items2[2].lastname)
+        should(sheet.J4.v).be.eql('Age')
+        should(sheet.K4.v).be.eql(items2[0].age)
+        should(sheet.L4.v).be.eql(items2[1].age)
+        should(sheet.M4.v).be.eql(items2[2].age)
+
+        should(sheet.O2.v).be.eql('content2')
+        should(sheet.O3.v).be.eql('here2')
+
+        should(sheet.Q2.v).be.eql('Name')
+        should(sheet.R2.v).be.eql(items3[0].name)
+        should(sheet.S2.v).be.eql(items3[1].name)
+        should(sheet.T2.v).be.eql(items3[2].name)
+        should(sheet.Q3.v).be.eql('Lastname')
+        should(sheet.R3.v).be.eql(items3[0].lastname)
+        should(sheet.S3.v).be.eql(items3[1].lastname)
+        should(sheet.T3.v).be.eql(items3[2].lastname)
+        should(sheet.Q4.v).be.eql('Age')
+        should(sheet.R4.v).be.eql(items3[0].age)
+        should(sheet.S4.v).be.eql(items3[1].age)
+        should(sheet.T4.v).be.eql(items3[2].age)
       }
     })
 
@@ -1760,9 +2086,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode))
             }
           }
         },
@@ -1776,9 +2100,11 @@ describe('xlsx generation - loops', () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
       if (mode === 'row') {
-        should(sheet['!ref']).be.eql(`C2:E${2 + items.length}`)
+        should(sheet['!ref']).be.eql(`C2:E${3 + (items.length - 1)}`)
+      } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql(`B2:E${6 + (5 * (items.length - 1))}`)
       } else {
-        should(sheet['!ref']).be.eql(`B2:E${1 + (5 * items.length)}`)
+        should(sheet['!ref']).be.eql(`C2:${getNewCellLetter('D', items.length - 1)}4`)
       }
     })
 
@@ -1803,9 +2129,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
             }
           }
         },
@@ -1825,13 +2149,20 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B7:C7')).be.True()
         should(sheet.E7.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E7:G7')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B18.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'B18:C18')).be.True()
         should(sheet.E18.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E18:G18')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.H2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'H2:H3')).be.True()
+        should(sheet.F5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F5:F6')).be.True()
       }
     })
 
@@ -1844,9 +2175,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
             }
           }
         },
@@ -1866,13 +2195,20 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B5:C5')).be.True()
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B8.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.F2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'F2:F3')).be.True()
+        should(sheet.F5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F5:F6')).be.True()
       }
     })
 
@@ -1889,9 +2225,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
             }
           }
         },
@@ -1911,13 +2245,20 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B5:C5')).be.True()
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B8.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.F2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'F2:F3')).be.True()
+        should(sheet.F5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F5:F6')).be.True()
       }
     })
 
@@ -1942,9 +2283,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-merged-cells'))
             }
           }
         },
@@ -1973,7 +2312,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.F5.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D5:E5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2000,6 +2339,22 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.F14.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D14:E14')).be.True()
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(mergeCellExists(sheet, 'E3:E4')).be.True()
+        should(mergeCellExists(sheet, 'F3:F4')).be.True()
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
       }
     })
 
@@ -2027,9 +2382,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-multiple-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-merged-cells'))
             }
           }
         },
@@ -2065,7 +2418,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.H5.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D5:E5')).be.True()
         should(mergeCellExists(sheet, 'F5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2101,6 +2454,29 @@ describe('xlsx generation - loops', () => {
         should(sheet.H14.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D14:E14')).be.True()
         should(mergeCellExists(sheet, 'F14:G14')).be.True()
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(mergeCellExists(sheet, 'E3:E4')).be.True()
+        should(mergeCellExists(sheet, 'F3:F4')).be.True()
+        should(sheet.C5.v).be.eql('Job')
+        should(sheet.D5.v).be.eql(items[0].job)
+        should(sheet.E5.v).be.eql(items[1].job)
+        should(sheet.F5.v).be.eql(items[2].job)
+        should(mergeCellExists(sheet, 'D5:D6')).be.True()
+        should(mergeCellExists(sheet, 'E5:E6')).be.True()
+        should(mergeCellExists(sheet, 'F5:F6')).be.True()
+        should(sheet.C7.v).be.eql('Age')
+        should(sheet.D7.v).be.eql(items[0].age)
+        should(sheet.E7.v).be.eql(items[1].age)
+        should(sheet.F7.v).be.eql(items[2].age)
       }
     })
 
@@ -2125,9 +2501,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
             }
           }
         },
@@ -2165,7 +2539,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B7:C7')).be.True()
         should(sheet.E7.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E7:G7')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -2200,6 +2574,30 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B18:C18')).be.True()
         should(sheet.E18.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E18:G18')).be.True()
+      } else {
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(mergeCellExists(sheet, 'E3:E4')).be.True()
+        should(mergeCellExists(sheet, 'F3:F4')).be.True()
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
+
+        should(sheet.H2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'H2:H3')).be.True()
+        should(sheet.F6.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F6:F8')).be.True()
       }
     })
 
@@ -2212,9 +2610,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
             }
           }
         },
@@ -2244,7 +2640,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B5:C5')).be.True()
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -2263,6 +2659,22 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      } else {
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('')
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql('')
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql('')
+
+        should(sheet.F2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'F2:F3')).be.True()
+        should(sheet.F6.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F6:F8')).be.True()
       }
     })
 
@@ -2279,9 +2691,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
             }
           }
         },
@@ -2311,7 +2721,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B5:C5')).be.True()
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -2330,6 +2740,22 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      } else {
+        should(mergeCellExists(sheet, 'B1:B2')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(mergeCellExists(sheet, 'D3:D4')).be.True()
+        should(sheet.C5.v).be.eql('Age')
+        should(sheet.D5.v).be.eql(items[0].age)
+
+        should(sheet.F2.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'F2:F3')).be.True()
+        should(sheet.F6.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'F6:F8')).be.True()
       }
     })
 
@@ -2354,9 +2780,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-merge-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-merge-cell-preserve'))
             }
           }
         },
@@ -2397,7 +2821,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5.v).be.eql(items[2].lastname)
         should(sheet.H5.v).be.eql(items[2].age)
         should(sheet['!merges']).have.length(2)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.F2.v).be.eql('')
         should(sheet.F6.v).be.eql('')
 
@@ -2435,6 +2859,24 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'D12:E12')).be.False()
 
         should(sheet['!merges']).have.length(2)
+      } else {
+        should(sheet.D1.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'D1:D2')).be.True()
+        should(sheet.D4.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D4:D5')).be.True()
+
+        should(sheet.C6.v).be.eql('Name')
+        should(sheet.D6.v).be.eql(items[0].name)
+        should(sheet.E6.v).be.eql(items[1].name)
+        should(sheet.F6.v).be.eql(items[2].name)
+        should(sheet.C7.v).be.eql('Lastname')
+        should(sheet.D7.v).be.eql(items[0].lastname)
+        should(sheet.E7.v).be.eql(items[1].lastname)
+        should(sheet.F7.v).be.eql(items[2].lastname)
+        should(sheet.C8.v).be.eql('Age')
+        should(sheet.D8.v).be.eql(items[0].age)
+        should(sheet.E8.v).be.eql(items[1].age)
+        should(sheet.F8.v).be.eql(items[2].age)
       }
     })
 
@@ -2459,9 +2901,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-merge-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-merge-cell-preserve'))
             }
           }
         },
@@ -2502,7 +2942,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.I5).be.not.ok()
         should(mergeCellExists(sheet, 'I5:J5')).be.False()
         should(sheet['!merges']).have.length(2)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2540,6 +2980,24 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'G16:H16')).be.True()
 
         should(sheet['!merges']).have.length(2)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        should(sheet.D5.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'D5:D6')).be.True()
+        should(sheet.D8.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D8:D9')).be.True()
       }
     })
 
@@ -2564,9 +3022,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-merge-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-merge-cell-preserve'))
             }
           }
         },
@@ -2620,7 +3076,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.K5).be.not.ok()
         should(mergeCellExists(sheet, 'K5:L5')).be.False()
         should(sheet['!merges']).have.length(4)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.F2.v).be.eql('')
         should(sheet.F6.v).be.eql('')
 
@@ -2672,6 +3128,29 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'K16:L16')).be.True()
 
         should(sheet['!merges']).have.length(4)
+      } else {
+        should(sheet.D1.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'D1:D2')).be.True()
+        should(sheet.D4.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D4:D5')).be.True()
+
+        should(sheet.C6.v).be.eql('Name')
+        should(sheet.D6.v).be.eql(items[0].name)
+        should(sheet.E6.v).be.eql(items[1].name)
+        should(sheet.F6.v).be.eql(items[2].name)
+        should(sheet.C7.v).be.eql('Lastname')
+        should(sheet.D7.v).be.eql(items[0].lastname)
+        should(sheet.E7.v).be.eql(items[1].lastname)
+        should(sheet.F7.v).be.eql(items[2].lastname)
+        should(sheet.C8.v).be.eql('Age')
+        should(sheet.D8.v).be.eql(items[0].age)
+        should(sheet.E8.v).be.eql(items[1].age)
+        should(sheet.F8.v).be.eql(items[2].age)
+
+        should(sheet.D9.v).be.eql('preserve3')
+        should(mergeCellExists(sheet, 'D9:D10')).be.True()
+        should(sheet.D11.v).be.eql('preserve4')
+        should(mergeCellExists(sheet, 'D11:D12')).be.True()
       }
     })
 
@@ -2828,9 +3307,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -2853,7 +3330,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('SUM(E7:E8)')
         should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
         should(sheet.E11?.f).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -2861,6 +3338,11 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
+      } else {
+        should(sheet.H4?.f).be.not.ok()
+        should(sheet.I4?.f).be.not.ok()
+        should(sheet.J4.f).be.eql('SUM(H4:I4)')
+        should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
       }
     })
 
@@ -2885,9 +3367,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -2908,7 +3388,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('SUM(E7:E8)')
         should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
         should(sheet.E11?.f).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -2916,6 +3396,11 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
+      } else {
+        should(sheet.H4?.f).be.not.ok()
+        should(sheet.I4?.f).be.not.ok()
+        should(sheet.J4.f).be.eql('SUM(H4:I4)')
+        should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
       }
     })
 
@@ -2928,9 +3413,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -2948,11 +3431,16 @@ describe('xlsx generation - loops', () => {
         should(sheet.E6.v).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.v).be.ok()
         should(sheet.E9.v).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      } else {
+        should(sheet.H4.f).be.ok()
+        should(sheet.I4.f).be.ok()
+        should(sheet.H4.f).be.eql('SUM(F4:G4)')
+        should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
       }
     })
 
@@ -2969,9 +3457,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -2989,11 +3475,16 @@ describe('xlsx generation - loops', () => {
         should(sheet.E6.v).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.v).be.ok()
         should(sheet.E9.v).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      } else {
+        should(sheet.H4.f).be.ok()
+        should(sheet.I4.f).be.ok()
+        should(sheet.H4.f).be.eql('SUM(F4:G4)')
+        should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
       }
     })
 
@@ -3018,9 +3509,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
             }
           }
         },
@@ -3061,7 +3550,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E10', cellEls)).be.True()
         should(cellExists('E11', cellEls)).be.False()
         should(cellEls).have.length(2)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('E8', cellEls)).be.False()
         should(cellExists('E9', cellEls)).be.False()
         should(cellExists('E10', cellEls)).be.False()
@@ -3069,6 +3558,11 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E20', cellEls)).be.True()
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.False()
+      } else {
+        should(cellExists('H4', cellEls)).be.False()
+        should(cellExists('I4', cellEls)).be.False()
+        should(cellExists('J4', cellEls)).be.True()
+        should(cellExists('K4', cellEls)).be.True()
       }
     })
 
@@ -3093,9 +3587,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
             }
           }
         },
@@ -3116,7 +3608,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('MIN(E3:E6)')
         should(sheet.E10.f).be.eql('MAX(E3:E6)')
         should(sheet.E11.f).be.eql('SUM(E9,E10)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -3127,6 +3619,14 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('MIN(E4:E17)')
         should(sheet.E21.f).be.eql('MAX(E4:E17)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
+      } else {
+        should(sheet.F4?.f).be.not.ok()
+        should(sheet.G4?.f).be.not.ok()
+        should(sheet.H4.f).be.eql('SUM(D4:G4)')
+        should(sheet.I4.f).be.eql('AVERAGE(D4:G4)')
+        should(sheet.J4.f).be.eql('MIN(D4:G4)')
+        should(sheet.K4.f).be.eql('MAX(D4:G4)')
+        should(sheet.L4.f).be.eql('SUM(J4,K4)')
       }
     })
 
@@ -3139,9 +3639,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
             }
           }
         },
@@ -3160,12 +3658,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('MIN(E3:E4)')
         should(sheet.E8.f).be.eql('MAX(E3:E4)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.f).be.eql('SUM(E4:E7)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E7)')
         should(sheet.E10.f).be.eql('MIN(E4:E7)')
         should(sheet.E11.f).be.eql('MAX(E4:E7)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      } else {
+        should(sheet.F4.f).be.eql('SUM(D4:E4)')
+        should(sheet.G4.f).be.eql('AVERAGE(D4:E4)')
+        should(sheet.H4.f).be.eql('MIN(D4:E4)')
+        should(sheet.I4.f).be.eql('MAX(D4:E4)')
+        should(sheet.J4.f).be.eql('SUM(H4,I4)')
       }
     })
 
@@ -3182,9 +3686,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
             }
           }
         },
@@ -3203,12 +3705,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('MIN(E3:E4)')
         should(sheet.E8.f).be.eql('MAX(E3:E4)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.f).be.eql('SUM(E4:E7)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E7)')
         should(sheet.E10.f).be.eql('MIN(E4:E7)')
         should(sheet.E11.f).be.eql('MAX(E4:E7)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      } else {
+        should(sheet.F4.f).be.eql('SUM(D4:E4)')
+        should(sheet.G4.f).be.eql('AVERAGE(D4:E4)')
+        should(sheet.H4.f).be.eql('MIN(D4:E4)')
+        should(sheet.I4.f).be.eql('MAX(D4:E4)')
+        should(sheet.J4.f).be.eql('SUM(H4,I4)')
       }
     })
 
@@ -3233,9 +3741,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
             }
           }
         },
@@ -3277,7 +3783,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E11', cellEls)).be.True()
         should(cellExists('E12', cellEls)).be.False()
         should(cellEls).have.length(5)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('E8', cellEls)).be.False()
         should(cellExists('E9', cellEls)).be.False()
         should(cellExists('E10', cellEls)).be.False()
@@ -3289,6 +3795,14 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.True()
         should(cellEls).have.length(5)
+      } else {
+        should(cellExists('F4', cellEls)).be.False()
+        should(cellExists('G4', cellEls)).be.False()
+        should(cellExists('H4', cellEls)).be.True()
+        should(cellExists('I4', cellEls)).be.True()
+        should(cellExists('J4', cellEls)).be.True()
+        should(cellExists('K4', cellEls)).be.True()
+        should(cellExists('L4', cellEls)).be.True()
       }
     })
 
@@ -3313,9 +3827,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
             }
           }
         },
@@ -3336,7 +3848,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('MIN(E3:E5)')
         should(sheet.E10.f).be.eql('MAX(E3:E5)')
         should(sheet.E11.f).be.eql('SUM(E9,E10)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -3347,6 +3859,14 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('MIN(E4:E14)')
         should(sheet.E21.f).be.eql('MAX(E4:E14)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
+      } else {
+        should(sheet.F4?.f).be.not.ok()
+        should(sheet.G4?.f).be.not.ok()
+        should(sheet.H4.f).be.eql('SUM(D4:F4)')
+        should(sheet.I4.f).be.eql('AVERAGE(D4:F4)')
+        should(sheet.J4.f).be.eql('MIN(D4:F4)')
+        should(sheet.K4.f).be.eql('MAX(D4:F4)')
+        should(sheet.L4.f).be.eql('SUM(J4,K4)')
       }
     })
 
@@ -3359,9 +3879,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
             }
           }
         },
@@ -3380,12 +3898,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('MIN(E3:E3)')
         should(sheet.E8.f).be.eql('MAX(E3:E3)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.f).be.eql('SUM(E4:E4)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E5)')
         should(sheet.E10.f).be.eql('MIN(E4:E4)')
         should(sheet.E11.f).be.eql('MAX(E4:E4)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      } else {
+        should(sheet.F4.f).be.eql('SUM(D4:D4)')
+        should(sheet.G4.f).be.eql('AVERAGE(D4:D4)')
+        should(sheet.H4.f).be.eql('MIN(D4:D4)')
+        should(sheet.I4.f).be.eql('MAX(D4:D4)')
+        should(sheet.J4.f).be.eql('SUM(H4,I4)')
       }
     })
 
@@ -3402,9 +3926,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
             }
           }
         },
@@ -3423,12 +3945,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('MIN(E3:E3)')
         should(sheet.E8.f).be.eql('MAX(E3:E3)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E8.f).be.eql('SUM(E4:E4)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E5)')
         should(sheet.E10.f).be.eql('MIN(E4:E4)')
         should(sheet.E11.f).be.eql('MAX(E4:E4)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      } else {
+        should(sheet.F4.f).be.eql('SUM(D4:D4)')
+        should(sheet.G4.f).be.eql('AVERAGE(D4:D4)')
+        should(sheet.H4.f).be.eql('MIN(D4:D4)')
+        should(sheet.I4.f).be.eql('MAX(D4:D4)')
+        should(sheet.J4.f).be.eql('SUM(H4,I4)')
       }
     })
 
@@ -3453,9 +3981,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
             }
           }
         },
@@ -3497,7 +4023,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E11', cellEls)).be.True()
         should(cellExists('E12', cellEls)).be.False()
         should(cellEls).have.length(5)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('E8', cellEls)).be.False()
         should(cellExists('E9', cellEls)).be.False()
         should(cellExists('E10', cellEls)).be.False()
@@ -3509,89 +4035,14 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.True()
         should(cellEls).have.length(5)
-      }
-    })
-
-    it(`${mode} loop create new formula cells from loop`, async () => {
-      const items = [{
-        name: 'Alexander',
-        lastname: 'Smith',
-        age: 32,
-        rate: 22,
-        hours: 122
-      }, {
-        name: 'John',
-        lastname: 'Doe',
-        age: 29,
-        rate: 16,
-        hours: 189
-      }, {
-        name: 'Jane',
-        lastname: 'Montana',
-        age: 23,
-        rate: 20,
-        hours: 144
-      }]
-
-      const result = await reporter.render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'xlsx',
-          xlsx: {
-            templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
-            }
-          }
-        },
-        data: {
-          items
-        }
-      })
-
-      fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-      if (mode === 'row') {
-        should(sheet.C3.v).be.eql(items[0].name)
-        should(sheet.D3.v).be.eql(items[0].lastname)
-        should(sheet.E3.v).be.eql(items[0].age)
-        should(sheet.F3.v).be.eql(items[0].rate)
-        should(sheet.G3.v).be.eql(items[0].hours)
-        should(sheet.H3.f).be.eql('F3*G3')
-        should(sheet.C4.v).be.eql(items[1].name)
-        should(sheet.D4.v).be.eql(items[1].lastname)
-        should(sheet.E4.v).be.eql(items[1].age)
-        should(sheet.F4.v).be.eql(items[1].rate)
-        should(sheet.G4.v).be.eql(items[1].hours)
-        should(sheet.H4.f).be.eql('F4*G4')
-        should(sheet.C5.v).be.eql(items[2].name)
-        should(sheet.D5.v).be.eql(items[2].lastname)
-        should(sheet.E5.v).be.eql(items[2].age)
-        should(sheet.F5.v).be.eql(items[2].rate)
-        should(sheet.G5.v).be.eql(items[2].hours)
-        should(sheet.H5.f).be.eql('F5*G5')
       } else {
-        should(sheet.C4.v).be.eql(items[0].name)
-        should(sheet.D4.v).be.eql(items[0].lastname)
-        should(sheet.E4.v).be.eql(items[0].age)
-        should(sheet.F4.v).be.eql(items[0].rate)
-        should(sheet.G4.v).be.eql(items[0].hours)
-        should(sheet.H4.f).be.eql('F4*G4')
-        should(sheet.C9.v).be.eql(items[1].name)
-        should(sheet.D9.v).be.eql(items[1].lastname)
-        should(sheet.E9.v).be.eql(items[1].age)
-        should(sheet.F9.v).be.eql(items[1].rate)
-        should(sheet.G9.v).be.eql(items[1].hours)
-        should(sheet.H9.f).be.eql('F9*G9')
-        should(sheet.C14.v).be.eql(items[2].name)
-        should(sheet.D14.v).be.eql(items[2].lastname)
-        should(sheet.E14.v).be.eql(items[2].age)
-        should(sheet.F14.v).be.eql(items[2].rate)
-        should(sheet.G14.v).be.eql(items[2].hours)
-        should(sheet.H14.f).be.eql('F14*G14')
+        should(cellExists('F4', cellEls)).be.False()
+        should(cellExists('G4', cellEls)).be.False()
+        should(cellExists('H4', cellEls)).be.True()
+        should(cellExists('I4', cellEls)).be.True()
+        should(cellExists('J4', cellEls)).be.True()
+        should(cellExists('K4', cellEls)).be.True()
+        should(cellExists('L4', cellEls)).be.True()
       }
     })
 
@@ -3622,9 +4073,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-locked-row-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-row'))
             }
           }
         },
@@ -3682,7 +4131,7 @@ describe('xlsx generation - loops', () => {
         should(sheet2.F10.v).be.eql(items[2].rate)
         should(sheet2.G10.v).be.eql(items[2].hours)
         should(sheet2.H10.f).be.eql('F10*G$8')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -3726,6 +4175,51 @@ describe('xlsx generation - loops', () => {
         should(sheet2.F19.v).be.eql(items[2].rate)
         should(sheet2.G19.v).be.eql(items[2].hours)
         should(sheet2.H19.f).be.eql('F19*G$9')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5.v).be.eql(items[1].rate)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6.v).be.eql(items[1].hours)
+        should(sheet.F6.v).be.eql(items[2].hours)
+        should(sheet.D7.f).be.eql('D5*D$6')
+        should(sheet.E7.f).be.eql('E5*E$6')
+        should(sheet.F7.f).be.eql('F5*F$6')
+
+        should(sheet2.C3.v).be.eql(items[0].name)
+        should(sheet2.D3.v).be.eql(items[0].lastname)
+        should(sheet2.C4.v).be.eql(items[1].name)
+        should(sheet2.D4.v).be.eql(items[1].lastname)
+        should(sheet2.C5.v).be.eql(items[2].name)
+        should(sheet2.D5.v).be.eql(items[2].lastname)
+
+        should(sheet2.D7.v).be.eql(items[0].name)
+        should(sheet2.E7.v).be.eql(items[1].name)
+        should(sheet2.F7.v).be.eql(items[2].name)
+        should(sheet2.D8.v).be.eql(items[0].lastname)
+        should(sheet2.E8.v).be.eql(items[1].lastname)
+        should(sheet2.F8.v).be.eql(items[2].lastname)
+        should(sheet2.D9.v).be.eql(items[0].age)
+        should(sheet2.E9.v).be.eql(items[1].age)
+        should(sheet2.F9.v).be.eql(items[2].age)
+        should(sheet2.D10.v).be.eql(items[0].rate)
+        should(sheet2.E10.v).be.eql(items[1].rate)
+        should(sheet2.F10.v).be.eql(items[2].rate)
+        should(sheet2.D11.v).be.eql(items[0].hours)
+        should(sheet2.E11.v).be.eql(items[1].hours)
+        should(sheet2.F11.v).be.eql(items[2].hours)
+        should(sheet2.D12.f).be.eql('D10*D$11')
+        should(sheet2.E12.f).be.eql('E10*E$11')
+        should(sheet2.F12.f).be.eql('F10*F$11')
       }
     })
 
@@ -3756,9 +4250,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
             }
           }
         },
@@ -3790,7 +4282,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql(items[2].rate)
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('A$1*F5*G5')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -3809,6 +4301,25 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('A$1*F14*G14')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5.v).be.eql(items[1].rate)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6.v).be.eql(items[1].hours)
+        should(sheet.F6.v).be.eql(items[2].hours)
+        should(sheet.D7.f).be.eql('A$1*D5*D6')
+        should(sheet.E7.f).be.eql('A$1*E5*E6')
+        should(sheet.F7.f).be.eql('A$1*F5*F6')
       }
     })
 
@@ -3821,9 +4332,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
             }
           }
         },
@@ -3849,13 +4358,26 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4).not.be.ok()
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
         should(sheet.F4.v).be.eql('')
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('A$1*F4*G4')
+      } else {
+        should(sheet.D2.v).be.eql('')
+        should(sheet.E2).be.not.ok()
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3).be.not.ok()
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4).be.not.ok()
+        should(sheet.D5.v).be.eql('')
+        should(sheet.E5).be.not.ok()
+        should(sheet.D6.v).be.eql('')
+        should(sheet.E6).be.not.ok()
+        should(sheet.D7.f).be.eql('A$1*D5*D6')
+        should(sheet.E7).be.not.ok()
       }
     })
 
@@ -3874,9 +4396,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
             }
           }
         },
@@ -3902,13 +4422,26 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4).not.be.ok()
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
         should(sheet.F4.v).be.eql(items[0].rate)
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('A$1*F4*G4')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2).be.not.ok()
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3).be.not.ok()
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4).be.not.ok()
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5).be.not.ok()
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6).be.not.ok()
+        should(sheet.D7.f).be.eql('A$1*D5*D6')
+        should(sheet.E7).be.not.ok()
       }
     })
 
@@ -3939,9 +4472,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-locked-row-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-row'))
             }
           }
         },
@@ -3984,13 +4515,21 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H9', '2', cellEls)).be.True()
         should(cellExists('H10', '2', cellEls)).be.True()
         should(cellEls).have.length(6)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('H4', '1', cellEls)).be.True()
         should(cellExists('H9', '1', cellEls)).be.True()
         should(cellExists('H14', '1', cellEls)).be.True()
         should(cellExists('H9', '2', cellEls)).be.True()
         should(cellExists('H14', '2', cellEls)).be.True()
         should(cellExists('H19', '2', cellEls)).be.True()
+        should(cellEls).have.length(6)
+      } else {
+        should(cellExists('D7', '1', cellEls)).be.True()
+        should(cellExists('E7', '1', cellEls)).be.True()
+        should(cellExists('F7', '1', cellEls)).be.True()
+        should(cellExists('D12', '2', cellEls)).be.True()
+        should(cellExists('E12', '2', cellEls)).be.True()
+        should(cellExists('F12', '2', cellEls)).be.True()
         should(cellEls).have.length(6)
       }
     })
@@ -4022,9 +4561,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
             }
           }
         },
@@ -4061,11 +4598,681 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H4', cellEls)).be.True()
         should(cellExists('H5', cellEls)).be.True()
         should(cellEls).have.length(3)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('H4', cellEls)).be.True()
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
         should(cellEls).have.length(3)
+      } else {
+        should(cellExists('D7', cellEls)).be.True()
+        should(cellExists('E7', cellEls)).be.True()
+        should(cellExists('F7', cellEls)).be.True()
+        should(cellEls).have.length(3)
+      }
+    })
+
+    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked column`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29,
+        rate: 16,
+        hours: 189
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23,
+        rate: 20,
+        hours: 144
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-column'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('F3*$G3')
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[1].rate)
+        should(sheet.G4.v).be.eql(items[1].hours)
+        should(sheet.H4.f).be.eql('F4*$G4')
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.G5.v).be.eql(items[2].hours)
+        should(sheet.H5.f).be.eql('F5*$G5')
+
+        should(sheet2.C3.v).be.eql(items[0].name)
+        should(sheet2.D3.v).be.eql(items[0].lastname)
+        should(sheet2.C4.v).be.eql(items[1].name)
+        should(sheet2.D4.v).be.eql(items[1].lastname)
+        should(sheet2.C5.v).be.eql(items[2].name)
+        should(sheet2.D5.v).be.eql(items[2].lastname)
+        should(sheet2.C8.v).be.eql(items[0].name)
+        should(sheet2.D8.v).be.eql(items[0].lastname)
+        should(sheet2.E8.v).be.eql(items[0].age)
+        should(sheet2.F8.v).be.eql(items[0].rate)
+        should(sheet2.G8.v).be.eql(items[0].hours)
+        should(sheet2.H8.f).be.eql('F8*$G8')
+        should(sheet2.C9.v).be.eql(items[1].name)
+        should(sheet2.D9.v).be.eql(items[1].lastname)
+        should(sheet2.E9.v).be.eql(items[1].age)
+        should(sheet2.F9.v).be.eql(items[1].rate)
+        should(sheet2.G9.v).be.eql(items[1].hours)
+        should(sheet2.H9.f).be.eql('F9*$G9')
+        should(sheet2.C10.v).be.eql(items[2].name)
+        should(sheet2.D10.v).be.eql(items[2].lastname)
+        should(sheet2.E10.v).be.eql(items[2].age)
+        should(sheet2.F10.v).be.eql(items[2].rate)
+        should(sheet2.G10.v).be.eql(items[2].hours)
+        should(sheet2.H10.f).be.eql('F10*$G10')
+      } else if (mode === 'block') {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('F4*$G4')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+        should(sheet.F9.v).be.eql(items[1].rate)
+        should(sheet.G9.v).be.eql(items[1].hours)
+        should(sheet.H9.f).be.eql('F9*$G9')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+        should(sheet.F14.v).be.eql(items[2].rate)
+        should(sheet.G14.v).be.eql(items[2].hours)
+        should(sheet.H14.f).be.eql('F14*$G14')
+
+        should(sheet2.B3.v).be.eql(items[0].name)
+        should(sheet2.C3.v).be.eql(items[0].lastname)
+        should(sheet2.B4.v).be.eql(items[1].name)
+        should(sheet2.C4.v).be.eql(items[1].lastname)
+        should(sheet2.B5.v).be.eql(items[2].name)
+        should(sheet2.C5.v).be.eql(items[2].lastname)
+        should(sheet2.C9.v).be.eql(items[0].name)
+        should(sheet2.D9.v).be.eql(items[0].lastname)
+        should(sheet2.E9.v).be.eql(items[0].age)
+        should(sheet2.F9.v).be.eql(items[0].rate)
+        should(sheet2.G9.v).be.eql(items[0].hours)
+        should(sheet2.H9.f).be.eql('F9*$G9')
+        should(sheet2.C14.v).be.eql(items[1].name)
+        should(sheet2.D14.v).be.eql(items[1].lastname)
+        should(sheet2.E14.v).be.eql(items[1].age)
+        should(sheet2.F14.v).be.eql(items[1].rate)
+        should(sheet2.G14.v).be.eql(items[1].hours)
+        should(sheet2.H14.f).be.eql('F14*$G14')
+        should(sheet2.C19.v).be.eql(items[2].name)
+        should(sheet2.D19.v).be.eql(items[2].lastname)
+        should(sheet2.E19.v).be.eql(items[2].age)
+        should(sheet2.F19.v).be.eql(items[2].rate)
+        should(sheet2.G19.v).be.eql(items[2].hours)
+        should(sheet2.H19.f).be.eql('F19*$G19')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5.v).be.eql(items[1].rate)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6.v).be.eql(items[1].hours)
+        should(sheet.F6.v).be.eql(items[2].hours)
+        should(sheet.D7.f).be.eql('D5*$D6')
+        should(sheet.E7.f).be.eql('E5*$D6')
+        should(sheet.F7.f).be.eql('F5*$D6')
+
+        should(sheet2.C3.v).be.eql(items[0].name)
+        should(sheet2.D3.v).be.eql(items[0].lastname)
+        should(sheet2.C4.v).be.eql(items[1].name)
+        should(sheet2.D4.v).be.eql(items[1].lastname)
+        should(sheet2.C5.v).be.eql(items[2].name)
+        should(sheet2.D5.v).be.eql(items[2].lastname)
+
+        should(sheet2.D7.v).be.eql(items[0].name)
+        should(sheet2.E7.v).be.eql(items[1].name)
+        should(sheet2.F7.v).be.eql(items[2].name)
+        should(sheet2.D8.v).be.eql(items[0].lastname)
+        should(sheet2.E8.v).be.eql(items[1].lastname)
+        should(sheet2.F8.v).be.eql(items[2].lastname)
+        should(sheet2.D9.v).be.eql(items[0].age)
+        should(sheet2.E9.v).be.eql(items[1].age)
+        should(sheet2.F9.v).be.eql(items[2].age)
+        should(sheet2.D10.v).be.eql(items[0].rate)
+        should(sheet2.E10.v).be.eql(items[1].rate)
+        should(sheet2.F10.v).be.eql(items[2].rate)
+        should(sheet2.D11.v).be.eql(items[0].hours)
+        should(sheet2.E11.v).be.eql(items[1].hours)
+        should(sheet2.F11.v).be.eql(items[2].hours)
+        should(sheet2.D12.f).be.eql('D10*$D11')
+        should(sheet2.E12.f).be.eql('E10*$D11')
+        should(sheet2.F12.f).be.eql('F10*$D11')
+      }
+    })
+
+    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked column #2`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29,
+        rate: 16,
+        hours: 189
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23,
+        rate: 20,
+        hours: 144
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('$A1*F3*G3')
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[1].rate)
+        should(sheet.G4.v).be.eql(items[1].hours)
+        should(sheet.H4.f).be.eql('$A1*F4*G4')
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.G5.v).be.eql(items[2].hours)
+        should(sheet.H5.f).be.eql('$A1*F5*G5')
+      } else if (mode === 'block') {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('$A1*F4*G4')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+        should(sheet.F9.v).be.eql(items[1].rate)
+        should(sheet.G9.v).be.eql(items[1].hours)
+        should(sheet.H9.f).be.eql('$A1*F9*G9')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+        should(sheet.F14.v).be.eql(items[2].rate)
+        should(sheet.G14.v).be.eql(items[2].hours)
+        should(sheet.H14.f).be.eql('$A1*F14*G14')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5.v).be.eql(items[1].rate)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6.v).be.eql(items[1].hours)
+        should(sheet.F6.v).be.eql(items[2].hours)
+        should(sheet.D7.f).be.eql('$A1*D5*D6')
+        should(sheet.E7.f).be.eql('$A1*E5*E6')
+        should(sheet.F7.f).be.eql('$A1*F5*F6')
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop (cell references using locked column) if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+        should(sheet.F3.v).be.eql('')
+        should(sheet.G3.v).be.eql('')
+        should(sheet.H3.f).be.eql('$A1*F3*G3')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+      } else if (mode === 'block') {
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+        should(sheet.F4.v).be.eql('')
+        should(sheet.G4.v).be.eql('')
+        should(sheet.H4.f).be.eql('$A1*F4*G4')
+      } else {
+        should(sheet.D2.v).be.eql('')
+        should(sheet.E2).be.not.ok()
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3).be.not.ok()
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4).be.not.ok()
+        should(sheet.D5.v).be.eql('')
+        should(sheet.E5).be.not.ok()
+        should(sheet.D6.v).be.eql('')
+        should(sheet.E6).be.not.ok()
+        should(sheet.D7.f).be.eql('$A1*D5*D6')
+        should(sheet.E7).be.not.ok()
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop (cell references using locked column) if array have 1 items`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('$A1*F3*G3')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+      } else if (mode === 'block') {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('$A1*F4*G4')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2).be.not.ok()
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3).be.not.ok()
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4).be.not.ok()
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5).be.not.ok()
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6).be.not.ok()
+        should(sheet.D7.f).be.eql('$A1*D5*D6')
+        should(sheet.E7).be.not.ok()
+      }
+    })
+
+    it(`${mode} loop update calcChain info of formulas after loop (formula cells from loop but without incrementing cell references with locked column)`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29,
+        rate: 16,
+        hours: 189
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23,
+        rate: 20,
+        hours: 144
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-column'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+
+      const files = await decompress()(result.content)
+
+      const normalizePath = (filePath) => {
+        if (filePath.startsWith('/')) {
+          return filePath.slice(1)
+        }
+
+        return filePath
+      }
+
+      const calcChainDoc = new DOMParser().parseFromString(
+        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
+      )
+
+      const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
+
+      const cellExists = (cellRef, sheetId, cellEls) => {
+        return cellEls.find((el) => (
+          el.getAttribute('r') === cellRef &&
+          el.getAttribute('i') === sheetId
+        )) != null
+      }
+
+      if (mode === 'row') {
+        should(cellExists('H3', '1', cellEls)).be.True()
+        should(cellExists('H4', '1', cellEls)).be.True()
+        should(cellExists('H5', '1', cellEls)).be.True()
+        should(cellExists('H8', '2', cellEls)).be.True()
+        should(cellExists('H9', '2', cellEls)).be.True()
+        should(cellExists('H10', '2', cellEls)).be.True()
+        should(cellEls).have.length(6)
+      } else if (mode === 'block') {
+        should(cellExists('H4', '1', cellEls)).be.True()
+        should(cellExists('H9', '1', cellEls)).be.True()
+        should(cellExists('H14', '1', cellEls)).be.True()
+        should(cellExists('H9', '2', cellEls)).be.True()
+        should(cellExists('H14', '2', cellEls)).be.True()
+        should(cellExists('H19', '2', cellEls)).be.True()
+        should(cellEls).have.length(6)
+      } else {
+        should(cellExists('D7', '1', cellEls)).be.True()
+        should(cellExists('E7', '1', cellEls)).be.True()
+        should(cellExists('F7', '1', cellEls)).be.True()
+        should(cellExists('D12', '2', cellEls)).be.True()
+        should(cellExists('E12', '2', cellEls)).be.True()
+        should(cellExists('F12', '2', cellEls)).be.True()
+        should(cellEls).have.length(6)
+      }
+    })
+
+    it(`${mode} loop update calcChain info of formulas after loop created new formula cells from loop but without incrementing cell references with locked column #2`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29,
+        rate: 16,
+        hours: 189
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23,
+        rate: 20,
+        hours: 144
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+
+      const files = await decompress()(result.content)
+
+      const normalizePath = (filePath) => {
+        if (filePath.startsWith('/')) {
+          return filePath.slice(1)
+        }
+
+        return filePath
+      }
+
+      const calcChainDoc = new DOMParser().parseFromString(
+        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
+      )
+
+      const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
+
+      const cellExists = (cellRef, cellEls) => {
+        return cellEls.find((el) => el.getAttribute('r') === cellRef) != null
+      }
+
+      if (mode === 'row') {
+        should(cellExists('H3', cellEls)).be.True()
+        should(cellExists('H4', cellEls)).be.True()
+        should(cellExists('H5', cellEls)).be.True()
+        should(cellEls).have.length(3)
+      } else if (mode === 'block') {
+        should(cellExists('H4', cellEls)).be.True()
+        should(cellExists('H9', cellEls)).be.True()
+        should(cellExists('H14', cellEls)).be.True()
+        should(cellEls).have.length(3)
+      } else {
+        should(cellExists('D7', cellEls)).be.True()
+        should(cellExists('E7', cellEls)).be.True()
+        should(cellExists('F7', cellEls)).be.True()
+        should(cellEls).have.length(3)
+      }
+    })
+
+    it(`${mode} loop create new formula cells from loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29,
+        rate: 16,
+        hours: 189
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23,
+        rate: 20,
+        hours: 144
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('F3*G3')
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[1].rate)
+        should(sheet.G4.v).be.eql(items[1].hours)
+        should(sheet.H4.f).be.eql('F4*G4')
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.G5.v).be.eql(items[2].hours)
+        should(sheet.H5.f).be.eql('F5*G5')
+      } else if (mode === 'block') {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('F4*G4')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+        should(sheet.F9.v).be.eql(items[1].rate)
+        should(sheet.G9.v).be.eql(items[1].hours)
+        should(sheet.H9.f).be.eql('F9*G9')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+        should(sheet.F14.v).be.eql(items[2].rate)
+        should(sheet.G14.v).be.eql(items[2].hours)
+        should(sheet.H14.f).be.eql('F14*G14')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5.v).be.eql(items[1].rate)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6.v).be.eql(items[1].hours)
+        should(sheet.F6.v).be.eql(items[2].hours)
+        should(sheet.D7.f).be.eql('D5*D6')
+        should(sheet.E7.f).be.eql('E5*E6')
+        should(sheet.F7.f).be.eql('F5*F6')
       }
     })
 
@@ -4078,9 +5285,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
             }
           }
         },
@@ -4106,13 +5311,33 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4).be.not.ok()
         should(sheet.G4).be.not.ok()
         should(sheet.H4).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
         should(sheet.F4.v).be.eql('')
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('F4*G4')
+      } else {
+        should(sheet.D2.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.D5.v).be.eql('')
+        should(sheet.D6.v).be.eql('')
+        should(sheet.D7.f).be.eql('D5*D6')
+
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+        should(sheet.E3).be.not.ok()
+        should(sheet.F3).be.not.ok()
+        should(sheet.E4).be.not.ok()
+        should(sheet.F4).be.not.ok()
+        should(sheet.E5).be.not.ok()
+        should(sheet.F5).be.not.ok()
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
       }
     })
 
@@ -4131,9 +5356,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
             }
           }
         },
@@ -4159,13 +5382,33 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4).be.not.ok()
         should(sheet.G4).be.not.ok()
         should(sheet.H4).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
         should(sheet.F4.v).be.eql(items[0].rate)
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('F4*G4')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.D7.f).be.eql('D5*D6')
+
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+        should(sheet.E3).be.not.ok()
+        should(sheet.F3).be.not.ok()
+        should(sheet.E4).be.not.ok()
+        should(sheet.F4).be.not.ok()
+        should(sheet.E5).be.not.ok()
+        should(sheet.F5).be.not.ok()
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
       }
     })
 
@@ -4196,9 +5439,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
             }
           }
         },
@@ -4235,10 +5476,15 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H4', cellEls)).be.True()
         should(cellExists('H5', cellEls)).be.True()
         should(cellEls).have.length(3)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('H4', cellEls)).be.True()
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
+        should(cellEls).have.length(3)
+      } else {
+        should(cellExists('D7', cellEls)).be.True()
+        should(cellExists('E7', cellEls)).be.True()
+        should(cellExists('F7', cellEls)).be.True()
         should(cellEls).have.length(3)
       }
     })
@@ -4400,9 +5646,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-multiple-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
             }
           }
         },
@@ -4437,7 +5681,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('F5*G5')
         should(sheet.I5.f).be.eql('H5*100')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -4459,6 +5703,28 @@ describe('xlsx generation - loops', () => {
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('F14*G14')
         should(sheet.I14.f).be.eql('H14*100')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5.v).be.eql(items[1].rate)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6.v).be.eql(items[1].hours)
+        should(sheet.F6.v).be.eql(items[2].hours)
+        should(sheet.D7.f).be.eql('D5*D6')
+        should(sheet.E7.f).be.eql('E5*E6')
+        should(sheet.F7.f).be.eql('F5*F6')
+        should(sheet.D8.f).be.eql('D7*100')
+        should(sheet.E8.f).be.eql('E7*100')
+        should(sheet.F8.f).be.eql('F7*100')
       }
     })
 
@@ -4471,9 +5737,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-multiple-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
             }
           }
         },
@@ -4501,7 +5765,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).be.not.ok()
         should(sheet.H4).be.not.ok()
         should(sheet.I4).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
@@ -4509,6 +5773,14 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('F4*G4')
         should(sheet.I4.f).be.eql('H4*100')
+      } else {
+        should(sheet.D2.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.D5.v).be.eql('')
+        should(sheet.D6.v).be.eql('')
+        should(sheet.D7.f).be.eql('D5*D6')
+        should(sheet.D8.f).be.eql('D7*100')
       }
     })
 
@@ -4527,9 +5799,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-multiple-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
             }
           }
         },
@@ -4557,7 +5827,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).be.not.ok()
         should(sheet.H4).be.not.ok()
         should(sheet.I4).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -4565,6 +5835,14 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('F4*G4')
         should(sheet.I4.f).be.eql('H4*100')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.D7.f).be.eql('D5*D6')
+        should(sheet.D8.f).be.eql('D7*100')
       }
     })
 
@@ -4595,9 +5873,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-multiple-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
             }
           }
         },
@@ -4637,13 +5913,21 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H5', cellEls)).be.True()
         should(cellExists('I5', cellEls)).be.True()
         should(cellEls).have.length(6)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('H4', cellEls)).be.True()
         should(cellExists('I4', cellEls)).be.True()
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('I9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
         should(cellExists('I14', cellEls)).be.True()
+        should(cellEls).have.length(6)
+      } else {
+        should(cellExists('D7', cellEls)).be.True()
+        should(cellExists('E7', cellEls)).be.True()
+        should(cellExists('F7', cellEls)).be.True()
+        should(cellExists('D8', cellEls)).be.True()
+        should(cellExists('E8', cellEls)).be.True()
+        should(cellExists('F8', cellEls)).be.True()
         should(cellEls).have.length(6)
       }
     })
@@ -4675,9 +5959,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(range)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
             }
           }
         },
@@ -4709,7 +5991,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql(items[2].rate)
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('SUM(F5:G5)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -4728,6 +6010,25 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('SUM(F14:G14)')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5.v).be.eql(items[1].rate)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6.v).be.eql(items[1].hours)
+        should(sheet.F6.v).be.eql(items[2].hours)
+        should(sheet.D7.f).be.eql('SUM(D5:D6)')
+        should(sheet.E7.f).be.eql('SUM(E5:E6)')
+        should(sheet.F7.f).be.eql('SUM(F5:F6)')
       }
     })
 
@@ -4740,9 +6041,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(range)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
             }
           }
         },
@@ -4768,13 +6067,20 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4).not.be.ok()
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
         should(sheet.F4.v).be.eql('')
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
+      } else {
+        should(sheet.D2.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.D5.v).be.eql('')
+        should(sheet.D6.v).be.eql('')
+        should(sheet.D7.f).be.eql('SUM(D5:D6)')
       }
     })
 
@@ -4793,9 +6099,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(range)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
             }
           }
         },
@@ -4821,13 +6125,20 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4).not.be.ok()
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
         should(sheet.F4.v).be.eql(items[0].rate)
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.D7.f).be.eql('SUM(D5:D6)')
       }
     })
 
@@ -4858,9 +6169,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(range)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
             }
           }
         },
@@ -4897,10 +6206,15 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H4', cellEls)).be.True()
         should(cellExists('H5', cellEls)).be.True()
         should(cellEls).have.length(3)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('H4', cellEls)).be.True()
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
+        should(cellEls).have.length(3)
+      } else {
+        should(cellExists('D7', cellEls)).be.True()
+        should(cellExists('E7', cellEls)).be.True()
+        should(cellExists('F7', cellEls)).be.True()
         should(cellEls).have.length(3)
       }
     })
@@ -4932,9 +6246,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
             }
           }
         },
@@ -4974,7 +6286,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.f).be.eql('SUM(E7:E8)')
         should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
         should(sheet.E11?.f).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -5001,6 +6313,29 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.H4.v).be.eql(20)
+        should(sheet.I4.v).be.eql(18)
+        should(sheet.J4.f).be.eql('SUM(H4:I4)')
+        should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.E5.v).be.eql(items[1].rate)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.E6.v).be.eql(items[1].hours)
+        should(sheet.F6.v).be.eql(items[2].hours)
+        should(sheet.D7.f).be.eql('D5*D6')
+        should(sheet.E7.f).be.eql('E5*E6')
+        should(sheet.F7.f).be.eql('F5*F6')
       }
     })
 
@@ -5013,9 +6348,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
             }
           }
         },
@@ -5046,7 +6379,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E6).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
@@ -5058,6 +6391,27 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      } else {
+        should(sheet.D2.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.F4.v).be.eql(20)
+        should(sheet.G4.v).be.eql(18)
+        should(sheet.H4.f).be.eql('SUM(F4:G4)')
+        should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
+        should(sheet.D5.v).be.eql('')
+        should(sheet.D6.v).be.eql('')
+        should(sheet.D7.f).be.eql('D5*D6')
+
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+        should(sheet.E4).be.not.ok()
+        should(sheet.E5).be.not.ok()
+        should(sheet.F5).be.not.ok()
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
       }
     })
 
@@ -5076,9 +6430,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
             }
           }
         },
@@ -5109,7 +6461,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E6).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -5121,6 +6473,27 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(20)
+        should(sheet.G4.v).be.eql(18)
+        should(sheet.H4.f).be.eql('SUM(F4:G4)')
+        should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
+        should(sheet.D5.v).be.eql(items[0].rate)
+        should(sheet.D6.v).be.eql(items[0].hours)
+        should(sheet.D7.f).be.eql('D5*D6')
+
+        should(sheet.E2).be.not.ok()
+        should(sheet.F2).be.not.ok()
+        should(sheet.E4).be.not.ok()
+        should(sheet.E5).be.not.ok()
+        should(sheet.F5).be.not.ok()
+        should(sheet.E6).be.not.ok()
+        should(sheet.F6).be.not.ok()
+        should(sheet.E7).be.not.ok()
+        should(sheet.F7).be.not.ok()
       }
     })
 
@@ -5151,9 +6524,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
             }
           }
         },
@@ -5192,12 +6563,19 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E9', cellEls)).be.True()
         should(cellExists('E10', cellEls)).be.True()
         should(cellEls).have.length(5)
-      } else {
+      } else if (mode === 'block') {
         should(cellExists('H4', cellEls)).be.True()
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
         should(cellExists('E20', cellEls)).be.True()
         should(cellExists('E21', cellEls)).be.True()
+        should(cellEls).have.length(5)
+      } else {
+        should(cellExists('D7', cellEls)).be.True()
+        should(cellExists('E7', cellEls)).be.True()
+        should(cellExists('F7', cellEls)).be.True()
+        should(cellExists('J4', cellEls)).be.True()
+        should(cellExists('K4', cellEls)).be.True()
         should(cellEls).have.length(5)
       }
     })
@@ -5223,9 +6601,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-formula-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-formula-cell-preserve'))
             }
           }
         },
@@ -5255,7 +6631,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C5.v).be.eql(items[2].name)
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'block') {
         // preserving the cells on the left of the loop
         should(sheet.A3.f).be.eql('A1*2')
         should(sheet.B3.f).be.eql('A1*3')
@@ -5272,6 +6648,19 @@ describe('xlsx generation - loops', () => {
         should(sheet.D15.v).be.eql(items[2].name)
         should(sheet.E15.v).be.eql(items[2].lastname)
         should(sheet.F15.v).be.eql(items[2].age)
+      } else {
+        should(sheet.B1.v).be.eql(10)
+        should(sheet.D1.v).be.eql(20)
+        should(sheet.D2.v).be.eql(30)
+        should(sheet.D3.v).be.eql(items[0].name)
+        should(sheet.E3.v).be.eql(items[1].name)
+        should(sheet.F3.v).be.eql(items[2].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[2].lastname)
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
       }
     })
 
@@ -5296,9 +6685,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-formula-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-formula-cell-preserve'))
             }
           }
         },
@@ -5328,7 +6715,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         // preserving the cells on the right of the loop
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
@@ -5345,6 +6732,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].age)
         should(sheet.C16.f).be.eql('A1*2')
         should(sheet.D16.f).be.eql('A1*3')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.v).be.eql(20)
+        should(sheet.D6.v).be.eql(30)
       }
     })
 
@@ -5369,9 +6768,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-formula-cell-preserve.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-formula-cell-preserve'))
             }
           }
         },
@@ -5408,7 +6805,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
-      } else {
+      } else if (mode === 'block') {
         // preserving the cells on the left of the loop
         should(sheet.A3.f).be.eql('A1*2')
         should(sheet.B3.f).be.eql('A1*3')
@@ -5432,6 +6829,21 @@ describe('xlsx generation - loops', () => {
         // preserving the cells on the right of the loop
         should(sheet.D17.f).be.eql('A1*4')
         should(sheet.E17.f).be.eql('A1*5')
+      } else {
+        should(sheet.B1.v).be.eql(10)
+        should(sheet.D1.v).be.eql(20)
+        should(sheet.D2.v).be.eql(30)
+        should(sheet.D3.v).be.eql(items[0].name)
+        should(sheet.E3.v).be.eql(items[1].name)
+        should(sheet.F3.v).be.eql(items[2].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[2].lastname)
+        should(sheet.D5.v).be.eql(items[0].age)
+        should(sheet.E5.v).be.eql(items[1].age)
+        should(sheet.F5.v).be.eql(items[2].age)
+        should(sheet.D6.v).be.eql(40)
+        should(sheet.D7.v).be.eql(50)
       }
     })
 
@@ -5456,9 +6868,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-origin-after-reference-inside-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-after-reference-inside'))
             }
           }
         },
@@ -5485,7 +6895,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.E7.f).be.eql('10+E5')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C3.v).be.eql('Name')
         should(sheet.D3.v).be.eql('Lastname')
         should(sheet.E3.v).be.eql('Age')
@@ -5505,6 +6915,17 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
         should(sheet.E18.f).be.eql('10+E14')
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.H4.f).be.eql('10+F4')
       }
     })
 
@@ -5529,9 +6950,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-inside-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-inside'))
             }
           }
         },
@@ -5558,7 +6977,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C7.v).be.eql(items[2].name)
         should(sheet.D7.v).be.eql(items[2].lastname)
         should(sheet.E7.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E2.f).be.eql('10+E16')
         should(sheet.C5.v).be.eql('Name')
         should(sheet.D5.v).be.eql('Lastname')
@@ -5578,6 +6997,17 @@ describe('xlsx generation - loops', () => {
         should(sheet.C16.v).be.eql(items[2].name)
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
+      } else {
+        should(sheet.E2.v).be.eql(items[0].name)
+        should(sheet.F2.v).be.eql(items[1].name)
+        should(sheet.G2.v).be.eql(items[2].name)
+        should(sheet.E3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[1].lastname)
+        should(sheet.G3.v).be.eql(items[2].lastname)
+        should(sheet.B4.f).be.eql('10+G4')
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(sheet.G4.v).be.eql(items[2].age)
       }
     })
 
@@ -5602,9 +7032,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-after-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-after'))
             }
           }
         },
@@ -5632,7 +7060,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D7.v).be.eql(items[2].lastname)
         should(sheet.E7.v).be.eql(items[2].age)
         should(sheet.E9.v).be.eql(30)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E2.f).be.eql('10+E20')
         should(sheet.C5.v).be.eql('Name')
         should(sheet.D5.v).be.eql('Lastname')
@@ -5653,6 +7081,17 @@ describe('xlsx generation - loops', () => {
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.v).be.eql(30)
+      } else {
+        should(sheet.E2.v).be.eql(items[0].name)
+        should(sheet.F2.v).be.eql(items[1].name)
+        should(sheet.G2.v).be.eql(items[2].name)
+        should(sheet.E3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[1].lastname)
+        should(sheet.G3.v).be.eql(items[2].lastname)
+        should(sheet.B4.f).be.eql('10+I4')
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(sheet.G4.v).be.eql(items[2].age)
       }
     })
 
@@ -5762,9 +7201,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-before-and-after-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-before-and-after'))
             }
           }
         },
@@ -5792,7 +7229,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D7.v).be.eql(items[2].lastname)
         should(sheet.E7.v).be.eql(items[2].age)
         should(sheet.E9.v).be.eql(30)
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E2.f).be.eql('10+E1+E20')
         should(sheet.C5.v).be.eql('Name')
         should(sheet.D5.v).be.eql('Lastname')
@@ -5813,6 +7250,19 @@ describe('xlsx generation - loops', () => {
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.v).be.eql(30)
+      } else {
+        should(sheet.E2.v).be.eql(items[0].name)
+        should(sheet.F2.v).be.eql(items[1].name)
+        should(sheet.G2.v).be.eql(items[2].name)
+        should(sheet.E3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[1].lastname)
+        should(sheet.G3.v).be.eql(items[2].lastname)
+        should(sheet.A4.v).be.eql(20)
+        should(sheet.B4.f).be.eql('10+A4+I4')
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(sheet.G4.v).be.eql(items[2].age)
+        should(sheet.I4.v).be.eql(30)
       }
     })
 
@@ -5837,9 +7287,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-origin-after-reference-not-inside-and-previous-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-after-reference-not-inside-and-previous'))
             }
           }
         },
@@ -5867,7 +7315,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D7.v).be.eql(items[2].lastname)
         should(sheet.E7.v).be.eql(items[2].age)
         should(sheet.E9.f).be.eql('10+E2')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.E2.v).be.eql(10)
         should(sheet.C5.v).be.eql('Name')
         should(sheet.D5.v).be.eql('Lastname')
@@ -5888,6 +7336,18 @@ describe('xlsx generation - loops', () => {
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.f).be.eql('10+E2')
+      } else {
+        should(sheet.E2.v).be.eql(items[0].name)
+        should(sheet.F2.v).be.eql(items[1].name)
+        should(sheet.G2.v).be.eql(items[2].name)
+        should(sheet.E3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[1].lastname)
+        should(sheet.G3.v).be.eql(items[2].lastname)
+        should(sheet.B4.v).be.eql(10)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(sheet.G4.v).be.eql(items[2].age)
+        should(sheet.I4.f).be.eql('10+B4')
       }
     })
 
@@ -5970,9 +7430,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-existing-formula-cross-sheet-reference.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference'))
             }
           }
         },
@@ -6025,7 +7483,7 @@ describe('xlsx generation - loops', () => {
         should(sheet4.B8.f).be.eql('A8+DATA!A3')
         should(sheet4.C8.f).be.eql('A8+DATA!B4')
         should(sheet4.D8.f).be.eql('A8+DATA!C5')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C3.v).be.eql('Value')
         should(sheet.D3.v).be.eql('Calculated')
         should(sheet.C4.v).be.eql(items[0].value)
@@ -6089,6 +7547,43 @@ describe('xlsx generation - loops', () => {
         should(sheet4.D18.f).be.eql('C18+DATA!A11')
         should(sheet4.E18.f).be.eql('C18+DATA!B14')
         should(sheet4.F18.f).be.eql('C18+DATA!C17')
+      } else {
+        should(sheet.A2.v).be.eql(items[0].value)
+        should(sheet.B2.v).be.eql(items[1].value)
+        should(sheet.C2.v).be.eql(items[2].value)
+        should(sheet.A3.f).be.eql('A2+DATA!A1')
+        should(sheet.B3.f).be.eql('B2+DATA!B1')
+        should(sheet.C3.f).be.eql('C2+DATA!C1')
+
+        should(sheet2.A2.v).be.eql(items[0].value)
+        should(sheet2.B2.v).be.eql(items[1].value)
+        should(sheet2.C2.v).be.eql(items[2].value)
+        should(sheet2.A3.f).be.eql('A2+DATA!B2')
+        should(sheet2.B3.f).be.eql('B2+DATA!C2')
+        should(sheet2.C3.f).be.eql('C2+DATA!D2')
+
+        should(sheet3.A2.v).be.eql(items[0].value)
+        should(sheet3.B2.v).be.eql(items[1].value)
+        should(sheet3.C2.v).be.eql(items[2].value)
+        should(sheet3.A3.f).be.eql('A2+DATA!C3')
+        should(sheet3.B3.f).be.eql('B2+DATA!D3')
+        should(sheet3.C3.f).be.eql('C2+DATA!E3')
+
+        should(sheet4.A2.v).be.eql(items[0].value)
+        should(sheet4.B2.v).be.eql(items[1].value)
+        should(sheet4.C2.v).be.eql(items[2].value)
+        should(sheet4.E2.v).be.eql(items[0].value)
+        should(sheet4.F2.v).be.eql(items[1].value)
+        should(sheet4.G2.v).be.eql(items[2].value)
+        should(sheet4.E3.f).be.eql('E2+DATA!A1')
+        should(sheet4.F3.f).be.eql('F2+DATA!B1')
+        should(sheet4.G3.f).be.eql('G2+DATA!C1')
+        should(sheet4.C4.f).be.eql('C2+DATA!B2')
+        should(sheet4.D4.f).be.eql('D2+DATA!C2')
+        should(sheet4.E4.f).be.eql('E2+DATA!D2')
+        should(sheet4.C5.f).be.eql('C2+DATA!C3')
+        should(sheet4.D5.f).be.eql('D2+DATA!D3')
+        should(sheet4.E5.f).be.eql('E2+DATA!E3')
       }
     })
 
@@ -6107,9 +7602,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-existing-formula-cross-sheet-reference-locked-row.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference-locked-row'))
             }
           }
         },
@@ -6162,7 +7655,7 @@ describe('xlsx generation - loops', () => {
         should(sheet4.B8.f).be.eql('A8+DATA!A$1')
         should(sheet4.C8.f).be.eql('A8+DATA!B$2')
         should(sheet4.D8.f).be.eql('A8+DATA!C$3')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C3.v).be.eql('Value')
         should(sheet.D3.v).be.eql('Calculated')
         should(sheet.C4.v).be.eql(items[0].value)
@@ -6229,6 +7722,215 @@ describe('xlsx generation - loops', () => {
         should(sheet4.D18.f).be.eql('C18+DATA!A$1')
         should(sheet4.E18.f).be.eql('C18+DATA!B$4')
         should(sheet4.F18.f).be.eql('C18+DATA!C$7')
+      } else {
+        should(sheet.A2.v).be.eql(items[0].value)
+        should(sheet.B2.v).be.eql(items[1].value)
+        should(sheet.C2.v).be.eql(items[2].value)
+        should(sheet.A3.f).be.eql('A2+DATA!A$1')
+        should(sheet.B3.f).be.eql('B2+DATA!B$1')
+        should(sheet.C3.f).be.eql('C2+DATA!C$1')
+
+        should(sheet2.A2.v).be.eql(items[0].value)
+        should(sheet2.B2.v).be.eql(items[1].value)
+        should(sheet2.C2.v).be.eql(items[2].value)
+        should(sheet2.A3.f).be.eql('A2+DATA!B$2')
+        should(sheet2.B3.f).be.eql('B2+DATA!C$2')
+        should(sheet2.C3.f).be.eql('C2+DATA!D$2')
+
+        should(sheet3.A2.v).be.eql(items[0].value)
+        should(sheet3.B2.v).be.eql(items[1].value)
+        should(sheet3.C2.v).be.eql(items[2].value)
+        should(sheet3.A3.f).be.eql('A2+DATA!C$3')
+        should(sheet3.B3.f).be.eql('B2+DATA!D$3')
+        should(sheet3.C3.f).be.eql('C2+DATA!E$3')
+
+        should(sheet4.A2.v).be.eql(items[0].value)
+        should(sheet4.B2.v).be.eql(items[1].value)
+        should(sheet4.C2.v).be.eql(items[2].value)
+        should(sheet4.E2.v).be.eql(items[0].value)
+        should(sheet4.F2.v).be.eql(items[1].value)
+        should(sheet4.G2.v).be.eql(items[2].value)
+        should(sheet4.E3.f).be.eql('E2+DATA!A$1')
+        should(sheet4.F3.f).be.eql('F2+DATA!B$1')
+        should(sheet4.G3.f).be.eql('G2+DATA!C$1')
+        should(sheet4.C4.f).be.eql('C2+DATA!B$2')
+        should(sheet4.D4.f).be.eql('D2+DATA!C$2')
+        should(sheet4.E4.f).be.eql('E2+DATA!D$2')
+        should(sheet4.C5.f).be.eql('C2+DATA!C$3')
+        should(sheet4.D5.f).be.eql('D2+DATA!D$3')
+        should(sheet4.E5.f).be.eql('E2+DATA!E$3')
+      }
+    })
+
+    it(`${mode} loop should work with formula cells that reference cell with locked column from other sheet`, async () => {
+      const items = [{
+        value: 10
+      }, {
+        value: 20
+      }, {
+        value: 30
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference-locked-column'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
+      const sheet3 = workbook.Sheets[workbook.SheetNames[2]]
+      const sheet4 = workbook.Sheets[workbook.SheetNames[3]]
+
+      if (mode === 'row') {
+        should(sheet.A2.v).be.eql(items[0].value)
+        should(sheet.B2.f).be.eql('A2+DATA!$A1')
+        should(sheet.A3.v).be.eql(items[1].value)
+        should(sheet.B3.f).be.eql('A3+DATA!$A2')
+        should(sheet.A4.v).be.eql(items[2].value)
+        should(sheet.B4.f).be.eql('A4+DATA!$A3')
+
+        should(sheet2.A2.v).be.eql(items[0].value)
+        should(sheet2.B2.f).be.eql('A2+DATA!$B2')
+        should(sheet2.A3.v).be.eql(items[1].value)
+        should(sheet2.B3.f).be.eql('A3+DATA!$B3')
+        should(sheet2.A4.v).be.eql(items[2].value)
+        should(sheet2.B4.f).be.eql('A4+DATA!$B4')
+
+        should(sheet3.A2.v).be.eql(items[0].value)
+        should(sheet3.B2.f).be.eql('A2+DATA!$C3')
+        should(sheet3.A3.v).be.eql(items[1].value)
+        should(sheet3.B3.f).be.eql('A3+DATA!$C4')
+        should(sheet3.A4.v).be.eql(items[2].value)
+        should(sheet3.B4.f).be.eql('A4+DATA!$C5')
+
+        should(sheet4.A2.v).be.eql(items[0].value)
+        should(sheet4.A3.v).be.eql(items[1].value)
+        should(sheet4.A4.v).be.eql(items[2].value)
+        should(sheet4.A6.v).be.eql(items[0].value)
+        should(sheet4.B6.f).be.eql('A6+DATA!$A1')
+        should(sheet4.C6.f).be.eql('A6+DATA!$B2')
+        should(sheet4.D6.f).be.eql('A6+DATA!$C3')
+        should(sheet4.A7.v).be.eql(items[1].value)
+        should(sheet4.B7.f).be.eql('A7+DATA!$A2')
+        should(sheet4.C7.f).be.eql('A7+DATA!$B3')
+        should(sheet4.D7.f).be.eql('A7+DATA!$C4')
+        should(sheet4.A8.v).be.eql(items[2].value)
+        should(sheet4.B8.f).be.eql('A8+DATA!$A3')
+        should(sheet4.C8.f).be.eql('A8+DATA!$B4')
+        should(sheet4.D8.f).be.eql('A8+DATA!$C5')
+      } else if (mode === 'block') {
+        should(sheet.C3.v).be.eql('Value')
+        should(sheet.D3.v).be.eql('Calculated')
+        should(sheet.C4.v).be.eql(items[0].value)
+        should(sheet.D4.f).be.eql('C4+DATA!$A1')
+        should(sheet.C8.v).be.eql('Value')
+        should(sheet.D8.v).be.eql('Calculated')
+        should(sheet.C9.v).be.eql(items[1].value)
+        should(sheet.D9.f).be.eql('C9+DATA!$A6')
+        should(sheet.C13.v).be.eql('Value')
+        should(sheet.D13.v).be.eql('Calculated')
+        should(sheet.C14.v).be.eql(items[2].value)
+        should(sheet.D14.f).be.eql('C14+DATA!$A11')
+
+        should(sheet2.C3.v).be.eql('Value')
+        should(sheet2.D3.v).be.eql('Calculated')
+        should(sheet2.C4.v).be.eql(items[0].value)
+        should(sheet2.D4.f).be.eql('C4+DATA!$B4')
+        should(sheet2.C8.v).be.eql('Value')
+        should(sheet2.D8.v).be.eql('Calculated')
+        should(sheet2.C9.v).be.eql(items[1].value)
+        should(sheet2.D9.f).be.eql('C9+DATA!$B9')
+        should(sheet2.C13.v).be.eql('Value')
+        should(sheet2.D13.v).be.eql('Calculated')
+        should(sheet2.C14.v).be.eql(items[2].value)
+        should(sheet2.D14.f).be.eql('C14+DATA!$B14')
+
+        should(sheet3.C3.v).be.eql('Value')
+        should(sheet3.D3.v).be.eql('Calculated')
+        should(sheet3.C4.v).be.eql(items[0].value)
+        should(sheet3.D4.f).be.eql('C4+DATA!$C7')
+        should(sheet3.C8.v).be.eql('Value')
+        should(sheet3.D8.v).be.eql('Calculated')
+        should(sheet3.C9.v).be.eql(items[1].value)
+        should(sheet3.D9.f).be.eql('C9+DATA!$C12')
+        should(sheet3.C13.v).be.eql('Value')
+        should(sheet3.D13.v).be.eql('Calculated')
+        should(sheet3.C14.v).be.eql(items[2].value)
+        should(sheet3.D14.f).be.eql('C14+DATA!$C17')
+
+        should(sheet4.C7.v).be.eql('Value')
+        should(sheet4.D7.v).be.eql('Calculated')
+        should(sheet4.E7.v).be.eql('Calculated2')
+        should(sheet4.F7.v).be.eql('Calculated3')
+        should(sheet4.C8.v).be.eql(items[0].value)
+        should(sheet4.D8.f).be.eql('C8+DATA!$A1')
+        should(sheet4.E8.f).be.eql('C8+DATA!$B4')
+        should(sheet4.F8.f).be.eql('C8+DATA!$C7')
+        should(sheet4.C12.v).be.eql('Value')
+        should(sheet4.D12.v).be.eql('Calculated')
+        should(sheet4.E12.v).be.eql('Calculated2')
+        should(sheet4.F12.v).be.eql('Calculated3')
+        should(sheet4.C13.v).be.eql(items[1].value)
+        should(sheet4.D13.f).be.eql('C13+DATA!$A6')
+        should(sheet4.E13.f).be.eql('C13+DATA!$B9')
+        should(sheet4.F13.f).be.eql('C13+DATA!$C12')
+        should(sheet4.C17.v).be.eql('Value')
+        should(sheet4.D17.v).be.eql('Calculated')
+        should(sheet4.E17.v).be.eql('Calculated2')
+        should(sheet4.F17.v).be.eql('Calculated3')
+        should(sheet4.C18.v).be.eql(items[2].value)
+        should(sheet4.D18.f).be.eql('C18+DATA!$A11')
+        should(sheet4.E18.f).be.eql('C18+DATA!$B14')
+        should(sheet4.F18.f).be.eql('C18+DATA!$C17')
+      } else {
+        should(sheet.A2.v).be.eql(items[0].value)
+        should(sheet.B2.v).be.eql(items[1].value)
+        should(sheet.C2.v).be.eql(items[2].value)
+        should(sheet.A3.f).be.eql('A2+DATA!$A1')
+        should(sheet.B3.f).be.eql('B2+DATA!$A1')
+        should(sheet.C3.f).be.eql('C2+DATA!$A1')
+
+        should(sheet2.A2.v).be.eql(items[0].value)
+        should(sheet2.B2.v).be.eql(items[1].value)
+        should(sheet2.C2.v).be.eql(items[2].value)
+        should(sheet2.A3.f).be.eql('A2+DATA!$B2')
+        should(sheet2.B3.f).be.eql('B2+DATA!$B2')
+        should(sheet2.C3.f).be.eql('C2+DATA!$B2')
+
+        should(sheet3.A2.v).be.eql(items[0].value)
+        should(sheet3.B2.v).be.eql(items[1].value)
+        should(sheet3.C2.v).be.eql(items[2].value)
+        should(sheet3.A3.f).be.eql('A2+DATA!$C3')
+        should(sheet3.B3.f).be.eql('B2+DATA!$C3')
+        should(sheet3.C3.f).be.eql('C2+DATA!$C3')
+
+        should(sheet4.A2.v).be.eql(items[0].value)
+        should(sheet4.B2.v).be.eql(items[1].value)
+        should(sheet4.C2.v).be.eql(items[2].value)
+        should(sheet4.E2.v).be.eql(items[0].value)
+        should(sheet4.F2.v).be.eql(items[1].value)
+        should(sheet4.G2.v).be.eql(items[2].value)
+        should(sheet4.E3.f).be.eql('E2+DATA!$A1')
+        should(sheet4.F3.f).be.eql('F2+DATA!$A1')
+        should(sheet4.G3.f).be.eql('G2+DATA!$A1')
+        should(sheet4.C4.f).be.eql('C2+DATA!$B2')
+        should(sheet4.D4.f).be.eql('D2+DATA!$B2')
+        should(sheet4.E4.f).be.eql('E2+DATA!$B2')
+        should(sheet4.C5.f).be.eql('C2+DATA!$C3')
+        should(sheet4.D5.f).be.eql('D2+DATA!$C3')
+        should(sheet4.E5.f).be.eql('E2+DATA!$C3')
       }
     })
 
@@ -6291,9 +7993,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-shared-formulas.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-shared-formulas'))
             }
           }
         },
@@ -6463,7 +8163,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.T5.f).be.eql('SUBTOTAL(109,T2:T4)')
         should(sheet.U5.f).be.eql('SUBTOTAL(109,U2:U4)')
         should(sheet.V5.f).be.eql('SUBTOTAL(109,V2:V4)')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C3.v).be.eql('ID')
         should(sheet.D3.v).be.eql('Name')
         should(sheet.E3.v).be.eql('Value1')
@@ -6622,6 +8322,135 @@ describe('xlsx generation - loops', () => {
         should(sheet.V13.f).be.eql('SUBTOTAL(109,V4:V12)')
         should(sheet.W13.f).be.eql('SUBTOTAL(109,W4:W12)')
         should(sheet.X13.f).be.eql('SUBTOTAL(109,X4:X12)')
+      } else {
+        should(sheet.A1.v).be.eql('ID')
+        should(sheet.B1.v).be.eql(items[0].ID)
+        should(sheet.B1.t).be.eql('n')
+        should(sheet.C1.v).be.eql(items[1].ID)
+        should(sheet.C1.t).be.eql('n')
+        should(sheet.A2.v).be.eql('Name')
+        should(sheet.B2.v).be.eql(items[0].Name)
+        should(sheet.C2.v).be.eql(items[1].Name)
+        should(sheet.A3.v).be.eql('Value1')
+        should(sheet.B3.v).be.eql(items[0].Value1)
+        should(sheet.B3.t).be.eql('n')
+        should(sheet.C3.v).be.eql(items[1].Value1)
+        should(sheet.C3.t).be.eql('n')
+        should(sheet.E3.f).be.eql('SUBTOTAL(109,B3:D3)')
+        should(sheet.A4.v).be.eql('Value2')
+        should(sheet.B4.v).be.eql(items[0].Value2)
+        should(sheet.B4.t).be.eql('n')
+        should(sheet.C4.v).be.eql(items[1].Value2)
+        should(sheet.C4.t).be.eql('n')
+        should(sheet.E4.f).be.eql('SUBTOTAL(109,B4:D4)')
+        should(sheet.A5.v).be.eql('Value3')
+        should(sheet.B5.v).be.eql(items[0].Value3)
+        should(sheet.B5.t).be.eql('n')
+        should(sheet.C5.v).be.eql(items[1].Value3)
+        should(sheet.C5.t).be.eql('n')
+        should(sheet.E5.f).be.eql('SUBTOTAL(109,B5:D5)')
+        should(sheet.A6.v).be.eql('Value4')
+        should(sheet.B6.v).be.eql(items[0].Value4)
+        should(sheet.B6.t).be.eql('n')
+        should(sheet.C6.v).be.eql(items[1].Value4)
+        should(sheet.C6.t).be.eql('n')
+        should(sheet.E6.f).be.eql('SUBTOTAL(109,B6:D6)')
+        should(sheet.A7.v).be.eql('Value5')
+        should(sheet.B7.v).be.eql(items[0].Value5)
+        should(sheet.B7.t).be.eql('n')
+        should(sheet.C7.v).be.eql(items[1].Value5)
+        should(sheet.C7.t).be.eql('n')
+        should(sheet.E7.f).be.eql('SUBTOTAL(109,B7:D7)')
+        should(sheet.A8.v).be.eql('Value6')
+        should(sheet.B8.v).be.eql(items[0].Value6)
+        should(sheet.B8.t).be.eql('n')
+        should(sheet.C8.v).be.eql(items[1].Value6)
+        should(sheet.C8.t).be.eql('n')
+        should(sheet.E8.f).be.eql('SUBTOTAL(109,B8:D8)')
+        should(sheet.A9.v).be.eql('Value7')
+        should(sheet.B9.v).be.eql(items[0].Value7)
+        should(sheet.B9.t).be.eql('n')
+        should(sheet.C9.v).be.eql(items[1].Value7)
+        should(sheet.C9.t).be.eql('n')
+        should(sheet.E9.f).be.eql('SUBTOTAL(109,B9:D9)')
+        should(sheet.A10.v).be.eql('Value8')
+        should(sheet.B10.v).be.eql(items[0].Value8)
+        should(sheet.B10.t).be.eql('n')
+        should(sheet.C10.v).be.eql(items[1].Value8)
+        should(sheet.C10.t).be.eql('n')
+        should(sheet.E10.f).be.eql('SUBTOTAL(109,B10:D10)')
+        should(sheet.A11.v).be.eql('Value9')
+        should(sheet.B11.v).be.eql(items[0].Value9)
+        should(sheet.B11.t).be.eql('n')
+        should(sheet.C11.v).be.eql(items[1].Value9)
+        should(sheet.C11.t).be.eql('n')
+        should(sheet.E11.f).be.eql('SUBTOTAL(109,B11:D11)')
+        should(sheet.A12.v).be.eql('Value10')
+        should(sheet.B12.v).be.eql(items[0].Value10)
+        should(sheet.B12.t).be.eql('n')
+        should(sheet.C12.v).be.eql(items[1].Value10)
+        should(sheet.C12.t).be.eql('n')
+        should(sheet.E12.f).be.eql('SUBTOTAL(109,B12:D12)')
+        should(sheet.A13.v).be.eql('Value11')
+        should(sheet.B13.v).be.eql(items[0].Value11)
+        should(sheet.B13.t).be.eql('n')
+        should(sheet.C13.v).be.eql(items[1].Value11)
+        should(sheet.C13.t).be.eql('n')
+        should(sheet.E13.f).be.eql('SUBTOTAL(109,B13:D13)')
+        should(sheet.A14.v).be.eql('Value12')
+        should(sheet.B14.v).be.eql(items[0].Value12)
+        should(sheet.B14.t).be.eql('n')
+        should(sheet.C14.v).be.eql(items[1].Value12)
+        should(sheet.C14.t).be.eql('n')
+        should(sheet.E14.f).be.eql('SUBTOTAL(109,B14:D14)')
+        should(sheet.A15.v).be.eql('Value13')
+        should(sheet.B15.v).be.eql(items[0].Value13)
+        should(sheet.B15.t).be.eql('n')
+        should(sheet.C15.v).be.eql(items[1].Value13)
+        should(sheet.C15.t).be.eql('n')
+        should(sheet.E15.f).be.eql('SUBTOTAL(109,B15:D15)')
+        should(sheet.A16.v).be.eql('Value14')
+        should(sheet.B16.v).be.eql(items[0].Value14)
+        should(sheet.B16.t).be.eql('n')
+        should(sheet.C16.v).be.eql(items[1].Value14)
+        should(sheet.C16.t).be.eql('n')
+        should(sheet.E16.f).be.eql('SUBTOTAL(109,B16:D16)')
+        should(sheet.A17.v).be.eql('Value15')
+        should(sheet.B17.v).be.eql(items[0].Value15)
+        should(sheet.B17.t).be.eql('n')
+        should(sheet.C17.v).be.eql(items[1].Value15)
+        should(sheet.C17.t).be.eql('n')
+        should(sheet.E17.f).be.eql('SUBTOTAL(109,B17:D17)')
+        should(sheet.A18.v).be.eql('Value16')
+        should(sheet.B18.v).be.eql(items[0].Value16)
+        should(sheet.B18.t).be.eql('n')
+        should(sheet.C18.v).be.eql(items[1].Value16)
+        should(sheet.C18.t).be.eql('n')
+        should(sheet.E18.f).be.eql('SUBTOTAL(109,B18:D18)')
+        should(sheet.A19.v).be.eql('Value17')
+        should(sheet.B19.v).be.eql(items[0].Value17)
+        should(sheet.B19.t).be.eql('n')
+        should(sheet.C19.v).be.eql(items[1].Value17)
+        should(sheet.C19.t).be.eql('n')
+        should(sheet.E19.f).be.eql('SUBTOTAL(109,B19:D19)')
+        should(sheet.A20.v).be.eql('Value18')
+        should(sheet.B20.v).be.eql(items[0].Value18)
+        should(sheet.B20.t).be.eql('n')
+        should(sheet.C20.v).be.eql(items[1].Value18)
+        should(sheet.C20.t).be.eql('n')
+        should(sheet.E20.f).be.eql('SUBTOTAL(109,B20:D20)')
+        should(sheet.A21.v).be.eql('Value19')
+        should(sheet.B21.v).be.eql(items[0].Value19)
+        should(sheet.B21.t).be.eql('n')
+        should(sheet.C21.v).be.eql(items[1].Value19)
+        should(sheet.C21.t).be.eql('n')
+        should(sheet.E21.f).be.eql('SUBTOTAL(109,B21:D21)')
+        should(sheet.A22.v).be.eql('Value20')
+        should(sheet.B22.v).be.eql(items[0].Value20)
+        should(sheet.B22.t).be.eql('n')
+        should(sheet.C22.v).be.eql(items[1].Value20)
+        should(sheet.C22.t).be.eql('n')
+        should(sheet.E22.f).be.eql('SUBTOTAL(109,B22:D22)')
       }
     })
 
@@ -6652,9 +8481,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-with-content-type.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-with-content-type'))
             }
           }
         },
@@ -6687,7 +8514,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.F5.t).be.eql('b')
         should(sheet.F5.v).be.False()
-      } else {
+      } else if (mode === 'block') {
         // test boolean, number and standard string types
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
@@ -6707,6 +8534,25 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].age)
         should(sheet.F14.t).be.eql('b')
         should(sheet.F14.v).be.False()
+      } else {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.t).be.eql('n')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.t).be.eql('n')
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.t).be.eql('n')
+        should(sheet.F4.v).be.eql(items[2].age)
+        should(sheet.D5.t).be.eql('b')
+        should(sheet.D5.v).be.False()
+        should(sheet.E5.t).be.eql('b')
+        should(sheet.E5.v).be.True()
+        should(sheet.F5.t).be.eql('b')
+        should(sheet.F5.v).be.False()
       }
     })
 
@@ -6719,9 +8565,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-numbers-and-this.xlsx`)
-              )
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-numbers-and-this'))
             }
           }
         },
@@ -6745,7 +8589,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.A4.t).be.eql('n')
         should(sheet.A5.v).be.eql(numbers[4])
         should(sheet.A5.t).be.eql('n')
-      } else {
+      } else if (mode === 'block') {
         should(sheet.C3.v).be.eql(numbers[0])
         should(sheet.C3.t).be.eql('n')
         should(sheet.C6.v).be.eql(numbers[1])
@@ -6756,6 +8600,17 @@ describe('xlsx generation - loops', () => {
         should(sheet.C12.t).be.eql('n')
         should(sheet.C15.v).be.eql(numbers[4])
         should(sheet.C15.t).be.eql('n')
+      } else {
+        should(sheet.A1.v).be.eql(numbers[0])
+        should(sheet.A1.t).be.eql('n')
+        should(sheet.B1.v).be.eql(numbers[1])
+        should(sheet.B1.t).be.eql('n')
+        should(sheet.C1.v).be.eql(numbers[2])
+        should(sheet.C1.t).be.eql('n')
+        should(sheet.D1.v).be.eql(numbers[3])
+        should(sheet.D1.t).be.eql('n')
+        should(sheet.E1.v).be.eql(numbers[4])
+        should(sheet.E1.t).be.eql('n')
       }
     })
   }
@@ -6966,6 +8821,109 @@ describe('xlsx generation - loops', () => {
     should(sheet.C40.v).be.eql(categories[2].posts[1].author)
   })
 
+  it('block loop and vertical loop nested', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-vertical-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.D3.v).be.eql(categories[0].posts[1].name)
+    should(sheet.E3.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.E4.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.C5.v).be.eql(categories[0].posts[0].author)
+    should(sheet.D5.v).be.eql(categories[0].posts[1].author)
+    should(sheet.E5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.D8.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.C10.v).be.eql(categories[1].posts[0].author)
+    should(sheet.D10.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B12.v).be.eql(categories[2].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[0].name)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C14.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D14.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.C15.v).be.eql(categories[2].posts[0].author)
+    should(sheet.D15.v).be.eql(categories[2].posts[1].author)
+  })
+
   it('row loop and row loop nested', async () => {
     const categories = [
       {
@@ -7070,6 +9028,150 @@ describe('xlsx generation - loops', () => {
     should(sheet.C9.v).be.eql(categories[2].posts[1].name)
     should(sheet.D9.v).be.eql(categories[2].posts[1].wordsCount)
     should(sheet.E9.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('vertical loop and vertical loop nested should throw', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    return should(
+      reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-vertical-loop.xlsx')
+              )
+            }
+          }
+        },
+        data: {
+          categories
+        }
+      })
+    ).be.rejectedWith(/vertical loops can not have child vertical loops/)
+  })
+
+  it('vertical loop and row loop nested should throw', async () => {
+    const items = [{
+      name: 'Alexander',
+      lastname: 'Smith',
+      age: 32
+    }, {
+      name: 'John',
+      lastname: 'Doe',
+      age: 29
+    }, {
+      name: 'Jane',
+      lastname: 'Montana',
+      age: 23
+    }]
+
+    return should(
+      reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-row-loop.xlsx')
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+    ).be.rejectedWith(/vertical loops can not be defined in rows that contain row loops/)
+  })
+
+  it('vertical loop and block loop nested should throw', async () => {
+    const items = [{
+      name: 'Alexander',
+      lastname: 'Smith',
+      age: 32
+    }, {
+      name: 'John',
+      lastname: 'Doe',
+      age: 29
+    }, {
+      name: 'Jane',
+      lastname: 'Montana',
+      age: 23
+    }]
+
+    return should(
+      reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-multiple-rows-loop.xlsx')
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+    ).be.rejectedWith(/vertical loops can not be defined in rows that contain block loops/)
   })
 
   it('block loop and siblings nested row and block loops', async () => {
@@ -7215,6 +9317,151 @@ describe('xlsx generation - loops', () => {
     should(sheet.C54.v).be.eql(categories[2].posts[1].wordsCount)
     should(sheet.B55.v).be.eql('Author:')
     should(sheet.C55.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and siblings nested vertical and block loops', async () => {
+    const categories = [
+      {
+        name: 'In',
+        tags: ['a', 'b', 'c'],
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        tags: ['a', 'c'],
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        tags: ['b'],
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-vertical-and-multiple-rows-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql('Tags')
+    should(sheet.C3.v).be.eql(categories[0].tags[0])
+    should(sheet.D3.v).be.eql(categories[0].tags[1])
+    should(sheet.E3.v).be.eql(categories[0].tags[2])
+
+    should(sheet.B5.v).be.eql('Posts')
+
+    should(sheet.B7.v).be.eql('Name:')
+    should(sheet.C7.v).be.eql(categories[0].posts[0].name)
+    should(sheet.B8.v).be.eql('Words Count:')
+    should(sheet.C8.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.B9.v).be.eql('Author:')
+    should(sheet.C9.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B12.v).be.eql('Name:')
+    should(sheet.C12.v).be.eql(categories[0].posts[1].name)
+    should(sheet.B13.v).be.eql('Words Count:')
+    should(sheet.C13.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.B14.v).be.eql('Author:')
+    should(sheet.C14.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B17.v).be.eql('Name:')
+    should(sheet.C17.v).be.eql(categories[0].posts[2].name)
+    should(sheet.B18.v).be.eql('Words Count:')
+    should(sheet.C18.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.B19.v).be.eql('Author:')
+    should(sheet.C19.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B22.v).be.eql(categories[1].name)
+    should(sheet.B23.v).be.eql('Tags')
+    should(sheet.C23.v).be.eql(categories[1].tags[0])
+    should(sheet.D23.v).be.eql(categories[1].tags[1])
+
+    should(sheet.B25.v).be.eql('Posts')
+
+    should(sheet.B27.v).be.eql('Name:')
+    should(sheet.C27.v).be.eql(categories[1].posts[0].name)
+    should(sheet.B28.v).be.eql('Words Count:')
+    should(sheet.C28.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.B29.v).be.eql('Author:')
+    should(sheet.C29.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B32.v).be.eql('Name:')
+    should(sheet.C32.v).be.eql(categories[1].posts[1].name)
+    should(sheet.B33.v).be.eql('Words Count:')
+    should(sheet.C33.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.B34.v).be.eql('Author:')
+    should(sheet.C34.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B37.v).be.eql(categories[2].name)
+    should(sheet.B38.v).be.eql('Tags')
+    should(sheet.C38.v).be.eql(categories[2].tags[0])
+
+    should(sheet.B40.v).be.eql('Posts')
+
+    should(sheet.B42.v).be.eql('Name:')
+    should(sheet.C42.v).be.eql(categories[2].posts[0].name)
+    should(sheet.B43.v).be.eql('Words Count:')
+    should(sheet.C43.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.B44.v).be.eql('Author:')
+    should(sheet.C44.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B47.v).be.eql('Name:')
+    should(sheet.C47.v).be.eql(categories[2].posts[1].name)
+    should(sheet.B48.v).be.eql('Words Count:')
+    should(sheet.C48.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.B49.v).be.eql('Author:')
+    should(sheet.C49.v).be.eql(categories[2].posts[1].author)
   })
 
   it('block loop and multiple nested loops', async () => {

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-authorization",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "jsreport extension adding authorization capabilities",
   "keywords": [
     "jsreport",
@@ -34,11 +34,11 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.2.1",
-    "@jsreport/jsreport-core": "4.4.1",
-    "@jsreport/jsreport-express": "4.1.2",
-    "@jsreport/jsreport-fs-store": "4.0.4",
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/jsreport-authentication": "4.2.3",
+    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-express": "4.2.0",
+    "@jsreport/jsreport-fs-store": "4.1.0",
+    "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
     "ncp": "2.0.0",
     "rimraf": "2.6.3",

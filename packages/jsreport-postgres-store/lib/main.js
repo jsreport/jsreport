@@ -31,10 +31,17 @@ module.exports = function (reporter, definition) {
   })
 
   if (reporter.options.blobStorage.provider === 'postgres') {
-    const blobsTable = definition.options.prefix + 'Blob'
+    // we need to lowercase the name because of backcompatibility for now
+    let blobsTable = `"${(definition.options.prefix + 'Blob').toLocaleLowerCase()}"`
+
+    if (definition.options.schema) {
+      blobsTable = `"${definition.options.schema}".${blobsTable}`
+    }
+
     reporter.blobStorage.registerProvider({
-      init: () => {
-        return db.query(`CREATE TABLE IF NOT EXISTS  ${blobsTable} (blobName varchar(1024), content bytea);`)
+      init: async () => {
+        await db.query(`CREATE TABLE IF NOT EXISTS  ${blobsTable} (blobName varchar(1024), content bytea);`)
+        return db.query(`CREATE INDEX IF NOT EXISTS "idx_blob_blobName" ON ${blobsTable} USING btree ("blobname")`)
       },
       write: async (blobName, buf) => {
         await db.query(`INSERT INTO ${blobsTable} VALUES($1, $2)`, [blobName, buf])

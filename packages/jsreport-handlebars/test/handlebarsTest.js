@@ -262,7 +262,7 @@ describe('handlebars', () => {
     })
   }
 
-  it('should support req.context.asyncHandlebars to work trully async', async () => {
+  it('should support req.context.asyncHandlebars to work truly async', async () => {
     const r = await jsreport.render({
       template: {
         engine: 'handlebars',

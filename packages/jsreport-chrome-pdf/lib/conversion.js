@@ -1,7 +1,7 @@
 const get = require('lodash.get')
 const hasOwn = require('has-own-deep')
 
-module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req, imageExecution, allowLocalFilesAccess, options }) => {
+module.exports = async ({ reporter, getBrowser, htmlUrl, content, strategy, timeout, req, imageExecution, allowLocalFilesAccess, useEvaluateInsteadOfEvaluateOnNewDocument, options }) => {
   const optionsToUse = Object.assign({}, options)
   optionsToUse.timeout = timeout
 
@@ -114,14 +114,12 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
       }
     })
 
-    page.on('request', (r) => {
+    page.on('request', async (r) => {
       let detail = ''
 
       if (r.redirectChain().length > 0) {
         detail = ` (redirect from: ${trimUrl(r.redirectChain().slice(-1)[0].url())})`
       }
-
-      pageLog('debug', `Page request: ${r.method()} (${r.resourceType()}) ${trimUrl(r.url())}${detail}`)
 
       const isRelativeToHtmlUrl = r.url().lastIndexOf(htmlUrl, 0) === 0
 
@@ -135,6 +133,20 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
         return
       }
 
+      if (r.url().startsWith('jsreport://chromeResourceWithTimeout')) {
+        const reqUrl = new URL(r.url())
+        const originalUrl = reqUrl.searchParams.get('url')
+        const timeout = parseInt(reqUrl.searchParams.get('timeout'))
+
+        pageLog('debug', `Page request with timeout: ${r.method()} (${r.resourceType()}) ${trimUrl(originalUrl)}${detail}`)
+        await reporter.chrome.proxy.init()
+        r.continue({
+          url: reporter.chrome.proxy.makeUrl(originalUrl, timeout)
+        })
+        return
+      }
+
+      pageLog('debug', `Page request: ${r.method()} (${r.resourceType()}) ${trimUrl(r.url())}${detail}`)
       r.continue()
     })
 
@@ -214,22 +226,36 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
     })
 
     // inject jsreport-proxy browser api
-    await page.evaluateOnNewDocument(() => {
-      window.jsreport = {
-        getRequest: window.__getJsreportRequest__
-      }
-    })
+    if (useEvaluateInsteadOfEvaluateOnNewDocument) {
+      await page.evaluate(() => {
+        window.jsreport = {
+          getRequest: window.__getJsreportRequest__
+        }
+      })
+    } else {
+      await page.evaluateOnNewDocument(() => {
+        window.jsreport = {
+          getRequest: window.__getJsreportRequest__
+        }
+      })
+    }
 
     if (executionInfo.error) {
       return
     }
 
-    await page.goto(
-      htmlUrl,
-      optionsToUse.waitForNetworkIdle === true
+    if (content != null) {
+      await page.setContent(content, optionsToUse.waitForNetworkIdle === true
         ? { waitUntil: 'networkidle0' }
-        : { }
-    )
+        : { })
+    } else {
+      await page.goto(
+        htmlUrl,
+        optionsToUse.waitForNetworkIdle === true
+          ? { waitUntil: 'networkidle0' }
+          : { }
+      )
+    }
 
     if (executionInfo.error) {
       return

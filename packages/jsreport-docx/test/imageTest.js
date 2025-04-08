@@ -111,6 +111,44 @@ describe('docx image', () => {
         fs.writeFileSync(outputPath, result.content)
       })
 
+      if (format === 'jpeg') {
+        it('image can render jpeg with CMYK color code', async () => {
+          const { imageBuf, imageExtension } = readImage(format, 'cmyk')
+          const imageDimensions = sizeOf(imageBuf)
+
+          const targetImageSize = {
+            width: pxToEMU(imageDimensions.width),
+            height: pxToEMU(imageDimensions.height)
+          }
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+                }
+              }
+            },
+            data: {
+              src: getImageDataUri(format, imageBuf)
+            }
+          })
+
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
+
+          outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+          // should preserve original image size by default
+          outputImageSize.width.should.be.eql(targetImageSize.width)
+          outputImageSize.height.should.be.eql(targetImageSize.height)
+
+          fs.writeFileSync(outputPath, result.content)
+        })
+      }
+
       it('image can render from url', async () => {
         const url = `https://some-server.com/some-image.${format}`
 
@@ -190,6 +228,46 @@ describe('docx image', () => {
 
         fs.writeFileSync(outputPath, result.content)
       })
+
+      if (format === 'jpeg') {
+        it('image can render jpeg with CMYK color code from url', async () => {
+          const url = `https://some-server.com/some-image.${format}`
+
+          reporter.tests.beforeRenderEval((req, res, { require }) => {
+            require('nock')('https://some-server.com')
+              .get(`/some-image.${req.data.imageFormat}`)
+              .replyWithFile(200, req.data.imagePath, {
+                'content-type': req.data.imageMimeType
+              })
+          })
+
+          const { imagePath, imageExtension } = readImage(format, 'cmyk')
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+                }
+              }
+            },
+            data: {
+              src: url,
+              imageFormat: format,
+              imageMimeType: getImageMimeType(format),
+              imagePath
+            }
+          })
+
+          const outputImageMeta = await getImageMeta(result.content)
+
+          outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+          fs.writeFileSync(outputPath, result.content)
+        })
+      }
 
       it('image with placeholder size (usePlaceholderSize)', async () => {
         const { imageBuf, imageExtension } = readImage(format, 'image')

@@ -19,9 +19,10 @@ Create an azure storage account and copy account name and access key.  Then alte
     }
   },
   "fs-store-azure-storage-persistence": {
-    "accountName": "...",
-    "accountKey": "...",
-    // the rest is optional
+    "accountName": "...",  
+    // omit in case of azure managed identity  
+    "accountKey": "...", 
+    // the rest is optional    
     "container": "jsreport",
     "lock": {
       "retry": 100,
@@ -33,6 +34,11 @@ Create an azure storage account and copy account name and access key.  Then alte
 ```
 
 ## Changelog
+
+### 4.1.0
+
+- support azure managed identity
+- reimplement using @azure/storage-blob dep
 
 ### 4.0.1
 

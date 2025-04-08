@@ -54,6 +54,10 @@ jsreport.use(require('@jsreport/jsreport-azure-storage')({}))
 
 ## Changelog
 
+### 4.1.0
+
+- use new azure-storage sdk
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

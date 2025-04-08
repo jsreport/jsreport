@@ -336,7 +336,7 @@ async function compileExe (label, config, options) {
   filesToIgnore.push('**/node_modules/pkg-fetch/**')
   filesToIgnore.push('**/node_modules/@bjrmatos/pkg/**')
   filesToIgnore.push('**/node_modules/socket.io-client/dist/**')
-  filesToIgnore.push('**/node_modules/jsreport-exceljs/dist/**')
+  filesToIgnore.push('**/node_modules/@jsreport/exceljs/dist/**')
   filesToIgnore.push('**/node_modules/mingo/dist/**')
   filesToIgnore.push('!**/node_modules/mingo/dist/mingo.js')
   filesToIgnore.push('**/node_modules/hdr-histogram-js/dist/**')

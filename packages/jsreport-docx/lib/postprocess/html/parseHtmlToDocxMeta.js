@@ -7,7 +7,7 @@ const color = require('tinycolor2')
 const { lengthToPt, getDimension } = require('../../utils')
 const createHierarchyIterator = require('./createHierarchyIterator')
 const borderStyles = require('./borderStyles')
-const { HTML_NODE_TYPES, isTextElement, isInlineElement, isUnsupportedElement, getParentElementThatMatch } = require('./htmlNodeUtils')
+const { HTML_NODE_TYPES, isTextElement, isInlineElement, isUnsupportedElement, getParentElementThatMatch, isMetaElement } = require('./htmlNodeUtils')
 const transformTableMeta = require('./transformTableMeta')
 
 const VALID_CSS_BORDER_STYLES = [...borderStyles.keys()]
@@ -163,7 +163,12 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
     } else if (
       nodeType === HTML_NODE_TYPES.ELEMENT
     ) {
-      inspectStylesAndApplyDataIfNeeded(data, node)
+      // we only parse styles and put it in data for elements
+      // that are not meta elements, this is to ensure styles are not
+      // inherited by children, when it is not wanted
+      if (!isMetaElement(node)) {
+        inspectStylesAndApplyDataIfNeeded(data, node)
+      }
 
       if (isInlineElement(node)) {
         applyBoldDataIfNeeded(data, node)
@@ -214,6 +219,9 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
         applyPreformattedDataIfNeeded(data, node)
 
         if (mode === 'block' && node.tagName === 'table') {
+          // this initialize colgroups and reset when a nested table is found
+          data.colgroups = []
+
           if (
             data.static.border == null &&
             (node.attribs?.border != null || node.attribs?.bordercolor != null)
@@ -299,7 +307,12 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
             }
           }
 
+          // TODO: we are missing support for table <caption> tag,
+          // right now we just parse it and do nothing, however we should create the captions
+          // in docx for the proper support
           newItem = createTable('table', data)
+          // creating a link here, modifications to the data.colgroups will be applied to the table
+          newItem.colgroups = data.colgroups
         } else if (
           mode === 'block' &&
           node.tagName === 'tr' &&
@@ -333,6 +346,14 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
           }
 
           newItem = createTable('cell', data)
+        }
+
+        if (mode === 'block') {
+          const parentTableNode = getParentElementThatMatch(node, (currentNode) => currentNode.tagName === 'table')
+
+          if (parentTableNode != null) {
+            applyTableColgroupDataIfNeeded(data, elementDataMap.get(parentTableNode), node)
+          }
         }
       }
     }
@@ -733,6 +754,82 @@ function applyListDataIfNeeded (data, node) {
   }
 }
 
+function applyTableColgroupDataIfNeeded (data, parentTableData, node) {
+  if (node.nodeType !== HTML_NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  if (node.tagName !== 'colgroup' && node.tagName !== 'col') {
+    return
+  }
+
+  if (data.colgroups == null) {
+    return
+  }
+
+  if (
+    node.tagName === 'colgroup' &&
+    data.parentElement?.tagName !== 'table'
+  ) {
+    return
+  }
+
+  if (
+    node.tagName === 'col' &&
+    data.parentElement?.tagName !== 'colgroup'
+  ) {
+    return
+  }
+
+  let cols
+  let targetNode
+
+  if (parentTableData == null) {
+    return
+  }
+
+  if (node.tagName === 'colgroup') {
+    cols = []
+
+    if (node.childNodes.length === 0) {
+      targetNode = node
+    }
+
+    parentTableData.colgroups.push({
+      cols
+    })
+  } else if (node.tagName === 'col') {
+    const latestColgroup = parentTableData.colgroups[parentTableData.colgroups.length - 1]
+
+    cols = latestColgroup.cols
+    targetNode = node
+  }
+
+  if (targetNode != null && cols != null) {
+    // we clone to prevent mutating nested objects
+    // eslint-disable-next-line no-undef
+    const customData = structuredClone(pick(parentTableData, ['backgroundColor', 'border', 'minWidth', 'width', 'static']))
+
+    const dataFromStyles = inspectStylesAndApplyDataIfNeeded(
+      customData,
+      targetNode,
+      ['backgroundColor', 'border', 'minWidth', 'width']
+    )
+
+    const staticProps = dataFromStyles?.static
+
+    if (dataFromStyles != null) {
+      delete dataFromStyles.static
+    }
+
+    cols.push({
+      span: node.attribs?.span != null && node.attribs.span !== '' ? parseInt(node.attribs.span, 10) : 1,
+      ...dataFromStyles,
+      ...staticProps
+    })
+  }
+}
+
 function applyPreformattedDataIfNeeded (data, node) {
   if (node.nodeType !== HTML_NODE_TYPES.ELEMENT) {
     return
@@ -745,7 +842,7 @@ function applyPreformattedDataIfNeeded (data, node) {
   data.preformatted = true
 }
 
-function inspectStylesAndApplyDataIfNeeded (data, node) {
+function inspectStylesAndApplyDataIfNeeded (data, node, explicitProperties = null) {
   if (node.nodeType !== HTML_NODE_TYPES.ELEMENT) {
     return
   }
@@ -762,295 +859,405 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
     return
   }
 
-  if (styles['font-size'] != null) {
-    const parsedFontSize = lengthToPt(styles['font-size'])
+  const allStyleProperties = [
+    'fontSize', 'fontFamily', 'color', 'backgroundColor',
+    'underline', 'strike', 'alignment', 'border',
+    'indent', 'spacing', 'minWidth', 'width',
+    'height', 'breakPage'
+  ]
 
-    if (parsedFontSize != null) {
-      data.fontSize = parsedFontSize
+  const styleProperties = explicitProperties ?? allStyleProperties
+
+  for (const styleProp of styleProperties) {
+    switch (styleProp) {
+      case 'fontSize': {
+        if (styles['font-size'] == null) {
+          break
+        }
+
+        const parsedFontSize = lengthToPt(styles['font-size'])
+
+        if (parsedFontSize != null) {
+          data.fontSize = parsedFontSize
+        }
+
+        break
+      }
+
+      case 'fontFamily': {
+        if (styles['font-family'] == null) {
+          break
+        }
+
+        const fontFamily = styles['font-family'].replace(/^"/, '').replace(/"$/, '')
+        data.fontFamily = fontFamily
+        break
+      }
+
+      case 'color': {
+        if (styles.color == null) {
+          break
+        }
+
+        const parsedColor = color(styles.color)
+
+        if (parsedColor.isValid()) {
+          data.color = parsedColor.toHexString().toUpperCase()
+        }
+
+        break
+      }
+
+      case 'backgroundColor': {
+        if (styles['background-color'] == null) {
+          break
+        }
+
+        const parsedBackgroundColor = color(styles['background-color'])
+
+        if (parsedBackgroundColor.isValid()) {
+          data.backgroundColor = parsedBackgroundColor.toHexString().toUpperCase()
+        }
+
+        break
+      }
+
+      case 'underline':
+      case 'strike': {
+        if (styles['text-decoration'] == null) {
+          break
+        }
+
+        const textDecoration = styles['text-decoration']
+
+        if (styleProp === 'underline' && textDecoration === 'underline') {
+          data.underline = true
+        } else if (styleProp === 'strike' && textDecoration === 'line-through') {
+          data.strike = true
+        }
+
+        break
+      }
+
+      case 'alignment': {
+        if (styles['text-align'] == null && styles['vertical-align'] == null) {
+          break
+        }
+
+        if (styles['text-align'] != null) {
+          const textAlign = styles['text-align']
+
+          data.alignment = data.alignment || {}
+
+          if (textAlign === 'left') {
+            data.alignment.horizontal = 'left'
+          } else if (textAlign === 'center') {
+            data.alignment.horizontal = 'center'
+          } else if (textAlign === 'right') {
+            data.alignment.horizontal = 'right'
+          } else if (textAlign === 'justify') {
+            data.alignment.horizontal = 'both'
+          }
+        }
+
+        if (styles['vertical-align'] != null) {
+          const verticalAlign = styles['vertical-align']
+
+          data.alignment = data.alignment || {}
+
+          if (verticalAlign === 'top') {
+            data.alignment.vertical = 'top'
+          } else if (verticalAlign === 'middle') {
+            data.alignment.vertical = 'center'
+          } else if (verticalAlign === 'bottom') {
+            data.alignment.vertical = 'bottom'
+          }
+        }
+
+        break
+      }
+
+      case 'border': {
+        const mainBorderPropMap = new Map([
+          ['border', 'base'],
+          ['border-top', 'top'],
+          ['border-right', 'right'],
+          ['border-bottom', 'bottom'],
+          ['border-left', 'left']
+        ])
+
+        const borderProps = [...mainBorderPropMap.keys()].flatMap((mainProp) => {
+          const target = mainBorderPropMap.get(mainProp)
+
+          return [
+            { key: mainProp, target },
+            { key: `${mainProp}-width`, target },
+            { key: `${mainProp}-style`, target },
+            { key: `${mainProp}-color`, target }
+          ]
+        })
+
+        for (const { key: borderProp, target } of borderProps) {
+          if (styles[borderProp] == null) {
+            continue
+          }
+
+          const value = styles[borderProp]
+          const parseArgs = [value]
+
+          if (!mainBorderPropMap.has(borderProp)) {
+            const borderPropParts = borderProp.split('-')
+            parseArgs.push(`border-${borderPropParts[borderPropParts.length - 1]}`)
+          }
+
+          const parsedValue = parseBorder(...parseArgs)
+
+          if (parsedValue == null) {
+            continue
+          }
+
+          data.static.border = data.static.border || {}
+          data.static.border[target] = Object.assign({}, data.static.border[target], parsedValue)
+
+          if (target === 'base') {
+            data.static.border.top = Object.assign({}, data.static.border[target], parsedValue)
+            data.static.border.right = Object.assign({}, data.static.border[target], parsedValue)
+            data.static.border.bottom = Object.assign({}, data.static.border[target], parsedValue)
+            data.static.border.left = Object.assign({}, data.static.border[target], parsedValue)
+          }
+        }
+
+        break
+      }
+
+      case 'indent':
+      case 'spacing': {
+        const parsedPadding = parseMarginOrPadding(styles.padding)
+        const parsedMargin = parseMarginOrPadding(styles.margin)
+
+        if (styleProp === 'indent') {
+          data.indent = data.indent || {}
+
+          const parsedPaddingLeft = parsedPadding?.left
+
+          if (parsedPaddingLeft != null) {
+            data.indent.left = parsedPaddingLeft
+          }
+
+          const parsedPaddingRight = parsedPadding?.right
+
+          if (parsedPaddingRight != null) {
+            data.indent.right = parsedPaddingRight
+          }
+
+          if (styles['padding-left'] != null) {
+            const parsedPaddingLeft = parseMarginOrPadding(styles['padding-left'], 'left')?.left
+
+            if (parsedPaddingLeft != null) {
+              data.indent = data.indent || {}
+              data.indent.left = parsedPaddingLeft
+            }
+          }
+
+          if (styles['padding-right'] != null) {
+            const parsedPaddingRight = parseMarginOrPadding(styles['padding-right'], 'right')?.right
+
+            if (parsedPaddingRight != null) {
+              data.indent = data.indent || {}
+              data.indent.right = parsedPaddingRight
+            }
+          }
+
+          const parsedMarginLeft = parsedMargin?.left
+
+          if (parsedMarginLeft != null) {
+            data.indent.left = parsedMarginLeft
+          }
+
+          const parsedMarginRight = parsedMargin?.right
+
+          if (parsedMarginRight != null) {
+            data.indent.right = parsedMarginRight
+          }
+
+          if (styles['margin-left'] != null) {
+            const parsedMarginLeft = parseMarginOrPadding(styles['margin-left'], 'left')?.left
+
+            if (parsedMarginLeft != null) {
+              data.indent = data.indent || {}
+              data.indent.left = parsedMarginLeft
+            }
+          }
+
+          if (styles['margin-right'] != null) {
+            const parsedMarginRight = parseMarginOrPadding(styles['margin-right'], 'right')?.right
+
+            if (parsedMarginRight != null) {
+              data.indent = data.indent || {}
+              data.indent.right = parsedMarginRight
+            }
+          }
+        } else if (styleProp === 'spacing') {
+          data.spacing = data.spacing || {}
+
+          const parsedPaddingTop = parsedPadding?.top
+
+          if (parsedPaddingTop != null) {
+            data.spacing.before = parsedPaddingTop
+          }
+
+          const parsedPaddingBottom = parsedPadding?.bottom
+
+          if (parsedPaddingBottom != null) {
+            data.spacing.after = parsedPaddingBottom
+          }
+
+          if (styles['padding-top'] != null) {
+            const parsedPaddingTop = parseMarginOrPadding(styles['padding-top'], 'top')?.top
+
+            if (parsedPaddingTop != null) {
+              data.spacing = data.spacing || {}
+              data.spacing.before = parsedPaddingTop
+            }
+          }
+
+          if (styles['padding-bottom'] != null) {
+            const parsedPaddingBottom = parseMarginOrPadding(styles['padding-bottom'], 'bottom')?.bottom
+
+            if (parsedPaddingBottom != null) {
+              data.spacing = data.spacing || {}
+              data.spacing.after = parsedPaddingBottom
+            }
+          }
+
+          const parsedMarginTop = parsedMargin?.top
+
+          if (parsedMarginTop != null) {
+            data.spacing.before = parsedMarginTop
+          }
+
+          const parsedMarginBottom = parsedMargin?.bottom
+
+          if (parsedMarginBottom != null) {
+            data.spacing.after = parsedMarginBottom
+          }
+
+          if (styles['margin-top'] != null) {
+            const parsedMarginTop = parseMarginOrPadding(styles['margin-top'], 'top')?.top
+
+            if (parsedMarginTop != null) {
+              data.spacing = data.spacing || {}
+              data.spacing.before = parsedMarginTop
+            }
+          }
+
+          if (styles['margin-bottom'] != null) {
+            const parsedMarginBottom = parseMarginOrPadding(styles['margin-bottom'], 'bottom')?.bottom
+
+            if (parsedMarginBottom != null) {
+              data.spacing = data.spacing || {}
+              data.spacing.after = parsedMarginBottom
+            }
+          }
+        }
+
+        break
+      }
+
+      case 'width': {
+        if (styles.width == null) {
+          break
+        }
+
+        const parseArgs = [styles.width]
+
+        if (
+          node.tagName === 'table' ||
+          node.tagName === 'td' ||
+          node.tagName === 'th' ||
+          node.tagName === 'colgroup' ||
+          node.tagName === 'col'
+        ) {
+          parseArgs.push({
+            units: ['px', 'cm', '%']
+          })
+        }
+
+        const parsedWidth = getDimension(...parseArgs)
+
+        if (parsedWidth != null) {
+          data.static.width = styles.width
+        }
+
+        break
+      }
+
+      case 'minWidth': {
+        if (styles['min-width'] == null) {
+          break
+        }
+
+        const parseArgs = [styles['min-width']]
+
+        if (
+          node.tagName === 'table' ||
+          node.tagName === 'td' ||
+          node.tagName === 'th' ||
+          node.tagName === 'colgroup' ||
+          node.tagName === 'col'
+        ) {
+          parseArgs.push({
+            units: ['px', 'cm', '%']
+          })
+        }
+
+        const parsedMinWidth = getDimension(...parseArgs)
+
+        if (parsedMinWidth != null) {
+          data.static.minWidth = styles['min-width']
+        }
+
+        break
+      }
+
+      case 'height': {
+        if (styles.height == null) {
+          break
+        }
+
+        const parsedHeight = getDimension(styles.height)
+
+        if (parsedHeight != null) {
+          data.static.height = styles.height
+        }
+
+        break
+      }
+
+      case 'breakPage': {
+        if (styles['break-before'] == null && styles['break-after'] == null) {
+          break
+        }
+
+        if (styles['break-before'] === 'page') {
+          data.static.breakPage = data.static.breakPage || {}
+          data.static.breakPage.before = true
+        }
+
+        if (styles['break-after'] === 'page') {
+          data.static.breakPage = data.static.breakPage || {}
+          data.static.breakPage.after = true
+        }
+
+        break
+      }
+
+      default:
+        throw new Error(`Style property "${styleProp}" is not supported`)
     }
   }
 
-  if (styles['font-family'] != null) {
-    const fontFamily = styles['font-family'].replace(/^"/, '').replace(/"$/, '')
-    data.fontFamily = fontFamily
-  }
-
-  if (styles.color != null) {
-    const parsedColor = color(styles.color)
-
-    if (parsedColor.isValid()) {
-      data.color = parsedColor.toHexString().toUpperCase()
-    }
-  }
-
-  if (styles['background-color'] != null) {
-    const parsedBackgroundColor = color(styles['background-color'])
-
-    if (parsedBackgroundColor.isValid()) {
-      data.backgroundColor = parsedBackgroundColor.toHexString().toUpperCase()
-    }
-  }
-
-  if (styles['text-decoration'] != null) {
-    const textDecoration = styles['text-decoration']
-
-    if (textDecoration === 'underline') {
-      data.underline = true
-    } else if (textDecoration === 'line-through') {
-      data.strike = true
-    }
-  }
-
-  if (styles['text-align'] != null) {
-    const textAlign = styles['text-align']
-
-    data.alignment = data.alignment || {}
-
-    if (textAlign === 'left') {
-      data.alignment.horizontal = 'left'
-    } else if (textAlign === 'center') {
-      data.alignment.horizontal = 'center'
-    } else if (textAlign === 'right') {
-      data.alignment.horizontal = 'right'
-    } else if (textAlign === 'justify') {
-      data.alignment.horizontal = 'both'
-    }
-  }
-
-  if (styles['vertical-align'] != null) {
-    const verticalAlign = styles['vertical-align']
-
-    data.alignment = data.alignment || {}
-
-    if (verticalAlign === 'top') {
-      data.alignment.vertical = 'top'
-    } else if (verticalAlign === 'middle') {
-      data.alignment.vertical = 'center'
-    } else if (verticalAlign === 'bottom') {
-      data.alignment.vertical = 'bottom'
-    }
-  }
-
-  const mainBorderPropMap = new Map([
-    ['border', 'base'],
-    ['border-top', 'top'],
-    ['border-right', 'right'],
-    ['border-bottom', 'bottom'],
-    ['border-left', 'left']
-  ])
-
-  const borderProps = [...mainBorderPropMap.keys()].flatMap((mainProp) => {
-    const target = mainBorderPropMap.get(mainProp)
-
-    return [
-      { key: mainProp, target },
-      { key: `${mainProp}-width`, target },
-      { key: `${mainProp}-style`, target },
-      { key: `${mainProp}-color`, target }
-    ]
-  })
-
-  for (const { key: borderProp, target } of borderProps) {
-    if (styles[borderProp] == null) {
-      continue
-    }
-
-    const value = styles[borderProp]
-    const parseArgs = [value]
-
-    if (!mainBorderPropMap.has(borderProp)) {
-      const borderPropParts = borderProp.split('-')
-      parseArgs.push(`border-${borderPropParts[borderPropParts.length - 1]}`)
-    }
-
-    const parsedValue = parseBorder(...parseArgs)
-
-    if (parsedValue == null) {
-      continue
-    }
-
-    data.static.border = data.static.border || {}
-    data.static.border[target] = Object.assign({}, data.static.border[target], parsedValue)
-
-    if (target === 'base') {
-      data.static.border.top = Object.assign({}, data.static.border[target], parsedValue)
-      data.static.border.right = Object.assign({}, data.static.border[target], parsedValue)
-      data.static.border.bottom = Object.assign({}, data.static.border[target], parsedValue)
-      data.static.border.left = Object.assign({}, data.static.border[target], parsedValue)
-    }
-  }
-
-  if (styles.padding != null) {
-    const parsedPadding = parseMarginOrPadding(styles.padding)
-
-    data.indent = data.indent || {}
-    data.spacing = data.spacing || {}
-
-    const parsedPaddingLeft = parsedPadding.left
-
-    if (parsedPaddingLeft != null) {
-      data.indent.left = parsedPaddingLeft
-    }
-
-    const parsedPaddingRight = parsedPadding.right
-
-    if (parsedPaddingRight != null) {
-      data.indent.right = parsedPaddingRight
-    }
-
-    const parsedPaddingTop = parsedPadding.top
-
-    if (parsedPaddingTop != null) {
-      data.spacing.before = parsedPaddingTop
-    }
-
-    const parsedPaddingBottom = parsedPadding.bottom
-
-    if (parsedPaddingBottom != null) {
-      data.spacing.after = parsedPaddingBottom
-    }
-  }
-
-  if (styles['padding-left'] != null) {
-    const parsedPaddingLeft = parseMarginOrPadding(styles['padding-left'], 'left')?.left
-
-    if (parsedPaddingLeft != null) {
-      data.indent = data.indent || {}
-      data.indent.left = parsedPaddingLeft
-    }
-  }
-
-  if (styles['padding-right'] != null) {
-    const parsedPaddingRight = parseMarginOrPadding(styles['padding-right'], 'right')?.right
-
-    if (parsedPaddingRight != null) {
-      data.indent = data.indent || {}
-      data.indent.right = parsedPaddingRight
-    }
-  }
-
-  if (styles['padding-top'] != null) {
-    const parsedPaddingTop = parseMarginOrPadding(styles['padding-top'], 'top')?.top
-
-    if (parsedPaddingTop != null) {
-      data.spacing = data.spacing || {}
-      data.spacing.before = parsedPaddingTop
-    }
-  }
-
-  if (styles['padding-bottom'] != null) {
-    const parsedPaddingBottom = parseMarginOrPadding(styles['padding-bottom'], 'bottom')?.bottom
-
-    if (parsedPaddingBottom != null) {
-      data.spacing = data.spacing || {}
-      data.spacing.after = parsedPaddingBottom
-    }
-  }
-
-  if (styles.margin != null) {
-    const parsedMargin = parseMarginOrPadding(styles.margin)
-
-    data.indent = data.indent || {}
-    data.spacing = data.spacing || {}
-
-    const parsedMarginLeft = parsedMargin.left
-
-    if (parsedMarginLeft != null) {
-      data.indent.left = parsedMarginLeft
-    }
-
-    const parsedMarginRight = parsedMargin.right
-
-    if (parsedMarginRight != null) {
-      data.indent.right = parsedMarginRight
-    }
-
-    const parsedMarginTop = parsedMargin.top
-
-    if (parsedMarginTop != null) {
-      data.spacing.before = parsedMarginTop
-    }
-
-    const parsedMarginBottom = parsedMargin.bottom
-
-    if (parsedMarginBottom != null) {
-      data.spacing.after = parsedMarginBottom
-    }
-  }
-
-  if (styles['margin-left'] != null) {
-    const parsedMarginLeft = parseMarginOrPadding(styles['margin-left'], 'left')?.left
-
-    if (parsedMarginLeft != null) {
-      data.indent = data.indent || {}
-      data.indent.left = parsedMarginLeft
-    }
-  }
-
-  if (styles['margin-right'] != null) {
-    const parsedMarginRight = parseMarginOrPadding(styles['margin-right'], 'right')?.right
-
-    if (parsedMarginRight != null) {
-      data.indent = data.indent || {}
-      data.indent.right = parsedMarginRight
-    }
-  }
-
-  if (styles['margin-top'] != null) {
-    const parsedMarginTop = parseMarginOrPadding(styles['margin-top'], 'top')?.top
-
-    if (parsedMarginTop != null) {
-      data.spacing = data.spacing || {}
-      data.spacing.before = parsedMarginTop
-    }
-  }
-
-  if (styles['margin-bottom'] != null) {
-    const parsedMarginBottom = parseMarginOrPadding(styles['margin-bottom'], 'bottom')?.bottom
-
-    if (parsedMarginBottom != null) {
-      data.spacing = data.spacing || {}
-      data.spacing.after = parsedMarginBottom
-    }
-  }
-
-  if (styles.width != null) {
-    const parseArgs = [styles.width]
-
-    if (node.tagName === 'table' || node.tagName === 'td' || node.tagName === 'th') {
-      parseArgs.push({
-        units: ['px', 'cm', '%']
-      })
-    }
-
-    const parsedWidth = getDimension(...parseArgs)
-
-    if (parsedWidth != null) {
-      data.static.width = styles.width
-    }
-  }
-
-  if (styles.height != null) {
-    const parsedHeight = getDimension(styles.height)
-
-    if (parsedHeight != null) {
-      data.static.height = styles.height
-    }
-  }
-
-  if (styles['break-before'] != null) {
-    if (styles['break-before'] === 'page') {
-      data.static.breakPage = data.static.breakPage || {}
-      data.static.breakPage.before = true
-    }
-  }
-
-  if (styles['break-after'] != null) {
-    if (styles['break-after'] === 'page') {
-      data.static.breakPage = data.static.breakPage || {}
-      data.static.breakPage.after = true
-    }
-  }
+  return data
 }
 
 function applyTitleIfNeeded (parentMeta, data) {
@@ -1145,7 +1352,7 @@ function applyAlignmentIfNeeded (parentMeta, data) {
       vertical: data.alignment.vertical
     }
 
-    // vertical alignment should be removed once applied to paragraph item
+    // vertical alignment should be removed once applied to cell item
     // so children does not inherit it
     delete data.alignment.vertical
   }
@@ -1293,6 +1500,18 @@ function parseMarginOrPadding (marginOrPaddingStyle, sideType) {
 
   if (Object.keys(result).length === 0) {
     return null
+  }
+
+  return result
+}
+
+function pick (obj, keys) {
+  const result = {}
+
+  for (const key of keys) {
+    if (key in obj) {
+      result[key] = obj[key]
+    }
   }
 
   return result

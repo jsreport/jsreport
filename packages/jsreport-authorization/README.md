@@ -7,6 +7,15 @@ See https://jsreport.net/learn/authorization
 
 ## Changelog
 
+### 4.1.0
+
+- create store indexes during schema creation
+- fix inconsistency between permissions check for insert into folder when logged in as normal and user as group (from SSO)
+
+### 4.0.1
+
+- fix `visibilityPermissions` permission on folder not preserved if changes are made to grandchildren folders
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

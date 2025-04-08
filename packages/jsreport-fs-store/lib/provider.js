@@ -182,7 +182,7 @@ module.exports = ({
       const clonnedDoc = extend(true, {}, doc)
 
       return this.transaction.operation(opts, async (store, persistence, rootDirectory) => {
-        await persistence.insert(clonnedDoc, store.documents, rootDirectory)
+        await persistence.insert(clonnedDoc, store.documents)
 
         store.insert(entitySet, {
           ...clonnedDoc,
@@ -203,7 +203,7 @@ module.exports = ({
       const setClone = extend(true, {}, u.$set)
       const qClone = extend(true, {}, q)
 
-      const res = await this.transaction.operation(opts, async (store, persistence, rootDirectory) => {
+      const res = await this.transaction.operation(opts, async (store, persistence) => {
         const toUpdate = store.find(entitySet, qClone).all()
 
         count = toUpdate.length
@@ -215,7 +215,7 @@ module.exports = ({
 
         // eslint-disable-next-line no-unused-vars
         for (const doc of toUpdate) {
-          await persistence.update(extend(true, {}, omit(doc, '$$etag'), setClone), doc, store.documents, rootDirectory)
+          await persistence.update(extend(true, {}, omit(doc, '$$etag'), setClone), doc, store.documents)
 
           store.update(entitySet, doc, setClone)
 
@@ -241,7 +241,7 @@ module.exports = ({
 
         // eslint-disable-next-line no-unused-vars
         for (const doc of toRemove) {
-          await persistence.remove(doc, store.documents, rootDirectory)
+          await persistence.remove(doc, store.documents)
           store.remove(entitySet, doc)
         }
 

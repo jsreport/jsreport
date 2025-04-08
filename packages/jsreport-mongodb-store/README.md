@@ -48,6 +48,11 @@ You can also pass connection uri like this
 
 ## Changelog
 
+### 4.1.0
+
+- optimizations for big workspaces
+- create store indexes during schema creation
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

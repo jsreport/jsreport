@@ -7,6 +7,29 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.7.1    
+
+- fix regression of complex template not working
+- improve errors
+- fix case with multiple docxHtml calls and conditionals
+
+### 4.7.0
+
+- update deps to fix audit
+- fix regression in docxImage when reading jpg with CMYK color code
+- docxHtml: fix lists numbering not getting generated properly when there is more than one docxhtml call
+- docxHtml support for `<colgroup>`, `<col>` tags in table
+- fix docxHtml border left normalization
+- fix docxHtml condition for possible null value
+- docxTable support col width customization
+
+### 4.6.0
+
+- update axios to fix audit
+- `docxHtml` ol lists now support the `start` attribute
+- fix `docxStyle` working with tables
+- add `docxObject` helper to allow embedding `docx` file into another docx
+
 ### 4.5.0
 
 - docxHtml table cell support for vertical-align style

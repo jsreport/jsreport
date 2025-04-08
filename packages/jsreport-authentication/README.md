@@ -7,6 +7,14 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.2.3
+
+- fix login of non admin user in sql based stores
+
+### 4.2.2
+
+- update deps to fix npm audit
+
 ### 4.2.1
 
 - fix regression with user with "allow read all entities" not working

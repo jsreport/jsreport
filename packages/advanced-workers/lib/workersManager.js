@@ -10,11 +10,12 @@ module.exports = (userOptions, {
   resourceLimits,
   initTimeout
 }) => {
-  function createWorker () {
+  function createWorker (id) {
     const worker = new Worker(path.join(__dirname, 'workerHandler.js'), {
       workerData: {
         systemData: {
-          workerModule
+          workerModule,
+          workerId: id
         },
         userData: userOptions
       },
@@ -30,7 +31,7 @@ module.exports = (userOptions, {
   return {
     async init () {
       this.pool = pool({
-        createWorker: () => createWorker(),
+        createWorker: (id) => createWorker(id),
         numberOfWorkers,
         initTimeout
       })

@@ -1,4 +1,7 @@
-const { normalizeSingleTextElInRun, normalizeSingleContentInText, nodeListToArray, getClosestEl } = require('../utils')
+const {
+  normalizeSingleTextElInRun, normalizeSingleContentInText, nodeListToArray,
+  getClosestEl
+} = require('../utils')
 
 module.exports = (files, headerFooterRefs) => {
   const documentDoc = files.find(f => f.path === 'word/document.xml').doc
@@ -9,6 +12,8 @@ module.exports = (files, headerFooterRefs) => {
   }
 
   for (const [targetIdx, targetDoc] of toProcess.entries()) {
+    let containerCounter = 0
+
     const docxHtmlTextElements = nodeListToArray(targetDoc.getElementsByTagName('w:t')).filter((tEl) => {
       return tEl.textContent.includes('{{docxHtml')
     })
@@ -29,6 +34,10 @@ module.exports = (files, headerFooterRefs) => {
       if (normalizedResults == null) {
         continue
       }
+
+      containerCounter++
+
+      const containerId = `c${containerCounter}`
 
       let counter = 0
 
@@ -64,8 +73,13 @@ module.exports = (files, headerFooterRefs) => {
         paragraphEl.setAttribute('__sectionIdx__', '{{docxContext type="sectionIdx"}}')
       }
 
-      const commentNode = targetDoc.createComment('__html_embed_container__')
-      paragraphEl.appendChild(commentNode)
+      let fakeElement = targetDoc.createElement('docxRemove')
+      fakeElement.textContent = `{{docxSData type='htmlDelimiterStart' cId='${containerId}'}}`
+      paragraphEl.insertBefore(fakeElement, paragraphEl.firstChild)
+
+      fakeElement = targetDoc.createElement('docxRemove')
+      fakeElement.textContent = `{{docxSData type='htmlDelimiterEnd' cId='${containerId}'}}`
+      paragraphEl.appendChild(fakeElement)
     }
   }
 }

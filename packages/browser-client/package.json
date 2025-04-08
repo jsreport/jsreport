@@ -30,16 +30,16 @@
     "watch": "microbundle watch"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.2.1",
-    "@jsreport/jsreport-chrome-pdf": "4.1.0",
-    "@jsreport/jsreport-core": "4.4.1",
-    "@jsreport/jsreport-express": "4.1.2",
+    "@jsreport/jsreport-authentication": "4.2.3",
+    "@jsreport/jsreport-chrome-pdf": "4.1.1",
+    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-express": "4.2.0",
     "@rollup/plugin-commonjs": "21.0.0",
     "@rollup/plugin-node-resolve": "13.0.5",
     "file-saver": "2.0.5",
     "microbundle": "0.14.0",
     "mocha": "10.1.0",
-    "puppeteer": "23.0.2",
+    "puppeteer": "24.3.0",
     "rollup": "2.58.0",
     "should": "13.2.3",
     "standard": "16.0.4"

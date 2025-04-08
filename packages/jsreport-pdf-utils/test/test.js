@@ -2583,7 +2583,9 @@ describe('pdf utils', () => {
   describe('pdf utils with maxSignaturePlaceholderLength', () => {
     let jsreport
     beforeEach(async () => {
-      jsreport = await JsReport()
+      jsreport = await JsReport({
+        chrome: { launchOptions: { args: ['--no-sandbox'] } }
+      })
         .use(require('../')({
           maxSignaturePlaceholderLength: 16384
         }))

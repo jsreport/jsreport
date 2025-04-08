@@ -4,9 +4,7 @@ const jsreport = require('@jsreport/jsreport-core')
 const Request = require('@jsreport/jsreport-core/lib/shared/request')
 const Provider = require('../lib/provider')
 const path = require('path')
-const utils = require('util')
 const fs = require('fs')
-const ncpAsync = utils.promisify(require('ncp').ncp)
 const sinon = require('sinon')
 const fsPromises = require('fs').promises
 const del = require('del')
@@ -234,13 +232,37 @@ describe('provider', () => {
       return store.commitTransaction(req2).should.be.rejected()
     })
 
-    it('commit should ~tran and .tran', async () => {
+    it('rollback should recover fs', async () => {
       const req = Request({})
+      const originalInsert = store.provider.persistence.insert
+      store.provider.persistence.insert = (doc, documents) => {
+        if (doc.name === 'tc') {
+          throw new Error('test')
+        }
+        return originalInsert(doc, documents)
+      }
+      await store.collection('templates').insert({ name: 'ta' }, req)
+      await store.collection('templates').insert({ name: 'tr' }, req)
       await store.beginTransaction(req)
-      await store.collection('templates').insert({ name: 'a' }, req)
-      await store.commitTransaction(req)
-      fs.readdirSync(tmpData).filter(d => d.startsWith('~.tran')).should.have.length(0)
-      fs.readdirSync(tmpData).filter(d => d.startsWith('.tran')).should.have.length(0)
+      try {
+        // insert should be reverted with remove
+        await store.collection('templates').insert({ name: 'tb' }, req)
+        // update should go to original state
+        await store.collection('templates').update({ name: 'tb' }, { $set: { name: 'td' } }, req)
+        // remove should revert to insert
+        await store.collection('templates').remove({ name: 'tr' }, req)
+        // this just fails and causes rollback
+        await store.collection('templates').insert({ name: 'tc' }, req)
+        await store.commitTransaction(req)
+      } catch (e) {
+        await store.rollbackTransaction(req)
+      }
+
+      const dirs = fs.readdirSync(tmpData)
+      dirs.filter(d => d === 'ta').should.have.length(1)
+      dirs.filter(d => d === 'tb').should.have.length(0)
+      dirs.filter(d => d === 'tr').should.have.length(1)
+      dirs.filter(d => d === 'tc').should.have.length(0)
     })
 
     it('commit should properly handle folder updates', async () => {
@@ -275,6 +297,255 @@ describe('provider', () => {
       fs.existsSync(tmpData + '/fa').should.be.true()
       fs.existsSync(tmpData + '/fa/t').should.be.false()
       fs.existsSync(tmpData + '/fa2/t').should.be.true()
+    })
+
+    it('load should rollback unifinished transaction', async () => {
+      const req = Request({})
+      const originalInsert = store.provider.persistence.insert
+      store.provider.persistence.insert = (doc, documents) => {
+        if (doc.name === 'tb') {
+          throw new Error('test')
+        }
+        return originalInsert(doc, documents)
+      }
+      await store.beginTransaction(req)
+      try {
+        await store.collection('templates').insert({ name: 'ta' }, req)
+        await store.collection('templates').insert({ name: 'tb' }, req)
+        await store.commitTransaction(req)
+      } catch (e) {
+        // not rollbacking
+      }
+      await store.provider.transaction.init()
+
+      const dirs = fs.readdirSync(tmpData)
+      dirs.filter(d => d === 'ta').should.have.length(0)
+    })
+
+    it('recovering insert fail in the middle', async () => {
+      const originalInsert = store.provider.persistence.insert
+      store.provider.persistence.insert = async (doc, documents) => {
+        await originalInsert(doc, documents)
+        fs.unlinkSync(path.join(tmpData, 'ta/config.json'))
+        throw new Error('test')
+      }
+
+      try {
+        await store.collection('templates').insert({ name: 'ta' })
+        throw Error('should have failed')
+      } catch (e) {
+        if (e.message === 'should have failed') {
+          throw e
+        }
+        const dirs = fs.readdirSync(tmpData)
+        dirs.filter(d => d === 'ta').should.have.length(0)
+      }
+    })
+
+    it('recovering remove fail in the middle', async () => {
+      const originalRemove = store.provider.persistence.remove
+      store.provider.persistence.remove = async (doc, documents) => {
+        await originalRemove(doc, documents)
+        fs.mkdirSync(path.join(tmpData, 'ta'))
+        throw new Error('test exception')
+      }
+
+      await store.collection('templates').insert({ name: 'ta' })
+
+      try {
+        await store.collection('templates').remove({ name: 'ta' })
+        throw Error('should have failed')
+      } catch (e) {
+        e.message.should.containEql('test exception')
+        const dirs = fs.readdirSync(path.join(tmpData, 'ta'))
+        dirs.filter(d => d === 'config.json').should.have.length(1)
+      }
+    })
+
+    it('recovering update fail in the middle', async () => {
+      const originalUpdate = store.provider.persistence.update
+      let recoveringUpdate = false
+      store.provider.persistence.update = async (query, update, opts, documents) => {
+        if (recoveringUpdate) {
+          return originalUpdate(query, update, opts, documents)
+        }
+        recoveringUpdate = true
+        await originalUpdate(query, update, opts, documents)
+        fs.mkdirSync(path.join(tmpData, 'ta'))
+        throw new Error('test exception')
+      }
+
+      await store.collection('templates').insert({ name: 'ta' })
+
+      try {
+        await store.collection('templates').update({ name: 'ta' }, { $set: { name: 'tb' } })
+        throw Error('should have failed')
+      } catch (e) {
+        e.message.should.containEql('test exception')
+        fs.readdirSync(path.join(tmpData, 'ta')).filter(d => d === 'config.json').should.have.length(1)
+        fs.readdirSync(path.join(tmpData)).filter(d => d === 'tb').should.have.length(0)
+      }
+    })
+
+    it('recovering entity move between folders', async () => {
+      // fa -> fb -> t
+      await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
+      await store.collection('folders').insert({ name: 'fb', shortid: 'fb', folder: { shortid: 'fa' } })
+      await store.collection('templates').insert({ name: 't', folder: { shortid: 'fb' } })
+
+      const originalUpdate = store.provider.persistence.update
+      let recoveringUpdate = false
+      store.provider.persistence.update = async (query, update, opts, documents) => {
+        if (recoveringUpdate) {
+          originalUpdate(query, update, opts, documents)
+        }
+        recoveringUpdate = true
+        await originalUpdate(query, update, opts, documents)
+        // we let the fb to move to the root, but act like it didn't finish completely and throw
+        fs.mkdirSync(path.join(tmpData, 'fa', 'fb', 't'), { recursive: true })
+        throw new Error('test')
+      }
+
+      try {
+        await store.collection('folders').update({ name: 'fb' }, { $set: { folder: null } })
+        throw Error('should have failed')
+      } catch (e) {
+        if (e.message === 'should have failed') {
+          throw e
+        }
+        fs.readdirSync(path.join(tmpData, 'fa')).find(d => d === 'fb').should.be.ok()
+        fs.readdirSync(path.join(tmpData, 'fa', 'fb', 't')).find(d => d === 'config.json').should.be.ok()
+        should(fs.readdirSync(path.join(tmpData)).find(d => d === 'fb')).not.be.ok()
+      }
+    })
+
+    it('recovering folder rename', async () => {
+      // fa -> fb -> t
+      await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
+      await store.collection('folders').insert({ name: 'fb', shortid: 'fb', folder: { shortid: 'fa' } })
+      await store.collection('templates').insert({ name: 't', folder: { shortid: 'fb' } })
+
+      const originalUpdate = store.provider.persistence.update
+      let recoveringUpdate = false
+      store.provider.persistence.update = async (query, update, opts, documents) => {
+        if (recoveringUpdate) {
+          return originalUpdate(query, update, opts, documents)
+        }
+        recoveringUpdate = true
+        await originalUpdate(query, update, opts, documents)
+        fs.mkdirSync(path.join(tmpData, 'fa', 'fb', 't'), { recursive: true })
+        fs.rmSync(path.join(tmpData, 'fa', 'fx'), { recursive: true })
+        throw new Error('test')
+      }
+
+      try {
+        await store.collection('folders').update({ name: 'fb' }, { $set: { name: 'fx' } })
+        throw Error('should have failed')
+      } catch (e) {
+        if (e.message === 'should have failed') {
+          throw e
+        }
+        should(fs.readdirSync(path.join(tmpData, 'fa')).find(d => d === 'fx')).not.be.ok()
+        fs.readdirSync(path.join(tmpData, 'fa', 'fb', 't')).find(d => d === 'config.json').should.be.ok()
+      }
+    })
+
+    it('recovering folder remove and fail in the middle', async () => {
+      await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
+      await store.collection('folders').insert({ name: 'fb', shortid: 'fb', folder: { shortid: 'fa' } })
+      await store.collection('templates').insert({ name: 't', folder: { shortid: 'fb' } })
+
+      const originalRemove = store.provider.persistence.remove
+      let recoveringRemove = false
+      store.provider.persistence.remove = async (doc, documents) => {
+        if (recoveringRemove) {
+          return originalRemove(doc, documents)
+        }
+        recoveringRemove = true
+        await originalRemove(doc, documents)
+        fs.mkdirSync(path.join(tmpData, 'fa', 'fb'), { recursive: true })
+        throw new Error('test')
+      }
+
+      try {
+        await store.collection('folders').remove({ name: 'fb' })
+        throw Error('should have failed')
+      } catch (e) {
+        if (e.message === 'should have failed') {
+          throw e
+        }
+        fs.readdirSync(path.join(tmpData, 'fa', 'fb', 't')).find(d => d === 'config.json').should.be.ok()
+      }
+    })
+
+    it('corruption in the tran.journal should be skipped', async () => {
+      const req = Request({})
+      const originalInsert = store.provider.persistence.insert
+      store.provider.persistence.insert = (doc, documents) => {
+        if (doc.name === 'tb') {
+          throw new Error('test')
+        }
+        return originalInsert(doc, documents)
+      }
+      await store.beginTransaction(req)
+      try {
+        await store.collection('templates').insert({ name: 'ta' }, req)
+        await store.collection('templates').insert({ name: 'tb' }, req)
+        await store.commitTransaction(req)
+      } catch (e) {
+        fs.appendFileSync(path.join(tmpData, 'tran.journal'), '\ncorrupted')
+        await store.rollbackTransaction(req)
+      }
+
+      const dirs = fs.readdirSync(tmpData)
+      dirs.filter(d => d === 'ta').should.have.length(0)
+    })
+
+    it('should check the tran.journal before performing writes and recover after remove', async () => {
+      const req = Request({})
+
+      fs.appendFileSync(path.join(tmpData, 'tran.journal'), JSON.stringify({ operation: 'remove', doc: { name: 'ta', $entitySet: 'templates' } }) + '\n')
+
+      await store.collection('templates').insert({ name: 'just to trigger recover' }, req)
+
+      const dirs = fs.readdirSync(tmpData)
+      dirs.filter(d => d === 'ta').should.have.length(1)
+    })
+
+    it('should check the tran.journal before performing writes and recover after insert', async () => {
+      const req = Request({})
+
+      await store.collection('templates').insert({ name: 'ab' }, req)
+      fs.appendFileSync(path.join(tmpData, 'tran.journal'), JSON.stringify({ operation: 'insert', doc: { name: 'ta', $entitySet: 'templates' } }) + '\n')
+
+      await store.collection('templates').insert({ name: 'just to trigger recover' }, req)
+
+      const dirs = fs.readdirSync(tmpData)
+      dirs.filter(d => d === 'ta').should.have.length(0)
+    })
+
+    it('should check the tran.journal before performing writes and recover after update', async () => {
+      const req = Request({})
+
+      await store.collection('templates').insert({ name: 'ta', engine: 'foo' }, req)
+      fs.appendFileSync(path.join(tmpData, 'tran.journal'), JSON.stringify({
+        operation: 'update',
+        doc: { name: 'ta', $entitySet: 'templates', engine: 'html' },
+        originalDoc: { name: 'ta', $entitySet: 'templates', engine: 'none' }
+      }) + '\n')
+
+      await store.collection('templates').insert({ name: 'just to trigger recover' }, req)
+
+      const taConfig = JSON.parse(fs.readFileSync(path.join(tmpData, 'ta', 'config.json')))
+      taConfig.engine.should.be.eql('none')
+    })
+
+    it('week errors shouldnt cause rollback', async () => {
+      try {
+        await store.collection('templates').insert({ name: 'a', folder: { shortid: 'missing' } })
+      } catch (e) {
+        e.week.should.be.true()
+      }
     })
   })
 
@@ -333,21 +604,6 @@ describe('provider', () => {
           throw e
         }
       }
-    })
-
-    it('insert duplicated key should throw and not be included in the query', async () => {
-      await store.collection('templates').insert({ name: 'test' })
-      try {
-        await store.collection('templates').insert({ name: 'test' })
-        throw new Error('Should have failed')
-      } catch (e) {
-        if (e.message === 'Should have failed' || !e.message.includes('Duplicate')) {
-          throw e
-        }
-      }
-
-      const res = await store.collection('templates').find({})
-      res.should.have.length(1)
     })
   })
 
@@ -660,137 +916,6 @@ describe('load and ignore', () => {
     const folders = await store.collection('folders').find({})
     folders.should.have.length(1)
     folders[0].name.should.be.eql('random')
-  })
-})
-
-describe('load cleanup', () => {
-  let store
-  let startTime
-  beforeEach(async () => {
-    await del(path.join(__dirname, 'dataToCleanupCopy'))
-    await fsPromises.mkdir(path.join(__dirname, 'dataToCleanupCopy'), { recursive: true })
-    await ncpAsync(path.join(__dirname, 'dataToCleanup'), path.join(__dirname, 'dataToCleanupCopy'))
-    startTime = new Date()
-    store = createDefaultStore()
-
-    addCommonTypes(store)
-
-    store.registerProvider(
-      Provider({
-        dataDirectory: path.join(__dirname, 'dataToCleanupCopy'),
-        blobStorageDirectory: path.join(__dirname, 'dataToCleanupCopy', 'storage'),
-        logger: store.options.logger,
-        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
-        sync: { provider: 'fs' },
-        resolveFileExtension: store.resolveFileExtension.bind(store),
-        compactionEnabled: true,
-        compactionInterval: 5000,
-        createError: m => new Error(m)
-      })
-    )
-    await store.init()
-  })
-
-  afterEach(async () => {
-    await del(path.join(__dirname, 'dataToCleanupCopy'))
-    await store.provider.close()
-  })
-
-  it('should load commited changes ~c~c', async () => {
-    const res = await store.collection('templates').find({})
-    res.should.have.length(1)
-    res[0].name.should.be.eql('c')
-    res[0].content.should.be.eql('changed')
-  })
-
-  it('should remove uncommited changes ~~a', () => {
-    fs.existsSync(path.join(__dirname, 'dataToCleanupCopy', 'templates', '~~a')).should.be.false()
-  })
-
-  it('should remove commited and renamed changes', () => {
-    fs.existsSync(path.join(__dirname, 'dataToCleanupCopy', 'templates', '~c~c')).should.be.false()
-  })
-
-  it('should compact flat files on load', () => {
-    fs.readFileSync(path.join(__dirname, 'dataToCleanupCopy', 'settings'), 'utf8').should.not.containEql('"value":"1"')
-  })
-
-  it('should not modify flat files when there are no changes', () => {
-    const stat = fs.statSync(path.join(__dirname, 'dataToCleanupCopy', 'reports'))
-    stat.mtime.should.be.lessThanOrEqual(startTime)
-  })
-})
-
-describe('load cleanup consistent transaction', () => {
-  let store
-
-  beforeEach(async () => {
-    await del(path.join(__dirname, 'tranDataToCleanupCopy'))
-    await ncpAsync(path.join(__dirname, 'tranConsistentDataToCleanup'), path.join(__dirname, 'tranDataToCleanupCopy'))
-
-    store = createDefaultStore()
-
-    addCommonTypes(store)
-
-    store.registerProvider(
-      Provider({
-        dataDirectory: path.join(__dirname, 'tranDataToCleanupCopy'),
-        blobStorageDirectory: path.join(__dirname, 'tranDataToCleanupCopy', 'storage'),
-        logger: store.options.logger,
-        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
-        sync: { provider: 'fs' },
-        resolveFileExtension: store.resolveFileExtension.bind(store),
-        createError: m => new Error(m)
-      })
-    )
-    await store.init()
-  })
-
-  afterEach(async () => {
-    await del(path.join(__dirname, 'tranDataToCleanupCopy'))
-    return store.provider.close()
-  })
-
-  it('should remove ~.tran and .tran and copy ~.tran to root', () => {
-    fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', '~.tran')).should.be.false()
-    fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', '.tran')).should.be.false()
-    fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', 'b')).should.be.true()
-  })
-})
-
-describe('load cleanup inconsistent transaction', () => {
-  let store
-
-  beforeEach(async () => {
-    await del(path.join(__dirname, 'tranDataToCleanupCopy'))
-    await ncpAsync(path.join(__dirname, 'tranInconsistentDataToCleanup'), path.join(__dirname, 'tranDataToCleanupCopy'))
-
-    store = createDefaultStore()
-
-    addCommonTypes(store)
-
-    store.registerProvider(
-      Provider({
-        dataDirectory: path.join(__dirname, 'tranDataToCleanupCopy'),
-        blobStorageDirectory: path.join(__dirname, 'tranDataToCleanupCopy', 'storage'),
-        logger: store.options.logger,
-        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
-        sync: { provider: 'fs' },
-        resolveFileExtension: store.resolveFileExtension.bind(store),
-        createError: m => new Error(m)
-      })
-    )
-    await store.init()
-  })
-
-  afterEach(async () => {
-    await del(path.join(__dirname, 'tranDataToCleanupCopy'))
-    return store.provider.close()
-  })
-
-  it('should remove ~.tran and don\'t copy to root', () => {
-    fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', '~.tran')).should.be.false()
-    fs.existsSync(path.join(__dirname, 'tranDataToCleanupCopy', 'b')).should.be.false()
   })
 })
 

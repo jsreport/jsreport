@@ -13,8 +13,13 @@ module.exports = async (reporter, definition) => {
   if (reporter.options.blobStorage.provider === 'mssql') {
     const blobsTable = definition.options.prefix + 'Blob'
     reporter.blobStorage.registerProvider({
-      init: () => {
-        return pool.request().query(`IF OBJECT_ID('${definition.options.schema}.${blobsTable}', 'U') IS NULL CREATE TABLE ${definition.options.schema}.${blobsTable} (blobName varchar(1024), content varbinary(max))`)
+      init: async () => {
+        await pool.request().query(`IF OBJECT_ID('${definition.options.schema}.${blobsTable}', 'U') IS NULL CREATE TABLE ${definition.options.schema}.${blobsTable} (blobName varchar(1024), content varbinary(max))`)
+        return pool.request().query(`IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'idx_Blob_blobName' AND object_id = OBJECT_ID('${definition.options.schema}.${blobsTable}'))
+        BEGIN       
+          CREATE NONCLUSTERED INDEX [idx_Blob_blobName] ON ${definition.options.schema}.${blobsTable}([blobName])
+        END
+        `)
       },
       write: async (blobName, buf) => {
         await pool.request()

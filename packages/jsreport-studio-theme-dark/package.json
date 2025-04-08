@@ -40,7 +40,7 @@
     "test": "standard"
   },
   "devDependencies": {
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/studio-dev": "4.0.1",
     "standard": "16.0.4"
   },
   "engines": {

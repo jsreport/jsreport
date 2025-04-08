@@ -282,6 +282,27 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.6.1
+
+- clear profiles canceling check interval during reporter close
+
+### 4.6.0
+
+- update nanoid to fix security issue
+- optimize fs store operations for big workspaces
+- reimplement and optimize fs transactions
+- fix async reports with mongo store
+- create store indexes during schema creation fix
+- implement canceling requests from profiler
+
+### 4.5.0
+
+- fix blobStorage failing to save reports bigger than 1gb
+- decrease default value of `options.profile.maxDiffSize` to `10mb`
+- fix logs metadata for main logs
+- fix support for using of async helper that returns a value other than string in template engines
+- improve support for `jsreport.templateEngines.waitForAsyncHelpers` when used in async helper
+
 ### 4.4.1
 
 - fix timestamp shown in logging

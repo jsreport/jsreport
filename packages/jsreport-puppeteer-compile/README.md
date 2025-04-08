@@ -4,7 +4,11 @@ You should not need this extension, only in case you try to compile your own jsr
 
 ## Changelog
 
-### 4.0.1
+### 4.1.0
+
+- allow customizing chrome binary path
+
+### 4.0.1
 
 - update deps to fix audit
 

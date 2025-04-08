@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-puppeteer-compile",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Extra jsreport extension which compiles chrome binary into the jsreport executable",
   "keywords": [
     "jsreport",
@@ -27,10 +27,10 @@
     "shortid": "2.2.16"
   },
   "devDependencies": {
-    "@jsreport/jsreport-chrome-pdf": "4.1.0",
-    "@jsreport/jsreport-core": "4.4.1",
+    "@jsreport/jsreport-chrome-pdf": "4.1.1",
+    "@jsreport/jsreport-core": "4.6.1",
     "mocha": "10.1.0",
-    "puppeteer": "23.0.2",
+    "puppeteer": "24.3.0",
     "should": "13.2.3",
     "standard": "16.0.4"
   },

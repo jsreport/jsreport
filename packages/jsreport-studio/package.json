@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-studio",
-  "version": "4.1.1",
+  "version": "4.3.0",
   "description": "jsreport templates editor and designer",
   "keywords": [
     "jsreport"
@@ -53,13 +53,13 @@
     "race-as-promised": "0.0.2",
     "semaphore-async-await": "1.5.1",
     "serve-favicon": "2.5.0",
-    "serve-static": "1.15.0"
+    "serve-static": "1.16.2"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "6.4.0",
-    "@jsreport/jsreport-core": "4.4.1",
-    "@jsreport/jsreport-express": "4.1.2",
-    "@jsreport/studio-dev": "4.0.0",
+    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-express": "4.2.0",
+    "@jsreport/studio-dev": "4.0.1",
     "@redux-devtools/extension": "3.2.5",
     "@seznam/compose-react-refs": "1.0.6",
     "assert": "2.0.0",

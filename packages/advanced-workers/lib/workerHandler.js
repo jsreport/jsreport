@@ -28,7 +28,8 @@ const workerModule = require(workerData.systemData.workerModule)(workerData.user
       })
       return currentCallbackResponseAwaiter.promise
     })
-  }
+  },
+  workerId: workerData.systemData.workerId
 })
 
 let processing = false

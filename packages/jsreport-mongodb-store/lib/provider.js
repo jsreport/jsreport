@@ -49,6 +49,30 @@ function getCollectionName (prefix, entitySet) {
   return `${prefix || ''}${entitySet}`
 }
 
+async function createIndexes (type, path, entitySet, model, db) {
+  for (const key in type) {
+    if (type[key].index) {
+      const indexField = [path, key].filter(t => t).join('.')
+      await db.collection(entitySet).createIndex({
+        [indexField]: 1
+      })
+    }
+
+    if (type[key].type.startsWith('jsreport.')) {
+      const complexTypeName = type[key].type.replace(model.namespace + '.', '')
+      const complexType = model.complexTypes[complexTypeName]
+      if (complexTypeName === 'FolderRefType') {
+        // mongo somehow doesnt use index folder.shortid and needs just the index on folder
+        await db.collection(entitySet).createIndex({
+          folder: 1
+        })
+      } else {
+        await createIndexes(complexType, [path, key].filter(t => t).join('.'), entitySet, model, db)
+      }
+    }
+  }
+}
+
 module.exports = (client, options, db) => {
   let transactionsSupportErr
 
@@ -107,8 +131,12 @@ module.exports = (client, options, db) => {
 
       for (const entitySetName of Object.keys(model.entitySets)) {
         const collectionName = getCollectionName(options.prefix, entitySetName)
+        const entityType = model.entitySets[entitySetName].entityTypeDef
+
         if (!collections.find(c => c.name === collectionName)) {
           await db.createCollection(collectionName)
+
+          await createIndexes(entityType, '', entitySetName, model, db)
         }
       }
 

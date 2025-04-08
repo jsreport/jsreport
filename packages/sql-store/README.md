@@ -4,6 +4,14 @@
 
 ## Changelog
 
+### 3.2.1
+
+- update `@jsreport/odata-to-sql` to fix issue with drop calls
+
+### 3.2.0
+
+- create store indexes during schema creation
+
 ### 3.1.1
 
 - add support for odata ne operator

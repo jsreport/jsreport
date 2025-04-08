@@ -1,18 +1,36 @@
 const resolveEntityPath = require('../../shared/folders/resolveEntityPath')
 
 async function findEntity (reporter, name, folder, req) {
-  for (const c of Object.keys(reporter.documentStore.collections)) {
-    if (!reporter.documentStore.model.entitySets[c].entityTypeDef.name) {
-      continue
-    }
-
-    const allEntities = await reporter.documentStore.collection(c).findAdmin({
+  async function findEntityInColAndFolder (c, folder) {
+    const entities = await reporter.documentStore.collection(c).findAdmin({
       folder
     }, {
       name: 1
     }, req)
 
-    const existingEntity = allEntities.find((entity) => {
+    return {
+      entities,
+      entitySet: c
+    }
+  }
+
+  const promises = []
+  for (const c of Object.keys(reporter.documentStore.collections)) {
+    if (!reporter.documentStore.model.entitySets[c].entityTypeDef.name) {
+      continue
+    }
+
+    if (folder != null && !reporter.documentStore.model.entitySets[c].entityTypeDef.folder) {
+      continue
+    }
+
+    promises.push(findEntityInColAndFolder(c, folder))
+  }
+
+  const results = await Promise.all(promises)
+
+  for (const { entities, entitySet } of results) {
+    const existingEntity = entities.find((entity) => {
       if (entity.name) {
         // doing the check for case insensitive string (foo === FOO)
         return entity.name.toLowerCase() === name.toLowerCase()
@@ -22,7 +40,7 @@ async function findEntity (reporter, name, folder, req) {
     })
 
     if (existingEntity) {
-      return { entity: existingEntity, entitySet: c }
+      return { entity: existingEntity, entitySet }
     }
   }
 }

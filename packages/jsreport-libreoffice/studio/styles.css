@@ -1,0 +1,19 @@
+.row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;    
+}
+
+.column {
+    justify-content:left;
+    display: flex;
+    flex-direction: column;
+   flex-basis: 100%;
+    flex: 1;
+}
+
+/* dont know how to align checkboxes to left... */
+.column > input[type="checkbox"] {
+    width: 1rem;
+}

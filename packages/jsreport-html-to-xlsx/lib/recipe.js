@@ -1,5 +1,5 @@
 const { response } = require('@jsreport/office')
-const htmlToXlsx = require('html-to-xlsx')
+const htmlToXlsx = require('@jsreport/html-to-xlsx')
 const htmlToXlsxProcess = require('./htmlToXlsxProcess')
 
 module.exports = async (reporter, definition, req, res) => {

@@ -179,18 +179,25 @@ module.exports = async (reporter, definition) => {
   if (reporter.options.blobStorage.provider === 'oracle') {
     reporter.blobStorage.registerProvider({
       init: async () => {
-        const query = `
+        let conn
+        try {
+          conn = await pool.getConnection()
+          await conn.execute(`
         declare
         begin
           execute immediate 'create table "jsreport_Blob" ("blobName" varchar2(1024), "content" BLOB)';
           exception when others then
-            if SQLCODE = -955 then null; else raise; end if;
+            if SQLCODE = -955 then null; else raise; end if;          
+        end;       
+        `)
+          await conn.execute(`
+        declare
+        begin
+          execute immediate 'CREATE INDEX "idx_Blob_blobName" ON "jsreport_Blob" ("blobName")';
+          exception when others then
+            if SQLCODE = -955 then null; else raise; end if;          
         end;
-        `
-        let conn
-        try {
-          conn = await pool.getConnection()
-          await conn.execute(query)
+        `)
         } finally {
           if (conn) {
             conn.close(() => {})

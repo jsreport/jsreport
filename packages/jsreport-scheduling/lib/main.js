@@ -19,7 +19,7 @@ class Scheduling {
       cron: { type: 'Edm.String' },
       name: { type: 'Edm.String' },
       templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
-      nextRun: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
+      nextRun: { type: 'Edm.DateTimeOffset', schema: { type: 'null' }, index: true },
       enabled: { type: 'Edm.Boolean' },
       state: { type: 'Edm.String' }
     })
@@ -27,7 +27,7 @@ class Scheduling {
     this.TaskType = this.reporter.documentStore.registerEntityType('TaskType', {
       scheduleShortid: { type: 'Edm.String', referenceTo: 'schedules' },
       finishDate: { type: 'Edm.DateTimeOffset' },
-      state: { type: 'Edm.String' },
+      state: { type: 'Edm.String', index: true, length: 255 },
       error: { type: 'Edm.String' },
       ping: { type: 'Edm.DateTimeOffset' }
     })
