@@ -13,6 +13,7 @@ module.exports = (files, headerFooterRefs) => {
 
   for (const [targetIdx, targetDoc] of toProcess.entries()) {
     let containerCounter = 0
+    let htmlCallCounter = 0
 
     const docxHtmlTextElements = nodeListToArray(targetDoc.getElementsByTagName('w:t')).filter((tEl) => {
       return tEl.textContent.includes('{{docxHtml')
@@ -35,11 +36,13 @@ module.exports = (files, headerFooterRefs) => {
         continue
       }
 
-      containerCounter++
+      const paragraphWasProcessed = paragraphEl.hasAttribute('__html_embed_container__')
 
-      const containerId = `c${containerCounter}`
-
-      let counter = 0
+      if (!paragraphWasProcessed) {
+        containerCounter++
+        // reset the counter when we change of container
+        htmlCallCounter = 0
+      }
 
       for (const normalizedResult of normalizedResults) {
         const { tEl, match } = normalizedResult
@@ -50,9 +53,9 @@ module.exports = (files, headerFooterRefs) => {
 
         const htmlCall = { ...match }
 
-        counter++
+        htmlCallCounter++
 
-        htmlCall.id = counter.toString()
+        htmlCall.id = htmlCallCounter.toString()
 
         tEl.textContent = ''
         tEl.setAttribute('__htmlEmbedRef__', htmlCall.id)
@@ -64,6 +67,12 @@ module.exports = (files, headerFooterRefs) => {
 
         tEl.parentNode.insertBefore(newHtmlEmbedElement, tEl.nextSibling)
       }
+
+      if (paragraphWasProcessed) {
+        continue
+      }
+
+      const containerId = `c${containerCounter}`
 
       // insert attribute and comment as last child for easy replacement on postprocess step
       paragraphEl.setAttribute('__html_embed_container__', true)
