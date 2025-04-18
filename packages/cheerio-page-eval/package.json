@@ -1,0 +1,45 @@
+{
+  "name": "cheerio-page-eval",
+  "version": "1.2.0",
+  "description": "Evaluate html table with cheerio - html engine of jsreport-html-to-xlsx",
+  "main": "index.js",
+  "homepage": "https://github.com/jsreport/cheerio-page-eval",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/cheerio-page-eval.git"
+  },
+  "keywords": [
+    "cheerio",
+    "eval",
+    "jsreport"
+  ],
+  "author": "BJR Matos <bjrmatos@gmail.com>",
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+    "Jan Blaha <jan.blaha@hotmail.com> (https://github.com/pofider)"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "cheerio": "1.0.0-rc.12",
+    "cornet": "0.1.5",
+    "htmlparser2": "4.0.0",
+    "tinycolor2": "1.4.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.3",
+    "eslint": "6.8.0",
+    "eslint-plugin-babel": "5.3.0",
+    "standard": "14.3.1"
+  }
+}
