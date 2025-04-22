@@ -2,7 +2,7 @@ const path = require('path')
 const fs = require('fs')
 const Cornet = require('cornet')
 const cheerio = require('cheerio')
-const htmlparser2 = require('htmlparser2')
+const { WritableStream } = require('htmlparser2/WritableStream')
 const tinycolor = require('tinycolor2')
 
 module.exports = (tmpDir, defaultFont) => {
@@ -130,7 +130,7 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, default
     const cornet = new Cornet()
 
     await new Promise((resolve, reject) => {
-      const parser = new htmlparser2.WritableStream(cornet)
+      const parser = new WritableStream(cornet)
       const fileStream = fs.createReadStream(filePath)
 
       fileStream.on('error', reject)

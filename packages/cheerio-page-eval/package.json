@@ -33,7 +33,7 @@
   "dependencies": {
     "cheerio": "1.0.0-rc.12",
     "cornet": "0.1.5",
-    "htmlparser2": "4.0.0",
+    "htmlparser2": "10.0.0",
     "tinycolor2": "1.4.1"
   },
   "devDependencies": {
