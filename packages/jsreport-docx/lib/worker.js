@@ -60,6 +60,11 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.options.sandbox.modules.push({
+    alias: 'docxProcessParseHtmlToDocxMeta',
+    path: path.join(__dirname, './processParseHtmlToDocxMeta.js')
+  })
+
+  reporter.options.sandbox.modules.push({
     alias: 'docxProcessObject',
     path: path.join(__dirname, './processObject.js')
   })

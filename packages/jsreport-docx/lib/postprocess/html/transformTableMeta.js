@@ -1,22 +1,22 @@
 const extend = require('node.extend.without.arrays')
 const { getDimension, pxToEMU, cmToEMU, emuToTOAP } = require('../../utils')
 
-module.exports = function transformTableMeta (tableItemMeta, sectionDetail) {
-  const { tableWidth, cols, rows } = getTableMeta(tableItemMeta, sectionDetail)
+module.exports = function transformTableMeta (tableItemMeta, sectionColsWidth) {
+  const { tableWidth, cols, rows } = getTableMeta(tableItemMeta, sectionColsWidth)
 
   tableItemMeta.width = tableWidth
   tableItemMeta.cols = cols
   tableItemMeta.children = rows
 }
 
-function getTableMeta (tableItemMeta, sectionDetail) {
+function getTableMeta (tableItemMeta, sectionColsWidth) {
   const tableWidth = {
     value: null,
     source: null
   }
 
   if (tableItemMeta.width != null) {
-    const parsedTableWidth = parseWidth(tableItemMeta.width, sectionDetail.colsWidth[0])
+    const parsedTableWidth = parseWidth(tableItemMeta.width, sectionColsWidth[0])
 
     // ignore if width is 0
     if (parsedTableWidth != null && parsedTableWidth.value !== 0) {
@@ -27,7 +27,7 @@ function getTableMeta (tableItemMeta, sectionDetail) {
   if (tableWidth.value == null) {
     // by default we use the column width of the section the table it belongs,
     // since we don't support documents with multi-column we just take the first column
-    tableWidth.value = sectionDetail.colsWidth[0]
+    tableWidth.value = sectionColsWidth[0]
     tableWidth.source = 'default'
   } else {
     tableWidth.source = 'custom'

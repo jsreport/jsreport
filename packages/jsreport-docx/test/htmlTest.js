@@ -36,6 +36,84 @@ describe('docx html embed', () => {
     }
   })
 
+  it('content parameter from async helper', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block-async-content.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        },
+        helpers: `
+          async function getAsyncHtml () {
+            return new Promise((resolve) => {
+              setTimeout(() => resolve('Hello'), 1000)
+            })
+          }
+        `
+      },
+      data: {}
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(1)
+    should(textNodes[0].textContent).eql('Hello')
+  })
+
+  it('inline parameter from async helper', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-inline-async-inline.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        },
+        helpers: `
+          async function getAsyncInline () {
+            return new Promise((resolve) => {
+              setTimeout(() => resolve(true), 1000)
+            })
+          }
+        `
+      },
+      data: {
+        html: 'Hello'
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(4)
+    should(paragraphNodes[0].textContent).eql('Content is Hello')
+  })
+
   describe('basic - text', () => {
     it('not throw on empty string', async () => {
       const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
@@ -17381,6 +17459,9 @@ describe('<img> tag', () => {
 
   beforeEach(() => {
     reporter = jsreport({
+      sandbox: {
+        allowedModules: ['path', 'fs']
+      },
       store: {
         provider: 'memory'
       }
@@ -17808,7 +17889,7 @@ describe('<img> tag', () => {
           }
         },
         data: {
-          html: createHtml(templateStr, []),
+          html: createHtml(templateUrlStr, []),
           imagePath: path.join(docxDirPath, 'image.png')
         }
       })
@@ -17824,6 +17905,69 @@ describe('<img> tag', () => {
       should(paragraphNodes.length).eql(1)
 
       commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+      const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+      should(runNodes.length).eql(1)
+
+      const outputImageMeta = await getImageMeta(result.content)
+      const outputImageSize = outputImageMeta.size
+
+      // should preserve original image size by default
+      outputImageSize.width.should.be.eql(targetImageSize.width)
+      outputImageSize.height.should.be.eql(targetImageSize.height)
+
+      const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+      should(textNodes.length).eql(0)
+    })
+
+    const templateImageLoaderStr = '<img src="image.png" />'
+
+    it(`${mode} mode - <img> with custom loader ${templateImageLoaderStr}`, async () => {
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}-image-loader.docx`))
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: docxTemplateBuf
+            }
+          },
+          helpers: `
+            function imageLoader() {
+              // a loader should always return a stream and type (extension or content type for image)
+              return function loader (src) {
+                const path = require('path')
+                const fs = require('fs')
+
+                // the idea here is that user can load the image from anywhere, user can use
+                // a custom http request library, load from fs or from S3, etc.
+                // the idea of allowing this is that user can still benefit from our
+                // parallel limits and logic of batching images on disk to prevent
+                // loading all images on memory and failing to render when using a lot of images
+                return new Promise((resolve) => resolve({
+                  type: 'png',
+                  stream: fs.createReadStream(path.join('${docxDirPath}', src))
+                }))
+              }
+            }
+          `
+        },
+        data: {
+          html: createHtml(templateImageLoaderStr, [])
+        }
+      })
+
+      // Write document for easier debugging
+      fs.writeFileSync(outputPath, result.content)
+
+      const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(1)
 
       const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
 

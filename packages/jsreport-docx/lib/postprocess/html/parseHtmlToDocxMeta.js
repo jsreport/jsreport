@@ -12,7 +12,7 @@ const transformTableMeta = require('./transformTableMeta')
 
 const VALID_CSS_BORDER_STYLES = [...borderStyles.keys()]
 
-module.exports = function parseHtmlToDocxMeta (html, mode, sectionDetail) {
+module.exports = function parseHtmlToDocxMeta (html, mode, sectionColsWidth, transformFn) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid parsing mode "${mode}"`)
   }
@@ -21,10 +21,10 @@ module.exports = function parseHtmlToDocxMeta (html, mode, sectionDetail) {
 
   const documentNode = $.root()[0]
 
-  return parseHtmlDocumentToMeta($, documentNode, mode, sectionDetail)
+  return parseHtmlDocumentToMeta($, documentNode, mode, sectionColsWidth, transformFn)
 }
 
-function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
+function parseHtmlDocumentToMeta ($, documentNode, mode, sectionColsWidth, transformFn) {
   const hierarchyContext = {}
   const hierarchyIterator = createHierarchyIterator($, mode, documentNode, hierarchyContext)
   const containerTypes = ['paragraph', 'table', 'row', 'cell']
@@ -44,7 +44,23 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
       }
 
       if (container?.type === 'table') {
-        transformTableMeta(container, sectionDetail)
+        transformTableMeta(container, sectionColsWidth)
+      }
+
+      // NOTE: calling transformFn here only works for block mode, for inline we just do
+      // it directly when processing nodes
+      if (container?.children && transformFn) {
+        for (const element of container.children) {
+          if (containerTypes.includes(element.type)) {
+            continue
+          }
+
+          transformFn(element)
+        }
+      }
+
+      if (container && transformFn) {
+        transformFn(container)
       }
 
       if (onEach) {
@@ -366,6 +382,12 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
 
         if (mode === 'inline') {
           container.children.push(item)
+          // NOTE: calling transformFn here only works for inline mode, for block we just do
+          // it directly when processing closing nodes
+          if (transformFn) {
+            transformFn(item)
+          }
+
           continue
         }
 

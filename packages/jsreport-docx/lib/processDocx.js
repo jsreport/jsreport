@@ -33,7 +33,7 @@ module.exports = async (reporter, inputs, req) => {
 
     const headerFooterRefs = await preprocess(files, ctx)
 
-    const filesToRender = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)))
+    const filesToRender = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)), headerFooterRefs)
     const filesSeparator = '$$$docxFile$$$\n'
 
     // it is 2 because before render we prepend the global context call in new line
@@ -275,18 +275,25 @@ function extractTextFromParagraphStr (paragraphStr) {
   return result
 }
 
-function ensureOrderOfFiles (files) {
+function ensureOrderOfFiles (files, headerFooterRefs) {
   // we want to ensure a specific order of files for the render processing,
-  // 1. ensure [Content_Types].xml], word/_rels/document.xml.rels are the latest files
+  // 1. we want the header and footer to be processed after document.xml
+  // 2. ensure [Content_Types].xml], word/_rels/document.xml.rels are the latest files
   // this is required in child render for our handlebars logic to
   // correctly handle processing of our helpers
   const contentTypesIdx = files.findIndex(f => f.path === '[Content_Types].xml')
   const documentRelsIdx = files.findIndex(f => f.path === 'word/_rels/document.xml.rels')
+  const headerFooterIndexes = []
+
+  for (const headerFooterRef of headerFooterRefs) {
+    headerFooterIndexes.push(files.findIndex(f => f.path === headerFooterRef.path))
+  }
+
   const filesSorted = []
 
   const skipIndexesSet = new Set()
 
-  for (const idx of [contentTypesIdx, documentRelsIdx]) {
+  for (const idx of [contentTypesIdx, documentRelsIdx, ...headerFooterIndexes]) {
     if (idx === -1) {
       continue
     }
@@ -300,6 +307,14 @@ function ensureOrderOfFiles (files) {
     }
 
     filesSorted.push(files[fileIdx])
+  }
+
+  for (const headerFooterIdx of headerFooterIndexes) {
+    if (headerFooterIdx === -1) {
+      continue
+    }
+
+    filesSorted.push(files[headerFooterIdx])
   }
 
   if (contentTypesIdx !== -1) {

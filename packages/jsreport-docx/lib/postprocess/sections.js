@@ -18,13 +18,6 @@ module.exports = async (files) => {
       const doc = new DOMParser().parseFromString(val)
       const sectionPrEl = doc.documentElement.firstChild
       const section = getSectionDetail(sectionPrEl, { documentFilePath, documentRelsDoc, files })
-      let sectionIdx = parseInt(sectionPrEl.getAttribute('__sectionIdx__'), 10)
-      sectionIdx = isNaN(sectionIdx) ? 0 : sectionIdx
-
-      sectionPrEl.removeAttribute('__sectionIdx__')
-
-      section.idx = sectionIdx
-
       sections.push(section)
 
       // return without the wrapping

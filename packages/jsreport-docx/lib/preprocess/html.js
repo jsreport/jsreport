@@ -11,7 +11,7 @@ module.exports = (files, headerFooterRefs) => {
     toProcess.push(rResult.doc)
   }
 
-  for (const [targetIdx, targetDoc] of toProcess.entries()) {
+  for (const targetDoc of toProcess) {
     let containerCounter = 0
     let htmlCallCounter = 0
 
@@ -44,6 +44,8 @@ module.exports = (files, headerFooterRefs) => {
         htmlCallCounter = 0
       }
 
+      const containerId = `c${containerCounter}`
+
       for (const normalizedResult of normalizedResults) {
         const { tEl, match } = normalizedResult
 
@@ -63,7 +65,7 @@ module.exports = (files, headerFooterRefs) => {
         const newHtmlEmbedElement = targetDoc.createElement('docxHtmlEmbed')
 
         newHtmlEmbedElement.setAttribute('htmlId', htmlCall.id)
-        newHtmlEmbedElement.textContent = htmlCall.content
+        newHtmlEmbedElement.textContent = htmlCall.content.replace('{{docxHtml', `{{docxHtml cId='${containerId}'`)
 
         tEl.parentNode.insertBefore(newHtmlEmbedElement, tEl.nextSibling)
       }
@@ -72,15 +74,8 @@ module.exports = (files, headerFooterRefs) => {
         continue
       }
 
-      const containerId = `c${containerCounter}`
-
       // insert attribute and comment as last child for easy replacement on postprocess step
       paragraphEl.setAttribute('__html_embed_container__', true)
-
-      // only insert section idx for paragraphs in the main document
-      if (targetIdx === 0) {
-        paragraphEl.setAttribute('__sectionIdx__', '{{docxContext type="sectionIdx"}}')
-      }
 
       let fakeElement = targetDoc.createElement('docxRemove')
       fakeElement.textContent = `{{docxSData type='htmlDelimiterStart' cId='${containerId}'}}`

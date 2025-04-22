@@ -5,11 +5,11 @@ const { DOMParser } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
 const generateRandomSuffix = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const borderStyles = require('./borderStyles')
-const { resolveImageSrc, getImageSizeInEMU } = require('../../imageUtils')
+const { getImageSizeInEMU } = require('../../imageUtils')
 const { nodeListToArray, clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP, ptToEOAP } = require('../../utils')
 const xmlTemplatesCache = new Map()
 
-module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode, numberingLock } = {}) {
+module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode, numberingLock } = {}) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid conversion mode "${mode}"`)
   }
@@ -670,7 +670,13 @@ module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, html
       // inherit only the run properties of the html embed call
       clearEl(runEl, (c) => c.nodeName === 'w:rPr')
 
-      const { imageContent, imageExtension } = await resolveImageSrc(currentDocxMeta.src, reporter.writeTempFileStream.bind(reporter))
+      const imageExtension = currentDocxMeta.src.extension
+      const imageContent = currentDocxMeta.src.content
+
+      if (imageContent.type === 'base64') {
+        imageContent.type = 'buffer'
+        imageContent.data = Buffer.from(imageContent.data, 'base64')
+      }
 
       const newImageRelId = getNewRelId(relsDoc)
 

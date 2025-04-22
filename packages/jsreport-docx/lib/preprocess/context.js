@@ -32,6 +32,7 @@ module.exports = (files, headerFooterRefs, ctx) => {
   for (const hfRef of headerFooterRefs) {
     toProcess.push({
       doc: hfRef.doc,
+      name: hfRef.name,
       path: hfRef.path,
       startRefEl: hfRef.doc.documentElement.firstChild,
       endRefEl: hfRef.doc.documentElement.lastChild,
@@ -39,12 +40,17 @@ module.exports = (files, headerFooterRefs, ctx) => {
     })
   }
 
-  for (const { doc: targetDoc, path: targetPath, startRefEl, endRefEl, contextType } of toProcess) {
+  for (const { doc: targetDoc, path: targetPath, name, startRefEl, endRefEl, contextType } of toProcess) {
     for (const [key, idManager] of ctx.localIdManagers.all(targetPath)) {
       ctx.templating.setLocalValue(targetPath, `${key}MaxNumId`, idManager.last.numId)
     }
 
     const extraAttrs = ctx.templating.serializeToHandlebarsAttrs(ctx.templating.allLocalValues(targetPath))
+
+    if (contextType === 'header' || contextType === 'footer') {
+      extraAttrs.push(`name="${name}"`)
+    }
+
     const extraAttrsStr = extraAttrs.length > 0 ? ' ' + extraAttrs.join(' ') : ''
 
     const contextStartEl = targetDoc.createElement('docxRemove')

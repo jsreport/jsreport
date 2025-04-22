@@ -16,12 +16,21 @@ module.exports = (files) => {
 
     sections.push(section)
 
+    const extraAttrs = [`colsWidth="${section.colsWidth.join(',')}"`]
+
+    if (section.headerFooterReferences?.length > 0) {
+      extraAttrs.push(`hf="${section.headerFooterReferences.map((ref) => ref.name).join(',')}"`)
+    }
+
     // we add a wrapper to be able to parse this easily in the post-process
-    const wrapperEl = documentDoc.createElement('docxWrappedSectPr')
-    const clonedSectionPrEl = sectionPrEl.cloneNode(true)
-    clonedSectionPrEl.setAttribute('__sectionIdx__', '{{docxContext type="sectionIdx" increment=true}}')
-    wrapperEl.appendChild(clonedSectionPrEl)
-    sectionPrEl.parentNode.replaceChild(wrapperEl, sectionPrEl)
+    const contextStartEl = documentDoc.createElement('docxRemove')
+    contextStartEl.textContent = `{{#docxContext type='section' ${extraAttrs.join(' ')}}}`
+
+    const contextEndEl = documentDoc.createElement('docxRemove')
+    contextEndEl.textContent = '{{/docxContext}}'
+
+    sectionPrEl.parentNode.insertBefore(contextStartEl, sectionPrEl)
+    sectionPrEl.parentNode.insertBefore(contextEndEl, sectionPrEl.nextSibling)
   }
 
   return sections

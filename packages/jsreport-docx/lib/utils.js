@@ -244,7 +244,15 @@ function getHeaderFooterDocs (headerFooterReferences, documentFilePath, document
     const filename = path.posix.basename(referenceFilePath)
     const relsFile = files.find(f => f.path === `word/_rels/${filename}.rels`)
 
-    result.push({ type, doc: resolvedDoc, relsDoc: relsFile?.doc, path: referenceFilePath, referenceEl })
+    result.push({
+      type,
+      doc: resolvedDoc,
+      relsDoc: relsFile?.doc,
+      path: referenceFilePath,
+      filename,
+      name: filename.endsWith('.xml') ? path.posix.basename(filename, '.xml') : filename,
+      referenceEl
+    })
   }
 
   return result
