@@ -44,6 +44,10 @@ module.exports = (tmpDir, defaultFont) => {
         if ($row.data('rows-placeholder') != null) {
           const totalRowsInPlaceholder = parseInt($row.data('total-rows'), 10)
 
+          if (!totalRowsInPlaceholder) {
+            return
+          }
+
           tableOut.rows.push({
             files: $row.data('files').split(',')
           })
