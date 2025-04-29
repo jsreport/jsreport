@@ -9,7 +9,7 @@ const previewImageContentTypeMap = Object.assign(Object.create(null), {
 })
 
 module.exports = function processObject (data, objectInfo) {
-  const { ctx, localCtx, newDefaultContentTypes, newDocumentRels, defaultShapeTypeByObjectType, newFiles } = data
+  const { idManagers, localIdManagers, newDefaultContentTypes, newDocumentRels, defaultShapeTypeByObjectType, newFiles } = data
   const { content: objectContent, preview: objectPreview } = objectInfo
   let objectXML
 
@@ -18,7 +18,7 @@ module.exports = function processObject (data, objectInfo) {
       const randomSuffix = generateRandomSuffix()
 
       const embeddedContentFilename = `Word_Document_${randomSuffix}.docx`
-      const embeddedContentRelId = ctx.idManagers.get('documentRels').generate().id
+      const embeddedContentRelId = idManagers.get('documentRels').generate().id
 
       newDefaultContentTypes.set('docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 
@@ -37,7 +37,7 @@ module.exports = function processObject (data, objectInfo) {
       }
 
       const embeddedPreviewFilename = `eObjectPreview_${randomSuffix}.${previewImageInfo.extension}`
-      const embeddedPreviewRelId = ctx.idManagers.get('documentRels').generate().id
+      const embeddedPreviewRelId = idManagers.get('documentRels').generate().id
 
       newDefaultContentTypes.set(objectPreview.fileType, previewImageInfo.contentType)
 
@@ -58,7 +58,7 @@ module.exports = function processObject (data, objectInfo) {
       if (needsShapeType) {
         let shapeTypeNum
 
-        ({ numId: shapeTypeNum, id: shapeTypeId } = localCtx.idManagers.get('shapeType').generate())
+        ({ numId: shapeTypeNum, id: shapeTypeId } = localIdManagers.get('shapeType').generate())
 
         defaultShapeTypeByObjectType.set(objectContent.fileType, shapeTypeId)
 
@@ -119,7 +119,7 @@ module.exports = function processObject (data, objectInfo) {
         shapeTypeId = defaultShapeTypeByObjectType.get(objectContent.fileType)
       }
 
-      const shapeId = ctx.idManagers.get('shape').generate().id
+      const shapeId = idManagers.get('shape').generate().id
 
       objectChildren.push(
         createNode(doc, 'v:shape', {

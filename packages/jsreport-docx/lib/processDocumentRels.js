@@ -2,7 +2,7 @@ const { DOMParser } = require('@xmldom/xmldom')
 const { nodeListToArray } = require('./utils')
 
 module.exports = function processDocumentRels (data, xmlStr) {
-  const { ctx, newDocumentRels } = data
+  const { idManagers, newDocumentRels } = data
 
   if (newDocumentRels.size === 0) {
     return xmlStr
@@ -13,7 +13,7 @@ module.exports = function processDocumentRels (data, xmlStr) {
   for (const { id, type, target } of newDocumentRels) {
     const relationshipEl = doc.createElement('Relationship')
     // if id was generated previously take it, if not generate it
-    const newRelId = id ?? ctx.idManagers.get('documentRels').generate().id
+    const newRelId = id ?? idManagers.get('documentRels').generate().id
     relationshipEl.setAttribute('Id', newRelId)
     relationshipEl.setAttribute('Type', type)
     relationshipEl.setAttribute('Target', target)

@@ -6,55 +6,15 @@ function docxContext (options) {
   const Handlebars = require('handlebars')
   let data
 
-  const processMap = {
-    contentTypes: {
-      module: 'docxProcessContentTypes'
-    },
-    documentRels: {
-      module: 'docxProcessDocumentRels'
-    }
-  }
-
-  const { type: contextType, ...restOfHashParameters } = options.hash
-
-  let ctxObjValues = restOfHashParameters
-
-  const initializeContext = (ctxValues) => {
-    const createContext = require('docxCtx')
-    const currentCtx = createContext('handlebars')
-
-    for (const [key, value] of Object.entries(ctxValues)) {
-      const suffix = 'MaxNumId'
-
-      if (key.endsWith(suffix)) {
-        const idKey = key.slice(0, suffix.length * -1)
-
-        currentCtx.idManagers.set(idKey, {
-          fromMaxId: value
-        })
-      } else {
-        if (key === 'imageFetchParallelLimit') {
-          currentCtx.options = {
-            get imageFetchParallelLimit () {
-              return value
-            }
-          }
-        } else {
-          currentCtx.templating.set(key, value)
-        }
-      }
-    }
-
-    return currentCtx
-  }
+  const { type: contextType, path: docxFilePath } = options.hash
 
   if (contextType === 'global') {
+    const jsreport = require('jsreport-proxy')
     data = Handlebars.createFrame(options.data)
 
-    const { evalId, ...restOfGlobalParameters } = restOfHashParameters
+    jsreport.req.context.__docxSharedData.htmlCalls = new Map()
 
-    ctxObjValues = restOfGlobalParameters
-    data.ctx = initializeContext(ctxObjValues)
+    const { evalId } = options.hash
 
     data.evalId = evalId
     data.sections = []
@@ -63,8 +23,6 @@ function docxContext (options) {
     data.newDefaultContentTypes = new Map()
     data.newDocumentRels = new Set()
     data.newFiles = new Map()
-    const createLock = require('docxCreateLock')
-    data.imageLoaderLock = createLock(data.ctx.options.imageFetchParallelLimit)
   } else if (contextType === 'contentTypes' || contextType === 'documentRels') {
     data = Handlebars.createFrame(options.data)
   } else if (contextType === 'document' || contextType === 'header' || contextType === 'footer' || contextType === 'section') {
@@ -167,7 +125,7 @@ function docxContext (options) {
       // we just wait until all values are resolved to start processing
       Promise.all(taskValuePromises).then((results) => {
         const embedType = embedTypes.every((value) => value === true) ? 'inline' : 'block'
-        const processParseHtmlToDocxMeta = require('docxProcessParseHtmlToDocxMeta')
+        const processParseHtmlToDocxMeta = jsreport.req.context.__docxSharedData.processParseHtmlToDocxMeta
 
         const processPromises = []
 
@@ -186,7 +144,7 @@ function docxContext (options) {
               section.colsWidth,
               task.imageLoader,
               jsreport.writeTempFileStream,
-              data.imageLoaderLock
+              jsreport.req.context.__docxSharedData.imageLoaderLock
             ).then((docxMeta) => {
               task.resolve({
                 inline: task.inline,
@@ -247,11 +205,11 @@ function docxContext (options) {
     throw new Error(`data was not initialized in "${contextType}"`)
   }
 
-  const context = { data }
-
-  if (contextType !== 'global') {
-    data.localCtx = initializeContext(ctxObjValues)
+  if (contextType !== 'global' && docxFilePath != null) {
+    data.docxFilePath = docxFilePath
   }
+
+  const context = { data }
 
   const output = options.fn(this, context)
 
@@ -270,16 +228,29 @@ function docxContext (options) {
     })
   } else if (contextType === 'contentTypes' || contextType === 'documentRels') {
     const jsreport = require('jsreport-proxy')
+
+    const processMap = {
+      contentTypes: {
+        fn: jsreport.req.context.__docxSharedData.processContentTypes
+      },
+      documentRels: {
+        fn: jsreport.req.context.__docxSharedData.processDocumentRels
+      }
+    }
+
     const processInfo = processMap[contextType]
 
     if (processInfo == null) {
       throw new Error(`docxContext helper invalid usage, process module function not found for type "${contextType}"`)
     }
 
-    const processFn = require(processInfo.module)
+    const processFn = processInfo.fn
 
     return jsreport.templatingEngines.waitForAsyncHelpers().then(() => {
-      return processFn(options.data, output)
+      return processFn({
+        ...options.data,
+        idManagers: jsreport.req.context.__docxSharedData.idManagers
+      }, output)
     })
   } else if (
     contextType === 'document' ||
@@ -339,12 +310,13 @@ function docxPageBreak () {
 }
 
 function docxRaw (options) {
+  const jsreport = require('jsreport-proxy')
   const Handlebars = require('handlebars')
   const isInlineXML = options.hash.inlineXML === true
   let xmlInput = options.hash.xml
 
   if (isInlineXML && typeof xmlInput === 'string') {
-    const decodeXML = require('docxDecodeXML')
+    const decodeXML = jsreport.req.context.__docxSharedData.decodeXML
     xmlInput = decodeXML(xmlInput)
   }
 
@@ -490,6 +462,7 @@ async function docxTable (data, options) {
     if (
       optionsToUse.hash.check === 'colWidth'
     ) {
+      const jsreport = require('jsreport-proxy')
       const currentCol = optionsToUse.data.currentCol
       const colsWidth = optionsToUse.data.colsWidth
       const originalWidth = optionsToUse.hash.o
@@ -514,7 +487,7 @@ async function docxTable (data, options) {
       let colWidth
 
       if (colsWidthConfig[currentColIdx] != null) {
-        const getColWidth = require('docxGetColWidth')
+        const getColWidth = jsreport.req.context.__docxSharedData.getColWidth
         colWidth = getColWidth(colsWidthConfig[currentColIdx])
 
         if (colWidth == null) {
@@ -948,9 +921,13 @@ async function docxObject (options) {
     previewFileType = 'jpeg'
   }
 
-  const processObject = require('docxProcessObject')
+  const processObject = jsreport.req.context.__docxSharedData.processObject
 
-  return new Handlebars.SafeString(processObject(options.data, {
+  return new Handlebars.SafeString(processObject({
+    ...options.data,
+    idManagers: jsreport.req.context.__docxSharedData.idManagers,
+    localIdManagers: jsreport.req.context.__docxSharedData.localIdManagers(options.data.docxFilePath)
+  }, {
     content: {
       buffer: contentBuffer,
       fileType: contentFileType
@@ -1016,6 +993,7 @@ function docxWatermark (options) {
 }
 
 async function docxHtml (options) {
+  const jsreport = require('jsreport-proxy')
   const Handlebars = require('handlebars')
 
   if (options.hash.cId == null) {
@@ -1079,7 +1057,11 @@ async function docxHtml (options) {
 
   const resolved = await options.data.tasks.wait(taskKey)
 
-  return new Handlebars.SafeString('$docxHtml' + Buffer.from(JSON.stringify(resolved)).toString('base64') + '$')
+  const htmlCallResultId = (jsreport.req.context.__docxSharedData.htmlCalls.size + 1).toString()
+
+  jsreport.req.context.__docxSharedData.htmlCalls.set(htmlCallResultId, resolved)
+
+  return new Handlebars.SafeString(`$docxHtml${htmlCallResultId}$`)
 }
 
 function docxTOCOptions (options) {
@@ -1184,7 +1166,7 @@ async function docxImage (optionsToUse) {
     )
   }
 
-  const processImageLoader = require('docxProcessImageLoader')
+  const processImageLoader = jsreport.req.context.__docxSharedData.processImageLoader
   let imageResolved
 
   try {
@@ -1192,7 +1174,7 @@ async function docxImage (optionsToUse) {
       optionsToUse.hash.src,
       optionsToUse.hash.fallbackSrc,
       jsreport.writeTempFileStream,
-      optionsToUse.data.imageLoaderLock
+      jsreport.req.context.__docxSharedData.imageLoaderLock
     )
   } catch (imageLoaderError) {
     if (optionsToUse.hash.failurePlaceholderAction == null) {
@@ -1421,6 +1403,7 @@ async function docxSData (data, options) {
     arguments.length === 2 &&
     type === 'child'
   ) {
+    const jsreport = require('jsreport-proxy')
     const evalId = optionsToUse.data.evalId
 
     if (evalId == null) {
@@ -1471,7 +1454,7 @@ async function docxSData (data, options) {
 
       try {
         const childDocxBuf = Buffer.from(docxChildInfo.content, docxChildInfo.encoding)
-        const processChildEmbed = require('docxProcessChildEmbed')
+        const processChildEmbed = jsreport.req.context.__docxSharedData.processChildEmbed
         const xmlOutput = await processChildEmbed(childDocxBuf)
         const partialId = `docxChild${evalId}${newData.childCache.size}`
         Handlebars.registerPartial(partialId, xmlOutput)
@@ -1511,7 +1494,7 @@ async function docxSData (data, options) {
 
     let result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
 
-    const processStyles = require('docxProcessStyles')
+    const processStyles = jsreport.req.context.__docxSharedData.processStyles
 
     result = processStyles(newData.styles, result)
 

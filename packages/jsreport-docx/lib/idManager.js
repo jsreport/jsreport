@@ -8,53 +8,51 @@ const idPrefixMap = Object.assign(Object.create(null), {
 function createCollectionManager (isGlobal = true) {
   const collection = new Map()
 
+  if (!isGlobal) {
+    return function (filePath) {
+      assertOk(filePath != null, 'filePath is required')
+      return createCollectionInterface(collection, filePath)
+    }
+  }
+
+  return createCollectionInterface(collection)
+}
+
+function createCollectionInterface (collection, filePath) {
   return {
     has (...args) {
-      if (isGlobal) {
-        const [key] = args
-        assertOk(key != null, 'key is required')
+      const [key] = args
+
+      assertOk(key != null, 'key is required')
+
+      if (filePath == null) {
         return collection.has(key)
       }
 
-      const [filePath, key] = args
-
-      assertOk(filePath != null, 'filePath is required')
-      assertOk(key != null, 'key is required')
-
-      return collection.has(filePath) ? collection.get(key) : false
+      return collection.has(filePath) ? collection.get(filePath).has(key) : false
     },
     get (...args) {
-      if (isGlobal) {
-        const [key] = args
-        assertOk(key != null, 'key is required')
+      const [key] = args
+
+      assertOk(key != null, 'key is required')
+
+      if (filePath == null) {
         return collection.get(key)
       }
-
-      const [filePath, key] = args
-
-      assertOk(filePath != null, 'filePath is required')
-      assertOk(key != null, 'key is required')
 
       return collection.get(filePath)?.get(key)
     },
     set (...args) {
-      if (isGlobal) {
-        const [key, managerSpec] = args
+      const [key, managerSpec] = args
 
-        assertOk(key != null, 'key is required')
-        assertOk(managerSpec != null, 'managerSpec is required')
-
-        const manager = createIdManager(key, managerSpec)
-        collection.set(key, manager)
-
-        return manager
-      }
-
-      const [filePath, key, managerSpec] = args
-
-      assertOk(filePath != null, 'filePath is required')
       assertOk(key != null, 'key is required')
       assertOk(managerSpec != null, 'managerSpec is required')
+
+      if (filePath == null) {
+        const manager = createIdManager(key, managerSpec)
+        collection.set(key, manager)
+        return manager
+      }
 
       let managersMap
 
@@ -70,19 +68,13 @@ function createCollectionManager (isGlobal = true) {
 
       return manager
     },
-    all (...args) {
-      if (isGlobal) {
+    all () {
+      if (filePath == null) {
         return collection.entries()
       }
 
-      const [filePath] = args
-
-      if (filePath != null) {
-        const managersMap = collection.get(filePath) ?? []
-        return managersMap.entries()
-      }
-
-      return collection.entries()
+      const managersMap = collection.get(filePath) ?? []
+      return managersMap.entries()
     }
   }
 }

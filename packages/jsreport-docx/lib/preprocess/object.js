@@ -2,7 +2,7 @@ const { normalizeSingleTextElInRun, normalizeSingleContentInText, nodeListToArra
 
 const instanceIdRegExp = /(\d+)$/
 
-module.exports = (files, headerFooterRefs, ctx) => {
+module.exports = (files, headerFooterRefs, sharedData) => {
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const toProcess = [{ doc: documentFile.doc, path: documentFile.path }]
 
@@ -16,7 +16,7 @@ module.exports = (files, headerFooterRefs, ctx) => {
       getNumberId: getShapeTypeNumberId
     }
 
-    ctx.localIdManagers.set(targetPath, 'shapeType', {
+    sharedData.localIdManagers(targetPath).set('shapeType', {
       fromItems: shapeTypeFromItems
     })
 
@@ -25,12 +25,12 @@ module.exports = (files, headerFooterRefs, ctx) => {
       getNumberId: getShapeNumberId
     }
 
-    if (!ctx.idManagers.has('shape')) {
-      ctx.idManagers.set('shape', {
+    if (!sharedData.idManagers.has('shape')) {
+      sharedData.idManagers.set('shape', {
         fromItems: shapeFromItems
       })
     } else {
-      ctx.idManagers.get('shape').updateFromItems(shapeFromItems)
+      sharedData.idManagers.get('shape').updateFromItems(shapeFromItems)
     }
 
     const docxObjectTextElements = nodeListToArray(targetDoc.getElementsByTagName('w:t')).filter((tEl) => {

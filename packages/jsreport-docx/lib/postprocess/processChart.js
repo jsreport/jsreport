@@ -4,7 +4,7 @@ const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
 const { serializeXml, nodeListToArray, getChartEl, getNewRelIdFromBaseId, clearEl, findChildNode, findOrCreateChildNode } = require('../utils')
 
-module.exports = async function processChart (files, referenceDrawingEl, relsDoc, originalChartsXMLMap, newRelIdCounterMap) {
+module.exports = function processChart (files, referenceDrawingEl, relsDoc, originalChartsXMLMap, newRelIdCounterMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)
   const relsEl = relsDoc.getElementsByTagName('Relationships')[0]
   const documentFile = files.find(f => f.path === 'word/document.xml')

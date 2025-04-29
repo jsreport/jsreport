@@ -2,7 +2,7 @@ const fs = require('fs')
 const { getImageSizeInEMU } = require('../imageUtils')
 const { nodeListToArray, findOrCreateChildNode, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
 
-module.exports = async function processImage (files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
+module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
   const types = contentTypesFile.doc.getElementsByTagName('Types')[0]
@@ -136,6 +136,7 @@ module.exports = async function processImage (files, referenceDrawingEl, doc, re
     return ''
   }
 
+  const imageSize = imageConfig.image.size
   const imageExtension = imageConfig.image.extension
   const imageContent = imageConfig.image.content
 
@@ -189,7 +190,7 @@ module.exports = async function processImage (files, referenceDrawingEl, doc, re
     imageWidthEMU = parseFloat(aExtEl.getAttribute('cx'))
     imageHeightEMU = parseFloat(aExtEl.getAttribute('cy'))
   } else {
-    const imageSizeEMU = await getImageSizeInEMU(imageContent, {
+    const imageSizeEMU = getImageSizeInEMU(imageSize, {
       width: imageConfig.width,
       height: imageConfig.height
     })

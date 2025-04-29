@@ -670,6 +670,7 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
       // inherit only the run properties of the html embed call
       clearEl(runEl, (c) => c.nodeName === 'w:rPr')
 
+      const imageSize = currentDocxMeta.src.size
       const imageExtension = currentDocxMeta.src.extension
       const imageContent = currentDocxMeta.src.content
 
@@ -711,7 +712,7 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       relsEl.appendChild(relEl)
 
-      const imageSizeEMU = await getImageSizeInEMU(imageContent, {
+      const imageSizeEMU = getImageSizeInEMU(imageSize, {
         width: currentDocxMeta.width,
         height: currentDocxMeta.height
       })

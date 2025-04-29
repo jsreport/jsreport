@@ -1,9 +1,9 @@
 const { nodeListToArray } = require('../utils')
 
-module.exports = (files, ctx) => {
+module.exports = (files, sharedData) => {
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
 
-  ctx.idManagers.set('documentRels', {
+  sharedData.idManagers.set('documentRels', {
     prefix: 'rId',
     fromItems: {
       getIds: () => nodeListToArray(documentRelsDoc.getElementsByTagName('Relationship')).map((el) => el.getAttribute('Id')),

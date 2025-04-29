@@ -4,7 +4,7 @@ const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
 const processImage = require('./processImage')
 const processChart = require('./processChart')
 
-module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx) => {
+module.exports = async (files, headerFooterRefs, newBookmarksMap, sharedData) => {
   const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
@@ -20,10 +20,7 @@ module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx)
   }
 
   documentFile.data = await recursiveStringReplaceAsync(
-    {
-      string: documentFile.data.toString(),
-      parallelLimit: ctx.options.imageFetchParallelLimit
-    },
+    documentFile.data.toString(),
     '<w:drawing>',
     '</w:drawing>',
     'g',
@@ -37,7 +34,7 @@ module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx)
 
       const drawingEl = doc.documentElement
 
-      const newDrawingEl = await processDrawingEl(reporter, drawingEl, doc, documentRelsDoc, hasNestedMatch)
+      const newDrawingEl = processDrawingEl(drawingEl, doc, documentRelsDoc, hasNestedMatch)
 
       if (newDrawingEl != null) {
         return newDrawingEl === '' ? newDrawingEl : serializeXml(newDrawingEl)
@@ -56,7 +53,7 @@ module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx)
 
     for (const drawingEl of drawingEls) {
       const hasNestedMatch = nodeListToArray(drawingEl.getElementsByTagName('w:drawing')).length > 0
-      const newDrawingEl = await processDrawingEl(reporter, drawingEl, headerFooterDoc, headerFooterRelsDoc, hasNestedMatch)
+      const newDrawingEl = processDrawingEl(drawingEl, headerFooterDoc, headerFooterRelsDoc, hasNestedMatch)
 
       if (newDrawingEl == null) {
         continue
@@ -70,7 +67,7 @@ module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx)
     }
   }
 
-  async function processDrawingEl (reporter, referenceDrawingEl, doc, relsDoc, hasNestedMatch) {
+  function processDrawingEl (referenceDrawingEl, doc, relsDoc, hasNestedMatch) {
     const drawingEl = referenceDrawingEl.cloneNode(true)
     let changedDocPrId = false
     const docPrEl = getDocPrEl(drawingEl)
@@ -95,7 +92,7 @@ module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx)
       }
     }
 
-    const newImageDrawingEl = await processImage(files, drawingEl, doc, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
+    const newImageDrawingEl = processImage(files, drawingEl, doc, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
 
     if (newImageDrawingEl != null) {
       return newImageDrawingEl
@@ -106,7 +103,7 @@ module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, ctx)
       return changedDocPrId ? drawingEl : null
     }
 
-    const newChartDrawingEl = await processChart(files, drawingEl, relsDoc, originalChartsXMLMap, chartsNewRelIdCounterMap)
+    const newChartDrawingEl = processChart(files, drawingEl, relsDoc, originalChartsXMLMap, chartsNewRelIdCounterMap)
 
     if (newChartDrawingEl) {
       return newChartDrawingEl

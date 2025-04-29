@@ -1,6 +1,6 @@
 const { findChildNode } = require('../utils')
 
-module.exports = (files, headerFooterRefs, ctx) => {
+module.exports = (files, headerFooterRefs) => {
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const documentRelsFile = files.find(f => f.path === 'word/_rels/document.xml.rels')
@@ -41,11 +41,7 @@ module.exports = (files, headerFooterRefs, ctx) => {
   }
 
   for (const { doc: targetDoc, path: targetPath, name, startRefEl, endRefEl, contextType } of toProcess) {
-    for (const [key, idManager] of ctx.localIdManagers.all(targetPath)) {
-      ctx.templating.setLocalValue(targetPath, `${key}MaxNumId`, idManager.last.numId)
-    }
-
-    const extraAttrs = ctx.templating.serializeToHandlebarsAttrs(ctx.templating.allLocalValues(targetPath))
+    const extraAttrs = [`path="${targetPath}"`]
 
     if (contextType === 'header' || contextType === 'footer') {
       extraAttrs.push(`name="${name}"`)

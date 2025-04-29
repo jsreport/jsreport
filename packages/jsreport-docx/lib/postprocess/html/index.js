@@ -4,7 +4,7 @@ const recursiveStringReplaceAsync = require('../../recursiveStringReplaceAsync')
 const { nodeListToArray, serializeXml, getClosestEl, clearEl } = require('../../utils')
 const convertDocxMetaToNodes = require('./convertDocxMetaToNodes')
 
-module.exports = async (reporter, files, sections) => {
+module.exports = async (files, sections, sharedData) => {
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
 
@@ -35,7 +35,7 @@ module.exports = async (reporter, files, sections) => {
         let output = ''
 
         if (el.nodeName === 'w:p') {
-          const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(reporter, el, documentFile.path, doc, documentRelsDoc, numberingLock, files)
+          const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(sharedData, el, documentFile.path, doc, documentRelsDoc, numberingLock, files)
           output = xmlNodesGenerated.map((node) => serializeXml(node)).join('')
         } else {
           output = el.toString()
@@ -55,7 +55,7 @@ module.exports = async (reporter, files, sections) => {
     })
 
     for (const paragraphEl of paragraphEls) {
-      const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(reporter, paragraphEl, headerFooterPath, headerFooterDoc, headerFooterRelsDoc, numberingLock, files)
+      const xmlNodesGenerated = await processParagraphHtmlEmbedContainer(sharedData, paragraphEl, headerFooterPath, headerFooterDoc, headerFooterRelsDoc, numberingLock, files)
 
       for (const xmlNode of xmlNodesGenerated) {
         paragraphEl.parentNode.insertBefore(xmlNode, paragraphEl)
@@ -66,7 +66,7 @@ module.exports = async (reporter, files, sections) => {
   }
 }
 
-async function processParagraphHtmlEmbedContainer (reporter, referenceParagraphEl, docPath, doc, relsDoc, numberingLock, files) {
+async function processParagraphHtmlEmbedContainer (sharedData, referenceParagraphEl, docPath, doc, relsDoc, numberingLock, files) {
   const paragraphEl = referenceParagraphEl.cloneNode(true)
 
   paragraphEl.removeAttribute('__html_embed_container__')
@@ -84,7 +84,7 @@ async function processParagraphHtmlEmbedContainer (reporter, referenceParagraphE
 
   for (const htmlEmbedEl of htmlEmbedElements) {
     const match = htmlEmbedEl.textContent.match(/\$docxHtml([^$]*)\$/)
-    const htmlEmbedResolved = JSON.parse(Buffer.from(match[1], 'base64').toString())
+    const htmlEmbedResolved = sharedData.htmlCalls.get(match[1])
 
     const tEl = getClosestEl(htmlEmbedEl, (n) => (
       n.nodeName === 'w:t' &&

@@ -14,61 +14,6 @@ module.exports = (reporter, definition) => {
 
   let helpersScript
 
-  reporter.options.sandbox.modules.push({
-    alias: 'docxDecodeXML',
-    path: path.join(__dirname, './decodeXML.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxCreateLock',
-    path: path.join(__dirname, './createLock.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxCtx',
-    path: path.join(__dirname, './ctx.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxGetColWidth',
-    path: path.join(__dirname, './getColWidth.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxProcessChildEmbed',
-    path: path.join(__dirname, './processChildEmbed/index.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxProcessStyles',
-    path: path.join(__dirname, './processStyles.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxProcessContentTypes',
-    path: path.join(__dirname, './processContentTypes.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxProcessDocumentRels',
-    path: path.join(__dirname, './processDocumentRels.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxProcessImageLoader',
-    path: path.join(__dirname, './processImageLoader.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxProcessParseHtmlToDocxMeta',
-    path: path.join(__dirname, './processParseHtmlToDocxMeta.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'docxProcessObject',
-    path: path.join(__dirname, './processObject.js')
-  })
-
   reporter.extensionsManager.recipes.push({
     name: 'docx',
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)

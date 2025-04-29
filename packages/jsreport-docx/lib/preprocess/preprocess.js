@@ -16,8 +16,8 @@ const object = require('./object')
 const html = require('./html')
 const child = require('./child')
 
-module.exports = (files, ctx) => {
-  base(files, ctx)
+module.exports = (files, sharedData) => {
+  base(files, sharedData)
   concatTags(files)
 
   const sectionsDetails = sections(files)
@@ -41,13 +41,13 @@ module.exports = (files, ctx) => {
   toc(files)
   pageBreak(files)
   child(files, headerFooterRefs)
-  object(files, headerFooterRefs, ctx)
+  object(files, headerFooterRefs, sharedData)
   // we handle the html step as the last processing step to ensure no other step
   // work with the attribute and comment we put in the <w:p> elements for the html handling
   html(files, headerFooterRefs)
-  // we process context here to ensure we get the chance to pick all changes to ctx,
+  // we process context here to ensure we get the chance to pick all changes,
   // no transformation done here other than adding the wrapping helper calls
-  context(files, headerFooterRefs, ctx)
+  context(files, headerFooterRefs)
 
   return headerFooterRefs
 }
