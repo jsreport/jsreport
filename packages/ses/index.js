@@ -3612,7 +3612,7 @@ const freezeTypedArray = array => {
   // that we are removing it so we know to look into it, as happens when
   // the language evolves new features to existing intrinsics.
   if (!known) {
-    warn(`Removing ${subPath}`);
+    // warn(`Removing ${subPath}`);
   }
   try {
     delete obj[prop];
@@ -3621,7 +3621,7 @@ const freezeTypedArray = array => {
       if (typeof obj === 'function' && prop === 'prototype') {
         obj.prototype = undefined;
         if (obj.prototype === undefined) {
-          warn(`Tolerating undeletable ${subPath} === undefined`);
+          // warn(`Tolerating undeletable ${subPath} === undefined`);
           return;
         }
       }
@@ -7148,10 +7148,10 @@ const scopeProxyHandlerProperties = {
     // Coerce with `String` in case prop is a symbol.
     const quotedProp = q(String(prop));
     // eslint-disable-next-line @endo/no-polymorphic-call
-    console.warn(
-      `getOwnPropertyDescriptor trap on scopeTerminatorHandler for ${quotedProp}`,
-      TypeError().stack,
-    );
+    // console.warn(
+    //   `getOwnPropertyDescriptor trap on scopeTerminatorHandler for ${quotedProp}`,
+    //   TypeError().stack,
+    // );
     return undefined;
   },
 
@@ -7455,15 +7455,16 @@ const htmlCommentPattern = new FERAL_REG_EXP(`(?:${'<'}!--|--${'>'})`, 'g');
  * @returns {string}
  */
        const rejectHtmlComments = src => {
-  const lineNumber = getLineNumber(src, htmlCommentPattern);
-  if (lineNumber < 0) {
-    return src;
-  }
-  const name = getSourceURL(src);
-  // See https://github.com/endojs/endo/blob/master/packages/ses/error-codes/SES_HTML_COMMENT_REJECTED.md
-  throw SyntaxError(
-    `Possible HTML comment rejected at ${name}:${lineNumber}. (SES_HTML_COMMENT_REJECTED)`,
-  );
+        return src;
+  // const lineNumber = getLineNumber(src, htmlCommentPattern);
+  // if (lineNumber < 0) {
+  //   return src;
+  // }
+  // const name = getSourceURL(src);
+  // // See https://github.com/endojs/endo/blob/master/packages/ses/error-codes/SES_HTML_COMMENT_REJECTED.md
+  // throw SyntaxError(
+  //   `Possible HTML comment rejected at ${name}:${lineNumber}. (SES_HTML_COMMENT_REJECTED)`,
+  // );
 };
 
 /**
