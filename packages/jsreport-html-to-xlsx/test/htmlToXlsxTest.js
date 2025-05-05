@@ -148,7 +148,9 @@ describe('html to xlsx', () => {
     parseInt(workbook.sheets()[1].row(1).height()).should.be.eql(37)
   })
 
-  common('chrome')
+  describe('html to xlsx chrome', () => {
+    common('chrome')
+  })
 
   describe('html to xlsx cheerio-page-eval', () => {
     common('cheerio')
