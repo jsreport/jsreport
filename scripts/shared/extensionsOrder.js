@@ -116,6 +116,7 @@ function getPriorityOrder () {
     '@jsreport/jsreport-scheduling',
     '@jsreport/jsreport-html-to-xlsx',
     '@jsreport/jsreport-xlsx',
+    '@jsreport/jsreport-libreoffice',
     '@jsreport/jsreport-chrome-pdf',
     '@jsreport/jsreport-public-templates',
     '@jsreport/jsreport-cli',
