@@ -7,6 +7,11 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 4.1.1
+
+- update deps to fix audit
+- print nested errors from error.cause
+
 ### 4.1.0
 
 - update deps to fix audit

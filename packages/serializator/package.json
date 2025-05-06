@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/serializator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Serialize javascript objects to JSON with support for rich data structures",
   "main": "index.js",
   "homepage": "https://github.com/jsreport/jsreport",

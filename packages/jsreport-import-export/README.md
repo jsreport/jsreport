@@ -7,6 +7,10 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 4.0.7
+
+- update deps to fix audit
+
 ### 4.0.6
 
 - update axios to fix audit

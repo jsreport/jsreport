@@ -5,6 +5,10 @@
 
 ## Changelog
 
+### 1.2.0
+
+- fix audit by updating to ses@1.12.0
+
 ### 1.1.0
 
 - fix running on node.js 22 by updating to ses@1.5.0

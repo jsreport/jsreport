@@ -7,6 +7,10 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.2.1
+
+- update deps to fix npm audit
+
 ### 4.2.0
 
 - update nanoid, @jsreport/office to fix audit

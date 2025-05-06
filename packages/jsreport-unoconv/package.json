@@ -34,8 +34,8 @@
     "mime": "2.4.4"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.1",
-    "@jsreport/jsreport-html-to-xlsx": "4.2.0",
+    "@jsreport/jsreport-core": "4.7.0",
+    "@jsreport/jsreport-html-to-xlsx": "4.2.1",
     "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
     "should": "13.2.3",

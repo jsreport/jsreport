@@ -282,6 +282,13 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.7.0
+
+- update deps to fix npm audit
+- expose methods to create temporary files in jsreport-proxy
+- add support for taking nested errors from error.cause
+- add worker id to worker creation
+
 ### 4.6.1
 
 - clear profiles canceling check interval during reporter close

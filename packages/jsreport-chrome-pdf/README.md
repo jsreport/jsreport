@@ -29,6 +29,11 @@ chrome-image
 
 ## Changelog
 
+### 4.2.0
+
+- implement chrome connect strategy
+- add resources timeout for chrome
+
 ### 4.1.1
 
 - set chrome protocolTimeout based on reportTimeout

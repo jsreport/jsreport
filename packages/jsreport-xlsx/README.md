@@ -7,6 +7,12 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.4.1
+
+- update deps to fix audit
+- dont remove xmlns from elements
+- fix passing strings as values to handlebars helpers
+
 ### 4.4.0
 
 - update deps to fix audit

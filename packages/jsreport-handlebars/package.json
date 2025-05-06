@@ -24,7 +24,7 @@
     "test": "mocha test --timeout=5000 && standard"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-core": "4.7.0",
     "@jsreport/studio-dev": "4.0.1",
     "handlebars": "4.7.7",
     "mocha": "10.1.0",

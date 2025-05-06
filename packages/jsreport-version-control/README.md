@@ -9,6 +9,10 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 4.1.1
+
+- update deps
+
 ### 4.1.0
 
 - update deps to fix audit

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 4.1.4
+
+- fix async reports handling when user group is logged in
+
 ### 4.1.3
 
 - propagate res.meta.headers to the Location responses

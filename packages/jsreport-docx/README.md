@@ -7,7 +7,16 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
-### 4.7.1    
+### 4.8.0
+
+- update deps to fix audit
+- docxHtml images now supports passing a custom loader function to allow a custom method to fetch images without loading all images in memory.
+- docxImage now supports using a loader function for `src`, `fallbackSrc` to allow a custom method to fetch images without loading all images in memory.
+- docxHtml support for getting `content` and `inline` parameters from async execution
+- fix regression when multiple docxTable are used with docxHtml content
+- dont remove xmlns from elements
+
+### 4.7.1
 
 - fix regression of complex template not working
 - improve errors

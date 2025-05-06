@@ -29,7 +29,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-core": "4.7.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/studio-dev": "4.0.1",
     "handlebars": "4.7.7",

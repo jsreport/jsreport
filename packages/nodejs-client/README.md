@@ -13,6 +13,10 @@
 
 ## Changelog
 
+### 4.0.5
+
+- update axios to fix audit
+
 ### 4.0.4
 
 - update axios to fix audit

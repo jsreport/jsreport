@@ -24,7 +24,7 @@
   },
   "author": "Jan Blaha",
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-core": "4.7.0",
     "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
     "phantomjs-exact-2-1-1": "0.1.0",

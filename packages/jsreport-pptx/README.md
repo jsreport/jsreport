@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.4.1
+
+- update deps to fix audit
+
 ### 4.4.0
 
 - update deps to fix audit

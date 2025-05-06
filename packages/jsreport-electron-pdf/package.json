@@ -31,7 +31,7 @@
     "lodash.pickby": "4.6.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-core": "4.7.0",
     "@jsreport/studio-dev": "4.0.1",
     "in-publish": "2.0.1",
     "mocha": "10.1.0",

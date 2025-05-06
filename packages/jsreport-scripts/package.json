@@ -29,8 +29,8 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.2.1",
-    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-assets": "4.2.2",
+    "@jsreport/jsreport-core": "4.7.0",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/studio-dev": "4.0.1",
     "bluebird": "3.7.2",

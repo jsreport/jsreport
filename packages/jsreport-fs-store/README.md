@@ -18,6 +18,10 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 4.1.1
+
+- update @jsreport/serializator
+
 ### 4.1.0
 
 - remove external sync modifications code based on old transactions model

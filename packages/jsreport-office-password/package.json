@@ -39,8 +39,8 @@
     "xlsx-populate": "1.21.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.1",
-    "@jsreport/jsreport-html-to-xlsx": "4.2.0",
+    "@jsreport/jsreport-core": "4.7.0",
+    "@jsreport/jsreport-html-to-xlsx": "4.2.1",
     "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
     "puppeteer": "24.3.0",

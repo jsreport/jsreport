@@ -41,7 +41,7 @@
     "password-hash": "1.2.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-core": "4.7.0",
     "@jsreport/jsreport-express": "4.2.0",
     "@jsreport/studio-dev": "4.0.1",
     "express": "4.21.2",

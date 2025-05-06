@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-assets",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "description": "jsreport extension embedding static assets like fonts or helpers into the templates",
   "keywords": [
     "jsreport",
@@ -30,7 +30,7 @@
     "test:watch": "mocha test --watch"
   },
   "dependencies": {
-    "@jsreport/office": "4.1.3",
+    "@jsreport/office": "4.1.4",
     "async-replace-with-limit": "2.0.0",
     "enhanced-resolve": "5.8.2",
     "etag": "1.8.1",
@@ -41,7 +41,7 @@
     "strip-bom-buf": "2.0.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.6.1",
+    "@jsreport/jsreport-core": "4.7.0",
     "@jsreport/jsreport-express": "4.2.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-jsrender": "4.0.0",

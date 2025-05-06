@@ -336,7 +336,6 @@ const decodePayload = (encodedPayload, binaryType) => {
     return packets;
 };
 function createPacketEncoderStream() {
-    // @ts-expect-error
     return new TransformStream({
         transform(packet, controller) {
             (0,_encodePacket_js__WEBPACK_IMPORTED_MODULE_0__.encodePacketToBinary)(packet, (encodedPacket) => {
@@ -396,15 +395,14 @@ function createPacketDecoderStream(maxPayload, binaryType) {
         TEXT_DECODER = new TextDecoder();
     }
     const chunks = [];
-    let state = 0 /* READ_HEADER */;
+    let state = 0 /* State.READ_HEADER */;
     let expectedLength = -1;
     let isBinary = false;
-    // @ts-expect-error
     return new TransformStream({
         transform(chunk, controller) {
             chunks.push(chunk);
             while (true) {
-                if (state === 0 /* READ_HEADER */) {
+                if (state === 0 /* State.READ_HEADER */) {
                     if (totalLength(chunks) < 1) {
                         break;
                     }
@@ -412,24 +410,24 @@ function createPacketDecoderStream(maxPayload, binaryType) {
                     isBinary = (header[0] & 0x80) === 0x80;
                     expectedLength = header[0] & 0x7f;
                     if (expectedLength < 126) {
-                        state = 3 /* READ_PAYLOAD */;
+                        state = 3 /* State.READ_PAYLOAD */;
                     }
                     else if (expectedLength === 126) {
-                        state = 1 /* READ_EXTENDED_LENGTH_16 */;
+                        state = 1 /* State.READ_EXTENDED_LENGTH_16 */;
                     }
                     else {
-                        state = 2 /* READ_EXTENDED_LENGTH_64 */;
+                        state = 2 /* State.READ_EXTENDED_LENGTH_64 */;
                     }
                 }
-                else if (state === 1 /* READ_EXTENDED_LENGTH_16 */) {
+                else if (state === 1 /* State.READ_EXTENDED_LENGTH_16 */) {
                     if (totalLength(chunks) < 2) {
                         break;
                     }
                     const headerArray = concatChunks(chunks, 2);
                     expectedLength = new DataView(headerArray.buffer, headerArray.byteOffset, headerArray.length).getUint16(0);
-                    state = 3 /* READ_PAYLOAD */;
+                    state = 3 /* State.READ_PAYLOAD */;
                 }
-                else if (state === 2 /* READ_EXTENDED_LENGTH_64 */) {
+                else if (state === 2 /* State.READ_EXTENDED_LENGTH_64 */) {
                     if (totalLength(chunks) < 8) {
                         break;
                     }
@@ -442,7 +440,7 @@ function createPacketDecoderStream(maxPayload, binaryType) {
                         break;
                     }
                     expectedLength = n * Math.pow(2, 32) + view.getUint32(4);
-                    state = 3 /* READ_PAYLOAD */;
+                    state = 3 /* State.READ_PAYLOAD */;
                 }
                 else {
                     if (totalLength(chunks) < expectedLength) {
@@ -450,7 +448,7 @@ function createPacketDecoderStream(maxPayload, binaryType) {
                     }
                     const data = concatChunks(chunks, expectedLength);
                     controller.enqueue((0,_decodePacket_js__WEBPACK_IMPORTED_MODULE_1__.decodePacket)(isBinary ? data : TEXT_DECODER.decode(data), binaryType));
-                    state = 0 /* READ_HEADER */;
+                    state = 0 /* State.READ_HEADER */;
                 }
                 if (expectedLength === 0 || expectedLength > maxPayload) {
                     controller.enqueue(_commons_js__WEBPACK_IMPORTED_MODULE_2__.ERROR_PACKET);
