@@ -12,7 +12,7 @@ const ThemeManager = require('./themeManager')
 const createTextSearch = require('./textSearch')
 const distPath = path.join(__dirname, '../static/dist')
 const ms = require('ms')
-const sizeOf = require('image-size')
+const { imageSize } = require('image-size')
 
 module.exports = (reporter, definition) => {
   const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../static/diff.css')).toString()
@@ -89,7 +89,7 @@ module.exports = (reporter, definition) => {
     const hasSmallDimension = (d) => d.width === 16 && d.height === 16
     const hasLargeDimension = (d) => d.width === 32 && d.height === 32
 
-    const dimensions = sizeOf(faviconInfo.content)
+    const dimensions = imageSize(faviconInfo.content)
     let dimension
 
     if (dimensions.type === 'ico') {

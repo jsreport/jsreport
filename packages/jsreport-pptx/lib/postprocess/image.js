@@ -1,5 +1,5 @@
 
-const sizeOf = require('image-size')
+const { imageSize } = require('image-size')
 const axios = require('axios')
 const { nodeListToArray, getDimension, pxToEMU, cmToEMU } = require('../utils')
 
@@ -98,7 +98,7 @@ module.exports = async (files) => {
       let imageHeightEMU
 
       if (imageConfig.width != null || imageConfig.height != null) {
-        const imageDimension = sizeOf(imageBuffer)
+        const imageDimension = imageSize(imageBuffer)
         const targetWidth = getDimension(imageConfig.width)
         const targetHeight = getDimension(imageConfig.height)
 
@@ -134,7 +134,7 @@ module.exports = async (files) => {
         imageWidthEMU = parseFloat(aExt.getAttribute('cx'))
         imageHeightEMU = parseFloat(aExt.getAttribute('cy'))
       } else {
-        const imageDimension = sizeOf(imageBuffer)
+        const imageDimension = imageSize(imageBuffer)
         imageWidthEMU = pxToEMU(imageDimension.width)
         imageHeightEMU = pxToEMU(imageDimension.height)
       }

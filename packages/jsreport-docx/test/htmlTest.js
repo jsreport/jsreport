@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const jsreport = require('@jsreport/jsreport-core')
 const WordExtractor = require('word-extractor')
-const sizeOf = require('image-size')
+const { imageSize } = require('image-size')
 const { getDocumentsFromDocxBuf, getTextNodesMatching, getImageEl, getImageMeta } = require('./utils')
 const { nodeListToArray, findChildNode, pxToEMU, cmToEMU, emuToTOAP, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
 const { getSectionDetail } = require('../lib/sectionUtils')
@@ -17481,7 +17481,7 @@ describe('<img> tag', () => {
 
   const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
   const imageDataSrc = 'data:image/png;base64,' + imageBuf.toString('base64')
-  const imageDimensions = sizeOf(imageBuf)
+  const imageDimensions = imageSize(imageBuf)
 
   const targetImageSize = {
     width: pxToEMU(imageDimensions.width),
@@ -17490,7 +17490,7 @@ describe('<img> tag', () => {
 
   const image2Buf = fs.readFileSync(path.join(docxDirPath, 'image2.png'))
   const image2DataSrc = 'data:image/png;base64,' + image2Buf.toString('base64')
-  const image2Dimensions = sizeOf(image2Buf)
+  const image2Dimensions = imageSize(image2Buf)
 
   const targetImage2Size = {
     width: pxToEMU(image2Dimensions.width),

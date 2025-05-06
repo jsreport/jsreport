@@ -2,7 +2,7 @@ const should = require('should')
 const fs = require('fs')
 const path = require('path')
 const jsreport = require('@jsreport/jsreport-core')
-const sizeOf = require('image-size')
+const { imageSize } = require('image-size')
 const { nodeListToArray, pxToEMU, cmToEMU, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
 const { getDocumentsFromDocxBuf, getImageMeta } = require('./utils')
 
@@ -42,7 +42,7 @@ describe('docx image', () => {
     describe(`image format ${format}`, () => {
       it('image', async () => {
         const { imageBuf, imageExtension } = readImage(format, 'image')
-        const imageDimensions = sizeOf(imageBuf)
+        const imageDimensions = imageSize(imageBuf)
 
         const targetImageSize = {
           width: pxToEMU(imageDimensions.width),
@@ -78,7 +78,7 @@ describe('docx image', () => {
 
       it('image from async result', async () => {
         const { imageBuf, imageExtension } = readImage(format, 'image')
-        const imageDimensions = sizeOf(imageBuf)
+        const imageDimensions = imageSize(imageBuf)
 
         const targetImageSize = {
           width: pxToEMU(imageDimensions.width),
@@ -116,7 +116,7 @@ describe('docx image', () => {
 
       it('image from custom loader function', async () => {
         const { imageBuf, imagePath, imageExtension } = readImage(format, 'image')
-        const imageDimensions = sizeOf(imageBuf)
+        const imageDimensions = imageSize(imageBuf)
 
         const targetImageSize = {
           width: pxToEMU(imageDimensions.width),
@@ -171,7 +171,7 @@ describe('docx image', () => {
       if (format === 'jpeg') {
         it('image can render jpeg with CMYK color code', async () => {
           const { imageBuf, imageExtension } = readImage(format, 'cmyk')
-          const imageDimensions = sizeOf(imageBuf)
+          const imageDimensions = imageSize(imageBuf)
 
           const targetImageSize = {
             width: pxToEMU(imageDimensions.width),
@@ -1141,7 +1141,7 @@ describe('docx image', () => {
     })
 
     const { imageBuf: fallbackImageBuf, imageExtension: fallbackImageExtension } = readImage(format, 'image')
-    const imageDimensions = sizeOf(fallbackImageBuf)
+    const imageDimensions = imageSize(fallbackImageBuf)
 
     const targetImageSize = {
       width: pxToEMU(imageDimensions.width),
@@ -1468,7 +1468,7 @@ describe('docx image', () => {
     const format = 'png'
 
     const { imageBuf: fallbackImageBuf, imageExtension: fallbackImageExtension } = readImage(format, 'image')
-    const imageDimensions = sizeOf(fallbackImageBuf)
+    const imageDimensions = imageSize(fallbackImageBuf)
 
     const targetImageSize = {
       width: pxToEMU(imageDimensions.width),
@@ -2273,9 +2273,9 @@ describe('docx image', () => {
 
   it('image in document header', async () => {
     const headerImageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
-    const headerImageDimensions = sizeOf(headerImageBuf)
+    const headerImageDimensions = imageSize(headerImageBuf)
     const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image2.png'))
-    const imageDimensions = sizeOf(imageBuf)
+    const imageDimensions = imageSize(imageBuf)
 
     const targetHeaderImageSize = {
       width: pxToEMU(headerImageDimensions.width),
@@ -2334,9 +2334,9 @@ describe('docx image', () => {
 
   it('image in document footer', async () => {
     const footerImageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
-    const footerImageDimensions = sizeOf(footerImageBuf)
+    const footerImageDimensions = imageSize(footerImageBuf)
     const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image2.png'))
-    const imageDimensions = sizeOf(imageBuf)
+    const imageDimensions = imageSize(imageBuf)
 
     const targetFooterImageSize = {
       width: pxToEMU(footerImageDimensions.width),
@@ -2395,9 +2395,9 @@ describe('docx image', () => {
 
   it('image in document header and footer', async () => {
     const headerFooterImageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
-    const headerFooterImageDimensions = sizeOf(headerFooterImageBuf)
+    const headerFooterImageDimensions = imageSize(headerFooterImageBuf)
     const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image2.png'))
-    const imageDimensions = sizeOf(imageBuf)
+    const imageDimensions = imageSize(imageBuf)
 
     const targetHeaderFooterImageSize = {
       width: pxToEMU(headerFooterImageDimensions.width),

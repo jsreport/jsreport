@@ -1,5 +1,5 @@
 const fsAsync = require('fs/promises')
-const sizeOf = require('image-size')
+const { imageSize } = require('image-size')
 const { resolveImageSrc } = require('./imageUtils')
 
 module.exports = async function processImageLoader (imageSrc, fallbackSrc, writeTempFileStream, imageLoaderLock) {
@@ -62,7 +62,7 @@ async function loadImage (imageSrc, fallbackSrc, writeTempFileStream) {
   // in the future, likely in v2 of image-size, we should try to check if the issue is solved
   // and we can just pass it a file and read it from there,
   // this will optimize the memory too so we dont have to buffer the whole image.
-  const imageSize = sizeOf(imageBuffer)
+  const imageDimensions = imageSize(imageBuffer)
 
   if (imageContent.type === 'buffer') {
     imageContent.type = 'base64'
@@ -73,8 +73,8 @@ async function loadImage (imageSrc, fallbackSrc, writeTempFileStream) {
     content: imageContent,
     extension: imageExtension,
     size: {
-      width: imageSize.width,
-      height: imageSize.height
+      width: imageDimensions.width,
+      height: imageDimensions.height
     }
   }
 }

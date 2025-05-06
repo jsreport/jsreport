@@ -4,7 +4,7 @@ const fs = require('fs')
 const fsAsync = require('fs/promises')
 const jsreport = require('@jsreport/jsreport-core')
 const { DOMParser } = require('@xmldom/xmldom')
-const sizeOf = require('image-size')
+const { imageSize } = require('image-size')
 const { nodeListToArray, pxToEMU, cmToEMU } = require('../lib/utils')
 const { decompressResponse, getImageSize, getImageDataUri } = require('./utils')
 
@@ -26,7 +26,7 @@ describe('pptx image', () => {
 
   it('image', async () => {
     const imageBuf = fs.readFileSync(path.join(pptxDirPath, 'image.png'))
-    const imageDimensions = sizeOf(imageBuf)
+    const imageDimensions = imageSize(imageBuf)
 
     const targetImageSize = {
       width: pxToEMU(imageDimensions.width),
