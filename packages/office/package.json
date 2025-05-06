@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "archiver": "7.0.1",
-    "axios": "1.8.1",
+    "axios": "1.9.0",
     "form-data": "2.5.0",
     "get-stream": "5.1.0",
     "node.extend.without.arrays": "1.1.6",

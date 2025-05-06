@@ -20,7 +20,7 @@
     "test": "mocha --timeout=10000 --reporter spec test && standard"
   },
   "dependencies": {
-    "axios": "1.8.1",
+    "axios": "1.9.0",
     "concat-stream": "2.0.0",
     "mimic-response": "2.1.0"
   },
