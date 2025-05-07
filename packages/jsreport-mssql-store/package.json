@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@jsreport/sql-store": "3.2.1",
-    "mssql": "7.2.0",
+    "mssql": "11.0.1",
     "semaphore-async-await": "1.5.1"
   },
   "devDependencies": {
