@@ -209,7 +209,7 @@ module.exports = function (reporter, definition) {
     const paths = (() => {
       switch (process.platform) {
         case 'darwin':
-          return '/Applications/LibreOffice.app/Contents/MacOS/soffice'
+          return ['/Applications/LibreOffice.app/Contents/MacOS/soffice']
         case 'linux':
           return [
             '/usr/bin/libreoffice',

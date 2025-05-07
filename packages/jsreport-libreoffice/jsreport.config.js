@@ -5,7 +5,7 @@ module.exports = {
   worker: 'lib/worker.js',
   dependencies: ['templates', 'assets'],
   requires: {
-    core: '4.x.x',
+    core: '4.7.x',
     studio: '4.x.x'
   },
   optionsSchema: {

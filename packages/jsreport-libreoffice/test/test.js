@@ -64,7 +64,7 @@ describe('libreoffice', () => {
           content: `
           const jsreport = require('jsreport-proxy')
           async function afterRender(req, res) {
-            await jsreport.libreOffice.print(res.content, 'default')            
+            await jsreport.libreOffice.print(res.content, 'default')
           }
           `
         }]
