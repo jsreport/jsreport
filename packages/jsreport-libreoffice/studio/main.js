@@ -8,6 +8,12 @@ module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 1 */
+/***/ ((module) => {
+
+module.exports = Studio;
+
+/***/ }),
+/* 2 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -17,12 +23,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 const LIBREOFFICE_PDF_EXPORT_TAB_TITLE = 'LIBREOFFICE_PDF_EXPORT_TAB_TITLE';
 const LIBREOFFICE_PDF_EXPORT_TAB_EDITOR = 'LIBREOFFICE_PDF_EXPORT_TAB_EDITOR';
-
-/***/ }),
-/* 2 */
-/***/ ((module) => {
-
-module.exports = Studio;
 
 /***/ }),
 /* 3 */,
@@ -35,7 +35,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -60,7 +63,7 @@ class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     });
   }
   openEditor() {
-    Studio.openTab({
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openTab({
       key: this.props.entity._id + '_libreOfficePdfExportOptions',
       _id: this.props.entity._id,
       editorComponentKey: _constants_js__WEBPACK_IMPORTED_MODULE_1__.LIBREOFFICE_PDF_EXPORT_TAB_EDITOR,
@@ -69,8 +72,7 @@ class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   }
   render() {
     const {
-      entity,
-      onChange
+      entity
     } = this.props;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "properties-section"
@@ -118,24 +120,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _styles_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 
 
 
-const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().EntityRefSelect);
-const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().sharedComponents);
 class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-  }
   changeLibreOffice(props, change) {
     const {
-      entity,
-      onChange
+      entity
     } = props;
-    const libreOffice = entity.libreOffice || {};
     jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       libreOffice: {
         ...entity.libreOffice,
@@ -158,7 +153,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
     }
   }
   render() {
-    var _entity$libreOffice3, _entity$libreOffice4, _entity$libreOffice5, _entity$libreOffice6, _entity$libreOffice7, _entity$libreOffice8, _entity$libreOffice9, _entity$libreOffice10, _entity$libreOffice11, _entity$libreOffice12, _entity$libreOffice13, _entity$libreOffice14, _entity$libreOffice15, _entity$libreOffice16, _entity$libreOffice17, _entity$libreOffice18, _entity$libreOffice19, _entity$libreOffice20, _entity$libreOffice21, _entity$libreOffice22, _entity$libreOffice23, _entity$libreOffice24, _entity$libreOffice25;
+    var _entity$libreOffice3, _entity$libreOffice4, _entity$libreOffice5, _entity$libreOffice6, _entity$libreOffice7, _entity$libreOffice8, _entity$libreOffice9, _entity$libreOffice0, _entity$libreOffice1, _entity$libreOffice10, _entity$libreOffice11, _entity$libreOffice12, _entity$libreOffice13, _entity$libreOffice14, _entity$libreOffice15, _entity$libreOffice16, _entity$libreOffice17, _entity$libreOffice18, _entity$libreOffice19, _entity$libreOffice20, _entity$libreOffice21, _entity$libreOffice22, _entity$libreOffice23;
     const {
       entity
     } = this.props;
@@ -408,7 +403,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Watermark font height"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "number",
       placeholder: "0",
-      value: (_entity$libreOffice10 = entity.libreOffice) === null || _entity$libreOffice10 === void 0 ? void 0 : _entity$libreOffice10.pdfExportWatermarkFontHeight,
+      value: (_entity$libreOffice0 = entity.libreOffice) === null || _entity$libreOffice0 === void 0 ? void 0 : _entity$libreOffice0.pdfExportWatermarkFontHeight,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportWatermarkFontHeight: v.target.valueAsNumber
       })
@@ -419,7 +414,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Watermark rotate angle"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "number",
       placeholder: "0",
-      value: (_entity$libreOffice11 = entity.libreOffice) === null || _entity$libreOffice11 === void 0 ? void 0 : _entity$libreOffice11.pdfExportWatermarkRotateAngle,
+      value: (_entity$libreOffice1 = entity.libreOffice) === null || _entity$libreOffice1 === void 0 ? void 0 : _entity$libreOffice1.pdfExportWatermarkRotateAngle,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportWatermarkRotateAngle: v.target.valueAsNumber
       })
@@ -428,7 +423,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Watermak font name"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "text",
       placeholder: "Helvetica",
-      value: (_entity$libreOffice12 = entity.libreOffice) === null || _entity$libreOffice12 === void 0 ? void 0 : _entity$libreOffice12.pdfExportWatermarkFontName,
+      value: (_entity$libreOffice10 = entity.libreOffice) === null || _entity$libreOffice10 === void 0 ? void 0 : _entity$libreOffice10.pdfExportWatermarkFontName,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportWatermarkFontName: v.target.value
       })
@@ -438,7 +433,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Tiled watermark"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "text",
-      value: (_entity$libreOffice13 = entity.libreOffice) === null || _entity$libreOffice13 === void 0 ? void 0 : _entity$libreOffice13.pdfExportTiledWatermark,
+      value: (_entity$libreOffice11 = entity.libreOffice) === null || _entity$libreOffice11 === void 0 ? void 0 : _entity$libreOffice11.pdfExportTiledWatermark,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportTiledWatermark: v.target.value
       })
@@ -547,7 +542,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Open bookmark levels"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "number",
       placeholder: "-1",
-      value: (_entity$libreOffice14 = entity.libreOffice) === null || _entity$libreOffice14 === void 0 ? void 0 : _entity$libreOffice14.pdfExportOpenBookmarkLevels,
+      value: (_entity$libreOffice12 = entity.libreOffice) === null || _entity$libreOffice12 === void 0 ? void 0 : _entity$libreOffice12.pdfExportOpenBookmarkLevels,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportOpenBookmarkLevels: v.target.valueAsNumber
       })
@@ -582,7 +577,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "PDF view selection"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
-      value: ((_entity$libreOffice15 = entity.libreOffice) === null || _entity$libreOffice15 === void 0 ? void 0 : _entity$libreOffice15.pdfExportPDFViewSelection) == null ? '0' : entity.libreOffice.pdfExportPDFViewSelection,
+      value: ((_entity$libreOffice13 = entity.libreOffice) === null || _entity$libreOffice13 === void 0 ? void 0 : _entity$libreOffice13.pdfExportPDFViewSelection) == null ? '0' : entity.libreOffice.pdfExportPDFViewSelection,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportPDFViewSelection: parseInt(v.target.value)
       })
@@ -606,7 +601,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Document open password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "password",
-      value: (_entity$libreOffice16 = entity.libreOffice) === null || _entity$libreOffice16 === void 0 ? void 0 : _entity$libreOffice16.pdfExportDocumentOpenPassword,
+      value: (_entity$libreOffice14 = entity.libreOffice) === null || _entity$libreOffice14 === void 0 ? void 0 : _entity$libreOffice14.pdfExportDocumentOpenPassword,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportDocumentOpenPassword: v.target.value
       })
@@ -624,7 +619,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Permissions password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "password",
-      value: (_entity$libreOffice17 = entity.libreOffice) === null || _entity$libreOffice17 === void 0 ? void 0 : _entity$libreOffice17.pdfExportPermissionPassword,
+      value: (_entity$libreOffice15 = entity.libreOffice) === null || _entity$libreOffice15 === void 0 ? void 0 : _entity$libreOffice15.pdfExportPermissionPassword,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportPermissionPassword: v.target.value
       })
@@ -633,7 +628,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Printing"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
-      value: ((_entity$libreOffice18 = entity.libreOffice) === null || _entity$libreOffice18 === void 0 ? void 0 : _entity$libreOffice18.pdfExportPrinting) == null ? '2' : entity.libreOffice.pdfExportPrinting,
+      value: ((_entity$libreOffice16 = entity.libreOffice) === null || _entity$libreOffice16 === void 0 ? void 0 : _entity$libreOffice16.pdfExportPrinting) == null ? '2' : entity.libreOffice.pdfExportPrinting,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportPrinting: parseInt(v.target.value)
       })
@@ -646,7 +641,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
     }, "The document can be printed at maximum resolution"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Changes"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
-      value: ((_entity$libreOffice19 = entity.libreOffice) === null || _entity$libreOffice19 === void 0 ? void 0 : _entity$libreOffice19.pdfExportChanges) == null ? '4' : entity.libreOffice.pdfExportChanges,
+      value: ((_entity$libreOffice17 = entity.libreOffice) === null || _entity$libreOffice17 === void 0 ? void 0 : _entity$libreOffice17.pdfExportChanges) == null ? '4' : entity.libreOffice.pdfExportChanges,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportChanges: parseInt(v.target.value)
       })
@@ -692,7 +687,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Signature location"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "text",
-      value: (_entity$libreOffice20 = entity.libreOffice) === null || _entity$libreOffice20 === void 0 ? void 0 : _entity$libreOffice20.pdfExportSignatureLocation,
+      value: (_entity$libreOffice18 = entity.libreOffice) === null || _entity$libreOffice18 === void 0 ? void 0 : _entity$libreOffice18.pdfExportSignatureLocation,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportSignatureLocation: v.target.value
       })
@@ -702,7 +697,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Signature reason"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "text",
-      value: (_entity$libreOffice21 = entity.libreOffice) === null || _entity$libreOffice21 === void 0 ? void 0 : _entity$libreOffice21.pdfExportSignatureReason,
+      value: (_entity$libreOffice19 = entity.libreOffice) === null || _entity$libreOffice19 === void 0 ? void 0 : _entity$libreOffice19.pdfExportSignatureReason,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportSignatureReason: v.target.value
       })
@@ -710,7 +705,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Signature contact info"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "text",
-      value: (_entity$libreOffice22 = entity.libreOffice) === null || _entity$libreOffice22 === void 0 ? void 0 : _entity$libreOffice22.pdfExportSignatureContactInfo,
+      value: (_entity$libreOffice20 = entity.libreOffice) === null || _entity$libreOffice20 === void 0 ? void 0 : _entity$libreOffice20.pdfExportSignatureContactInfo,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportSignatureContactInfo: v.target.value
       })
@@ -720,7 +715,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Signature password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "password",
-      value: (_entity$libreOffice23 = entity.libreOffice) === null || _entity$libreOffice23 === void 0 ? void 0 : _entity$libreOffice23.pdfExportSignaturePassword,
+      value: (_entity$libreOffice21 = entity.libreOffice) === null || _entity$libreOffice21 === void 0 ? void 0 : _entity$libreOffice21.pdfExportSignaturePassword,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportSignaturePassword: v.target.value
       })
@@ -728,7 +723,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Signature certificate subject name"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "text",
-      value: (_entity$libreOffice24 = entity.libreOffice) === null || _entity$libreOffice24 === void 0 ? void 0 : _entity$libreOffice24.pdfExportSignCertificateSubjectName,
+      value: (_entity$libreOffice22 = entity.libreOffice) === null || _entity$libreOffice22 === void 0 ? void 0 : _entity$libreOffice22.pdfExportSignCertificateSubjectName,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportSignCertificateSubjectName: v.target.value
       })
@@ -738,7 +733,7 @@ class LibreOfficePdfExportOptionsEditor extends react__WEBPACK_IMPORTED_MODULE_0
       className: _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"].column + ' form-group'
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Signature timestamp"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "text",
-      value: (_entity$libreOffice25 = entity.libreOffice) === null || _entity$libreOffice25 === void 0 ? void 0 : _entity$libreOffice25.pdfExportSignatureTSA,
+      value: (_entity$libreOffice23 = entity.libreOffice) === null || _entity$libreOffice23 === void 0 ? void 0 : _entity$libreOffice23.pdfExportSignatureTSA,
       onChange: v => this.changeLibreOffice(this.props, {
         pdfExportSignatureTSA: v.target.value
       })
@@ -845,11 +840,11 @@ var __webpack_exports__ = {};
 (() => {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _LibreOfficeProperties__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _LibreOfficePdfExportOptionsEditor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
 /* harmony import */ var _LibreOfficePdfExportOptionsTitle_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
 
 
 

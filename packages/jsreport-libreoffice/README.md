@@ -8,3 +8,8 @@ See https://jsreport.net/learn/libreoffice
 
 > **npm install @jsreport/jsreport-libreoffice**
 
+## Changelog
+
+### 1.0.0
+
+- initial release

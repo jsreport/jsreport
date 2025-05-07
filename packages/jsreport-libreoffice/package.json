@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-libreoffice",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "jsreport extension for converting office documents",
   "keywords": [
     "jsreport",
