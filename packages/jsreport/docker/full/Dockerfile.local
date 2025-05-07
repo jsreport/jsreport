@@ -25,7 +25,7 @@ RUN apt-get update && \
     # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
-    apt install -y chromium=134.0.6998.35-3xtradeb1.2404.1 && \
+    apt install -y chromium=136.0.7103.59-2xtradeb1.2404.1 && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
@@ -48,7 +48,7 @@ RUN chmod g+s /jsreport
 VOLUME ["/jsreport"]
 
 # node
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 RUN apt-get install -y nodejs
 
 WORKDIR /app
@@ -66,7 +66,7 @@ RUN json-merger -p package.json ./build/workspaces-changes.json -o package.json
 
 RUN yarn install --production
 
-RUN yarn add --production --ignore-optional --ignore-workspace-root-check cheerio-page-eval@1.2.0
+RUN yarn add --production --ignore-optional --ignore-workspace-root-check cheerio-page-eval@1.2.1
 
 # this copy of jsreport.config.json is only needed on Dockerfile.local, because it is missing
 COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json

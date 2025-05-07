@@ -1,4 +1,4 @@
-FROM node:18.20-alpine3.19
+FROM node:22.15-alpine3.21
 EXPOSE 5488
 USER root
 ARG TARGETPLATFORM
@@ -38,13 +38,13 @@ RUN addgroup -g "${GID}" -S jsreport && adduser --shell /bin/bash -u "${UID}" -S
 # this condition is useful when the alpine registry contain different latest versions
 # per architecture, if the versions match then just use the same version number on both paths
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="133.0.6943.126-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="135.0.7049.95-r0"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="133.0.6943.126-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="135.0.7049.95-r0"; \
     fi && \
     echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
     apk update --no-cache && \
-    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.19/community >> /etc/apk/repositories && \
+    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.21/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
@@ -55,8 +55,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
-    libcurl@edge=8.12.1-r0 \
-    git@edge=2.48.1-r0 \
+    libcurl@edge=8.13.0-r1 \
+    git@edge=2.49.0-r0 \
     # so user can docker exec -it test /bin/bash
     bash
 

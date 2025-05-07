@@ -25,7 +25,7 @@ RUN apt-get update && \
     # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
-    apt install -y chromium=134.0.6998.35-3xtradeb1.2404.1 && \
+    apt install -y chromium=136.0.7103.59-2xtradeb1.2404.1 && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
@@ -47,7 +47,7 @@ RUN chmod g+s /jsreport
 VOLUME ["/jsreport"]
 
 # node
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 RUN apt-get install -y nodejs
 
 WORKDIR /app
@@ -84,7 +84,7 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.0.1 \
     @jsreport/jsreport-fs-store-aws-s3-persistence@4.0.2 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@4.1.0 \
     @jsreport/jsreport-unoconv@4.1.0 \
-    cheerio-page-eval@1.2.0
+    cheerio-page-eval@1.2.1
 
 COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js install-or-build-oracledb-for-store.js
 COPY ./packages/jsreport/docker/full/build-oracledb-src.sh build-oracledb-src.sh
