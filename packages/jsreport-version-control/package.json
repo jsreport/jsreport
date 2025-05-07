@@ -49,7 +49,7 @@
     "@jsreport/jsreport-express": "4.2.0",
     "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
-    "puppeteer": "24.3.0",
+    "puppeteer": "24.8.1",
     "rimraf": "2.6.3",
     "should": "13.2.3",
     "standard": "16.0.4",
