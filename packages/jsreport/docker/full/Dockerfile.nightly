@@ -67,7 +67,7 @@ RUN json-merger -p package.json ./build/workspaces-changes.json -o package.json
 
 RUN yarn install --production
 
-RUN yarn add --production --ignore-workspace-root-check cheerio-page-eval@1.2.0
+RUN yarn add --production --ignore-workspace-root-check cheerio-page-eval@1.2.1
 
 ENV FULL_BUILD=true
 ENV NIGHTLY_BUILD=true
