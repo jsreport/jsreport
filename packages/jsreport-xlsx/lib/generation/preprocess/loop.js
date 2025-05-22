@@ -1,6 +1,6 @@
 const path = require('path')
 const { num2col } = require('xlsx-coordinates')
-const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getSheetInfo, getStyleFile, getStyleInfo } = require('../../utils')
+const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getSheetInfo, getCellInfo, getStyleFile, getStyleInfo } = require('../../utils')
 const { parseCellRef, getPixelWidthOfValue, getFontSizeFromStyle, evaluateCellRefsFromExpression } = require('../../cellUtils')
 const startLoopRegexp = /{{#each\s+([^{|}]{0,500})(?:\s*(as\s+\|\w+\|))?\s*}}/
 
@@ -189,6 +189,7 @@ module.exports = (files, ctx) => {
     const formulaCellElsToHandle = []
     const cellsByRowMap = new Map()
     const cellsElsByRefMap = new Map()
+    const cellTemplatesMap = new Map()
     const colMaxSizeMap = new Map()
     const staticCellElsToHandle = []
     const contentDetectCellElsToHandle = []
@@ -277,8 +278,9 @@ module.exports = (files, ctx) => {
           info.type === 's')
         ) {
           const loopStartOrEndRegExp = /{{[#/]each/
-          const textWithoutLoopParts = []
+          const loopCallsInCell = []
           let remainingToCheck = info.value
+          let lastProcessedIdx
           let lastStartCall = ''
 
           const normalizeIfVerticalLoop = (cLoop, callStr) => {
@@ -302,10 +304,10 @@ module.exports = (files, ctx) => {
               let newLoopItem
 
               if (currentLoopDetected != null && partType === 'end') {
-                // if loop starts and end in same cell then
+                // if loop starts and end in same cell and it is not dynamic then
                 // we don't consider it a loop for our purposes
                 // (it is just a normal loop that creates strings not rows/cells)
-                if (currentLoopDetected.start.el === cellEl) {
+                if (currentLoopDetected.type !== 'dynamic' && currentLoopDetected.start.el === cellEl) {
                   inlineLoop = true
                   loopsDetected.pop()
                 } else {
@@ -335,7 +337,10 @@ module.exports = (files, ctx) => {
                     originalColumnNumber: parsedCellRef.columnNumber
                   }
 
-                  if (currentLoopDetected.end.originalRowNumber === currentLoopDetected.start.originalRowNumber) {
+                  if (
+                    currentLoopDetected.type === 'block' &&
+                    currentLoopDetected.end.originalRowNumber === currentLoopDetected.start.originalRowNumber
+                  ) {
                     currentLoopDetected.type = 'row'
                   }
                 }
@@ -371,12 +376,6 @@ module.exports = (files, ctx) => {
                 loopsDetected.push(newLoopItem)
               }
 
-              const restLeft = remainingToCheck.slice(0, match.index)
-
-              if (restLeft !== '') {
-                textWithoutLoopParts.push(inlineLoop ? `${lastStartCall}${restLeft}{{/each}}` : restLeft)
-              }
-
               const endLoopPartIdx = remainingToCheck.indexOf('}}', match.index + match[0].length)
               let lastPartIdx
 
@@ -389,11 +388,22 @@ module.exports = (files, ctx) => {
               if (partType === 'start') {
                 lastStartCall = remainingToCheck.slice(match.index, lastPartIdx)
                 newLoopItem.start.helperCall = lastStartCall
+                newLoopItem.start.helperCallStartIdx = (lastProcessedIdx ?? 0) + match.index
+
+                if (lastStartCall.includes('cells=')) {
+                  newLoopItem.type = 'dynamic'
+                }
+
+                loopCallsInCell.push(newLoopItem)
+              } else if (partType === 'end' && currentLoopDetected != null && !inlineLoop) {
+                currentLoopDetected.end.helperCall = remainingToCheck.slice(match.index, lastPartIdx)
+                currentLoopDetected.end.helperCallStartIdx = (lastProcessedIdx ?? 0) + match.index
+                loopCallsInCell.push(currentLoopDetected)
               }
 
+              lastProcessedIdx = (lastProcessedIdx ?? 0) + lastPartIdx
               remainingToCheck = remainingToCheck.slice(lastPartIdx)
             } else {
-              textWithoutLoopParts.push(remainingToCheck)
               remainingToCheck = ''
               normalizeIfVerticalLoop(currentLoopDetected, lastStartCall)
             }
@@ -401,11 +411,10 @@ module.exports = (files, ctx) => {
 
           // only do content detection for the cells with handlebars
           if (info.value.includes('{{') && info.value.includes('}}')) {
-            const textWithoutLoop = textWithoutLoopParts.join('')
-
             contentDetectCellElsToHandle.push({
               cellRef,
-              normalizedText: textWithoutLoop
+              loopCallsInCell,
+              textDetails: info.extra.textDetails
             })
           } else if (isAutofitConfigured) {
             staticCellElsToHandle.push(cellRef)
@@ -421,25 +430,25 @@ module.exports = (files, ctx) => {
           }
 
           const isSharedFormula = (
-            info.valueEl.getAttribute('t') === 'shared' &&
-            info.valueEl.getAttribute('si') != null &&
-            info.valueEl.getAttribute('si') !== ''
+            info.extra.formulaEl.getAttribute('t') === 'shared' &&
+            info.extra.formulaEl.getAttribute('si') != null &&
+            info.extra.formulaEl.getAttribute('si') !== ''
           )
 
           const formulaInfo = {
             formula: info.value,
-            formulaEl: info.valueEl
+            formulaEl: info.extra.formulaEl
           }
 
           if (isSharedFormula) {
-            const ref = info.valueEl.getAttribute('ref')
+            const ref = info.extra.formulaEl.getAttribute('ref')
 
             formulaInfo.sharedFormula = {
               type: ref != null && ref !== '' ? 'source' : 'reference'
             }
 
             if (formulaInfo.sharedFormula.type === 'source') {
-              formulaInfo.sharedFormula.sourceRef = info.valueEl.getAttribute('ref')
+              formulaInfo.sharedFormula.sourceRef = info.extra.formulaEl.getAttribute('ref')
             }
           }
 
@@ -454,24 +463,21 @@ module.exports = (files, ctx) => {
       const loopsToProcess = checkAndGetLoopsToProcess(f, loopsDetected, originalRowNumber, isLastRow)
 
       for (const currentLoop of loopsToProcess) {
-        // we should remove the handlebars loop call from the start/end cell
-        normalizeLoopStartEndCell(currentLoop)
-
         const startingRowEl = currentLoop.start.el.parentNode
         const endingRowEl = currentLoop.end.el.parentNode
         const loopHelperCall = currentLoop.start.helperCall
-        const isVertical = currentLoop.type === 'vertical'
+        const isRowBased = currentLoop.type === 'row' || currentLoop.type === 'block' || currentLoop.type === 'dynamic'
 
         const outOfLoopTypes = []
         const previousEls = getCellElsAndWrappersFrom(currentLoop.start.el, 'previous')
         const nextEls = getCellElsAndWrappersFrom(currentLoop.end.el, 'next')
 
-        if (!isVertical && previousEls.length > 0) {
+        if (isRowBased && previousEls.length > 0) {
           // specify that there are cells to preserve that are before the each
           outOfLoopTypes.push('left')
         }
 
-        if (!isVertical && nextEls.length > 0) {
+        if (isRowBased && nextEls.length > 0) {
           // specify that there are cells to preserve that are after the each
           outOfLoopTypes.push('right')
         }
@@ -513,13 +519,62 @@ module.exports = (files, ctx) => {
           return `{{#_D ${targetDataExpressionPart} t='loop' ${extraAttrs.join(' ')}}}`
         }
 
-        if (isVertical) {
+        if (currentLoop.type === 'dynamic') {
           const invalidLoop = loopsDetected.find((loop) => {
             if (loop.hierarchyId === currentLoop.hierarchyId) {
               return false
             }
 
-            if (loop.type === 'vertical') {
+            if (loop.type === 'vertical' || loop.type === 'dynamic') {
+              // we are fine detecting just one side
+              return (
+                loop.start.originalColumnNumber === parsedLoopStart.columnNumber &&
+                loop.start.originalRowNumber >= parsedLoopStart.rowNumber &&
+                loop.start.originalRowNumber <= parsedLoopEnd.rowNumber
+              )
+            } else if (loop.type === 'row' || loop.type === 'block') {
+              // we are fine detecting just one side in the case of block loops
+              return (
+                loop.start.originalRowNumber >= parsedLoopStart.rowNumber &&
+                loop.start.originalRowNumber <= parsedLoopEnd.rowNumber
+              )
+            }
+
+            return false
+          })
+
+          if (invalidLoop != null) {
+            if (invalidLoop.type === 'dynamic') {
+              throw new Error(`Dynamic cells can not have other dynamic cells defined in the same cell. Check dynamic cell definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+            } else {
+              throw new Error(`Dynamic cells can not be defined in rows that contain ${invalidLoop.type} loops. Check Dynamic cells definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+            }
+          }
+
+          // we want to put the row loop wrapper around the start row wrapper
+          currentLoop.blockStartEl = processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, replaceLoopMatch))
+
+          // we want to put the row loop wrapper around the end row wrapper
+          currentLoop.blockEndEl = processClosingTag(sheetDoc, endingRowEl.nextSibling, '{{/_D}}')
+
+          const startCellEl = cellsElsByRefMap.get(currentLoop.start.cellRef)[0]
+
+          // we want to put the column loop wrapper around the cell, we also
+          // set the hierarchyId of this loop as a child loop
+          let callForColumnLoop = loopHelperCall.replace(startLoopRegexp, replaceLoopMatch)
+
+          callForColumnLoop = updateHandlebarsParameter(callForColumnLoop, 'cells=', ['cellsT', "'columns'"])
+          callForColumnLoop = updateHandlebarsParameter(callForColumnLoop, 'hierarchyId=', ['hierarchyId', `'${currentLoop.hierarchyId}#0'`])
+
+          processOpeningTag(sheetDoc, startCellEl, callForColumnLoop)
+          processClosingTag(sheetDoc, startCellEl, '{{/_D}}')
+        } else if (currentLoop.type === 'vertical') {
+          const invalidLoop = loopsDetected.find((loop) => {
+            if (loop.hierarchyId === currentLoop.hierarchyId) {
+              return false
+            }
+
+            if (loop.type === 'vertical' || loop.type === 'dynamic') {
               // we are fine detecting just one side
               return (
                 loop.start.originalColumnNumber === parsedLoopStart.columnNumber &&
@@ -574,6 +629,31 @@ module.exports = (files, ctx) => {
             processClosingTag(sheetDoc, startEl, '{{/_D}}')
           }
         } else {
+          if (currentLoop.type === 'row') {
+            const invalidLoop = loopsDetected.find((loop) => {
+              if (loop.hierarchyId === currentLoop.hierarchyId) {
+                return false
+              }
+
+              if (loop.type === 'dynamic') {
+                // we are fine detecting just one side
+                return (
+                  loop.start.originalColumnNumber === parsedLoopStart.columnNumber &&
+                  loop.start.originalRowNumber >= parsedLoopStart.rowNumber &&
+                  loop.start.originalRowNumber <= parsedLoopEnd.rowNumber
+                )
+              }
+
+              return false
+            })
+
+            if (invalidLoop != null) {
+              if (invalidLoop.type === 'dynamic') {
+                throw new Error(`Row loops can not have child dynamic cells. Check child dynamic cell definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+              }
+            }
+          }
+
           // we want to put the loop wrapper around the start row wrapper
           currentLoop.blockStartEl = processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, replaceLoopMatch))
 
@@ -598,33 +678,109 @@ module.exports = (files, ctx) => {
       }
     }
 
-    for (const { cellRef, normalizedText } of contentDetectCellElsToHandle) {
+    const inverseLoopsDetected = [...loopsDetected].reverse()
+
+    for (const { cellRef, loopCallsInCell, textDetails } of contentDetectCellElsToHandle) {
+      // only process valid loop calls in cell, this means exclude inline loops
+      const normalizedLoopCallsInCell = loopCallsInCell.filter((loopItemForCell) => {
+        const validLoop = loopsDetected.find((loopItem) => loopItem.hierarchyId === loopItemForCell.hierarchyId)
+        return validLoop
+      })
+
       const [cellEl, cellMeta] = cellsElsByRefMap.get(cellRef)
+      let newTextValue = textDetails.getText()
+      const textDetailFragments = [...textDetails]
 
-      const newTextValue = normalizedText
+      if (normalizedLoopCallsInCell.length > 0) {
+        const textMatches = []
 
-      const handlebarsRegexp = /{{{?(#[\w-]+\s+)?([\w-]+[^\n\r}]*)}?}}/g
-      const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
-      const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
+        for (const loopCallInCell of normalizedLoopCallsInCell) {
+          if (loopCallInCell.start.cellRef === cellRef) {
+            textMatches.push({
+              startIdx: loopCallInCell.start.helperCallStartIdx,
+              endIdx: loopCallInCell.start.helperCallStartIdx + (loopCallInCell.start.helperCall.length - 1)
+            })
+          }
+
+          if (loopCallInCell.end?.cellRef === cellRef) {
+            textMatches.push({
+              startIdx: loopCallInCell.end.helperCallStartIdx,
+              endIdx: loopCallInCell.end.helperCallStartIdx + (loopCallInCell.end.helperCall.length - 1)
+            })
+          }
+        }
+
+        // sort the matches by start index ASC
+        textMatches.sort((a, b) => a.startIdx - b.startIdx)
+
+        const updatedTextFragments = removeMatchesInTextFragments(textDetailFragments, textMatches)
+
+        newTextValue = ''
+
+        for (const [fragmentIdx, updatedTextFragment] of updatedTextFragments.entries()) {
+          textDetailFragments[fragmentIdx].text = updatedTextFragment.newText
+          textDetailFragments[fragmentIdx].tEl.textContent = updatedTextFragment.newText
+          newTextValue += updatedTextFragment.newText
+        }
+      }
+
+      const templateEl = sheetDoc.createElement('is')
+
+      const cellTemplateMeta = {
+        templateEl
+      }
+
+      const lastLoopItem = getParentLoop(inverseLoopsDetected, parseCellRef(cellRef))
+
+      if (lastLoopItem?.isInside) {
+        const asPart = lastLoopItem.loopDetected.start.helperCall.match(startLoopRegexp)[2]
+
+        if (asPart != null) {
+          cellTemplateMeta.asPart = asPart
+        }
+      }
 
       cellEl.setAttribute('r', cellMeta.letter)
       cellEl.setAttribute('__CT_t__', '_T')
-      cellEl.setAttribute('__CT_m__', isSingleMatch ? '0' : '1')
       cellEl.setAttribute('__CT_cCU__', cellMeta.calcChainUpdate ? '1' : '0')
 
-      if (isSingleMatch) {
-        const match = matches[0]
-        const shouldEscape = !match[0].startsWith('{{{')
-        const expressionValue = match[2]
-        const value = expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue
+      // only try to detect content if the content for cell is expressed in single text cell
+      if (textDetailFragments.length === 1) {
+        const handlebarsRegexp = /{{{?(#[\w-]+\s+)?([\w-]+[^\n\r}]*)}?}}/g
+        const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
+        const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
+        let newText
 
-        cellEl.setAttribute('__CT_v__', value)
-        cellEl.setAttribute('__CT_ve__', shouldEscape ? '1' : '0')
+        if (isSingleMatch) {
+          const match = matches[0]
+          const expressionValue = match[2]
+          const value = expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue
+          const props = {}
+
+          if (!value.startsWith('(')) {
+            // this is used in case we need to resolve from helper name
+            props.n = value
+          }
+
+          newText = getDataHelperCall('cValue', props, { isBlock: false, valuePart: value })
+        } else {
+          newText = `${getDataHelperCall('cValue')}${newTextValue}{{/_D}}`
+        }
+
+        textDetailFragments[0].text = newText
+        textDetailFragments[0].tEl.textContent = newText
       }
 
-      // when multi-expression put the content with handlebars as the only content of the cell,
-      // for the rest of cases put a space to avoid the cell to be serialized as self closing tag
-      cellEl.textContent = isSingleMatch ? ' ' : newTextValue
+      // clear the cell element content
+      cellEl.textContent = ''
+
+      const contentElements = textDetails.getContentElements()
+
+      for (const contentEl of contentElements) {
+        templateEl.appendChild(contentEl)
+      }
+
+      cellTemplatesMap.set(cellRef, cellTemplateMeta)
     }
 
     let outLoopItemIndex = 0
@@ -739,8 +895,6 @@ module.exports = (files, ctx) => {
       }
     }
 
-    const inverseLoopsDetected = [...loopsDetected].reverse()
-
     for (const [idx, { ref, rowEl }] of mergeCellElsToHandle.entries()) {
       const isLast = idx === mergeCellElsToHandle.length - 1
       const newMergeCellCallEl = sheetDoc.createElement('xlsxRemove')
@@ -817,8 +971,6 @@ module.exports = (files, ctx) => {
         }
 
         const parsedNormalizedCellRef = parseCellRef(normalizedCellRef)
-        // we check here if there is a loop that start/end in the same row of merged cell
-        // (this does not necessarily mean that merged cell is part of the loop)
         const loopDetectionResult = getParentLoop(inverseLoopsDetected, parsedNormalizedCellRef)
         let value = normalizedCellRef
 
@@ -873,6 +1025,19 @@ module.exports = (files, ctx) => {
       processClosingTag(sheetDoc, colsEl, '{{/_D}}')
     }
 
+    if (cellTemplatesMap.size > 0) {
+      // we want the cells in reverse order because we want to insert in ASC order in the xml
+      const cellTemplates = [...cellTemplatesMap.entries()].reverse()
+
+      for (const [cellRef, { templateEl, asPart }] of cellTemplates) {
+        sheetDoc.documentElement.insertBefore(templateEl, sheetDoc.documentElement.firstChild)
+        // we need to define the template with the as part if it exists, this is important to preserve
+        // blockParams resolution if the loop call has it
+        processOpeningTag(sheetDoc, sheetDoc.documentElement.firstChild, getDataHelperCall('cTmpl', { cellRef }, { asPart }))
+        processClosingTag(sheetDoc, templateEl, '{{/_D}}')
+      }
+    }
+
     sheetDataBlockStartEl.textContent = getDataHelperCall('sd', sheetDataCallProps)
 
     processOpeningTag(sheetDoc, sheetDoc.documentElement.firstChild, getDataHelperCall('ws', { sheetId: sheetInfo.id }))
@@ -881,28 +1046,32 @@ module.exports = (files, ctx) => {
 
   // normalize the shared string values used across the sheets that can contain handlebars code
   for (const sharedStringEl of sharedStringsEls) {
-    const tEl = sharedStringEl.getElementsByTagName('t')[0]
+    const tEls = nodeListToArray(sharedStringEl.getElementsByTagName('t'))
 
-    if (tEl == null) {
-      continue
-    }
-
-    if (tEl.textContent.includes('{{') && tEl.textContent.includes('}}')) {
-      tEl.textContent = `{{{{_D t='raw'}}}}${tEl.textContent}{{{{/_D}}}}`
+    for (const tEl of tEls) {
+      if (tEl.textContent.includes('{{') && tEl.textContent.includes('}}')) {
+        tEl.textContent = `{{{{_D t='raw'}}}}${tEl.textContent}{{{{/_D}}}}`
+      }
     }
   }
 
   // place handlebars call that handle updating the calcChain
   if (calcChainDoc != null) {
-    processOpeningTag(calcChainDoc, calcChainDoc.documentElement.firstChild, "{{#_D t='calcChain'}}")
+    processOpeningTag(calcChainDoc, calcChainDoc.documentElement.firstChild, getDataHelperCall('calcChain'))
     processClosingTag(calcChainDoc, calcChainDoc.documentElement.lastChild, '{{/_D}}')
   }
 }
 
-function getDataHelperCall (type, props, isBlock = true) {
-  let callStr = `{{${isBlock ? '#' : ''}_D t='${type}'`
+function getDataHelperCall (type, props, { isBlock = true, valuePart = '', asPart = '' } = {}) {
+  let callStr = `{{${isBlock ? '#' : ''}_D`
   const targetProps = props || {}
   const keys = Object.keys(targetProps)
+
+  if (valuePart != null && valuePart !== '') {
+    callStr += ` ${valuePart}`
+  }
+
+  callStr += ` t='${type}'`
 
   for (const key of keys) {
     const value = targetProps[key]
@@ -916,6 +1085,10 @@ function getDataHelperCall (type, props, isBlock = true) {
     } else {
       callStr += ` ${key}='${value}'`
     }
+  }
+
+  if (asPart != null && asPart !== '') {
+    callStr += ` ${asPart}`
   }
 
   callStr += '}}'
@@ -1009,9 +1182,12 @@ function getLatestNotClosedLoop (loopsDetected, all = false) {
 }
 
 function getParentLoop (inverseLoopsDetected, parsedCellRef) {
+  // we check here if there is a loop that start/end in the same row of cell
+  // (this does not necessarily mean that cell is part of the loop)
   const loopDetected = inverseLoopsDetected.find((l) => {
     switch (l.type) {
       case 'row':
+      case 'dynamic':
         return l.start.originalRowNumber === parsedCellRef.rowNumber
       case 'block':
         return (
@@ -1037,9 +1213,10 @@ function getParentLoop (inverseLoopsDetected, parsedCellRef) {
   const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
   let insideLoop = false
 
-  // here we check if the merged cell is really part of the loop or not
+  // here we check if the cell is really part of the loop or not
   switch (loopDetected.type) {
-    case 'row': {
+    case 'row':
+    case 'dynamic': {
       insideLoop = (
         parsedCellRef.columnNumber >= parsedLoopStart.columnNumber &&
         parsedCellRef.columnNumber <= parsedLoopEnd.columnNumber
@@ -1137,154 +1314,6 @@ function getCellElsAndWrappersFrom (referenceCellEl, type = 'previous') {
   }
 
   return els
-}
-
-function getCellInfo (cellEl, sharedStringsEls, sheetFilepath) {
-  let type
-  let value
-  let valueEl
-  let contentEl
-
-  if (cellEl.childNodes.length === 0) {
-    return
-  }
-
-  const explicitType = cellEl.getAttribute('t')
-  const childEls = nodeListToArray(cellEl.childNodes)
-
-  if (explicitType != null && explicitType !== '') {
-    type = explicitType
-
-    switch (explicitType) {
-      case 'b':
-      case 'd':
-      case 'n': {
-        const vEl = childEls.find((el) => el.nodeName === 'v')
-
-        if (vEl != null) {
-          value = vEl.textContent
-          valueEl = vEl
-          contentEl = vEl
-        }
-
-        break
-      }
-      case 'inlineStr': {
-        const isEl = childEls.find((el) => el.nodeName === 'is')
-        let tEl
-
-        if (isEl != null) {
-          tEl = nodeListToArray(isEl.childNodes).find((el) => el.nodeName === 't')
-        }
-
-        if (tEl != null) {
-          value = tEl.textContent
-          valueEl = tEl
-          contentEl = isEl
-        }
-
-        break
-      }
-      case 's': {
-        const vEl = childEls.find((el) => el.nodeName === 'v')
-        let sharedIndex
-
-        if (vEl != null) {
-          sharedIndex = parseInt(vEl.textContent, 10)
-        }
-
-        let sharedStringEl
-
-        if (sharedIndex != null && !isNaN(sharedIndex)) {
-          sharedStringEl = sharedStringsEls[sharedIndex]
-        }
-
-        if (sharedStringEl == null) {
-          throw new Error(`Unable to find shared string with index ${sharedIndex}, sheet: ${sheetFilepath}`)
-        }
-
-        // the "t" node can be also wrapped in <si> and <r> when the text is styled
-        // so we search for the first <t> node
-        const tEl = sharedStringEl.getElementsByTagName('t')[0]
-
-        if (tEl != null) {
-          value = tEl.textContent
-          valueEl = tEl
-          contentEl = vEl
-        }
-
-        break
-      }
-      // we check for "e" because the xlsx can
-      // contain formula with error
-      case 'e':
-      case 'str': {
-        if (explicitType === 'e') {
-          type = 'str'
-        }
-
-        const fEl = childEls.find((el) => el.nodeName === 'f')
-
-        if (fEl != null) {
-          value = fEl.textContent
-          valueEl = fEl
-          contentEl = fEl
-        } else {
-          // field is error but no formula definition was found, so we can not
-          // parse this
-          return
-        }
-
-        break
-      }
-    }
-  } else {
-    // checking if the cell is inline string value
-    const isEl = childEls.find((el) => el.nodeName === 'is')
-
-    if (isEl != null) {
-      const tEl = nodeListToArray(isEl.childNodes).find((el) => el.nodeName === 't')
-
-      if (tEl != null) {
-        type = 'inlineStr'
-        value = tEl.textContent
-        valueEl = tEl
-        contentEl = isEl
-      }
-    }
-
-    // now checking if the cell is formula value
-    const fEl = childEls.find((el) => el.nodeName === 'f')
-
-    if (type == null && fEl != null) {
-      type = 'str'
-      value = fEl.textContent
-      valueEl = fEl
-      contentEl = fEl
-    }
-
-    const vEl = childEls.find((el) => el.nodeName === 'v')
-    const excelNumberAndDecimalRegExp = /^-?\d+(\.\d+)?(E-\d+)?$/
-
-    // finally checking if the cell is number value
-    if (type == null && vEl != null && excelNumberAndDecimalRegExp.test(vEl.textContent)) {
-      type = 'n'
-      value = vEl.textContent
-      valueEl = vEl
-      contentEl = vEl
-    }
-  }
-
-  if (value == null) {
-    throw new Error(`Expected value to be found in cell, sheet: ${sheetFilepath}`)
-  }
-
-  return {
-    type,
-    value,
-    valueEl,
-    contentEl
-  }
 }
 
 function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {
@@ -1392,26 +1421,14 @@ function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {
   return result
 }
 
-function normalizeLoopStartEndCell (loopDetectedInfo) {
-  const cells = [{
-    cell: loopDetectedInfo.start.el,
-    cellInfo: loopDetectedInfo.start.info,
-    target: startLoopRegexp
-  }, {
-    cell: loopDetectedInfo.end.el,
-    cellInfo: loopDetectedInfo.end.info,
-    target: '{{/each}}'
-  }]
-
-  for (const { cellInfo, target } of cells) {
-    // when it is not a shared string
-    if (cellInfo.type !== 's') {
-      cellInfo.valueEl.textContent = cellInfo.valueEl.textContent.replace(target, '')
-    }
-  }
-}
-
 function checkAndGetLoopsToProcess (currentFile, loopsDetected, currentRowNumber, isLastRow) {
+  const dynamicLoops = loopsDetected.filter((l) => l.type === 'dynamic' && l.start.originalRowNumber === currentRowNumber)
+  const invalidDynamicLoops = dynamicLoops.find((l) => l.end == null)
+
+  if (invalidDynamicLoops != null) {
+    throw new Error(`Unable to find end of dynamic loop (#each) in ${currentFile.path}. {{/each}} is missing`)
+  }
+
   const rowLoops = loopsDetected.filter((l) => l.type === 'row' && l.start.originalRowNumber === currentRowNumber)
   const invalidRowLoop = rowLoops.find((l) => l.end == null)
 
@@ -1443,7 +1460,7 @@ function checkAndGetLoopsToProcess (currentFile, loopsDetected, currentRowNumber
 
   verticalLoops = verticalLoops.filter((l) => l.end?.originalRowNumber === currentRowNumber)
 
-  return [...rowLoops, ...blockLoops, ...verticalLoops]
+  return [...dynamicLoops, ...rowLoops, ...blockLoops, ...verticalLoops]
 }
 
 function processOpeningTag (doc, refElement, helperCall) {
@@ -1460,6 +1477,78 @@ function processClosingTag (doc, refElement, closeCall) {
   return fakeElement
 }
 
+function removeMatchesInTextFragments (textFragments, targetMatches) {
+  const matchedFragments = []
+  let fragmentStartIdx = 0
+
+  const targetFragments = textFragments.map((match) => ({ ...match }))
+
+  while (targetFragments.length > 0) {
+    const fragment = targetFragments.shift()
+
+    if (fragment.text === '') {
+      matchedFragments.push({ ...fragment, newText: '' })
+      continue
+    }
+
+    const originalText = fragment.text
+    let currentStartIdx = fragmentStartIdx
+    const currentEndIdx = fragmentStartIdx + originalText.length - 1
+    let newText = originalText
+    const pendingParts = []
+
+    for (const { startIdx, endIdx } of targetMatches) {
+      if (currentStartIdx > endIdx || currentStartIdx > currentEndIdx) {
+        continue
+      }
+
+      const startHasMatch = startIdx >= currentStartIdx && startIdx <= currentEndIdx
+      const middleMatch = endIdx >= currentStartIdx && endIdx > currentEndIdx
+      const endHasMatch = endIdx >= currentStartIdx && endIdx <= currentEndIdx
+
+      if (startHasMatch || middleMatch || endHasMatch) {
+        const leftPartStart = 0
+        let leftPartEnd = startIdx - currentStartIdx
+
+        if (leftPartEnd < 0) {
+          leftPartEnd = 0
+        }
+
+        let rightPartStart = endIdx - currentStartIdx + 1
+
+        if (rightPartStart < 0) {
+          rightPartStart = 0
+        }
+
+        let rightPartEnd = rightPartStart + (currentEndIdx - endIdx)
+
+        if (rightPartEnd < 0) {
+          rightPartEnd = 0
+        }
+
+        const middleRemove = leftPartEnd - leftPartStart !== 0 && rightPartEnd - rightPartStart !== 0
+
+        if (middleRemove) {
+          // save the remaining part for later
+          pendingParts.push(newText.slice(leftPartStart, leftPartEnd))
+          newText = newText.slice(rightPartStart, rightPartEnd)
+        } else {
+          newText = `${newText.slice(leftPartStart, leftPartEnd)}${newText.slice(rightPartStart, rightPartEnd)}`
+        }
+
+        currentStartIdx = currentStartIdx + rightPartStart
+      }
+    }
+
+    newText = pendingParts.join('') + newText
+
+    matchedFragments.push({ ...fragment, newText })
+    fragmentStartIdx = currentEndIdx + 1
+  }
+
+  return matchedFragments
+}
+
 function jsSingleQuoteEscape (string) {
   return ('' + string).replace(/[']/g, function (character) {
     // Escape all characters not included in SingleStringCharacters and
@@ -1470,4 +1559,64 @@ function jsSingleQuoteEscape (string) {
         return '\\' + character
     }
   })
+}
+
+function updateHandlebarsParameter (helperCall, parameterStr, keyValue) {
+  const startParameterIdx = helperCall.indexOf(parameterStr)
+
+  if (startParameterIdx === -1) {
+    return helperCall
+  }
+
+  const remainingHelperCall = helperCall.slice(startParameterIdx + parameterStr.length)
+  let startValueMatch = remainingHelperCall.match(/["'(@\w]/)
+
+  if (startValueMatch != null) {
+    const startIdx = startValueMatch.index
+    startValueMatch = startValueMatch[0]
+    let endDelimiter
+
+    switch (startValueMatch) {
+      case '(':
+        endDelimiter = ')'
+        break
+      case '"':
+        endDelimiter = '"'
+        break
+      case "'":
+        endDelimiter = "'"
+        break
+      default:
+        endDelimiter = ' '
+        break
+    }
+
+    let endIdx = -1
+
+    if (endDelimiter === ' ') {
+      // we consider the case where the parameter is the last value of helper call
+      const currentRemaining = remainingHelperCall.slice(startIdx)
+      const endValueMatch = currentRemaining.match(/[ }]/)
+
+      if (endValueMatch != null) {
+        endIdx = startIdx + endValueMatch.index
+      }
+    } else {
+      endIdx = remainingHelperCall.indexOf(endDelimiter, startIdx + 1)
+
+      if (endIdx !== -1) {
+        // for the rest of delimiters other than space we want to include the delimiter itself
+        endIdx += 1
+      }
+    }
+
+    if (endIdx !== -1) {
+      const [key, value] = keyValue
+      return `${helperCall.slice(0, startParameterIdx)}${key}=${value}${helperCall.slice(startParameterIdx + parameterStr.length + endIdx)}`
+    }
+
+    return helperCall
+  }
+
+  return helperCall
 }

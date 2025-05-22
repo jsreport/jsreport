@@ -5,7 +5,7 @@
 module.exports = (files) => {
   for (const f of files.filter(f => f.path.endsWith('.xml'))) {
     const doc = f.doc
-    const generalTextElements = doc.getElementsByTagName('w:t')
+    const generalTextElements = doc.getElementsByTagName('t')
     const drawingTextElements = doc.getElementsByTagName('a:t')
     concatTextNodes(doc, generalTextElements)
     concatTextNodes(doc, drawingTextElements)

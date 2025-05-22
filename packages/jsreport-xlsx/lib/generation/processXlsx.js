@@ -57,55 +57,34 @@ module.exports = (reporter) => async (inputs, req) => {
       let xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
         if (node.nodeType === 1 && node.localName === 'c' && node.hasAttribute('__CT_t__')) {
           let callType = node.getAttribute('__CT_t__')
-          const hasMultipleExpressionCall = node.getAttribute('__CT_m__') === '1'
           const calcChainUpdate = node.getAttribute('__CT_cCU__') === '1'
-          const expressionValue = node.getAttribute('__CT_v__')
-          const escapeValue = node.getAttribute('__CT_ve__') === '1'
 
           if (calcChainUpdate) {
             callType = callType.toLowerCase()
           }
 
           node.removeAttribute('__CT_t__')
-          node.removeAttribute('__CT_m__')
           node.removeAttribute('__CT_cCU__')
-          node.removeAttribute('__CT_v__')
-          node.removeAttribute('__CT_ve__')
 
+          // only remove the xmlns attribute if it comes from the spreadsheetml namespace
           const str = new XMLSerializer().serializeToString(
             node,
             undefined,
             normalizeAttributeAndTextNode
-          )
+          ).replace(/ xmlns="http:\/\/schemas\.openxmlformats\.org\/spreadsheetml\/2006\/main"/g, '')
 
           const isSelfClosing = node.childNodes.length === 0
           let attrs
-          let content
 
           if (isSelfClosing) {
             const closeTagStartIdx = str.lastIndexOf('/>')
-
             attrs = str.slice(2, closeTagStartIdx)
-            content = ''
           } else {
             const openTagEndIdx = str.indexOf('>')
-            const closeTagStartIdx = str.lastIndexOf('</')
-
             attrs = str.slice(2, openTagEndIdx)
-            content = str.slice(openTagEndIdx + 1, closeTagStartIdx)
           }
 
-          if (hasMultipleExpressionCall) {
-            return `{{#${callType}${attrs}}}${content}{{/${callType}}}`
-          }
-
-          // for the handlebars call we want to avoid the extra character for escape param,
-          // (size optimization) since the common case is that the handlebars call is
-          // escaped {{}} expression, so instead we expect in the helper receive if the
-          // value should be raw or not (the inverse of escape)
-          const nValue = expressionValue.startsWith('(') ? expressionValue : `"${expressionValue}"`
-
-          return `{{${callType} ${expressionValue}${escapeValue ? '' : ' 1'}${attrs} _n=${nValue}}}`
+          return `{{${callType} ${attrs}}}`
         }
 
         return normalizeAttributeAndTextNode(node)

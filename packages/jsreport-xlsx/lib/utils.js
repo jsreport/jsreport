@@ -182,6 +182,248 @@ function getChartEl (drawingEl) {
   return chartDrawingEl
 }
 
+function getCellInfo (cellEl, sharedStringsEls, sheetFilepath) {
+  let type
+  let value
+  let contentEl
+  const extra = {}
+
+  if (cellEl.childNodes.length === 0) {
+    return
+  }
+
+  const explicitType = cellEl.getAttribute('t')
+  const childEls = nodeListToArray(cellEl.childNodes)
+
+  if (explicitType != null && explicitType !== '') {
+    type = explicitType
+
+    switch (explicitType) {
+      case 'b':
+      case 'd':
+      case 'n': {
+        const vEl = childEls.find((el) => el.nodeName === 'v')
+
+        if (vEl != null) {
+          value = vEl.textContent
+          contentEl = vEl
+        }
+
+        break
+      }
+      case 'inlineStr': {
+        const isEl = childEls.find((el) => el.nodeName === 'is')
+        let tEl
+
+        if (isEl != null) {
+          tEl = nodeListToArray(isEl.childNodes).find((el) => el.nodeName === 't')
+        }
+
+        if (tEl != null) {
+          const textDetails = extractTextDetailsFromEl(isEl)
+          const textDetailsStr = textDetails.getText()
+
+          value = textDetailsStr
+          extra.textDetails = textDetails
+          contentEl = isEl
+        }
+
+        break
+      }
+      case 's': {
+        const vEl = childEls.find((el) => el.nodeName === 'v')
+        let sharedIndex
+
+        if (vEl != null) {
+          sharedIndex = parseInt(vEl.textContent, 10)
+        }
+
+        let sharedStringEl
+
+        if (sharedIndex != null && !isNaN(sharedIndex)) {
+          sharedStringEl = sharedStringsEls[sharedIndex]
+        }
+
+        if (sharedStringEl == null) {
+          throw new Error(`Unable to find shared string with index ${sharedIndex}, sheet: ${sheetFilepath}`)
+        }
+
+        // the "t" node can be also wrapped in <si> and <r> when the text is styled
+        // so we search for the first <t> node
+        const tEl = sharedStringEl.getElementsByTagName('t')[0]
+
+        if (tEl != null) {
+          const textDetails = extractTextDetailsFromEl(sharedStringEl)
+          const textDetailsStr = textDetails.getText()
+
+          value = textDetailsStr
+          extra.textDetails = textDetails
+          contentEl = vEl
+        }
+
+        break
+      }
+      // we check for "e" because the xlsx can
+      // contain formula with error
+      case 'e':
+      case 'str': {
+        if (explicitType === 'e') {
+          type = 'str'
+        }
+
+        const fEl = childEls.find((el) => el.nodeName === 'f')
+
+        if (fEl != null) {
+          value = fEl.textContent
+          extra.formulaEl = fEl
+          contentEl = fEl
+        } else {
+          // field is error but no formula definition was found, so we can not
+          // parse this
+          return
+        }
+
+        break
+      }
+    }
+  } else {
+    // checking if the cell is inline string value
+    const isEl = childEls.find((el) => el.nodeName === 'is')
+
+    if (isEl != null) {
+      const tEl = nodeListToArray(isEl.childNodes).find((el) => el.nodeName === 't')
+
+      if (tEl != null) {
+        const textDetails = extractTextDetailsFromEl(isEl)
+        const textDetailsStr = textDetails.getText()
+
+        type = 'inlineStr'
+        value = textDetailsStr
+        extra.textDetails = textDetails
+        contentEl = isEl
+      }
+    }
+
+    // now checking if the cell is formula value
+    const fEl = childEls.find((el) => el.nodeName === 'f')
+
+    if (type == null && fEl != null) {
+      type = 'str'
+      value = fEl.textContent
+      extra.formulaEl = fEl
+      contentEl = fEl
+    }
+
+    const vEl = childEls.find((el) => el.nodeName === 'v')
+    const excelNumberAndDecimalRegExp = /^-?\d+(\.\d+)?(E-\d+)?$/
+
+    // finally checking if the cell is number value
+    if (type == null && vEl != null && excelNumberAndDecimalRegExp.test(vEl.textContent)) {
+      type = 'n'
+      value = vEl.textContent
+      contentEl = vEl
+    }
+  }
+
+  if (value == null) {
+    throw new Error(`Expected value to be found in cell, sheet: ${sheetFilepath}`)
+  }
+
+  return {
+    type,
+    value,
+    extra,
+    contentEl
+  }
+}
+
+function extractTextDetailsFromEl (targetEl) {
+  const results = []
+  const stack = []
+  let richTextFound = false
+
+  const clonedTargetEl = targetEl.cloneNode(true)
+  const childEls = nodeListToArray(clonedTargetEl.childNodes)
+
+  for (const childEl of childEls) {
+    stack.push(childEl)
+  }
+
+  while (stack.length) {
+    const el = stack.shift()
+
+    // check if the element is different than element
+    if (el.nodeType !== 1) {
+      continue
+    }
+
+    if (el.nodeName === 't') {
+      const shouldPreserveSpace = el.getAttribute('xml:space') === 'preserve'
+      const childEls = nodeListToArray(el.childNodes)
+
+      for (const childEl of childEls) {
+        // check if the element is different than text node
+        if (childEl.nodeType !== 3) {
+          continue
+        }
+
+        let text = childEl.nodeValue ?? ''
+
+        if (!shouldPreserveSpace) {
+          text = text.trim()
+        }
+
+        results.push({
+          text,
+          tEl: el
+        })
+      }
+    } else if (el.nodeName === 'r') {
+      const childEls = nodeListToArray(el.childNodes)
+
+      for (const childEl of childEls) {
+        if (childEl.nodeName !== 't') {
+          continue
+        }
+
+        richTextFound = true
+
+        stack.unshift(childEl)
+      }
+    }
+  }
+
+  return {
+    [Symbol.iterator]: () => results.values(),
+    hasRichText: () => richTextFound,
+    hasText: () => results.length > 0,
+    getContentElements: () => {
+      const childNodes = nodeListToArray(clonedTargetEl.childNodes)
+      const result = []
+
+      for (const childNode of childNodes) {
+        // we only care about pure text content, skip the rest (Phonetic Run, Phonetic Properties)
+        if (childNode.nodeName !== 't' && childNode.nodeName !== 'r') {
+          continue
+        }
+
+        result.push(childNode.cloneNode(true))
+      }
+
+      return result
+    },
+    getText: () => {
+      let str = ''
+
+      for (const item of results) {
+        str += item.text
+      }
+
+      return str
+    }
+  }
+}
+
 function getSheetInfo (_sheetPath, workbookSheetsEls, workbookRelsEls) {
   const sheetPath = _sheetPath.startsWith('xl/') ? _sheetPath.replace(/^xl\//, '') : _sheetPath
 
@@ -285,6 +527,7 @@ module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
+module.exports.getCellInfo = getCellInfo
 module.exports.getClosestEl = getClosestEl
 module.exports.getSheetInfo = getSheetInfo
 module.exports.getStyleFile = getStyleFile

@@ -5,7 +5,7 @@ const { DOMParser } = require('@xmldom/xmldom')
 const jsreport = require('@jsreport/jsreport-core')
 const { decompress } = require('@jsreport/office')
 const xlsx = require('xlsx')
-const { mergeCellExists } = require('../utils')
+const { getDocumentsFromXlsxBuf, mergeCellExists } = require('../utils')
 const { nodeListToArray } = require('../../lib/utils')
 const { getNewCellLetter } = require('../../lib/cellUtils')
 
@@ -35,7 +35,7 @@ describe('xlsx generation - loops', () => {
     }
   })
 
-  const modes = ['row', 'block', 'vertical']
+  const modes = ['row', 'block', 'vertical', 'dynamic']
 
   it('inner loop', async () => {
     const items = [{
@@ -110,18 +110,22 @@ describe('xlsx generation - loops', () => {
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
         should(sheet.B6.v).be.eql('')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('')
         should(sheet.C3.v).be.eql('Lastname')
         should(sheet.D3.v).be.eql('')
         should(sheet.C4.v).be.eql('Age')
         should(sheet.D4.v).be.eql('')
+      } else {
+        should(sheet.C2.v).be.eql('')
+        should(sheet.D2).be.not.ok()
+        should(sheet.E2).be.not.ok()
       }
     })
 
     it(`${mode} loop should generate new rows`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -134,6 +138,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -191,7 +205,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C14.v).be.eql(items[2].name)
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -204,15 +218,271 @@ describe('xlsx generation - loops', () => {
         should(sheet.D4.v).be.eql(items[0].age)
         should(sheet.E4.v).be.eql(items[1].age)
         should(sheet.F4.v).be.eql(items[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
       }
     })
 
+    it(`${mode} loop should generate new rows (with styled text)`, async () => {
+      const originalItems = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-styled'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+
+      const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+      const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
+
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname + ' - L')
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname + ' - L')
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname + ' - L')
+        should(sheet.E5.v).be.eql(items[2].age)
+
+        const styledCells = cellEls.filter((c) => (
+          c.getAttribute('r') === 'D3' ||
+          c.getAttribute('r') === 'D4' ||
+          c.getAttribute('r') === 'D5'
+        ))
+
+        for (const styledCell of styledCells) {
+          const colorEl = styledCell.getElementsByTagName('color')[0]
+
+          should(colorEl).be.ok()
+          should(colorEl.getAttribute('rgb')).be.eql('FFFF0000')
+
+          const bEl = styledCell.getElementsByTagName('b')[0]
+          should(bEl).be.ok()
+        }
+      } else if (mode === 'block') {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname + ' - L')
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname + ' - L')
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname + ' - L')
+        should(sheet.E14.v).be.eql(items[2].age)
+
+        const styledCells = cellEls.filter((c) => (
+          c.getAttribute('r') === 'D4' ||
+          c.getAttribute('r') === 'D9' ||
+          c.getAttribute('r') === 'D14'
+        ))
+
+        for (const styledCell of styledCells) {
+          const colorEl = styledCell.getElementsByTagName('color')[0]
+
+          should(colorEl).be.ok()
+          should(colorEl.getAttribute('rgb')).be.eql('FFFF0000')
+
+          const bEl = styledCell.getElementsByTagName('b')[0]
+          should(bEl).be.ok()
+        }
+      } else if (mode === 'vertical') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname + ' - L')
+        should(sheet.E3.v).be.eql(items[1].lastname + ' - L')
+        should(sheet.F3.v).be.eql(items[2].lastname + ' - L')
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+
+        const styledCells = cellEls.filter((c) => (
+          c.getAttribute('r') === 'D3' ||
+          c.getAttribute('r') === 'E3' ||
+          c.getAttribute('r') === 'F3'
+        ))
+
+        for (const styledCell of styledCells) {
+          const colorEl = styledCell.getElementsByTagName('color')[0]
+
+          should(colorEl).be.ok()
+          should(colorEl.getAttribute('rgb')).be.eql('FFFF0000')
+
+          const bEl = styledCell.getElementsByTagName('b')[0]
+          should(bEl).be.ok()
+        }
+      } else {
+        should(sheet.C2.v).be.eql('Name - L')
+        should(sheet.D2.v).be.eql('Lastname - L')
+        should(sheet.E2.v).be.eql('Age - L')
+        should(sheet.C3.v).be.eql(originalItems[0].name + ' - L')
+        should(sheet.D3.v).be.eql(originalItems[0].lastname + ' - L')
+        should(sheet.E3.v).be.eql(originalItems[0].age + ' - L')
+        should(sheet.C4.v).be.eql(originalItems[1].name + ' - L')
+        should(sheet.D4.v).be.eql(originalItems[1].lastname + ' - L')
+        should(sheet.E4.v).be.eql(originalItems[1].age + ' - L')
+        should(sheet.C5.v).be.eql(originalItems[2].name + ' - L')
+        should(sheet.D5.v).be.eql(originalItems[2].lastname + ' - L')
+        should(sheet.E5.v).be.eql(originalItems[2].age + ' - L')
+
+        const styledCells = cellEls
+
+        for (const styledCell of styledCells) {
+          const colorEl = styledCell.getElementsByTagName('color')[0]
+
+          should(colorEl).be.ok()
+          should(colorEl.getAttribute('rgb')).be.eql('FFFF0000')
+
+          const bEl = styledCell.getElementsByTagName('b')[0]
+          should(bEl).be.ok()
+        }
+      }
+    })
+
+    if (mode === 'dynamic') {
+      it('dynamic loop should generate new rows with conditional content', async () => {
+        const originalItems = [{
+          name: 'Alexander',
+          lastname: 'Smith',
+          age: 32
+        }, {
+          name: 'John',
+          lastname: 'Doe',
+          age: 29
+        }, {
+          name: 'Jane',
+          lastname: 'Montana',
+          age: 23
+        }]
+
+        const items = originalItems.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'xlsx',
+            xlsx: {
+              templateAsset: {
+                content: fs.readFileSync(getTargetXlsxFilename(mode, '-with-conditional-content'))
+              }
+            }
+          },
+          data: {
+            items
+          }
+        })
+
+        fs.writeFileSync(outputPath, result.content)
+        const workbook = xlsx.read(result.content)
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        // it is expected that for this dynamic template we get string for age here,
+        // because the cell contains conditional content, and in this case we can not
+        // auto-detect reliable and the value is considered as string
+        should(sheet.E3.v).be.eql(originalItems[0].age.toString())
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age.toString())
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age.toString())
+      })
+    }
+
     it(`${mode} loop should keep the same row if array have 1 item`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -250,18 +520,25 @@ describe('xlsx generation - loops', () => {
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.C3.v).be.eql('Lastname')
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.C4.v).be.eql('Age')
         should(sheet.D4.v).be.eql(items[0].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
       }
     })
 
     it(`${mode} loop should generate new rows and update existing rows/cells`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -274,6 +551,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -340,7 +627,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.B18.v).be.eql('another')
         should(sheet.C18.v).be.eql('content')
         should(sheet.D18.v).be.eql('here')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F1.v).be.eql('another')
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
@@ -356,6 +643,22 @@ describe('xlsx generation - loops', () => {
         should(sheet.D4.v).be.eql(items[0].age)
         should(sheet.E4.v).be.eql(items[1].age)
         should(sheet.F4.v).be.eql(items[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+        should(sheet.B7.v).be.eql('another')
+        should(sheet.C7.v).be.eql('content')
+        should(sheet.D7.v).be.eql('here')
       }
     })
 
@@ -405,7 +708,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.B8.v).be.eql('another')
         should(sheet.C8.v).be.eql('content')
         should(sheet.D8.v).be.eql('here')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F1.v).be.eql('another')
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('')
@@ -419,15 +722,35 @@ describe('xlsx generation - loops', () => {
         should(sheet.D4.v).be.eql('')
         should(sheet.E4).be.not.ok()
         should(sheet.F4).be.not.ok()
+      } else {
+        should(sheet.C2.v).be.eql('')
+        should(sheet.D2).be.not.ok()
+        should(sheet.E2).be.not.ok()
+        should(sheet.C3).be.not.ok()
+        should(sheet.D3).be.not.ok()
+        should(sheet.E3).be.not.ok()
+        should(sheet.B4.v).be.eql('another')
+        should(sheet.C4.v).be.eql('content')
+        should(sheet.D4.v).be.eql('here')
       }
     })
 
     it(`${mode} loop should not generate new row and keep existing rows/cells if array have 1 item`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -472,7 +795,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.B8.v).be.eql('another')
         should(sheet.C8.v).be.eql('content')
         should(sheet.D8.v).be.eql('here')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F1.v).be.eql('another')
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
@@ -486,11 +809,21 @@ describe('xlsx generation - loops', () => {
         should(sheet.D4.v).be.eql(items[0].age)
         should(sheet.E4).be.not.ok()
         should(sheet.F4).be.not.ok()
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.B5.v).be.eql('another')
+        should(sheet.C5.v).be.eql('content')
+        should(sheet.D5.v).be.eql('here')
       }
     })
 
     it(`${mode} loop with block parameters should work`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -503,6 +836,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -560,7 +903,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C14.v).be.eql(items[2].name)
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -573,11 +916,24 @@ describe('xlsx generation - loops', () => {
         should(sheet.D4.v).be.eql(items[0].age)
         should(sheet.E4.v).be.eql(items[1].age)
         should(sheet.F4.v).be.eql(items[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
       }
     })
 
     it(`${mode} loop should work with inner loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         colors: [{ name: 'red' }, { name: 'black' }],
@@ -594,10 +950,23 @@ describe('xlsx generation - loops', () => {
         age: 23
       }]
 
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.colors, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Colors', 'Age'])
+      }
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
+          helpers: `
+            function isCC (rowIndex, columnIndex) { return rowIndex > 0 && columnIndex === 2 }
+          `,
           xlsx: {
             templateAsset: {
               content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-inner-loop'))
@@ -660,7 +1029,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].colors.map((item) => item.name).join(''))
         should(sheet.F14.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -677,11 +1046,96 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[0].age)
         should(sheet.E5.v).be.eql(items[1].age)
         should(sheet.F5.v).be.eql(items[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Colors')
+        should(sheet.F2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].colors.map((item) => item.name).join(''))
+        should(sheet.F3.v).be.eql(originalItems[0].age.toString())
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].colors.map((item) => item.name).join(''))
+        should(sheet.F4.v).be.eql(originalItems[1].age.toString())
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].colors.map((item) => item.name).join(''))
+        should(sheet.F5.v).be.eql(originalItems[2].age.toString())
       }
     })
 
+    if (mode === 'dynamic') {
+      it(`${mode} loop should work with inner loop with explicit type`, async () => {
+        const originalItems = [{
+          name: 'Alexander',
+          lastname: 'Smith',
+          colors: [{ name: 'red' }, { name: 'black' }],
+          age: 32
+        }, {
+          name: 'John',
+          lastname: 'Doe',
+          colors: [{ name: 'blue' }, { name: 'yellow' }, { name: 'green' }],
+          age: 29
+        }, {
+          name: 'Jane',
+          lastname: 'Montana',
+          colors: [{ name: 'black' }],
+          age: 23
+        }]
+
+        const items = originalItems.map((item) => {
+          return [item.name, item.lastname, item.colors, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Colors', 'Age'])
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'xlsx',
+            helpers: `
+              function isCC (rowIndex, columnIndex) { return rowIndex > 0 && columnIndex === 2 }
+
+              function isAC (rowIndex, columnIndex) { return rowIndex > 0 && columnIndex === 3 }
+            `,
+            xlsx: {
+              templateAsset: {
+                content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-inner-loop-explicit-type'))
+              }
+            }
+          },
+          data: {
+            items
+          }
+        })
+
+        fs.writeFileSync(outputPath, result.content)
+        const workbook = xlsx.read(result.content)
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Colors')
+        should(sheet.F2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].colors.map((item) => item.name).join(''))
+        should(sheet.F3.v).be.eql(originalItems[0].age)
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].colors.map((item) => item.name).join(''))
+        should(sheet.F4.v).be.eql(originalItems[1].age)
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].colors.map((item) => item.name).join(''))
+        should(sheet.F5.v).be.eql(originalItems[2].age)
+      })
+    }
+
     it(`${mode} loop should generate new rows when there are siblings loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -695,7 +1149,7 @@ describe('xlsx generation - loops', () => {
         age: 23
       }]
 
-      const items2 = [{
+      const originalItems2 = [{
         name: 'Emma',
         lastname: 'Johnson',
         age: 27
@@ -705,7 +1159,7 @@ describe('xlsx generation - loops', () => {
         age: 35
       }]
 
-      const items3 = [{
+      const originalItems3 = [{
         name: 'Oliver',
         lastname: 'Taylor',
         age: 28
@@ -718,6 +1172,26 @@ describe('xlsx generation - loops', () => {
         lastname: 'Ramirez',
         age: 25
       }]
+
+      let items = originalItems
+      let items2 = originalItems2
+      let items3 = originalItems3
+
+      if (mode === 'dynamic') {
+        const transformItems = (input) => {
+          const data = input.map((item) => {
+            return [item.name, item.lastname, item.age]
+          })
+
+          data.unshift(['Name', 'Lastname', 'Age'])
+
+          return data
+        }
+
+        items = transformItems(originalItems)
+        items2 = transformItems(originalItems2)
+        items3 = transformItems(originalItems3)
+      }
 
       const result = await reporter.render({
         template: {
@@ -835,7 +1309,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C41.v).be.eql(items3[2].name)
         should(sheet.D41.v).be.eql(items3[2].lastname)
         should(sheet.E41.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -877,11 +1351,47 @@ describe('xlsx generation - loops', () => {
         should(sheet.M4.v).be.eql(items3[0].age)
         should(sheet.N4.v).be.eql(items3[1].age)
         should(sheet.O4.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+
+        should(sheet.C7.v).be.eql('Name')
+        should(sheet.D7.v).be.eql('Lastname')
+        should(sheet.E7.v).be.eql('Age')
+        should(sheet.C8.v).be.eql(originalItems2[0].name)
+        should(sheet.D8.v).be.eql(originalItems2[0].lastname)
+        should(sheet.E8.v).be.eql(originalItems2[0].age)
+        should(sheet.C9.v).be.eql(originalItems2[1].name)
+        should(sheet.D9.v).be.eql(originalItems2[1].lastname)
+        should(sheet.E9.v).be.eql(originalItems2[1].age)
+
+        should(sheet.C11.v).be.eql('Name')
+        should(sheet.D11.v).be.eql('Lastname')
+        should(sheet.E11.v).be.eql('Age')
+        should(sheet.C12.v).be.eql(originalItems3[0].name)
+        should(sheet.D12.v).be.eql(originalItems3[0].lastname)
+        should(sheet.E12.v).be.eql(originalItems3[0].age)
+        should(sheet.C13.v).be.eql(originalItems3[1].name)
+        should(sheet.D13.v).be.eql(originalItems3[1].lastname)
+        should(sheet.E13.v).be.eql(originalItems3[1].age)
+        should(sheet.C14.v).be.eql(originalItems3[2].name)
+        should(sheet.D14.v).be.eql(originalItems3[2].lastname)
+        should(sheet.E14.v).be.eql(originalItems3[2].age)
       }
     })
 
     it(`${mode} loop should generate new rows when there are mixed siblings loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -895,7 +1405,7 @@ describe('xlsx generation - loops', () => {
         age: 23
       }]
 
-      const items2 = [{
+      const originalItems2 = [{
         name: 'Emma',
         lastname: 'Johnson',
         age: 27
@@ -905,7 +1415,7 @@ describe('xlsx generation - loops', () => {
         age: 35
       }]
 
-      const items3 = [{
+      const originalItems3 = [{
         name: 'Oliver',
         lastname: 'Taylor',
         age: 28
@@ -918,6 +1428,24 @@ describe('xlsx generation - loops', () => {
         lastname: 'Ramirez',
         age: 25
       }]
+
+      let items = originalItems
+      const items2 = originalItems2
+      const items3 = originalItems3
+
+      if (mode === 'dynamic') {
+        const transformItems = (input) => {
+          const data = input.map((item) => {
+            return [item.name, item.lastname, item.age]
+          })
+
+          data.unshift(['Name', 'Lastname', 'Age'])
+
+          return data
+        }
+
+        items = transformItems(originalItems)
+      }
 
       const result = await reporter.render({
         template: {
@@ -1034,7 +1562,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C34.v).be.eql(items3[2].name)
         should(sheet.D34.v).be.eql(items3[2].lastname)
         should(sheet.E34.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1118,6 +1646,45 @@ describe('xlsx generation - loops', () => {
         should(sheet.C23.v).be.eql(items3[2].name)
         should(sheet.D23.v).be.eql(items3[2].lastname)
         should(sheet.E23.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(originalItems2[0].name)
+        should(sheet.D9.v).be.eql(originalItems2[0].lastname)
+        should(sheet.E9.v).be.eql(originalItems2[0].age)
+        should(sheet.C12.v).be.eql('Name')
+        should(sheet.D12.v).be.eql('Lastname')
+        should(sheet.E12.v).be.eql('Age')
+        should(sheet.C13.v).be.eql(originalItems2[1].name)
+        should(sheet.D13.v).be.eql(originalItems2[1].lastname)
+        should(sheet.E13.v).be.eql(originalItems2[1].age)
+
+        should(sheet.C16.v).be.eql('Name')
+        should(sheet.D16.v).be.eql('Lastname')
+        should(sheet.E16.v).be.eql('Age')
+        should(sheet.C17.v).be.eql(originalItems3[0].name)
+        should(sheet.D17.v).be.eql(originalItems3[0].lastname)
+        should(sheet.E17.v).be.eql(originalItems3[0].age)
+        should(sheet.C18.v).be.eql(originalItems3[1].name)
+        should(sheet.D18.v).be.eql(originalItems3[1].lastname)
+        should(sheet.E18.v).be.eql(originalItems3[1].age)
+        should(sheet.C19.v).be.eql(originalItems3[2].name)
+        should(sheet.D19.v).be.eql(originalItems3[2].lastname)
+        should(sheet.E19.v).be.eql(originalItems3[2].age)
       }
     })
 
@@ -1125,7 +1692,7 @@ describe('xlsx generation - loops', () => {
     // use loop-left-preserve-cell-text.xlsx file for the test
 
     it(`${mode} loop should preserve the content of cells that are not in the loop (left) but in the same row`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -1138,6 +1705,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -1206,7 +1783,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C14.v).be.eql(items[2].name)
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         // preserving the cells on the left of the loop
         should(sheet.D1.v).be.eql('preserve')
         should(sheet.E1).be.not.ok()
@@ -1227,11 +1804,34 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[0].age)
         should(sheet.E5.v).be.eql(items[1].age)
         should(sheet.F5.v).be.eql(items[2].age)
+      } else {
+        should(sheet.A2.v).be.eql('preserve')
+        should(sheet.B2.v).be.eql('preserve2')
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+
+        // preserving the cells on the left of the loop
+        should(sheet.A3).be.not.ok()
+        should(sheet.B3).be.not.ok()
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
       }
     })
 
     it(`${mode} loop should preserve the content of cells that are not in the loop (left) but in the same row, the cells should not have access to data from the loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -1244,6 +1844,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -1318,7 +1928,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].name)
         should(sheet.F14.v).be.eql(items[2].lastname)
         should(sheet.G14.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         // preserving the cells on the left of the loop
         should(sheet.D1.v).be.eql('')
         should(sheet.E1).be.not.ok()
@@ -1342,11 +1952,38 @@ describe('xlsx generation - loops', () => {
         should(sheet.D6.v).be.eql(items[0].age)
         should(sheet.E6.v).be.eql(items[1].age)
         should(sheet.F6.v).be.eql(items[2].age)
+      } else {
+        should(sheet.A2.v).be.eql('')
+        should(sheet.B2.v).be.eql('test')
+        should(sheet.C2.v).be.eql('')
+        should(sheet.D2.v).be.eql('Name')
+        should(sheet.E2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Age')
+
+        // preserving the cells on the left of the loop
+        should(sheet.A3).be.not.ok()
+        should(sheet.B3).be.not.ok()
+        should(sheet.C3).be.not.ok()
+        should(sheet.D3.v).be.eql(originalItems[0].name)
+        should(sheet.E3.v).be.eql(originalItems[0].lastname)
+        should(sheet.F3.v).be.eql(originalItems[0].age)
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4).be.not.ok()
+        should(sheet.D4.v).be.eql(originalItems[1].name)
+        should(sheet.E4.v).be.eql(originalItems[1].lastname)
+        should(sheet.F4.v).be.eql(originalItems[1].age)
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5).be.not.ok()
+        should(sheet.D5.v).be.eql(originalItems[2].name)
+        should(sheet.E5.v).be.eql(originalItems[2].lastname)
+        should(sheet.F5.v).be.eql(originalItems[2].age)
       }
     })
 
     it(`${mode} loop should preserve the content of cells that are not in the loop (right) but in the same row`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -1359,6 +1996,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -1380,7 +2027,7 @@ describe('xlsx generation - loops', () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
       if (mode === 'row') {
-        // preserving the cells on the left of the loop
+        // preserving the cells on the right of the loop
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1428,7 +2075,7 @@ describe('xlsx generation - loops', () => {
 
         should(sheet.C16.v).be.eql('preserve')
         should(sheet.D16.v).be.eql('preserve2')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -1449,11 +2096,32 @@ describe('xlsx generation - loops', () => {
         should(sheet.D6.v).be.eql('preserve2')
         should(sheet.E6).be.not.ok()
         should(sheet.F6).be.not.ok()
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.F2.v).be.eql('preserve')
+        should(sheet.G2.v).be.eql('preserve2')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.F3).be.not.ok()
+        should(sheet.G3).be.not.ok()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+        should(sheet.F5).be.not.ok()
+        should(sheet.G5).be.not.ok()
       }
     })
 
     it(`${mode} loop should preserve the content of cells that are not in the loop (right) but in the same row, the cells should not have access to data from the loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -1466,6 +2134,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -1488,7 +2166,7 @@ describe('xlsx generation - loops', () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
       if (mode === 'row') {
-        // preserving the cells on the left of the loop
+        // preserving the cells on the right of the loop
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1540,7 +2218,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C16.v).be.eql('')
         should(sheet.D16.v).be.eql('test')
         should(sheet.E16.v).be.eql('')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -1564,11 +2242,36 @@ describe('xlsx generation - loops', () => {
         should(sheet.D7.v).be.eql('')
         should(sheet.E7).be.not.ok()
         should(sheet.F7).be.not.ok()
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.F2.v).be.eql('')
+        should(sheet.G2.v).be.eql('test')
+        should(sheet.H2.v).be.eql('')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.F3).be.not.ok()
+        should(sheet.G3).be.not.ok()
+        should(sheet.H3).be.not.ok()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4).be.not.ok()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+        should(sheet.F5).be.not.ok()
+        should(sheet.G5).be.not.ok()
+        should(sheet.H5).be.not.ok()
       }
     })
 
     it(`${mode} loop should preserve the content of cells that are not in the loop (left, right) but in the same row`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -1581,6 +2284,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -1602,7 +2315,7 @@ describe('xlsx generation - loops', () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
       if (mode === 'row') {
-        // preserving the cells on the left of the loop
+        // preserving the cells on the left and right of the loop
         should(sheet.A3.v).be.eql('preserve')
         should(sheet.B3.v).be.eql('preserve2')
         should(sheet.C2.v).be.eql('Name')
@@ -1657,7 +2370,7 @@ describe('xlsx generation - loops', () => {
 
         should(sheet.C16.v).be.eql('preserve2')
         should(sheet.D16.v).be.eql('preserve3')
-      } else {
+      } else if (mode === 'vertical') {
         // preserving the cells on the left of the loop
         should(sheet.D1.v).be.eql('preserve')
         should(sheet.E1).be.not.ok()
@@ -1686,11 +2399,36 @@ describe('xlsx generation - loops', () => {
         should(sheet.D7.v).be.eql('preserve4')
         should(sheet.E7).be.not.ok()
         should(sheet.F7).be.not.ok()
+      } else {
+        should(sheet.A2.v).be.eql('preserve')
+        should(sheet.B2.v).be.eql('preserve2')
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.F2.v).be.eql('preserve3')
+        should(sheet.G2.v).be.eql('preserve4')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+        should(sheet.F5).be.not.ok()
+        should(sheet.G5).be.not.ok()
       }
     })
 
     it(`${mode} loop should preserve the content of cells that are not in the loop (left, right) but in the same row, the cells should not have access to data from the loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -1703,6 +2441,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -1729,7 +2477,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E2.v).be.eql('Lastname')
         should(sheet.F2.v).be.eql('Age')
 
-        // preserving the cells on the left of the loop
+        // preserving the cells on the left, right of the loop
         should(sheet.A3.v).be.eql('')
         should(sheet.B3.v).be.eql('test')
         should(sheet.C3.v).be.eql('')
@@ -1790,7 +2538,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E16.v).be.eql('')
         should(sheet.F16.v).be.eql('test')
         should(sheet.G16.v).be.eql('')
-      } else {
+      } else if (mode === 'vertical') {
         // preserving the cells on the left of the loop
         should(sheet.D1.v).be.eql('')
         should(sheet.E1).be.not.ok()
@@ -1825,11 +2573,50 @@ describe('xlsx generation - loops', () => {
         should(sheet.D9.v).be.eql('')
         should(sheet.E9).be.not.ok()
         should(sheet.F9).be.not.ok()
+      } else {
+        should(sheet.A2.v).be.eql('')
+        should(sheet.B2.v).be.eql('test')
+        should(sheet.C2.v).be.eql('')
+        should(sheet.D2.v).be.eql('Name')
+        should(sheet.E2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Age')
+        should(sheet.G2.v).be.eql('')
+        should(sheet.H2.v).be.eql('test')
+        should(sheet.I2.v).be.eql('')
+
+        // preserving the cells on the left, right of the loop
+        should(sheet.A3).be.not.ok()
+        should(sheet.B3).be.not.ok()
+        should(sheet.C3).be.not.ok()
+        should(sheet.D3.v).be.eql(originalItems[0].name)
+        should(sheet.E3.v).be.eql(originalItems[0].lastname)
+        should(sheet.F3.v).be.eql(originalItems[0].age)
+        should(sheet.G3).be.not.ok()
+        should(sheet.H3).be.not.ok()
+        should(sheet.I3).be.not.ok()
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4).be.not.ok()
+        should(sheet.D4.v).be.eql(originalItems[1].name)
+        should(sheet.E4.v).be.eql(originalItems[1].lastname)
+        should(sheet.F4.v).be.eql(originalItems[1].age)
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4).be.not.ok()
+        should(sheet.I4).be.not.ok()
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5).be.not.ok()
+        should(sheet.D5.v).be.eql(originalItems[2].name)
+        should(sheet.E5.v).be.eql(originalItems[2].lastname)
+        should(sheet.F5.v).be.eql(originalItems[2].age)
+        should(sheet.G5).be.not.ok()
+        should(sheet.H5).be.not.ok()
+        should(sheet.I5).be.not.ok()
       }
     })
 
     it(`${mode} loop multiple loops should generate new rows and update existing rows/cells`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -1843,7 +2630,7 @@ describe('xlsx generation - loops', () => {
         age: 23
       }]
 
-      const items2 = [{
+      const originalItems2 = [{
         name: 'Robert',
         lastname: 'Hill',
         age: 49
@@ -1857,7 +2644,7 @@ describe('xlsx generation - loops', () => {
         age: 33
       }]
 
-      const items3 = [{
+      const originalItems3 = [{
         name: 'Mathew',
         lastname: 'Gonzales',
         age: 26
@@ -1870,6 +2657,26 @@ describe('xlsx generation - loops', () => {
         lastname: 'Heart',
         age: 23
       }]
+
+      let items = originalItems
+      let items2 = originalItems2
+      let items3 = originalItems3
+
+      if (mode === 'dynamic') {
+        const transformItems = (input) => {
+          const data = input.map((item) => {
+            return [item.name, item.lastname, item.age]
+          })
+
+          data.unshift(['Name', 'Lastname', 'Age'])
+
+          return data
+        }
+
+        items = transformItems(originalItems)
+        items2 = transformItems(originalItems2)
+        items3 = transformItems(originalItems3)
+      }
 
       const result = await reporter.render({
         template: {
@@ -2014,7 +2821,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C50.v).be.eql(items3[2].name)
         should(sheet.D50.v).be.eql(items3[2].lastname)
         should(sheet.E50.v).be.eql(items3[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F1.v).be.eql('another')
         should(sheet.K1.v).be.eql('another2')
 
@@ -2062,11 +2869,52 @@ describe('xlsx generation - loops', () => {
         should(sheet.R4.v).be.eql(items3[0].age)
         should(sheet.S4.v).be.eql(items3[1].age)
         should(sheet.T4.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+
+        should(sheet.B7.v).be.eql('another')
+        should(sheet.C7.v).be.eql('content')
+        should(sheet.D7.v).be.eql('here')
+
+        should(sheet.C10.v).be.eql(originalItems2[0].name)
+        should(sheet.D10.v).be.eql(originalItems2[0].lastname)
+        should(sheet.E10.v).be.eql(originalItems2[0].age)
+        should(sheet.C11.v).be.eql(originalItems2[1].name)
+        should(sheet.D11.v).be.eql(originalItems2[1].lastname)
+        should(sheet.E11.v).be.eql(originalItems2[1].age)
+        should(sheet.C12.v).be.eql(originalItems2[2].name)
+        should(sheet.D12.v).be.eql(originalItems2[2].lastname)
+        should(sheet.E12.v).be.eql(originalItems2[2].age)
+
+        should(sheet.B14.v).be.eql('another2')
+        should(sheet.C14.v).be.eql('content2')
+        should(sheet.D14.v).be.eql('here2')
+
+        should(sheet.C17.v).be.eql(originalItems3[0].name)
+        should(sheet.D17.v).be.eql(originalItems3[0].lastname)
+        should(sheet.E17.v).be.eql(originalItems3[0].age)
+        should(sheet.C18.v).be.eql(originalItems3[1].name)
+        should(sheet.D18.v).be.eql(originalItems3[1].lastname)
+        should(sheet.E18.v).be.eql(originalItems3[1].age)
+        should(sheet.C19.v).be.eql(originalItems3[2].name)
+        should(sheet.D19.v).be.eql(originalItems3[2].lastname)
+        should(sheet.E19.v).be.eql(originalItems3[2].age)
       }
     })
 
     it(`${mode} loop should update dimension information in sheet after loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -2079,6 +2927,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -2103,13 +2961,15 @@ describe('xlsx generation - loops', () => {
         should(sheet['!ref']).be.eql(`C2:E${3 + (items.length - 1)}`)
       } else if (mode === 'block') {
         should(sheet['!ref']).be.eql(`B2:E${6 + (5 * (items.length - 1))}`)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet['!ref']).be.eql(`C2:${getNewCellLetter('D', items.length - 1)}4`)
+      } else {
+        should(sheet['!ref']).be.eql(`C2:E${3 + (originalItems.length - 1)}`)
       }
     })
 
     it(`${mode} loop update existing merged cells after loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -2122,6 +2982,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -2156,13 +3026,20 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B18:C18')).be.True()
         should(sheet.E18.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E18:G18')).be.True()
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.H2.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'H2:H3')).be.True()
         should(sheet.F5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'F5:F6')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B7.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B7:C7')).be.True()
+        should(sheet.E7.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E7:G7')).be.True()
       }
     })
 
@@ -2202,22 +3079,39 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.F2.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'F2:F3')).be.True()
         should(sheet.F5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'F5:F6')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B4.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B4:C4')).be.True()
+        should(sheet.E4.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E4:G4')).be.True()
       }
     })
 
     it(`${mode} loop not update existing merged cells after loop if array have 1 item`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -2252,18 +3146,25 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B8:C8')).be.True()
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.F2.v).be.eql('merged2')
         should(mergeCellExists(sheet, 'F2:F3')).be.True()
         should(sheet.F5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'F5:F6')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B5.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B5:C5')).be.True()
+        should(sheet.E5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E5:G5')).be.True()
       }
     })
 
-    it(`${mode} loop create new merged cells from loop`, async () => {
-      const items = [{
+    it(`${mode} loop create new merged cells from loop`, async function () {
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -2276,6 +3177,18 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -2339,7 +3252,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.F14.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D14:E14')).be.True()
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -2358,7 +3271,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop create new multiple merged cells from loop`, async () => {
+    it(`${mode} loop create new multiple merged cells from loop`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -2375,6 +3288,10 @@ describe('xlsx generation - loops', () => {
         job: 'Lawyer',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -2480,7 +3397,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} create new merged cells from loop and update existing`, async () => {
+    it(`${mode} create new merged cells from loop and update existing`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -2494,6 +3411,10 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -2601,8 +3522,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} should not create new merged cells from loop and not update existing if array have 0 items`, async () => {
+    it(`${mode} should not create new merged cells from loop and not update existing if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -2678,12 +3603,16 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} should not create new merged cells from loop and not update existing if array have 1 item`, async () => {
+    it(`${mode} should not create new merged cells from loop and not update existing if array have 1 item`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -2759,8 +3688,8 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop should preserve the content of merged cells that are not in the loop (left) but in the same row`, async () => {
-      const items = [{
+    it(`${mode} loop should preserve the content of merged cells that are not in the loop (left) but in the same row`, async function () {
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -2773,6 +3702,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -2859,7 +3798,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'D12:E12')).be.False()
 
         should(sheet['!merges']).have.length(2)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D1.v).be.eql('preserve')
         should(mergeCellExists(sheet, 'D1:D2')).be.True()
         should(sheet.D4.v).be.eql('preserve2')
@@ -2877,11 +3816,43 @@ describe('xlsx generation - loops', () => {
         should(sheet.D8.v).be.eql(items[0].age)
         should(sheet.E8.v).be.eql(items[1].age)
         should(sheet.F8.v).be.eql(items[2].age)
+      } else {
+        // preserving the cells on the left of the loop
+        should(mergeCellExists(sheet, 'A2:B2')).be.True()
+        should(sheet.A2.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'D2:E2')).be.True()
+        should(sheet.D2.v).be.eql('preserve2')
+        should(sheet.F2.v).be.eql('Name')
+        should(sheet.G2.v).be.eql('Lastname')
+        should(sheet.H2.v).be.eql('Age')
+
+        should(sheet.A3).be.not.ok()
+        should(mergeCellExists(sheet, 'A3:B3')).be.False()
+        should(sheet.D3).be.not.ok()
+        should(mergeCellExists(sheet, 'D3:E3')).be.False()
+        should(sheet.F3.v).be.eql(originalItems[0].name)
+        should(sheet.G3.v).be.eql(originalItems[0].lastname)
+        should(sheet.H3.v).be.eql(originalItems[0].age)
+        should(sheet.A4).be.not.ok()
+        should(mergeCellExists(sheet, 'A4:B4')).be.False()
+        should(sheet.D4).be.not.ok()
+        should(mergeCellExists(sheet, 'D4:E4')).be.False()
+        should(sheet.F4.v).be.eql(originalItems[1].name)
+        should(sheet.G4.v).be.eql(originalItems[1].lastname)
+        should(sheet.H4.v).be.eql(originalItems[1].age)
+        should(sheet.A5).be.not.ok()
+        should(mergeCellExists(sheet, 'A5:B5')).be.False()
+        should(sheet.D5).be.not.ok()
+        should(mergeCellExists(sheet, 'D5:E5')).be.False()
+        should(sheet.F5.v).be.eql(originalItems[2].name)
+        should(sheet.G5.v).be.eql(originalItems[2].lastname)
+        should(sheet.H5.v).be.eql(originalItems[2].age)
+        should(sheet['!merges']).have.length(2)
       }
     })
 
     it(`${mode} loop should preserve the content of merged cells that are not in the loop (right) but in the same row`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -2894,6 +3865,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -2919,7 +3900,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
 
-        // preserving the cells on the left of the loop
+        // preserving the cells on the right of the loop
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -2980,7 +3961,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'G16:H16')).be.True()
 
         should(sheet['!merges']).have.length(2)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -2998,11 +3979,43 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'D5:D6')).be.True()
         should(sheet.D8.v).be.eql('preserve2')
         should(mergeCellExists(sheet, 'D8:D9')).be.True()
+      } else {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        // preserving the cells on the right of the loop
+        should(sheet.F2.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'F2:G2')).be.True()
+        should(sheet.I2.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'I2:J2')).be.True()
+
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.F3).be.not.ok()
+        should(mergeCellExists(sheet, 'F3:G3')).be.False()
+        should(sheet.I3).be.not.ok()
+        should(mergeCellExists(sheet, 'I3:J3')).be.False()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.F4).be.not.ok()
+        should(mergeCellExists(sheet, 'F4:G4')).be.False()
+        should(sheet.I4).be.not.ok()
+        should(mergeCellExists(sheet, 'I4:J4')).be.False()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+        should(sheet.F5).be.not.ok()
+        should(mergeCellExists(sheet, 'F5:G5')).be.False()
+        should(sheet.I5).be.not.ok()
+        should(mergeCellExists(sheet, 'I5:J5')).be.False()
+        should(sheet['!merges']).have.length(2)
       }
     })
 
     it(`${mode} loop should preserve the content of merged cells that are not in the loop (left, right) but in the same row`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -3015,6 +4028,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -3128,7 +4151,7 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'K16:L16')).be.True()
 
         should(sheet['!merges']).have.length(4)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D1.v).be.eql('preserve')
         should(mergeCellExists(sheet, 'D1:D2')).be.True()
         should(sheet.D4.v).be.eql('preserve2')
@@ -3151,6 +4174,55 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'D9:D10')).be.True()
         should(sheet.D11.v).be.eql('preserve4')
         should(mergeCellExists(sheet, 'D11:D12')).be.True()
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.A2.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'A2:B2')).be.True()
+        should(sheet.D2.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D2:E2')).be.True()
+        should(sheet.F2.v).be.eql('Name')
+        should(sheet.G2.v).be.eql('Lastname')
+        should(sheet.H2.v).be.eql('Age')
+        // preserving the cells on the right of the loop
+        should(sheet.I2.v).be.eql('preserve3')
+        should(mergeCellExists(sheet, 'I2:J2')).be.True()
+        should(sheet.K2.v).be.eql('preserve4')
+        should(mergeCellExists(sheet, 'K2:L2')).be.True()
+
+        should(sheet.A3).be.not.ok()
+        should(mergeCellExists(sheet, 'A3:B3')).be.False()
+        should(sheet.D3).be.not.ok()
+        should(mergeCellExists(sheet, 'D3:E3')).be.False()
+        should(sheet.F3.v).be.eql(originalItems[0].name)
+        should(sheet.G3.v).be.eql(originalItems[0].lastname)
+        should(sheet.H3.v).be.eql(originalItems[0].age)
+        should(sheet.I3).be.not.ok()
+        should(mergeCellExists(sheet, 'I3:J3')).be.False()
+        should(sheet.K3).be.not.ok()
+        should(mergeCellExists(sheet, 'K3:L3')).be.False()
+        should(sheet.A4).be.not.ok()
+        should(mergeCellExists(sheet, 'A4:B4')).be.False()
+        should(sheet.D4).be.not.ok()
+        should(mergeCellExists(sheet, 'D4:E4')).be.False()
+        should(sheet.F4.v).be.eql(originalItems[1].name)
+        should(sheet.G4.v).be.eql(originalItems[1].lastname)
+        should(sheet.H4.v).be.eql(originalItems[1].age)
+        should(sheet.I4).be.not.ok()
+        should(mergeCellExists(sheet, 'I4:J4')).be.False()
+        should(sheet.K4).be.not.ok()
+        should(mergeCellExists(sheet, 'K4:L4')).be.False()
+        should(sheet.A5).be.not.ok()
+        should(mergeCellExists(sheet, 'A5:B5')).be.False()
+        should(sheet.D5).be.not.ok()
+        should(mergeCellExists(sheet, 'D5:E5')).be.False()
+        should(sheet.F5.v).be.eql(originalItems[2].name)
+        should(sheet.G5.v).be.eql(originalItems[2].lastname)
+        should(sheet.H5.v).be.eql(originalItems[2].age)
+        should(sheet.I5).be.not.ok()
+        should(mergeCellExists(sheet, 'I5:J5')).be.False()
+        should(sheet.K5).be.not.ok()
+        should(mergeCellExists(sheet, 'K5:L5')).be.False()
+        should(sheet['!merges']).have.length(4)
       }
     })
 
@@ -3220,8 +4292,8 @@ describe('xlsx generation - loops', () => {
       // should(mergeCellExists(sheet, 'D14:D15')).be.True()
     })
 
-    if (mode === 'block') {
-      it(`${mode} loop create new vertical merged cells from loop`, async () => {
+    if (mode === 'block' || mode === 'dynamic') {
+      it(`${mode} loop create new vertical merged cells from loop`, async function () {
         const items = [{
           name: 'Alexander',
           lastname: 'Smith',
@@ -3235,6 +4307,10 @@ describe('xlsx generation - loops', () => {
           lastname: 'Montana',
           age: 23
         }]
+
+        if (mode === 'dynamic') {
+          return this.skip()
+        }
 
         const result = await reporter.render({
           template: {
@@ -3287,7 +4363,7 @@ describe('xlsx generation - loops', () => {
     }
 
     it(`${mode} loop should generate workbook with full recalculation of formulas on load`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -3300,6 +4376,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -3338,16 +4424,24 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.H4?.f).be.not.ok()
         should(sheet.I4?.f).be.not.ok()
         should(sheet.J4.f).be.eql('SUM(H4:I4)')
         should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
+      } else {
+        should(sheet.E5?.f).be.not.ok()
+        should(sheet.E6?.f).be.not.ok()
+        should(sheet.E7?.f).be.not.ok()
+        should(sheet.E8?.f).be.not.ok()
+        should(sheet.E9.f).be.eql('SUM(E7:E8)')
+        should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
+        should(sheet.E11?.f).be.not.ok()
       }
     })
 
     it(`${mode} loop update existing formulas after loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -3360,6 +4454,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -3396,11 +4500,19 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.H4?.f).be.not.ok()
         should(sheet.I4?.f).be.not.ok()
         should(sheet.J4.f).be.eql('SUM(H4:I4)')
         should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
+      } else {
+        should(sheet.E5?.f).be.not.ok()
+        should(sheet.E6?.f).be.not.ok()
+        should(sheet.E7?.f).be.not.ok()
+        should(sheet.E8?.f).be.not.ok()
+        should(sheet.E9.f).be.eql('SUM(E7:E8)')
+        should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
+        should(sheet.E11?.f).be.not.ok()
       }
     })
 
@@ -3436,20 +4548,35 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.v).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.H4.f).be.ok()
         should(sheet.I4.f).be.ok()
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
         should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
+      } else {
+        should(sheet.E4.v).be.ok()
+        should(sheet.E5.v).be.ok()
+        should(sheet.E6.f).be.eql('SUM(E4:E5)')
+        should(sheet.E7.f).be.eql('AVERAGE(E4:E5)')
       }
     })
 
     it(`${mode} loop not update existing formulas after loop if array have 1 item`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -3480,16 +4607,21 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9.v).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.H4.f).be.ok()
         should(sheet.I4.f).be.ok()
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
         should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
+      } else {
+        should(sheet.E5.v).be.ok()
+        should(sheet.E6.v).be.ok()
+        should(sheet.E7.f).be.eql('SUM(E5:E6)')
+        should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
       }
     })
 
     it(`${mode} loop update calcChain info of formulas after loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -3502,6 +4634,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -3558,15 +4700,24 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E20', cellEls)).be.True()
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.False()
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('H4', cellEls)).be.False()
         should(cellExists('I4', cellEls)).be.False()
         should(cellExists('J4', cellEls)).be.True()
         should(cellExists('K4', cellEls)).be.True()
+      } else {
+        should(cellExists('E5', cellEls)).be.False()
+        should(cellExists('E6', cellEls)).be.False()
+        should(cellExists('E7', cellEls)).be.False()
+        should(cellExists('E8', cellEls)).be.False()
+        should(cellExists('E9', cellEls)).be.True()
+        should(cellExists('E10', cellEls)).be.True()
+        should(cellExists('E11', cellEls)).be.False()
+        should(cellEls).have.length(2)
       }
     })
 
-    it(`${mode} loop update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop)`, async () => {
+    it(`${mode} loop update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop)`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -3580,6 +4731,10 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -3619,7 +4774,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('MIN(E4:E17)')
         should(sheet.E21.f).be.eql('MAX(E4:E17)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F4?.f).be.not.ok()
         should(sheet.G4?.f).be.not.ok()
         should(sheet.H4.f).be.eql('SUM(D4:G4)')
@@ -3630,8 +4785,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop) if array have 0 items`, async () => {
+    it(`${mode} loop not update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop) if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -3664,7 +4823,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('MIN(E4:E7)')
         should(sheet.E11.f).be.eql('MAX(E4:E7)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F4.f).be.eql('SUM(D4:E4)')
         should(sheet.G4.f).be.eql('AVERAGE(D4:E4)')
         should(sheet.H4.f).be.eql('MIN(D4:E4)')
@@ -3673,13 +4832,17 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop) if array have 1 item`, async () => {
+    it(`${mode} loop not update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop) if array have 1 item`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
       }]
 
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
@@ -3711,7 +4874,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('MIN(E4:E7)')
         should(sheet.E11.f).be.eql('MAX(E4:E7)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F4.f).be.eql('SUM(D4:E4)')
         should(sheet.G4.f).be.eql('AVERAGE(D4:E4)')
         should(sheet.H4.f).be.eql('MIN(D4:E4)')
@@ -3720,7 +4883,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop (formula start in loop and formula end points to one cell bellow loop)`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop (formula start in loop and formula end points to one cell bellow loop)`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -3734,6 +4897,10 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -3795,7 +4962,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.True()
         should(cellEls).have.length(5)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('F4', cellEls)).be.False()
         should(cellExists('G4', cellEls)).be.False()
         should(cellExists('H4', cellEls)).be.True()
@@ -3806,7 +4973,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update existing formulas after loop (formula start and end points to cell in loop)`, async () => {
+    it(`${mode} loop update existing formulas after loop (formula start and end points to cell in loop)`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -3820,6 +4987,10 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -3859,7 +5030,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('MIN(E4:E14)')
         should(sheet.E21.f).be.eql('MAX(E4:E14)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F4?.f).be.not.ok()
         should(sheet.G4?.f).be.not.ok()
         should(sheet.H4.f).be.eql('SUM(D4:F4)')
@@ -3870,8 +5041,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not update existing formulas after loop (formula start and end points to cell in loop) if array have 0 items`, async () => {
+    it(`${mode} loop not update existing formulas after loop (formula start and end points to cell in loop) if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -3904,7 +5079,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('MIN(E4:E4)')
         should(sheet.E11.f).be.eql('MAX(E4:E4)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F4.f).be.eql('SUM(D4:D4)')
         should(sheet.G4.f).be.eql('AVERAGE(D4:D4)')
         should(sheet.H4.f).be.eql('MIN(D4:D4)')
@@ -3913,13 +5088,17 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not update existing formulas after loop (formula start and end points to cell in loop) if array have 1 item`, async () => {
+    it(`${mode} loop not update existing formulas after loop (formula start and end points to cell in loop) if array have 1 item`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
       }]
 
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
@@ -3951,7 +5130,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('MIN(E4:E4)')
         should(sheet.E11.f).be.eql('MAX(E4:E4)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.F4.f).be.eql('SUM(D4:D4)')
         should(sheet.G4.f).be.eql('AVERAGE(D4:D4)')
         should(sheet.H4.f).be.eql('MIN(D4:D4)')
@@ -3960,7 +5139,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop (formula start and end points to cell in loop)`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop (formula start and end points to cell in loop)`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -3974,6 +5153,10 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4035,7 +5218,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E21', cellEls)).be.True()
         should(cellExists('E22', cellEls)).be.True()
         should(cellEls).have.length(5)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('F4', cellEls)).be.False()
         should(cellExists('G4', cellEls)).be.False()
         should(cellExists('H4', cellEls)).be.True()
@@ -4046,7 +5229,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked row`, async () => {
+    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked row`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -4066,6 +5249,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4175,7 +5362,7 @@ describe('xlsx generation - loops', () => {
         should(sheet2.F19.v).be.eql(items[2].rate)
         should(sheet2.G19.v).be.eql(items[2].hours)
         should(sheet2.H19.f).be.eql('F19*G$9')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -4223,7 +5410,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked row #2`, async () => {
+    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked row #2`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -4243,6 +5430,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4301,7 +5492,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('A$1*F14*G14')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -4323,8 +5514,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop (cell references using locked row) if array have 0 items`, async () => {
+    it(`${mode} loop not create new formula cells from loop (cell references using locked row) if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4365,7 +5560,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql('')
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('A$1*F4*G4')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql('')
         should(sheet.E2).be.not.ok()
         should(sheet.D3.v).be.eql('')
@@ -4381,7 +5576,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop (cell references using locked row) if array have 1 items`, async () => {
+    it(`${mode} loop not create new formula cells from loop (cell references using locked row) if array have 1 items`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -4389,6 +5584,10 @@ describe('xlsx generation - loops', () => {
         rate: 22,
         hours: 122
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4429,7 +5628,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql(items[0].rate)
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('A$1*F4*G4')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2).be.not.ok()
         should(sheet.D3.v).be.eql(items[0].lastname)
@@ -4445,7 +5644,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop (formula cells from loop but without incrementing cell references with locked row)`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop (formula cells from loop but without incrementing cell references with locked row)`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -4465,6 +5664,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4523,7 +5726,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H14', '2', cellEls)).be.True()
         should(cellExists('H19', '2', cellEls)).be.True()
         should(cellEls).have.length(6)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('D7', '1', cellEls)).be.True()
         should(cellExists('E7', '1', cellEls)).be.True()
         should(cellExists('F7', '1', cellEls)).be.True()
@@ -4534,7 +5737,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop created new formula cells from loop but without incrementing cell references with locked row #2`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop created new formula cells from loop but without incrementing cell references with locked row #2`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -4554,6 +5757,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4603,7 +5810,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
         should(cellEls).have.length(3)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('D7', cellEls)).be.True()
         should(cellExists('E7', cellEls)).be.True()
         should(cellExists('F7', cellEls)).be.True()
@@ -4611,7 +5818,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked column`, async () => {
+    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked column`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -4631,6 +5838,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4740,7 +5951,7 @@ describe('xlsx generation - loops', () => {
         should(sheet2.F19.v).be.eql(items[2].rate)
         should(sheet2.G19.v).be.eql(items[2].hours)
         should(sheet2.H19.f).be.eql('F19*$G19')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -4788,7 +5999,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked column #2`, async () => {
+    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked column #2`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -4808,6 +6019,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4866,7 +6081,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('$A1*F14*G14')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -4888,8 +6103,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop (cell references using locked column) if array have 0 items`, async () => {
+    it(`${mode} loop not create new formula cells from loop (cell references using locked column) if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4930,7 +6149,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql('')
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('$A1*F4*G4')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql('')
         should(sheet.E2).be.not.ok()
         should(sheet.D3.v).be.eql('')
@@ -4946,7 +6165,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop (cell references using locked column) if array have 1 items`, async () => {
+    it(`${mode} loop not create new formula cells from loop (cell references using locked column) if array have 1 items`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -4954,6 +6173,10 @@ describe('xlsx generation - loops', () => {
         rate: 22,
         hours: 122
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -4994,7 +6217,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql(items[0].rate)
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('$A1*F4*G4')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2).be.not.ok()
         should(sheet.D3.v).be.eql(items[0].lastname)
@@ -5010,7 +6233,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop (formula cells from loop but without incrementing cell references with locked column)`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop (formula cells from loop but without incrementing cell references with locked column)`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5030,6 +6253,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5088,7 +6315,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H14', '2', cellEls)).be.True()
         should(cellExists('H19', '2', cellEls)).be.True()
         should(cellEls).have.length(6)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('D7', '1', cellEls)).be.True()
         should(cellExists('E7', '1', cellEls)).be.True()
         should(cellExists('F7', '1', cellEls)).be.True()
@@ -5099,7 +6326,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop created new formula cells from loop but without incrementing cell references with locked column #2`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop created new formula cells from loop but without incrementing cell references with locked column #2`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5119,6 +6346,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5168,7 +6399,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
         should(cellEls).have.length(3)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('D7', cellEls)).be.True()
         should(cellExists('E7', cellEls)).be.True()
         should(cellExists('F7', cellEls)).be.True()
@@ -5176,7 +6407,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop create new formula cells from loop`, async () => {
+    it(`${mode} loop create new formula cells from loop`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5196,6 +6427,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5254,7 +6489,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('F14*G14')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -5276,8 +6511,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop if array have 0 items`, async () => {
+    it(`${mode} loop not create new formula cells from loop if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5318,7 +6557,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql('')
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('F4*G4')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.D4.v).be.eql('')
@@ -5341,7 +6580,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop if array have 1 item`, async () => {
+    it(`${mode} loop not create new formula cells from loop if array have 1 item`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5349,6 +6588,10 @@ describe('xlsx generation - loops', () => {
         rate: 22,
         hours: 122
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5389,7 +6632,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql(items[0].rate)
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('F4*G4')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.D4.v).be.eql(items[0].age)
@@ -5412,7 +6655,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop created new formula cells`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop created new formula cells`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5432,6 +6675,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5481,7 +6728,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
         should(cellEls).have.length(3)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('D7', cellEls)).be.True()
         should(cellExists('E7', cellEls)).be.True()
         should(cellExists('F7', cellEls)).be.True()
@@ -5489,8 +6736,8 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    if (mode === 'block') {
-      it(`${mode} loop create new formula cells (vertical) from loop`, async () => {
+    if (mode === 'block' || mode === 'dynamic') {
+      it(`${mode} loop create new formula cells (vertical) from loop`, async function () {
         const items = [{
           name: 'Alexander',
           lastname: 'Smith',
@@ -5510,6 +6757,10 @@ describe('xlsx generation - loops', () => {
           rate: 20,
           hours: 144
         }]
+
+        if (mode === 'dynamic') {
+          return this.skip()
+        }
 
         const result = await reporter.render({
           template: {
@@ -5552,7 +6803,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D26.f).be.eql('D24*D25')
       })
 
-      it(`${mode} loop update calcChain info of formulas after loop created new formula cells (vertical)`, async () => {
+      it(`${mode} loop update calcChain info of formulas after loop created new formula cells (vertical)`, async function () {
         const items = [{
           name: 'Alexander',
           lastname: 'Smith',
@@ -5572,6 +6823,10 @@ describe('xlsx generation - loops', () => {
           rate: 20,
           hours: 144
         }]
+
+        if (mode === 'dynamic') {
+          return this.skip()
+        }
 
         const result = await reporter.render({
           template: {
@@ -5619,7 +6874,7 @@ describe('xlsx generation - loops', () => {
       })
     }
 
-    it(`${mode} loop create new multiple formula cells from loop`, async () => {
+    it(`${mode} loop create new multiple formula cells from loop`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5639,6 +6894,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5703,7 +6962,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('F14*G14')
         should(sheet.I14.f).be.eql('H14*100')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -5728,8 +6987,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new multiple formula cells from loop if array have 0 items`, async () => {
+    it(`${mode} loop not create new multiple formula cells from loop if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5773,7 +7036,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('F4*G4')
         should(sheet.I4.f).be.eql('H4*100')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.D4.v).be.eql('')
@@ -5784,7 +7047,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new multiple formula cells from loop if array have 1 item`, async () => {
+    it(`${mode} loop not create new multiple formula cells from loop if array have 1 item`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5792,6 +7055,10 @@ describe('xlsx generation - loops', () => {
         rate: 22,
         hours: 122
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5835,7 +7102,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('F4*G4')
         should(sheet.I4.f).be.eql('H4*100')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.D4.v).be.eql(items[0].age)
@@ -5846,7 +7113,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop created new multiple formula cells`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop created new multiple formula cells`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5866,6 +7133,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -5921,7 +7192,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H14', cellEls)).be.True()
         should(cellExists('I14', cellEls)).be.True()
         should(cellEls).have.length(6)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('D7', cellEls)).be.True()
         should(cellExists('E7', cellEls)).be.True()
         should(cellExists('F7', cellEls)).be.True()
@@ -5932,7 +7203,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop create new formula cells from loop (increment range)`, async () => {
+    it(`${mode} loop create new formula cells from loop (increment range)`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -5952,6 +7223,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6010,7 +7285,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('SUM(F14:G14)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -6032,8 +7307,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop (increment range) if array have 0 items`, async () => {
+    it(`${mode} loop not create new formula cells from loop (increment range) if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6074,7 +7353,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql('')
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.D4.v).be.eql('')
@@ -6084,7 +7363,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop (increment range) if array have 1 item`, async () => {
+    it(`${mode} loop not create new formula cells from loop (increment range) if array have 1 item`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -6092,6 +7371,10 @@ describe('xlsx generation - loops', () => {
         rate: 22,
         hours: 122
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6132,7 +7415,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql(items[0].rate)
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.D4.v).be.eql(items[0].age)
@@ -6142,7 +7425,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop created new formula cells (increment range)`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop created new formula cells (increment range)`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -6162,6 +7445,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6211,7 +7498,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H9', cellEls)).be.True()
         should(cellExists('H14', cellEls)).be.True()
         should(cellEls).have.length(3)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('D7', cellEls)).be.True()
         should(cellExists('E7', cellEls)).be.True()
         should(cellExists('F7', cellEls)).be.True()
@@ -6219,7 +7506,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop create new formula cells from loop and update existing`, async () => {
+    it(`${mode} loop create new formula cells from loop and update existing`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -6239,6 +7526,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6313,7 +7604,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -6339,8 +7630,12 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop and not update existing if array have 0 items`, async () => {
+    it(`${mode} loop not create new formula cells from loop and not update existing if array have 0 items`, async function () {
       const items = []
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6391,7 +7686,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.D4.v).be.eql('')
@@ -6415,7 +7710,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop not create new formula cells from loop and not update existing if array have 1 item`, async () => {
+    it(`${mode} loop not create new formula cells from loop and not update existing if array have 1 item`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -6423,6 +7718,10 @@ describe('xlsx generation - loops', () => {
         rate: 22,
         hours: 122
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6473,7 +7772,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.D4.v).be.eql(items[0].age)
@@ -6497,7 +7796,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop update calcChain info of formulas after loop created new formula and updated existing cells`, async () => {
+    it(`${mode} loop update calcChain info of formulas after loop created new formula and updated existing cells`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -6517,6 +7816,10 @@ describe('xlsx generation - loops', () => {
         rate: 20,
         hours: 144
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6570,7 +7873,7 @@ describe('xlsx generation - loops', () => {
         should(cellExists('E20', cellEls)).be.True()
         should(cellExists('E21', cellEls)).be.True()
         should(cellEls).have.length(5)
-      } else {
+      } else if (mode === 'vertical') {
         should(cellExists('D7', cellEls)).be.True()
         should(cellExists('E7', cellEls)).be.True()
         should(cellExists('F7', cellEls)).be.True()
@@ -6581,7 +7884,7 @@ describe('xlsx generation - loops', () => {
     })
 
     it(`${mode} loop should preserve the content of formula cells that are not in the loop (left) but in the same row`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -6594,6 +7897,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -6648,7 +7961,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D15.v).be.eql(items[2].name)
         should(sheet.E15.v).be.eql(items[2].lastname)
         should(sheet.F15.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.B1.v).be.eql(10)
         should(sheet.D1.v).be.eql(20)
         should(sheet.D2.v).be.eql(30)
@@ -6661,11 +7974,28 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[0].age)
         should(sheet.E5.v).be.eql(items[1].age)
         should(sheet.F5.v).be.eql(items[2].age)
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.A2.f).be.eql('A1*2')
+        should(sheet.B2.f).be.eql('A1*3')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
       }
     })
 
     it(`${mode} loop should preserve the content of formula cells that are not in the loop (right) but in the same row`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -6678,6 +8008,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -6732,7 +8072,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].age)
         should(sheet.C16.f).be.eql('A1*2')
         should(sheet.D16.f).be.eql('A1*3')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -6744,11 +8084,30 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql(items[2].age)
         should(sheet.D5.v).be.eql(20)
         should(sheet.D6.v).be.eql(30)
+      } else {
+        // preserving the cells on the right of the loop
+        should(sheet.F2.f).be.eql('A1*2')
+        should(sheet.G2.f).be.eql('A1*3')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.F3).be.not.ok()
+        should(sheet.G3).be.not.ok()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+        should(sheet.F5).be.not.ok()
+        should(sheet.G5).be.not.ok()
       }
     })
 
     it(`${mode} loop should preserve the content of formula cells that are not in the loop (left, right) but in the same row`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -6761,6 +8120,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -6829,7 +8198,7 @@ describe('xlsx generation - loops', () => {
         // preserving the cells on the right of the loop
         should(sheet.D17.f).be.eql('A1*4')
         should(sheet.E17.f).be.eql('A1*5')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.B1.v).be.eql(10)
         should(sheet.D1.v).be.eql(20)
         should(sheet.D2.v).be.eql(30)
@@ -6844,10 +8213,38 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql(items[2].age)
         should(sheet.D6.v).be.eql(40)
         should(sheet.D7.v).be.eql(50)
+      } else {
+        // preserving the cells on the left of the loop
+        should(sheet.A2.f).be.eql('A1*2')
+        should(sheet.B2.f).be.eql('A1*3')
+        // preserving the cells on the right of the loop
+        should(sheet.F2.f).be.eql('A1*4')
+        should(sheet.G2.f).be.eql('A1*5')
+        should(sheet.A3).be.not.ok()
+        should(sheet.B3).be.not.ok()
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.F3).be.not.ok()
+        should(sheet.G3).be.not.ok()
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+        should(sheet.F5).be.not.ok()
+        should(sheet.G5).be.not.ok()
       }
     })
 
-    it(`${mode} loop should update the content of formula cells if origin is after loop but the reference is inside`, async () => {
+    it(`${mode} loop should update the content of formula cells if origin is after loop but the reference is inside`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -6861,6 +8258,10 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6915,7 +8316,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
         should(sheet.E18.f).be.eql('10+E14')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -6929,7 +8330,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop should update the content of formula cells if origin is before loop but the reference is inside`, async () => {
+    it(`${mode} loop should update the content of formula cells if origin is before loop but the reference is inside`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -6943,6 +8344,10 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -6997,7 +8402,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C16.v).be.eql(items[2].name)
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.E2.v).be.eql(items[0].name)
         should(sheet.F2.v).be.eql(items[1].name)
         should(sheet.G2.v).be.eql(items[2].name)
@@ -7011,7 +8416,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop should update the content of formula cells if origin is before loop but the reference is after`, async () => {
+    it(`${mode} loop should update the content of formula cells if origin is before loop but the reference is after`, async function () {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -7025,6 +8430,10 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -7081,7 +8490,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.v).be.eql(30)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.E2.v).be.eql(items[0].name)
         should(sheet.F2.v).be.eql(items[1].name)
         should(sheet.G2.v).be.eql(items[2].name)
@@ -7181,7 +8590,7 @@ describe('xlsx generation - loops', () => {
     })
 
     it(`${mode} loop should update the content of formula cells if origin is before loop but the reference is before and another reference after`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -7194,6 +8603,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -7250,7 +8669,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.v).be.eql(30)
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.E2.v).be.eql(items[0].name)
         should(sheet.F2.v).be.eql(items[1].name)
         should(sheet.G2.v).be.eql(items[2].name)
@@ -7263,11 +8682,26 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql(items[1].age)
         should(sheet.G4.v).be.eql(items[2].age)
         should(sheet.I4.v).be.eql(30)
+      } else {
+        should(sheet.E2.f).be.eql('10+E1+E9')
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql('Lastname')
+        should(sheet.E4.v).be.eql('Age')
+        should(sheet.C5.v).be.eql(originalItems[0].name)
+        should(sheet.D5.v).be.eql(originalItems[0].lastname)
+        should(sheet.E5.v).be.eql(originalItems[0].age)
+        should(sheet.C6.v).be.eql(originalItems[1].name)
+        should(sheet.D6.v).be.eql(originalItems[1].lastname)
+        should(sheet.E6.v).be.eql(originalItems[1].age)
+        should(sheet.C7.v).be.eql(originalItems[2].name)
+        should(sheet.D7.v).be.eql(originalItems[2].lastname)
+        should(sheet.E7.v).be.eql(originalItems[2].age)
+        should(sheet.E9.v).be.eql(30)
       }
     })
 
     it(`${mode} loop should not update the content of formula cells if origin is after loop but the reference is not and also not affected by previous loop`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32
@@ -7280,6 +8714,16 @@ describe('xlsx generation - loops', () => {
         lastname: 'Montana',
         age: 23
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -7336,7 +8780,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.f).be.eql('10+E2')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.E2.v).be.eql(items[0].name)
         should(sheet.F2.v).be.eql(items[1].name)
         should(sheet.G2.v).be.eql(items[2].name)
@@ -7348,6 +8792,21 @@ describe('xlsx generation - loops', () => {
         should(sheet.F4.v).be.eql(items[1].age)
         should(sheet.G4.v).be.eql(items[2].age)
         should(sheet.I4.f).be.eql('10+B4')
+      } else {
+        should(sheet.E2.v).be.eql(10)
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql('Lastname')
+        should(sheet.E4.v).be.eql('Age')
+        should(sheet.C5.v).be.eql(originalItems[0].name)
+        should(sheet.D5.v).be.eql(originalItems[0].lastname)
+        should(sheet.E5.v).be.eql(originalItems[0].age)
+        should(sheet.C6.v).be.eql(originalItems[1].name)
+        should(sheet.D6.v).be.eql(originalItems[1].lastname)
+        should(sheet.E6.v).be.eql(originalItems[1].age)
+        should(sheet.C7.v).be.eql(originalItems[2].name)
+        should(sheet.D7.v).be.eql(originalItems[2].lastname)
+        should(sheet.E7.v).be.eql(originalItems[2].age)
+        should(sheet.E9.f).be.eql('10+E2')
       }
     })
 
@@ -7415,7 +8874,7 @@ describe('xlsx generation - loops', () => {
       })
     }
 
-    it(`${mode} loop should work with formula that reference cell from other sheet`, async () => {
+    it(`${mode} loop should work with formula that reference cell from other sheet`, async function () {
       const items = [{
         value: 10
       }, {
@@ -7423,6 +8882,10 @@ describe('xlsx generation - loops', () => {
       }, {
         value: 30
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -7547,7 +9010,7 @@ describe('xlsx generation - loops', () => {
         should(sheet4.D18.f).be.eql('C18+DATA!A11')
         should(sheet4.E18.f).be.eql('C18+DATA!B14')
         should(sheet4.F18.f).be.eql('C18+DATA!C17')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.v).be.eql(items[1].value)
         should(sheet.C2.v).be.eql(items[2].value)
@@ -7587,7 +9050,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop should work with formula cells that reference cell with locked row from other sheet`, async () => {
+    it(`${mode} loop should work with formula cells that reference cell with locked row from other sheet`, async function () {
       const items = [{
         value: 10
       }, {
@@ -7595,6 +9058,10 @@ describe('xlsx generation - loops', () => {
       }, {
         value: 30
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -7722,7 +9189,7 @@ describe('xlsx generation - loops', () => {
         should(sheet4.D18.f).be.eql('C18+DATA!A$1')
         should(sheet4.E18.f).be.eql('C18+DATA!B$4')
         should(sheet4.F18.f).be.eql('C18+DATA!C$7')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.v).be.eql(items[1].value)
         should(sheet.C2.v).be.eql(items[2].value)
@@ -7762,7 +9229,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop should work with formula cells that reference cell with locked column from other sheet`, async () => {
+    it(`${mode} loop should work with formula cells that reference cell with locked column from other sheet`, async function () {
       const items = [{
         value: 10
       }, {
@@ -7770,6 +9237,10 @@ describe('xlsx generation - loops', () => {
       }, {
         value: 30
       }]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -7894,7 +9365,7 @@ describe('xlsx generation - loops', () => {
         should(sheet4.D18.f).be.eql('C18+DATA!$A11')
         should(sheet4.E18.f).be.eql('C18+DATA!$B14')
         should(sheet4.F18.f).be.eql('C18+DATA!$C17')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.v).be.eql(items[1].value)
         should(sheet.C2.v).be.eql(items[2].value)
@@ -7934,7 +9405,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} loop should not break shared formulas`, async () => {
+    it(`${mode} loop should not break shared formulas`, async function () {
       const items = [
         {
           ID: 1,
@@ -7985,6 +9456,10 @@ describe('xlsx generation - loops', () => {
           Value20: 20
         }
       ]
+
+      if (mode === 'dynamic') {
+        return this.skip()
+      }
 
       const result = await reporter.render({
         template: {
@@ -8322,7 +9797,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.V13.f).be.eql('SUBTOTAL(109,V4:V12)')
         should(sheet.W13.f).be.eql('SUBTOTAL(109,W4:W12)')
         should(sheet.X13.f).be.eql('SUBTOTAL(109,X4:X12)')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.A1.v).be.eql('ID')
         should(sheet.B1.v).be.eql(items[0].ID)
         should(sheet.B1.t).be.eql('n')
@@ -8458,7 +9933,7 @@ describe('xlsx generation - loops', () => {
     // TODO: check if shared formulas is valid for vertical ranges (verify if ms excel creates it when editing)
 
     it(`${mode} loop should generate cells with type according to the data rendered in each cell`, async () => {
-      const items = [{
+      const originalItems = [{
         name: 'Alexander',
         lastname: 'Smith',
         age: 32,
@@ -8474,6 +9949,16 @@ describe('xlsx generation - loops', () => {
         age: 23,
         working: false
       }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age, item.working]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age', 'Working'])
+      }
 
       const result = await reporter.render({
         template: {
@@ -8534,7 +10019,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].age)
         should(sheet.F14.t).be.eql('b')
         should(sheet.F14.v).be.False()
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -8553,11 +10038,171 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.True()
         should(sheet.F5.t).be.eql('b')
         should(sheet.F5.v).be.False()
+      } else {
+        // test boolean, number and standard string types
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.t).be.eql('n')
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.F3.t).be.eql('b')
+        should(sheet.F3.v).be.False()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.t).be.eql('n')
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.F4.t).be.eql('b')
+        should(sheet.F4.v).be.True()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.t).be.eql('n')
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+        should(sheet.F5.t).be.eql('b')
+        should(sheet.F5.v).be.False()
+      }
+    })
+
+    it(`${mode} loop should generate cells with explicit type according to the value type specified in each cell`, async () => {
+      const originalItems = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: '32',
+        working: 'false'
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: '29',
+        working: 'true'
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: '23',
+        working: 'false'
+      }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age, item.working]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age', 'Working'])
+      }
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          helpers: `
+            function isTC (rowIndex, columnIndex) { return rowIndex > 0 && (columnIndex === 2 || columnIndex === 3) }
+            function getTypeC (columnIndex) { return columnIndex === 2 ? 'n' : 'b' }
+          `,
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(getTargetXlsxFilename(mode, '-with-content-explicit-type'))
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        // test boolean, number and standard string types
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.t).be.eql('n')
+        should(sheet.E3.v).be.eql(parseInt(items[0].age, 10))
+        should(sheet.F3.t).be.eql('b')
+        should(sheet.F3.v).be.False()
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.t).be.eql('n')
+        should(sheet.E4.v).be.eql(parseInt(items[1].age, 10))
+        should(sheet.F4.t).be.eql('b')
+        should(sheet.F4.v).be.True()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.t).be.eql('n')
+        should(sheet.E5.v).be.eql(parseInt(items[2].age, 10))
+        should(sheet.F5.t).be.eql('b')
+        should(sheet.F5.v).be.False()
+      } else if (mode === 'block') {
+        // test boolean, number and standard string types
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.t).be.eql('n')
+        should(sheet.E4.v).be.eql(parseInt(items[0].age, 10))
+        should(sheet.F4.t).be.eql('b')
+        should(sheet.F4.v).be.False()
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.t).be.eql('n')
+        should(sheet.E9.v).be.eql(parseInt(items[1].age, 10))
+        should(sheet.F9.t).be.eql('b')
+        should(sheet.F9.v).be.True()
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.t).be.eql('n')
+        should(sheet.E14.v).be.eql(parseInt(items[2].age, 10))
+        should(sheet.F14.t).be.eql('b')
+        should(sheet.F14.v).be.False()
+      } else if (mode === 'vertical') {
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[1].lastname)
+        should(sheet.F3.v).be.eql(items[2].lastname)
+        should(sheet.D4.t).be.eql('n')
+        should(sheet.D4.v).be.eql(parseInt(items[0].age, 10))
+        should(sheet.E4.t).be.eql('n')
+        should(sheet.E4.v).be.eql(parseInt(items[1].age, 10))
+        should(sheet.F4.t).be.eql('n')
+        should(sheet.F4.v).be.eql(parseInt(items[2].age, 10))
+        should(sheet.D5.t).be.eql('b')
+        should(sheet.D5.v).be.False()
+        should(sheet.E5.t).be.eql('b')
+        should(sheet.E5.v).be.True()
+        should(sheet.F5.t).be.eql('b')
+        should(sheet.F5.v).be.False()
+      } else {
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.t).be.eql('n')
+        should(sheet.E3.v).be.eql(parseInt(originalItems[0].age, 10))
+        should(sheet.F3.t).be.eql('b')
+        should(sheet.F3.v).be.False()
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.t).be.eql('n')
+        should(sheet.E4.v).be.eql(parseInt(originalItems[1].age, 10))
+        should(sheet.F4.t).be.eql('b')
+        should(sheet.F4.v).be.True()
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.t).be.eql('n')
+        should(sheet.E5.v).be.eql(parseInt(originalItems[2].age, 10))
+        should(sheet.F5.t).be.eql('b')
+        should(sheet.F5.v).be.False()
       }
     })
 
     it(`${mode} loop should generate cell numbers when using this in handlebars`, async () => {
-      const numbers = [1, 2, 3, 4, 5]
+      const originalNumbers = [1, 2, 3, 4, 5]
+
+      let numbers = originalNumbers
+
+      if (mode === 'dynamic') {
+        numbers = originalNumbers.map((num) => {
+          return [num]
+        })
+      }
 
       const result = await reporter.render({
         template: {
@@ -8600,7 +10245,7 @@ describe('xlsx generation - loops', () => {
         should(sheet.C12.t).be.eql('n')
         should(sheet.C15.v).be.eql(numbers[4])
         should(sheet.C15.t).be.eql('n')
-      } else {
+      } else if (mode === 'vertical') {
         should(sheet.A1.v).be.eql(numbers[0])
         should(sheet.A1.t).be.eql('n')
         should(sheet.B1.v).be.eql(numbers[1])
@@ -8611,8 +10256,153 @@ describe('xlsx generation - loops', () => {
         should(sheet.D1.t).be.eql('n')
         should(sheet.E1.v).be.eql(numbers[4])
         should(sheet.E1.t).be.eql('n')
+      } else {
+        should(sheet.A1.v).be.eql(originalNumbers[0])
+        should(sheet.A1.t).be.eql('n')
+        should(sheet.A2.v).be.eql(originalNumbers[1])
+        should(sheet.A2.t).be.eql('n')
+        should(sheet.A3.v).be.eql(originalNumbers[2])
+        should(sheet.A3.t).be.eql('n')
+        should(sheet.A4.v).be.eql(originalNumbers[3])
+        should(sheet.A4.t).be.eql('n')
+        should(sheet.A5.v).be.eql(originalNumbers[4])
+        should(sheet.A5.t).be.eql('n')
       }
     })
+
+    if (mode === 'dynamic') {
+      it(`${mode} loop should be able to style heading cells different than normal content cells`, async () => {
+        const originalItems = [{
+          name: 'Alexander',
+          lastname: 'Smith',
+          age: 32
+        }, {
+          name: 'John',
+          lastname: 'Doe',
+          age: 29
+        }, {
+          name: 'Jane',
+          lastname: 'Montana',
+          age: 23
+        }]
+
+        let items = originalItems
+
+        if (mode === 'dynamic') {
+          items = items.map((item) => {
+            return [item.name, item.lastname, item.age]
+          })
+
+          items.unshift(['Name', 'Lastname', 'Age'])
+        }
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'xlsx',
+            helpers: `
+              function isHC (rowIndex) { return rowIndex === 0 }
+            `,
+            xlsx: {
+              templateAsset: {
+                content: fs.readFileSync(getTargetXlsxFilename(mode, '-header-cells-style-different-than-content-cells'))
+              }
+            }
+          },
+          data: {
+            items
+          }
+        })
+
+        fs.writeFileSync(outputPath, result.content)
+
+        const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+        const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
+
+        const workbook = xlsx.read(result.content)
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age.toString())
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age.toString())
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age.toString())
+
+        const styledCells = cellEls.filter((cellEl) => (
+          ['C2', 'D2', 'E2'].includes(cellEl.getAttribute('r'))
+        ))
+
+        for (const styledCell of styledCells) {
+          const bEl = styledCell.getElementsByTagName('b')[0]
+          should(bEl).be.ok()
+        }
+      })
+
+      it(`${mode} loop should be able to generate cells from object with .value property`, async () => {
+        const originalItems = [{
+          name: 'Alexander',
+          lastname: 'Smith',
+          age: 32
+        }, {
+          name: 'John',
+          lastname: 'Doe',
+          age: 29
+        }, {
+          name: 'Jane',
+          lastname: 'Montana',
+          age: 23
+        }]
+
+        let items = originalItems
+
+        if (mode === 'dynamic') {
+          items = items.map((item) => {
+            return [{ value: item.name }, { value: item.lastname }, { value: item.age }]
+          })
+
+          items.unshift(['Name', 'Lastname', 'Age'])
+        }
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'xlsx',
+            xlsx: {
+              templateAsset: {
+                content: fs.readFileSync(getTargetXlsxFilename(mode))
+              }
+            }
+          },
+          data: {
+            items
+          }
+        })
+
+        fs.writeFileSync(outputPath, result.content)
+        const workbook = xlsx.read(result.content)
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname)
+        should(sheet.E3.v).be.eql(originalItems[0].age)
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname)
+        should(sheet.E4.v).be.eql(originalItems[1].age)
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname)
+        should(sheet.E5.v).be.eql(originalItems[2].age)
+      })
+    }
   }
 
   it('block loop and row loop nested', async () => {
@@ -8924,6 +10714,117 @@ describe('xlsx generation - loops', () => {
     should(sheet.D15.v).be.eql(categories[2].posts[1].author)
   })
 
+  it('block loop and dynamic loop nested', async () => {
+    const originalCategories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const categories = originalCategories.map((item) => {
+      const posts = item.posts.map((post) => {
+        return [post.name, post.wordsCount, post.author]
+      })
+
+      return { ...item, posts }
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-dynamic-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(originalCategories[0].name)
+    should(sheet.B3.v).be.eql(originalCategories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(originalCategories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(originalCategories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(originalCategories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(originalCategories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(originalCategories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(originalCategories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(originalCategories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(originalCategories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(originalCategories[1].name)
+    should(sheet.B8.v).be.eql(originalCategories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(originalCategories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(originalCategories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(originalCategories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(originalCategories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(originalCategories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(originalCategories[2].name)
+    should(sheet.B12.v).be.eql(originalCategories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(originalCategories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(originalCategories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(originalCategories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(originalCategories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(originalCategories[2].posts[1].author)
+  })
+
   it('row loop and row loop nested', async () => {
     const categories = [
       {
@@ -9028,6 +10929,88 @@ describe('xlsx generation - loops', () => {
     should(sheet.C9.v).be.eql(categories[2].posts[1].name)
     should(sheet.D9.v).be.eql(categories[2].posts[1].wordsCount)
     should(sheet.E9.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('row loop and dynamic loop nested should throw', async () => {
+    const originalCategories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const categories = originalCategories.map((item) => {
+      const posts = item.posts.map((post) => {
+        return [post.name, post.wordsCount, post.author]
+      })
+
+      return { ...item, posts }
+    })
+
+    return should(
+      reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, 'loop-single-row-and-nested-single-dynamic-loop.xlsx')
+              )
+            }
+          }
+        },
+        data: {
+          categories
+        }
+      })
+    ).be.rejectedWith(/dynamic cells can not be defined in rows that contain row loops/)
   })
 
   it('vertical loop and vertical loop nested should throw', async () => {
@@ -9137,6 +11120,45 @@ describe('xlsx generation - loops', () => {
         }
       })
     ).be.rejectedWith(/vertical loops can not be defined in rows that contain row loops/)
+  })
+
+  it('vertical loop and dynamic loop nested should throw', async () => {
+    const originalItems = [{
+      name: 'Alexander',
+      lastname: 'Smith',
+      age: 32
+    }, {
+      name: 'John',
+      lastname: 'Doe',
+      age: 29
+    }, {
+      name: 'Jane',
+      lastname: 'Montana',
+      age: 23
+    }]
+
+    const items = originalItems.map((item) => {
+      return [item.name, item.lastname, item.age]
+    })
+
+    return should(
+      reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-dynamic-loop.xlsx')
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+    ).be.rejectedWith(/vertical loops can not be defined in rows that contain dynamic loops/)
   })
 
   it('vertical loop and block loop nested should throw', async () => {
@@ -9464,11 +11486,171 @@ describe('xlsx generation - loops', () => {
     should(sheet.C49.v).be.eql(categories[2].posts[1].author)
   })
 
-  it('block loop and multiple nested loops', async () => {
-    const categories = [
+  it('block loop and siblings nested dynamic and block loops', async () => {
+    const originalCategories = [
       {
         name: 'In',
         tags: ['a', 'b', 'c'],
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        tags: ['a', 'c'],
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        tags: ['b'],
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const categories = originalCategories.map((item) => {
+      const tags = item.tags.map((value) => {
+        return [value]
+      })
+
+      return { ...item, tags }
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-dynamic-and-multiple-rows-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(originalCategories[0].name)
+    should(sheet.B3.v).be.eql('Tags')
+    should(sheet.B4.v).be.eql(originalCategories[0].tags[0])
+    should(sheet.B5.v).be.eql(originalCategories[0].tags[1])
+    should(sheet.B6.v).be.eql(originalCategories[0].tags[2])
+
+    should(sheet.B8.v).be.eql('Posts')
+
+    should(sheet.B10.v).be.eql('Name:')
+    should(sheet.C10.v).be.eql(originalCategories[0].posts[0].name)
+    should(sheet.B11.v).be.eql('Words Count:')
+    should(sheet.C11.v).be.eql(originalCategories[0].posts[0].wordsCount)
+    should(sheet.B12.v).be.eql('Author:')
+    should(sheet.C12.v).be.eql(originalCategories[0].posts[0].author)
+    should(sheet.B15.v).be.eql('Name:')
+    should(sheet.C15.v).be.eql(originalCategories[0].posts[1].name)
+    should(sheet.B16.v).be.eql('Words Count:')
+    should(sheet.C16.v).be.eql(originalCategories[0].posts[1].wordsCount)
+    should(sheet.B17.v).be.eql('Author:')
+    should(sheet.C17.v).be.eql(originalCategories[0].posts[1].author)
+    should(sheet.B20.v).be.eql('Name:')
+    should(sheet.C20.v).be.eql(originalCategories[0].posts[2].name)
+    should(sheet.B21.v).be.eql('Words Count:')
+    should(sheet.C21.v).be.eql(originalCategories[0].posts[2].wordsCount)
+    should(sheet.B22.v).be.eql('Author:')
+    should(sheet.C22.v).be.eql(originalCategories[0].posts[2].author)
+
+    should(sheet.B25.v).be.eql(originalCategories[1].name)
+    should(sheet.B26.v).be.eql('Tags')
+    should(sheet.B27.v).be.eql(originalCategories[1].tags[0])
+    should(sheet.B28.v).be.eql(originalCategories[1].tags[1])
+
+    should(sheet.B30.v).be.eql('Posts')
+
+    should(sheet.B32.v).be.eql('Name:')
+    should(sheet.C32.v).be.eql(originalCategories[1].posts[0].name)
+    should(sheet.B33.v).be.eql('Words Count:')
+    should(sheet.C33.v).be.eql(originalCategories[1].posts[0].wordsCount)
+    should(sheet.B34.v).be.eql('Author:')
+    should(sheet.C34.v).be.eql(originalCategories[1].posts[0].author)
+    should(sheet.B37.v).be.eql('Name:')
+    should(sheet.C37.v).be.eql(originalCategories[1].posts[1].name)
+    should(sheet.B38.v).be.eql('Words Count:')
+    should(sheet.C38.v).be.eql(originalCategories[1].posts[1].wordsCount)
+    should(sheet.B39.v).be.eql('Author:')
+    should(sheet.C39.v).be.eql(originalCategories[1].posts[1].author)
+
+    should(sheet.B42.v).be.eql(originalCategories[2].name)
+    should(sheet.B43.v).be.eql('Tags')
+    should(sheet.B44.v).be.eql(originalCategories[2].tags[0])
+
+    should(sheet.B46.v).be.eql('Posts')
+
+    should(sheet.B48.v).be.eql('Name:')
+    should(sheet.C48.v).be.eql(originalCategories[2].posts[0].name)
+    should(sheet.B49.v).be.eql('Words Count:')
+    should(sheet.C49.v).be.eql(originalCategories[2].posts[0].wordsCount)
+    should(sheet.B50.v).be.eql('Author:')
+    should(sheet.C50.v).be.eql(originalCategories[2].posts[0].author)
+    should(sheet.B53.v).be.eql('Name:')
+    should(sheet.C53.v).be.eql(originalCategories[2].posts[1].name)
+    should(sheet.B54.v).be.eql('Words Count:')
+    should(sheet.C54.v).be.eql(originalCategories[2].posts[1].wordsCount)
+    should(sheet.B55.v).be.eql('Author:')
+    should(sheet.C55.v).be.eql(originalCategories[2].posts[1].author)
+  })
+
+  it('block loop and multiple nested loops', async () => {
+    const originalCategories = [
+      {
+        name: 'In',
+        tags: ['a', 'b', 'c'],
+        collaborators: [{
+          name: 'Olivia',
+          role: 'Editor'
+        }, {
+          name: 'Jacob',
+          role: 'Designer'
+        }],
         maintainers: ['Olivia', 'Jacob'],
         posts: [
           {
@@ -9493,6 +11675,16 @@ describe('xlsx generation - loops', () => {
       {
         name: 'Consectetur',
         tags: ['a', 'c'],
+        collaborators: [{
+          name: 'Emily',
+          role: 'Editor'
+        }, {
+          name: 'Isabella',
+          role: 'Designer'
+        }, {
+          name: 'Alexander',
+          role: 'Developer'
+        }],
         maintainers: ['Isabella'],
         posts: [
           {
@@ -9511,6 +11703,13 @@ describe('xlsx generation - loops', () => {
       {
         name: 'Eu',
         tags: ['b'],
+        collaborators: [{
+          name: 'Jeannine',
+          role: 'Editor'
+        }, {
+          name: 'Katy',
+          role: 'Designer'
+        }],
         maintainers: ['Alexander', 'Mia', 'James'],
         posts: [
           {
@@ -9528,6 +11727,14 @@ describe('xlsx generation - loops', () => {
         ]
       }
     ]
+
+    const categories = originalCategories.map((item) => {
+      const collaborators = item.collaborators.map((collaborator) => {
+        return [collaborator.name, collaborator.role]
+      })
+
+      return { ...item, collaborators }
+    })
 
     const result = await reporter.render({
       template: {
@@ -9550,172 +11757,199 @@ describe('xlsx generation - loops', () => {
     const workbook = xlsx.read(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
-    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B2.v).be.eql(originalCategories[0].name)
     should(sheet.B3.v).be.eql('Tags:')
-    should(sheet.B4.v).be.eql(categories[0].tags[0])
-    should(sheet.B5.v).be.eql(categories[0].tags[1])
-    should(sheet.B6.v).be.eql(categories[0].tags[2])
+    should(sheet.B4.v).be.eql(originalCategories[0].tags[0])
+    should(sheet.B5.v).be.eql(originalCategories[0].tags[1])
+    should(sheet.B6.v).be.eql(originalCategories[0].tags[2])
 
-    should(sheet.B8.v).be.eql('Posts')
+    should(sheet.B7.v).be.eql('Collaborators:')
+    should(sheet.B8.v).be.eql(originalCategories[0].collaborators[0].name)
+    should(sheet.C8.v).be.eql(originalCategories[0].collaborators[0].role)
+    should(sheet.B9.v).be.eql(originalCategories[0].collaborators[1].name)
+    should(sheet.C9.v).be.eql(originalCategories[0].collaborators[1].role)
 
-    should(sheet.B10.v).be.eql('Name:')
-    should(sheet.C10.v).be.eql(categories[0].posts[0].name)
-    should(sheet.B11.v).be.eql('Words Count:')
-    should(sheet.C11.v).be.eql(categories[0].posts[0].wordsCount)
-    should(sheet.B12.v).be.eql('Author:')
-    should(sheet.C12.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B11.v).be.eql('Posts')
 
-    should(sheet.B13.v).be.eql('Reviews:')
-    should(sheet.B15.v).be.eql('Name:')
-    should(sheet.C15.v).be.eql(categories[0].posts[0].reviews[0].name)
-    should(sheet.B16.v).be.eql('Message:')
-    should(sheet.C16.v).be.eql(categories[0].posts[0].reviews[0].message)
-    should(sheet.B17.v).be.eql('Stars')
-    should(sheet.B18.v).be.eql(`${categories[0].posts[0].reviews[0].stars[0].value} - ${categories[0].posts[0].reviews[0].stars[0].time}`)
-    should(sheet.B19.v).be.eql(`${categories[0].posts[0].reviews[0].stars[1].value} - ${categories[0].posts[0].reviews[0].stars[1].time}`)
+    should(sheet.B13.v).be.eql('Name:')
+    should(sheet.C13.v).be.eql(originalCategories[0].posts[0].name)
+    should(sheet.B14.v).be.eql('Words Count:')
+    should(sheet.C14.v).be.eql(originalCategories[0].posts[0].wordsCount)
+    should(sheet.B15.v).be.eql('Author:')
+    should(sheet.C15.v).be.eql(originalCategories[0].posts[0].author)
 
-    should(sheet.B22.v).be.eql('Name:')
-    should(sheet.C22.v).be.eql(categories[0].posts[0].reviews[1].name)
-    should(sheet.B23.v).be.eql('Message:')
-    should(sheet.C23.v).be.eql(categories[0].posts[0].reviews[1].message)
-    should(sheet.B24.v).be.eql('Stars')
-    should(sheet.B25.v).be.eql(' - ')
+    should(sheet.B16.v).be.eql('Reviews:')
+    should(sheet.B18.v).be.eql('Name:')
+    should(sheet.C18.v).be.eql(originalCategories[0].posts[0].reviews[0].name)
+    should(sheet.B19.v).be.eql('Message:')
+    should(sheet.C19.v).be.eql(originalCategories[0].posts[0].reviews[0].message)
+    should(sheet.B20.v).be.eql('Stars')
+    should(sheet.B21.v).be.eql(`${originalCategories[0].posts[0].reviews[0].stars[0].value} - ${originalCategories[0].posts[0].reviews[0].stars[0].time}`)
+    should(sheet.B22.v).be.eql(`${originalCategories[0].posts[0].reviews[0].stars[1].value} - ${originalCategories[0].posts[0].reviews[0].stars[1].time}`)
 
-    should(sheet.B29.v).be.eql('Name:')
-    should(sheet.C29.v).be.eql(categories[0].posts[1].name)
-    should(sheet.B30.v).be.eql('Words Count:')
-    should(sheet.C30.v).be.eql(categories[0].posts[1].wordsCount)
-    should(sheet.B31.v).be.eql('Author:')
-    should(sheet.C31.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B25.v).be.eql('Name:')
+    should(sheet.C25.v).be.eql(originalCategories[0].posts[0].reviews[1].name)
+    should(sheet.B26.v).be.eql('Message:')
+    should(sheet.C26.v).be.eql(originalCategories[0].posts[0].reviews[1].message)
+    should(sheet.B27.v).be.eql('Stars')
+    should(sheet.B28.v).be.eql(' - ')
 
-    should(sheet.B32.v).be.eql('Reviews:')
-    should(sheet.B34.v).be.eql('Name:')
-    should(sheet.C34.v).be.eql('')
-    should(sheet.B35.v).be.eql('Message:')
-    should(sheet.C35.v).be.eql('')
-    should(sheet.B36.v).be.eql('Stars')
-    should(sheet.B37.v).be.eql(' - ')
+    should(sheet.B32.v).be.eql('Name:')
+    should(sheet.C32.v).be.eql(originalCategories[0].posts[1].name)
+    should(sheet.B33.v).be.eql('Words Count:')
+    should(sheet.C33.v).be.eql(originalCategories[0].posts[1].wordsCount)
+    should(sheet.B34.v).be.eql('Author:')
+    should(sheet.C34.v).be.eql(originalCategories[0].posts[1].author)
 
-    should(sheet.B41.v).be.eql('Name:')
-    should(sheet.C41.v).be.eql(categories[0].posts[2].name)
-    should(sheet.B42.v).be.eql('Words Count:')
-    should(sheet.C42.v).be.eql(categories[0].posts[2].wordsCount)
-    should(sheet.B43.v).be.eql('Author:')
-    should(sheet.C43.v).be.eql(categories[0].posts[2].author)
+    should(sheet.B35.v).be.eql('Reviews:')
+    should(sheet.B37.v).be.eql('Name:')
+    should(sheet.C37.v).be.eql('')
+    should(sheet.B38.v).be.eql('Message:')
+    should(sheet.C38.v).be.eql('')
+    should(sheet.B39.v).be.eql('Stars')
+    should(sheet.B40.v).be.eql(' - ')
 
-    should(sheet.B44.v).be.eql('Reviews:')
-    should(sheet.B46.v).be.eql('Name:')
-    should(sheet.C46.v).be.eql(categories[0].posts[2].reviews[0].name)
-    should(sheet.B47.v).be.eql('Message:')
-    should(sheet.C47.v).be.eql(categories[0].posts[2].reviews[0].message)
-    should(sheet.B48.v).be.eql('Stars')
-    should(sheet.B49.v).be.eql(' - ')
+    should(sheet.B44.v).be.eql('Name:')
+    should(sheet.C44.v).be.eql(originalCategories[0].posts[2].name)
+    should(sheet.B45.v).be.eql('Words Count:')
+    should(sheet.C45.v).be.eql(originalCategories[0].posts[2].wordsCount)
+    should(sheet.B46.v).be.eql('Author:')
+    should(sheet.C46.v).be.eql(originalCategories[0].posts[2].author)
 
-    should(sheet.B52.v).be.eql('Name:')
-    should(sheet.C52.v).be.eql(categories[0].posts[2].reviews[1].name)
-    should(sheet.B53.v).be.eql('Message:')
-    should(sheet.C53.v).be.eql(categories[0].posts[2].reviews[1].message)
-    should(sheet.B54.v).be.eql('Stars')
-    should(sheet.B55.v).be.eql(' - ')
+    should(sheet.B47.v).be.eql('Reviews:')
+    should(sheet.B49.v).be.eql('Name:')
+    should(sheet.C49.v).be.eql(originalCategories[0].posts[2].reviews[0].name)
+    should(sheet.B50.v).be.eql('Message:')
+    should(sheet.C50.v).be.eql(originalCategories[0].posts[2].reviews[0].message)
+    should(sheet.B51.v).be.eql('Stars')
+    should(sheet.B52.v).be.eql(' - ')
 
-    should(sheet.B59.v).be.eql('Maintainers:')
-    should(sheet.B60.v).be.eql(categories[0].maintainers[0])
-    should(sheet.B61.v).be.eql(categories[0].maintainers[1])
+    should(sheet.B55.v).be.eql('Name:')
+    should(sheet.C55.v).be.eql(originalCategories[0].posts[2].reviews[1].name)
+    should(sheet.B56.v).be.eql('Message:')
+    should(sheet.C56.v).be.eql(originalCategories[0].posts[2].reviews[1].message)
+    should(sheet.B57.v).be.eql('Stars')
+    should(sheet.B58.v).be.eql(' - ')
 
-    should(sheet.B64.v).be.eql(categories[1].name)
-    should(sheet.B65.v).be.eql('Tags:')
-    should(sheet.B66.v).be.eql(categories[1].tags[0])
-    should(sheet.B67.v).be.eql(categories[1].tags[1])
+    should(sheet.B62.v).be.eql('Maintainers:')
+    should(sheet.B63.v).be.eql(originalCategories[0].maintainers[0])
+    should(sheet.B64.v).be.eql(originalCategories[0].maintainers[1])
 
-    should(sheet.B69.v).be.eql('Posts')
+    should(sheet.B67.v).be.eql(originalCategories[1].name)
+    should(sheet.B68.v).be.eql('Tags:')
+    should(sheet.B69.v).be.eql(originalCategories[1].tags[0])
+    should(sheet.B70.v).be.eql(originalCategories[1].tags[1])
 
-    should(sheet.B71.v).be.eql('Name:')
-    should(sheet.C71.v).be.eql(categories[1].posts[0].name)
-    should(sheet.B72.v).be.eql('Words Count:')
-    should(sheet.C72.v).be.eql(categories[1].posts[0].wordsCount)
-    should(sheet.B73.v).be.eql('Author:')
-    should(sheet.C73.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B71.v).be.eql('Collaborators:')
+    should(sheet.B72.v).be.eql(originalCategories[1].collaborators[0].name)
+    should(sheet.C72.v).be.eql(originalCategories[1].collaborators[0].role)
+    should(sheet.B73.v).be.eql(originalCategories[1].collaborators[1].name)
+    should(sheet.C73.v).be.eql(originalCategories[1].collaborators[1].role)
+    should(sheet.B74.v).be.eql(originalCategories[1].collaborators[2].name)
+    should(sheet.C74.v).be.eql(originalCategories[1].collaborators[2].role)
 
-    should(sheet.B74.v).be.eql('Reviews:')
-    should(sheet.B76.v).be.eql('Name:')
-    should(sheet.C76.v).be.eql(categories[1].posts[0].reviews[0].name)
-    should(sheet.B77.v).be.eql('Message:')
-    should(sheet.C77.v).be.eql(categories[1].posts[0].reviews[0].message)
-    should(sheet.B78.v).be.eql('Stars')
-    should(sheet.B79.v).be.eql(`${categories[1].posts[0].reviews[0].stars[0].value} - ${categories[1].posts[0].reviews[0].stars[0].time}`)
+    should(sheet.B76.v).be.eql('Posts')
 
+    should(sheet.B78.v).be.eql('Name:')
+    should(sheet.C78.v).be.eql(originalCategories[1].posts[0].name)
+    should(sheet.B79.v).be.eql('Words Count:')
+    should(sheet.C79.v).be.eql(originalCategories[1].posts[0].wordsCount)
+    should(sheet.B80.v).be.eql('Author:')
+    should(sheet.C80.v).be.eql(originalCategories[1].posts[0].author)
+
+    should(sheet.B81.v).be.eql('Reviews:')
     should(sheet.B83.v).be.eql('Name:')
-    should(sheet.C83.v).be.eql(categories[1].posts[1].name)
-    should(sheet.B84.v).be.eql('Words Count:')
-    should(sheet.C84.v).be.eql(categories[1].posts[1].wordsCount)
-    should(sheet.B85.v).be.eql('Author:')
-    should(sheet.C85.v).be.eql(categories[1].posts[1].author)
+    should(sheet.C83.v).be.eql(originalCategories[1].posts[0].reviews[0].name)
+    should(sheet.B84.v).be.eql('Message:')
+    should(sheet.C84.v).be.eql(originalCategories[1].posts[0].reviews[0].message)
+    should(sheet.B85.v).be.eql('Stars')
+    should(sheet.B86.v).be.eql(`${originalCategories[1].posts[0].reviews[0].stars[0].value} - ${originalCategories[1].posts[0].reviews[0].stars[0].time}`)
 
-    should(sheet.B86.v).be.eql('Reviews:')
-    should(sheet.B88.v).be.eql('Name:')
-    should(sheet.C88.v).be.eql('')
-    should(sheet.B89.v).be.eql('Message:')
-    should(sheet.C89.v).be.eql('')
-    should(sheet.B90.v).be.eql('Stars')
-    should(sheet.B91.v).be.eql(' - ')
+    should(sheet.B90.v).be.eql('Name:')
+    should(sheet.C90.v).be.eql(originalCategories[1].posts[1].name)
+    should(sheet.B91.v).be.eql('Words Count:')
+    should(sheet.C91.v).be.eql(originalCategories[1].posts[1].wordsCount)
+    should(sheet.B92.v).be.eql('Author:')
+    should(sheet.C92.v).be.eql(originalCategories[1].posts[1].author)
 
-    should(sheet.B95.v).be.eql('Maintainers:')
-    should(sheet.B96.v).be.eql(categories[1].maintainers[0])
+    should(sheet.B93.v).be.eql('Reviews:')
+    should(sheet.B95.v).be.eql('Name:')
+    should(sheet.C95.v).be.eql('')
+    should(sheet.B96.v).be.eql('Message:')
+    should(sheet.C96.v).be.eql('')
+    should(sheet.B97.v).be.eql('Stars')
+    should(sheet.B98.v).be.eql(' - ')
 
-    should(sheet.B99.v).be.eql(categories[2].name)
-    should(sheet.B100.v).be.eql('Tags:')
-    should(sheet.B101.v).be.eql(categories[2].tags[0])
+    should(sheet.B102.v).be.eql('Maintainers:')
+    should(sheet.B103.v).be.eql(originalCategories[1].maintainers[0])
 
-    should(sheet.B103.v).be.eql('Posts')
+    should(sheet.B106.v).be.eql(originalCategories[2].name)
+    should(sheet.B107.v).be.eql('Tags:')
+    should(sheet.B108.v).be.eql(originalCategories[2].tags[0])
 
-    should(sheet.B105.v).be.eql('Name:')
-    should(sheet.C105.v).be.eql(categories[2].posts[0].name)
-    should(sheet.B106.v).be.eql('Words Count:')
-    should(sheet.C106.v).be.eql(categories[2].posts[0].wordsCount)
-    should(sheet.B107.v).be.eql('Author:')
-    should(sheet.C107.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B109.v).be.eql('Collaborators:')
+    should(sheet.B110.v).be.eql(originalCategories[2].collaborators[0].name)
+    should(sheet.C110.v).be.eql(originalCategories[2].collaborators[0].role)
+    should(sheet.B111.v).be.eql(originalCategories[2].collaborators[1].name)
+    should(sheet.C111.v).be.eql(originalCategories[2].collaborators[1].role)
 
-    should(sheet.B108.v).be.eql('Reviews:')
-    should(sheet.B110.v).be.eql('Name:')
-    should(sheet.C110.v).be.eql(categories[2].posts[0].reviews[0].name)
-    should(sheet.B111.v).be.eql('Message:')
-    should(sheet.C111.v).be.eql(categories[2].posts[0].reviews[0].message)
-    should(sheet.B112.v).be.eql('Stars')
-    should(sheet.B113.v).be.eql(' - ')
+    should(sheet.B113.v).be.eql('Posts')
 
-    should(sheet.B116.v).be.eql('Name:')
-    should(sheet.C116.v).be.eql(categories[2].posts[0].reviews[1].name)
-    should(sheet.B117.v).be.eql('Message:')
-    should(sheet.C117.v).be.eql(categories[2].posts[0].reviews[1].message)
-    should(sheet.B118.v).be.eql('Stars')
-    should(sheet.B119.v).be.eql(' - ')
+    should(sheet.B115.v).be.eql('Name:')
+    should(sheet.C115.v).be.eql(originalCategories[2].posts[0].name)
+    should(sheet.B116.v).be.eql('Words Count:')
+    should(sheet.C116.v).be.eql(originalCategories[2].posts[0].wordsCount)
+    should(sheet.B117.v).be.eql('Author:')
+    should(sheet.C117.v).be.eql(originalCategories[2].posts[0].author)
 
-    should(sheet.B123.v).be.eql('Name:')
-    should(sheet.C123.v).be.eql(categories[2].posts[1].name)
-    should(sheet.B124.v).be.eql('Words Count:')
-    should(sheet.C124.v).be.eql(categories[2].posts[1].wordsCount)
-    should(sheet.B125.v).be.eql('Author:')
-    should(sheet.C125.v).be.eql(categories[2].posts[1].author)
+    should(sheet.B118.v).be.eql('Reviews:')
+    should(sheet.B120.v).be.eql('Name:')
+    should(sheet.C120.v).be.eql(originalCategories[2].posts[0].reviews[0].name)
+    should(sheet.B121.v).be.eql('Message:')
+    should(sheet.C121.v).be.eql(originalCategories[2].posts[0].reviews[0].message)
+    should(sheet.B122.v).be.eql('Stars')
+    should(sheet.B123.v).be.eql(' - ')
 
-    should(sheet.B126.v).be.eql('Reviews:')
-    should(sheet.B128.v).be.eql('Name:')
-    should(sheet.C128.v).be.eql(categories[2].posts[1].reviews[0].name)
-    should(sheet.B129.v).be.eql('Message:')
-    should(sheet.C129.v).be.eql(categories[2].posts[1].reviews[0].message)
-    should(sheet.B130.v).be.eql('Stars')
-    should(sheet.B131.v).be.eql(' - ')
+    should(sheet.B126.v).be.eql('Name:')
+    should(sheet.C126.v).be.eql(originalCategories[2].posts[0].reviews[1].name)
+    should(sheet.B127.v).be.eql('Message:')
+    should(sheet.C127.v).be.eql(originalCategories[2].posts[0].reviews[1].message)
+    should(sheet.B128.v).be.eql('Stars')
+    should(sheet.B129.v).be.eql(' - ')
 
-    should(sheet.B135.v).be.eql('Maintainers:')
-    should(sheet.B136.v).be.eql(categories[2].maintainers[0])
-    should(sheet.B137.v).be.eql(categories[2].maintainers[1])
-    should(sheet.B138.v).be.eql(categories[2].maintainers[2])
+    should(sheet.B133.v).be.eql('Name:')
+    should(sheet.C133.v).be.eql(originalCategories[2].posts[1].name)
+    should(sheet.B134.v).be.eql('Words Count:')
+    should(sheet.C134.v).be.eql(originalCategories[2].posts[1].wordsCount)
+    should(sheet.B135.v).be.eql('Author:')
+    should(sheet.C135.v).be.eql(originalCategories[2].posts[1].author)
+
+    should(sheet.B136.v).be.eql('Reviews:')
+    should(sheet.B138.v).be.eql('Name:')
+    should(sheet.C138.v).be.eql(originalCategories[2].posts[1].reviews[0].name)
+    should(sheet.B139.v).be.eql('Message:')
+    should(sheet.C139.v).be.eql(originalCategories[2].posts[1].reviews[0].message)
+    should(sheet.B140.v).be.eql('Stars')
+    should(sheet.B141.v).be.eql(' - ')
+
+    should(sheet.B145.v).be.eql('Maintainers:')
+    should(sheet.B146.v).be.eql(originalCategories[2].maintainers[0])
+    should(sheet.B147.v).be.eql(originalCategories[2].maintainers[1])
+    should(sheet.B148.v).be.eql(originalCategories[2].maintainers[2])
   })
 
   it('block loop and multiple nested loops with end of loops on single line', async () => {
-    const categories = [
+    const originalCategories = [
       {
         name: 'In',
         tags: ['a', 'b', 'c'],
+        collaborators: [{
+          name: 'Olivia',
+          role: 'Editor'
+        }, {
+          name: 'Jacob',
+          role: 'Designer'
+        }],
         maintainers: ['Olivia', 'Jacob'],
         posts: [
           {
@@ -9740,6 +11974,16 @@ describe('xlsx generation - loops', () => {
       {
         name: 'Consectetur',
         tags: ['a', 'c'],
+        collaborators: [{
+          name: 'Emily',
+          role: 'Editor'
+        }, {
+          name: 'Isabella',
+          role: 'Designer'
+        }, {
+          name: 'Alexander',
+          role: 'Developer'
+        }],
         maintainers: ['Isabella'],
         posts: [
           {
@@ -9758,6 +12002,13 @@ describe('xlsx generation - loops', () => {
       {
         name: 'Eu',
         tags: ['b'],
+        collaborators: [{
+          name: 'Jeannine',
+          role: 'Editor'
+        }, {
+          name: 'Katy',
+          role: 'Designer'
+        }],
         maintainers: ['Alexander', 'Mia', 'James'],
         posts: [
           {
@@ -9775,6 +12026,14 @@ describe('xlsx generation - loops', () => {
         ]
       }
     ]
+
+    const categories = originalCategories.map((item) => {
+      const collaborators = item.collaborators.map((collaborator) => {
+        return [collaborator.name, collaborator.role]
+      })
+
+      return { ...item, collaborators }
+    })
 
     const result = await reporter.render({
       template: {
@@ -9797,165 +12056,185 @@ describe('xlsx generation - loops', () => {
     const workbook = xlsx.read(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
-    should(sheet.A2.v).be.eql(categories[0].name)
+    should(sheet.A2.v).be.eql(originalCategories[0].name)
     should(sheet.B3.v).be.eql('Tags:')
-    should(sheet.B4.v).be.eql(categories[0].tags[0])
-    should(sheet.B5.v).be.eql(categories[0].tags[1])
-    should(sheet.B6.v).be.eql(categories[0].tags[2])
+    should(sheet.B4.v).be.eql(originalCategories[0].tags[0])
+    should(sheet.B5.v).be.eql(originalCategories[0].tags[1])
+    should(sheet.B6.v).be.eql(originalCategories[0].tags[2])
 
-    should(sheet.B7.v).be.eql('Posts')
+    should(sheet.B7.v).be.eql('Collaborators:')
+    should(sheet.B8.v).be.eql(originalCategories[0].collaborators[0].name)
+    should(sheet.C8.v).be.eql(originalCategories[0].collaborators[0].role)
+    should(sheet.B9.v).be.eql(originalCategories[0].collaborators[1].name)
+    should(sheet.C9.v).be.eql(originalCategories[0].collaborators[1].role)
 
-    should(sheet.B8.v).be.eql('Name:')
-    should(sheet.E8.v).be.eql(categories[0].posts[0].name)
-    should(sheet.B9.v).be.eql('Words Count:')
-    should(sheet.E9.v).be.eql(categories[0].posts[0].wordsCount)
-    should(sheet.B10.v).be.eql('Author:')
-    should(sheet.E10.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B10.v).be.eql('Posts')
 
-    should(sheet.B11.v).be.eql('Reviews:')
-    should(sheet.C12.v).be.eql('Name:')
-    should(sheet.E12.v).be.eql(categories[0].posts[0].reviews[0].name)
-    should(sheet.C13.v).be.eql('Message:')
-    should(sheet.E13.v).be.eql(categories[0].posts[0].reviews[0].message)
-    should(sheet.C14.v).be.eql('Stars')
-    should(sheet.D15.v).be.eql(`${categories[0].posts[0].reviews[0].stars[0].value} - ${categories[0].posts[0].reviews[0].stars[0].time}`)
-    should(sheet.D16.v).be.eql(`${categories[0].posts[0].reviews[0].stars[1].value} - ${categories[0].posts[0].reviews[0].stars[1].time}`)
+    should(sheet.B11.v).be.eql('Name:')
+    should(sheet.E11.v).be.eql(originalCategories[0].posts[0].name)
+    should(sheet.B12.v).be.eql('Words Count:')
+    should(sheet.E12.v).be.eql(originalCategories[0].posts[0].wordsCount)
+    should(sheet.B13.v).be.eql('Author:')
+    should(sheet.E13.v).be.eql(originalCategories[0].posts[0].author)
 
-    should(sheet.C17.v).be.eql('Name:')
-    should(sheet.E17.v).be.eql(categories[0].posts[0].reviews[1].name)
-    should(sheet.C18.v).be.eql('Message:')
-    should(sheet.E18.v).be.eql(categories[0].posts[0].reviews[1].message)
-    should(sheet.C19.v).be.eql('Stars')
-    should(sheet.D20.v).be.eql(' - ')
+    should(sheet.B14.v).be.eql('Reviews:')
+    should(sheet.C15.v).be.eql('Name:')
+    should(sheet.E15.v).be.eql(originalCategories[0].posts[0].reviews[0].name)
+    should(sheet.C16.v).be.eql('Message:')
+    should(sheet.E16.v).be.eql(originalCategories[0].posts[0].reviews[0].message)
+    should(sheet.C17.v).be.eql('Stars')
+    should(sheet.D18.v).be.eql(`${originalCategories[0].posts[0].reviews[0].stars[0].value} - ${originalCategories[0].posts[0].reviews[0].stars[0].time}`)
+    should(sheet.D19.v).be.eql(`${originalCategories[0].posts[0].reviews[0].stars[1].value} - ${originalCategories[0].posts[0].reviews[0].stars[1].time}`)
 
-    should(sheet.B21.v).be.eql('Name:')
-    should(sheet.E21.v).be.eql(categories[0].posts[1].name)
-    should(sheet.B22.v).be.eql('Words Count:')
-    should(sheet.E22.v).be.eql(categories[0].posts[1].wordsCount)
-    should(sheet.B23.v).be.eql('Author:')
-    should(sheet.E23.v).be.eql(categories[0].posts[1].author)
+    should(sheet.C20.v).be.eql('Name:')
+    should(sheet.E20.v).be.eql(originalCategories[0].posts[0].reviews[1].name)
+    should(sheet.C21.v).be.eql('Message:')
+    should(sheet.E21.v).be.eql(originalCategories[0].posts[0].reviews[1].message)
+    should(sheet.C22.v).be.eql('Stars')
+    should(sheet.D23.v).be.eql(' - ')
 
-    should(sheet.B24.v).be.eql('Reviews:')
-    should(sheet.C25.v).be.eql('Name:')
-    should(sheet.E25.v).be.eql('')
-    should(sheet.C26.v).be.eql('Message:')
-    should(sheet.E26.v).be.eql('')
-    should(sheet.C27.v).be.eql('Stars')
-    should(sheet.D28.v).be.eql(' - ')
+    should(sheet.B24.v).be.eql('Name:')
+    should(sheet.E24.v).be.eql(originalCategories[0].posts[1].name)
+    should(sheet.B25.v).be.eql('Words Count:')
+    should(sheet.E25.v).be.eql(originalCategories[0].posts[1].wordsCount)
+    should(sheet.B26.v).be.eql('Author:')
+    should(sheet.E26.v).be.eql(originalCategories[0].posts[1].author)
 
-    should(sheet.B29.v).be.eql('Name:')
-    should(sheet.E29.v).be.eql(categories[0].posts[2].name)
-    should(sheet.B30.v).be.eql('Words Count:')
-    should(sheet.E30.v).be.eql(categories[0].posts[2].wordsCount)
-    should(sheet.B31.v).be.eql('Author:')
-    should(sheet.E31.v).be.eql(categories[0].posts[2].author)
+    should(sheet.B27.v).be.eql('Reviews:')
+    should(sheet.C28.v).be.eql('Name:')
+    should(sheet.E28.v).be.eql('')
+    should(sheet.C29.v).be.eql('Message:')
+    should(sheet.E29.v).be.eql('')
+    should(sheet.C30.v).be.eql('Stars')
+    should(sheet.D31.v).be.eql(' - ')
 
-    should(sheet.B32.v).be.eql('Reviews:')
-    should(sheet.C33.v).be.eql('Name:')
-    should(sheet.E33.v).be.eql(categories[0].posts[2].reviews[0].name)
-    should(sheet.C34.v).be.eql('Message:')
-    should(sheet.E34.v).be.eql(categories[0].posts[2].reviews[0].message)
-    should(sheet.C35.v).be.eql('Stars')
-    should(sheet.D36.v).be.eql(' - ')
+    should(sheet.B32.v).be.eql('Name:')
+    should(sheet.E32.v).be.eql(originalCategories[0].posts[2].name)
+    should(sheet.B33.v).be.eql('Words Count:')
+    should(sheet.E33.v).be.eql(originalCategories[0].posts[2].wordsCount)
+    should(sheet.B34.v).be.eql('Author:')
+    should(sheet.E34.v).be.eql(originalCategories[0].posts[2].author)
 
-    should(sheet.C37.v).be.eql('Name:')
-    should(sheet.E37.v).be.eql(categories[0].posts[2].reviews[1].name)
-    should(sheet.C38.v).be.eql('Message:')
-    should(sheet.E38.v).be.eql(categories[0].posts[2].reviews[1].message)
-    should(sheet.C39.v).be.eql('Stars')
-    should(sheet.D40.v).be.eql(' - ')
+    should(sheet.B35.v).be.eql('Reviews:')
+    should(sheet.C36.v).be.eql('Name:')
+    should(sheet.E36.v).be.eql(originalCategories[0].posts[2].reviews[0].name)
+    should(sheet.C37.v).be.eql('Message:')
+    should(sheet.E37.v).be.eql(originalCategories[0].posts[2].reviews[0].message)
+    should(sheet.C38.v).be.eql('Stars')
+    should(sheet.D39.v).be.eql(' - ')
 
-    should(sheet.B41.v).be.eql('Maintainers:')
-    should(sheet.B42.v).be.eql(categories[0].maintainers[0])
-    should(sheet.B43.v).be.eql(categories[0].maintainers[1])
+    should(sheet.C40.v).be.eql('Name:')
+    should(sheet.E40.v).be.eql(originalCategories[0].posts[2].reviews[1].name)
+    should(sheet.C41.v).be.eql('Message:')
+    should(sheet.E41.v).be.eql(originalCategories[0].posts[2].reviews[1].message)
+    should(sheet.C42.v).be.eql('Stars')
+    should(sheet.D43.v).be.eql(' - ')
 
-    should(sheet.A46.v).be.eql(categories[1].name)
-    should(sheet.B47.v).be.eql('Tags:')
-    should(sheet.B48.v).be.eql(categories[1].tags[0])
-    should(sheet.B49.v).be.eql(categories[1].tags[1])
+    should(sheet.B44.v).be.eql('Maintainers:')
+    should(sheet.B45.v).be.eql(originalCategories[0].maintainers[0])
+    should(sheet.B46.v).be.eql(originalCategories[0].maintainers[1])
 
-    should(sheet.B50.v).be.eql('Posts')
+    should(sheet.A49.v).be.eql(originalCategories[1].name)
+    should(sheet.B50.v).be.eql('Tags:')
+    should(sheet.B51.v).be.eql(originalCategories[1].tags[0])
+    should(sheet.B52.v).be.eql(originalCategories[1].tags[1])
 
-    should(sheet.B51.v).be.eql('Name:')
-    should(sheet.E51.v).be.eql(categories[1].posts[0].name)
-    should(sheet.B52.v).be.eql('Words Count:')
-    should(sheet.E52.v).be.eql(categories[1].posts[0].wordsCount)
-    should(sheet.B53.v).be.eql('Author:')
-    should(sheet.E53.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B53.v).be.eql('Collaborators:')
+    should(sheet.B54.v).be.eql(originalCategories[1].collaborators[0].name)
+    should(sheet.C54.v).be.eql(originalCategories[1].collaborators[0].role)
+    should(sheet.B55.v).be.eql(originalCategories[1].collaborators[1].name)
+    should(sheet.C55.v).be.eql(originalCategories[1].collaborators[1].role)
+    should(sheet.B56.v).be.eql(originalCategories[1].collaborators[2].name)
+    should(sheet.C56.v).be.eql(originalCategories[1].collaborators[2].role)
 
-    should(sheet.B54.v).be.eql('Reviews:')
-    should(sheet.C55.v).be.eql('Name:')
-    should(sheet.E55.v).be.eql(categories[1].posts[0].reviews[0].name)
-    should(sheet.C56.v).be.eql('Message:')
-    should(sheet.E56.v).be.eql(categories[1].posts[0].reviews[0].message)
-    should(sheet.C57.v).be.eql('Stars')
-    should(sheet.D58.v).be.eql(`${categories[1].posts[0].reviews[0].stars[0].value} - ${categories[1].posts[0].reviews[0].stars[0].time}`)
+    should(sheet.B57.v).be.eql('Posts')
 
-    should(sheet.B59.v).be.eql('Name:')
-    should(sheet.E59.v).be.eql(categories[1].posts[1].name)
-    should(sheet.B60.v).be.eql('Words Count:')
-    should(sheet.E60.v).be.eql(categories[1].posts[1].wordsCount)
-    should(sheet.B61.v).be.eql('Author:')
-    should(sheet.E61.v).be.eql(categories[1].posts[1].author)
+    should(sheet.B58.v).be.eql('Name:')
+    should(sheet.E58.v).be.eql(originalCategories[1].posts[0].name)
+    should(sheet.B59.v).be.eql('Words Count:')
+    should(sheet.E59.v).be.eql(originalCategories[1].posts[0].wordsCount)
+    should(sheet.B60.v).be.eql('Author:')
+    should(sheet.E60.v).be.eql(originalCategories[1].posts[0].author)
 
-    should(sheet.B62.v).be.eql('Reviews:')
-    should(sheet.C63.v).be.eql('Name:')
-    should(sheet.E63.v).be.eql('')
-    should(sheet.C64.v).be.eql('Message:')
-    should(sheet.E64.v).be.eql('')
-    should(sheet.C65.v).be.eql('Stars')
-    should(sheet.D66.v).be.eql(' - ')
+    should(sheet.B61.v).be.eql('Reviews:')
+    should(sheet.C62.v).be.eql('Name:')
+    should(sheet.E62.v).be.eql(originalCategories[1].posts[0].reviews[0].name)
+    should(sheet.C63.v).be.eql('Message:')
+    should(sheet.E63.v).be.eql(originalCategories[1].posts[0].reviews[0].message)
+    should(sheet.C64.v).be.eql('Stars')
+    should(sheet.D65.v).be.eql(`${originalCategories[1].posts[0].reviews[0].stars[0].value} - ${originalCategories[1].posts[0].reviews[0].stars[0].time}`)
 
-    should(sheet.B67.v).be.eql('Maintainers:')
-    should(sheet.B68.v).be.eql(categories[1].maintainers[0])
+    should(sheet.B66.v).be.eql('Name:')
+    should(sheet.E66.v).be.eql(originalCategories[1].posts[1].name)
+    should(sheet.B67.v).be.eql('Words Count:')
+    should(sheet.E67.v).be.eql(originalCategories[1].posts[1].wordsCount)
+    should(sheet.B68.v).be.eql('Author:')
+    should(sheet.E68.v).be.eql(originalCategories[1].posts[1].author)
 
-    should(sheet.A71.v).be.eql(categories[2].name)
-    should(sheet.B72.v).be.eql('Tags:')
-    should(sheet.B73.v).be.eql(categories[2].tags[0])
+    should(sheet.B69.v).be.eql('Reviews:')
+    should(sheet.C70.v).be.eql('Name:')
+    should(sheet.E70.v).be.eql('')
+    should(sheet.C71.v).be.eql('Message:')
+    should(sheet.E71.v).be.eql('')
+    should(sheet.C72.v).be.eql('Stars')
+    should(sheet.D73.v).be.eql(' - ')
 
-    should(sheet.B74.v).be.eql('Posts')
+    should(sheet.B74.v).be.eql('Maintainers:')
+    should(sheet.B75.v).be.eql(originalCategories[1].maintainers[0])
 
-    should(sheet.B75.v).be.eql('Name:')
-    should(sheet.E75.v).be.eql(categories[2].posts[0].name)
-    should(sheet.B76.v).be.eql('Words Count:')
-    should(sheet.E76.v).be.eql(categories[2].posts[0].wordsCount)
-    should(sheet.B77.v).be.eql('Author:')
-    should(sheet.E77.v).be.eql(categories[2].posts[0].author)
+    should(sheet.A78.v).be.eql(originalCategories[2].name)
+    should(sheet.B79.v).be.eql('Tags:')
+    should(sheet.B80.v).be.eql(originalCategories[2].tags[0])
 
-    should(sheet.B78.v).be.eql('Reviews:')
-    should(sheet.C79.v).be.eql('Name:')
-    should(sheet.E79.v).be.eql(categories[2].posts[0].reviews[0].name)
-    should(sheet.C80.v).be.eql('Message:')
-    should(sheet.E80.v).be.eql(categories[2].posts[0].reviews[0].message)
-    should(sheet.C81.v).be.eql('Stars')
-    should(sheet.D82.v).be.eql(' - ')
+    should(sheet.B81.v).be.eql('Collaborators:')
+    should(sheet.B82.v).be.eql(originalCategories[2].collaborators[0].name)
+    should(sheet.C82.v).be.eql(originalCategories[2].collaborators[0].role)
+    should(sheet.B83.v).be.eql(originalCategories[2].collaborators[1].name)
+    should(sheet.C83.v).be.eql(originalCategories[2].collaborators[1].role)
 
-    should(sheet.C83.v).be.eql('Name:')
-    should(sheet.E83.v).be.eql(categories[2].posts[0].reviews[1].name)
-    should(sheet.C84.v).be.eql('Message:')
-    should(sheet.E84.v).be.eql(categories[2].posts[0].reviews[1].message)
-    should(sheet.C85.v).be.eql('Stars')
-    should(sheet.D86.v).be.eql(' - ')
+    should(sheet.B84.v).be.eql('Posts')
 
-    should(sheet.B87.v).be.eql('Name:')
-    should(sheet.E87.v).be.eql(categories[2].posts[1].name)
-    should(sheet.B88.v).be.eql('Words Count:')
-    should(sheet.E88.v).be.eql(categories[2].posts[1].wordsCount)
-    should(sheet.B89.v).be.eql('Author:')
-    should(sheet.E89.v).be.eql(categories[2].posts[1].author)
+    should(sheet.B85.v).be.eql('Name:')
+    should(sheet.E85.v).be.eql(originalCategories[2].posts[0].name)
+    should(sheet.B86.v).be.eql('Words Count:')
+    should(sheet.E86.v).be.eql(originalCategories[2].posts[0].wordsCount)
+    should(sheet.B87.v).be.eql('Author:')
+    should(sheet.E87.v).be.eql(originalCategories[2].posts[0].author)
 
-    should(sheet.B90.v).be.eql('Reviews:')
-    should(sheet.C91.v).be.eql('Name:')
-    should(sheet.E91.v).be.eql(categories[2].posts[1].reviews[0].name)
-    should(sheet.C92.v).be.eql('Message:')
-    should(sheet.E92.v).be.eql(categories[2].posts[1].reviews[0].message)
-    should(sheet.C93.v).be.eql('Stars')
-    should(sheet.D94.v).be.eql(' - ')
+    should(sheet.B88.v).be.eql('Reviews:')
+    should(sheet.C89.v).be.eql('Name:')
+    should(sheet.E89.v).be.eql(originalCategories[2].posts[0].reviews[0].name)
+    should(sheet.C90.v).be.eql('Message:')
+    should(sheet.E90.v).be.eql(originalCategories[2].posts[0].reviews[0].message)
+    should(sheet.C91.v).be.eql('Stars')
+    should(sheet.D92.v).be.eql(' - ')
 
-    should(sheet.B95.v).be.eql('Maintainers:')
-    should(sheet.B96.v).be.eql(categories[2].maintainers[0])
-    should(sheet.B97.v).be.eql(categories[2].maintainers[1])
-    should(sheet.B98.v).be.eql(categories[2].maintainers[2])
+    should(sheet.C93.v).be.eql('Name:')
+    should(sheet.E93.v).be.eql(originalCategories[2].posts[0].reviews[1].name)
+    should(sheet.C94.v).be.eql('Message:')
+    should(sheet.E94.v).be.eql(originalCategories[2].posts[0].reviews[1].message)
+    should(sheet.C95.v).be.eql('Stars')
+    should(sheet.D96.v).be.eql(' - ')
+
+    should(sheet.B97.v).be.eql('Name:')
+    should(sheet.E97.v).be.eql(originalCategories[2].posts[1].name)
+    should(sheet.B98.v).be.eql('Words Count:')
+    should(sheet.E98.v).be.eql(originalCategories[2].posts[1].wordsCount)
+    should(sheet.B99.v).be.eql('Author:')
+    should(sheet.E99.v).be.eql(originalCategories[2].posts[1].author)
+
+    should(sheet.B100.v).be.eql('Reviews:')
+    should(sheet.C101.v).be.eql('Name:')
+    should(sheet.E101.v).be.eql(originalCategories[2].posts[1].reviews[0].name)
+    should(sheet.C102.v).be.eql('Message:')
+    should(sheet.E102.v).be.eql(originalCategories[2].posts[1].reviews[0].message)
+    should(sheet.C103.v).be.eql('Stars')
+    should(sheet.D104.v).be.eql(' - ')
+
+    should(sheet.B105.v).be.eql('Maintainers:')
+    should(sheet.B106.v).be.eql(originalCategories[2].maintainers[0])
+    should(sheet.B107.v).be.eql(originalCategories[2].maintainers[1])
+    should(sheet.B108.v).be.eql(originalCategories[2].maintainers[2])
   })
 
   it('row loop and multiple row loops nested', async () => {
@@ -12184,6 +14463,9 @@ function getTargetXlsxFilename (_mode, name) {
       break
     case 'vertical':
       filename = 'loop-vertical'
+      break
+    case 'dynamic':
+      filename = 'loop-dynamic'
       break
     default:
       throw new Error(`Invalid mode "${_mode}"`)
