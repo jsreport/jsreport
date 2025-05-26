@@ -25,11 +25,13 @@ RUN apt-get update && \
     # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
-    apt install -y chromium=136.0.7103.59-2xtradeb1.2404.1 && \
+    apt install -y chromium=136.0.7103.113-1xtradeb1.2404.1 && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
-    apt-get -y install unoconv
+    apt-get -y install unoconv && \
+    # libreoffice
+    apt-get -y install default-jre libreoffice-java-common
 
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
