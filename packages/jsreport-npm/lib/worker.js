@@ -2,14 +2,15 @@ const path = require('path')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 const fs = require('fs').promises
-const { Lock } = require('semaphore-async-await')
+const lockFile = require('lockfile')
+const callLock = util.promisify(lockFile.lock)
+const callUnlock = util.promisify(lockFile.unlock)
 
 function exists (p) {
   return fs.access(p).then(() => true).catch(() => false)
 }
 
 module.exports = (reporter, definition) => {
-  const requireLock = new Lock()
   const rootPrefix = path.join(reporter.options.tempDirectory, 'npm')
 
   let helpersScript
@@ -68,9 +69,9 @@ module.exports = (reporter, definition) => {
           }
         }
 
-        try {
-          await requireLock.acquire()
+        const l = await acquireLock()
 
+        try {
           reporter.logger.debug(`require of npm ${moduleNameAndVersion}`, req)
 
           // we are including check for package.json, because sometimes the files in the module are missing because of some auto os temp cleanup
@@ -99,7 +100,7 @@ module.exports = (reporter, definition) => {
 
           return sandboxRequire(modulePath + (pathInModule || ''))
         } finally {
-          requireLock.release()
+          await releaseLock(l)
         }
       },
       async module (moduleSpec) {
@@ -133,4 +134,48 @@ module.exports = (reporter, definition) => {
       }
     }
   })
+
+  async function acquireLock () {
+    try {
+      await callLock(path.join(rootPrefix, 'npm.lock'), Object.assign({}, definition.options.lock))
+    } catch (e) {
+      throw new Error('Failed to acquire npm lock.', { cause: e })
+    }
+
+    // refreshing the lock so we can have a long running transaction
+    const refreshInterval = setInterval(() => touch(path.join(rootPrefix, 'npm.lock')), definition.options.lock.stale / 2)
+    refreshInterval.unref()
+    const undelegateWait = definition.options.lock.wait * (definition.options.lock.retries || 1) + ((definition.options.lock.retries || 1) * (definition.options.lock.retryWait || 0))
+
+    const clearRefreshIntervalTimeout = setTimeout(() => clearInterval(refreshInterval), undelegateWait)
+    clearRefreshIntervalTimeout.unref()
+
+    return { refreshInterval, clearRefreshIntervalTimeout }
+  }
+
+  async function releaseLock (l) {
+    clearInterval(l.refreshInterval)
+    clearTimeout(l.clearRefreshIntervalTimeout)
+    await callUnlock(path.join(rootPrefix, 'npm.lock'))
+  }
+}
+
+let touchRunning = false
+async function touch (filename) {
+  if (touchRunning) {
+    return
+  }
+
+  const time = new Date()
+
+  try {
+    touchRunning = true
+    await fs.utimes(filename, time, time)
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      console.warn('Failed to refresh the file system lock', e)
+    }
+  } finally {
+    touchRunning = false
+  }
 }

@@ -23,7 +23,7 @@
     "test": "set DEBUG=jsreport&&mocha test --timeout 20000 --exit && standard"
   },
   "dependencies": {
-    "semaphore-async-await": "1.5.1",
+    "lockfile": "1.0.4",
     "enhanced-resolve": "5.8.3"
   },
   "devDependencies": {
