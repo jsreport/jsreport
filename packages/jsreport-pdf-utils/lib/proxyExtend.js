@@ -63,8 +63,8 @@ module.exports = (proxy, req) => {
 
       return resultPdfBuf
     },
-    postprocess: async (sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines } = {}) => {
-      const manipulator = require('./pdfManipulator')(sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks: true })
+    postprocess: async (sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, pdfCompression } = {}) => {
+      const manipulator = require('./pdfManipulator')(sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, pdfCompression, removeHiddenMarks: true })
       await manipulator.postprocess({
         hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
       })

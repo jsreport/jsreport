@@ -11,6 +11,7 @@ const encrypt = require('./mixins/encrypt/encrypt')
 const sign = require('./mixins/sign')
 const pdfA = require('./mixins/pdfa/pdfA.js')
 const pdfUA = require('./mixins/pdfua/pdfUA.js')
+const compress = require('./mixins/compress')
 const DocumentBase = require('./documentBase')
 
 module.exports = class Document extends DocumentBase {
@@ -50,6 +51,7 @@ module.exports = class Document extends DocumentBase {
     sign(this)
     pdfA(this)
     pdfUA(this)
+    compress(this)
   }
 
   async asBuffer () {

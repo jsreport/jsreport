@@ -2650,4 +2650,39 @@ describe('pdf utils', () => {
     })
     parsedPdf.pages.should.have.length(2)
   })
+
+  it('compression should pass', async () => {
+    await jsreport.render({
+      template: {
+        content: '<img src=\'https://jsreport.net/showcases/tasks-report.png\'>',
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfCompression: {
+          enabled: true
+        }
+      }
+    })
+
+    await jsreport.render({
+      template: {
+        content: '<img src=\'https://jsreport.net/showcases/tasks-report.png\'>',
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        scripts: [{
+          content: `
+            const jsreport = require('jsreport-proxy')
+            async function afterRender(req, res) {
+              res.content = await jsreport.pdfUtils.postprocess(res.content, {
+                pdfCompression: {
+                  enabled: true
+                }
+              })
+            }
+          `
+        }]
+      }
+    })
+  })
 })

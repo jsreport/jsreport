@@ -118,6 +118,7 @@ module.exports = (reporter, definition) => {
       req.template.pdfAccessibility?.pdfUA !== true &&
       req.template.pdfA?.enabled !== true &&
       req.template.pdfSign == null &&
+      req.template.pdfCompression?.enabled !== true &&
       (!req.template.pdfOperations || req.template.pdfOperations.length === 0) &&
       !req.context.pdfUtilsOutlines &&
       !req.context.pdfUtilsForms
@@ -211,6 +212,7 @@ module.exports = (reporter, definition) => {
           pdfAccessibility: req.context.pdfUtilsAccessibility,
           pdfPassword,
           pdfSign,
+          pdfCompression: req.template.pdfCompression,
           removeHiddenMarks: !req.options.pdfUtils || req.options.pdfUtils.removeHiddenMarks !== false
         },
         reporter,

@@ -398,6 +398,7 @@ class PdfUtilsEditor extends Component {
     const pdfAccessibility = entity.pdfAccessibility || {}
     const pdfPassword = entity.pdfPassword || {}
     const pdfSign = entity.pdfSign || {}
+    const pdfCompression = entity.pdfCompression || {}
 
     return (
       <div className='block custom-editor' style={{ overflowX: 'auto' }}>
@@ -450,6 +451,12 @@ class PdfUtilsEditor extends Component {
               onClick={() => this.setState({ activeTab: 'pdfAccessibility' })}
             >
               pdf accessibility
+            </li>
+            <li
+              className={`${styles.tabTitle} ${activeTab === 'pdfCompression' ? styles.active : ''}`}
+              onClick={() => this.setState({ activeTab: 'pdfCompression' })}
+            >
+              compression
             </li>
           </ul>
           <div className={`${styles.tabPanel} ${activeTab === 'operations' ? styles.active : ''}`}>
@@ -705,6 +712,34 @@ class PdfUtilsEditor extends Component {
                     onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfAccessibility: { ...entity.pdfAccessibility, pdfUA: v.target.checked } }))}
                   />
                 </label>
+              </div>
+            </div>
+          </div>
+          <div className={`${styles.tabPanel} ${activeTab === 'pdfCompression' ? styles.active : ''}`}>
+            <h2 style={{ marginTop: '1rem' }}>
+              compression (beta)
+            </h2>
+            <div style={{ marginTop: '1rem', paddingBottom: '0.5rem' }}>
+              <div className='form-group'>
+                <label>
+                  Enabled
+                  <br />
+                  <input
+                    type='checkbox' checked={pdfCompression.enabled === true}
+                    onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, enabled: v.target.checked } }))}
+                  />
+                </label>
+              </div>
+              <div className='form-group'>
+                <label>JPEG quality</label>
+                <input
+                  type='number'
+                  min='0'
+                  max='100'
+                  placeholder='60'
+                  value={pdfCompression.jpegQuality || ''}
+                  onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, jpegQuality: parseInt(v.target.value, 10) } }))}
+                />
               </div>
             </div>
           </div>

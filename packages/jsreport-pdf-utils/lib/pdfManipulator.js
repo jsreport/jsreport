@@ -3,7 +3,7 @@ const { Document, External } = require('@jsreport/pdfjs')
 const PDF = require('@jsreport/pdfjs/lib/object')
 const HIDDEN_TEXT_SIZE = 1.1
 
-module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines, removeHiddenMarks, pdfAccessibility } = {}) => {
+module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines, removeHiddenMarks, pdfAccessibility, pdfCompression } = {}) => {
   let currentBuffer = contentBuffer
   let currentlyParsedPdf
 
@@ -200,6 +200,10 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
 
       if (pdfAccessibility?.pdfUA === true) {
         doc.pdfUA()
+      }
+
+      if (pdfCompression?.enabled === true) {
+        doc.compress(pdfCompression)
       }
 
       try {

@@ -7,7 +7,7 @@ module.exports = async (inputs, reporter, req, res) => {
     name: 'pdf utils'
   }, req, res)
 
-  const { pdfContent, operations, pdfMeta, pdfPassword, pdfSign, pdfA, pdfAccessibility, outlines, removeHiddenMarks } = inputs
+  const { pdfContent, operations, pdfMeta, pdfPassword, pdfSign, pdfA, pdfAccessibility, pdfCompression, outlines, removeHiddenMarks } = inputs
 
   const runRender = async (shortidOrTemplate, data) => {
     let templateToUse
@@ -24,7 +24,17 @@ module.exports = async (inputs, reporter, req, res) => {
   }
 
   const pdfBuf = pdfContent
-  const manipulator = PdfManipulator(pdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, pdfA, pdfAccessibility, removeHiddenMarks, hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields })
+  const manipulator = PdfManipulator(pdfBuf, {
+    pdfMeta,
+    pdfPassword,
+    pdfSign,
+    outlines,
+    pdfA,
+    pdfAccessibility,
+    pdfCompression,
+    removeHiddenMarks,
+    hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
+  })
   const operationsToProcess = operations.filter(o => o.templateShortid || o.template)
 
   reporter.logger.debug(`pdf-utils detected ${operationsToProcess.length} pdf operation(s) to process`, req)

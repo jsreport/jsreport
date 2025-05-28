@@ -663,6 +663,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const pdfAccessibility = entity.pdfAccessibility || {};
     const pdfPassword = entity.pdfPassword || {};
     const pdfSign = entity.pdfSign || {};
+    const pdfCompression = entity.pdfCompression || {};
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
       className: "block custom-editor",
       style: {
@@ -727,7 +728,12 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       onClick: () => this.setState({
         activeTab: 'pdfAccessibility'
       })
-    }, "pdf accessibility")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "pdf accessibility"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
+      onClick: () => this.setState({
+        activeTab: 'pdfCompression'
+      })
+    }, "compression")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
       className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
       style: {
@@ -1042,7 +1048,43 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
           pdfUA: v.target.checked
         }
       }))
-    })))))));
+    }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
+      style: {
+        marginTop: '1rem'
+      }
+    }, "compression (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      style: {
+        marginTop: '1rem',
+        paddingBottom: '0.5rem'
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+      type: "checkbox",
+      checked: pdfCompression.enabled === true,
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+        pdfCompression: {
+          ...entity.pdfCompression,
+          enabled: v.target.checked
+        }
+      }))
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "JPEG quality"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+      type: "number",
+      min: "0",
+      max: "100",
+      placeholder: "60",
+      value: pdfCompression.jpegQuality || '',
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+        pdfCompression: {
+          ...entity.pdfCompression,
+          jpegQuality: parseInt(v.target.value, 10)
+        }
+      }))
+    }))))));
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PdfUtilsEditor);

@@ -1165,4 +1165,25 @@ describe('pdfjs', () => {
     pages.should.have.length(1)
     pages[0].should.be.eql('main')
   })
+
+  it('compress', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'pdf-to-compress.pdf')))
+    document.append(external)
+    document.compress({
+      quality: 100
+    })
+    const pdfBuffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdfBuffer)
+    const { catalog } = await validate(pdfBuffer)
+
+    const xobjects = catalog.properties.get('Pages').object.properties.get('Kids')[0].object.properties.get('Resources').get('XObject')
+    for (const xobjectName in xobjects.dictionary) {
+      const xobj = xobjects.get(xobjectName)
+      if (xobj.object.properties.get('Subtype')?.name === 'Image') {
+        xobj.object.properties.get('Filter')[0].name.should.be.eql('FlateDecode')
+        xobj.object.properties.get('Filter')[1].name.should.be.eql('DCTDecode')
+      }
+    }
+  })
 })
