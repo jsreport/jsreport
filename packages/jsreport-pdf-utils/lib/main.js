@@ -45,7 +45,8 @@ module.exports = (reporter, definition) => {
 
   reporter.documentStore.registerComplexType('PdfCompressionType', {
     enabled: { type: 'Edm.Boolean' },
-    jpegQuality: { type: 'Edm.Numner' }
+    jpegQuality: { type: 'Edm.Numner' },
+    removeAccessibility: { type: 'Edm.Boolean' }
   })
 
   reporter.documentStore.registerComplexType('PdfSignTemplateType', {

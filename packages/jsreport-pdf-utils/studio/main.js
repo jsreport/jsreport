@@ -1084,6 +1084,17 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
           jpegQuality: parseInt(v.target.value, 10)
         }
       }))
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "remove accessibility"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+      type: "checkbox",
+      checked: pdfCompression.removeAccessibility !== false,
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+        pdfCompression: {
+          ...entity.pdfCompression,
+          removeAccessibility: v.target.checked
+        }
+      }))
     }))))));
   }
 }

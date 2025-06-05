@@ -48,7 +48,7 @@ class PDFDictionary {
       if (val instanceof PDFString || val instanceof PDFDictionary) {
         val = val.toString(encryptionFn)
       }
-      str += `${key} ${val === null ? 'null' : val}`.replace(/^/gm, '\t') + '\n'
+      str += `${key} ${val === null ? 'null' : val}` + '\n'
     }
     return `<<\n${str}>>`
   }

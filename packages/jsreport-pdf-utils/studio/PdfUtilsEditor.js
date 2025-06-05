@@ -741,6 +741,14 @@ class PdfUtilsEditor extends Component {
                   onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, jpegQuality: parseInt(v.target.value, 10) } }))}
                 />
               </div>
+              <div className='form-group'>
+                <label>remove accessibility</label>
+                <input
+                  type='checkbox'
+                  checked={pdfCompression.removeAccessibility !== false}
+                  onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, removeAccessibility: v.target.checked } }))}
+                />
+              </div>
             </div>
           </div>
         </div>
