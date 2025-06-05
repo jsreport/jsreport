@@ -1,7 +1,7 @@
 const execSync = require('child_process').execSync
 
 const jsreportPackages = [
-  '@jsreport/pdfjs',
+  /* '@jsreport/pdfjs',
   '@jsreport/advanced-workers',
   '@jsreport/html-to-xlsx',
   '@jsreport/odata-to-sql',
@@ -11,8 +11,8 @@ const jsreportPackages = [
   '@jsreport/jsreport-authorization',
   '@jsreport/jsreport-base',
   '@jsreport/jsreport-browser-client',
-  '@jsreport/jsreport-child-templates',
-  '@jsreport/jsreport-chrome-pdf',
+  '@jsreport/jsreport-child-templates', */
+  '@jsreport/jsreport-chrome-pdf'/*,
   '@jsreport/jsreport-components',
   '@jsreport/jsreport-cli',
   '@jsreport/jsreport-core',
@@ -40,7 +40,7 @@ const jsreportPackages = [
   '@jsreport/jsreport-text',
   '@jsreport/jsreport-version-control',
   '@jsreport/jsreport-xlsx',
-  'jsreport'
+  'jsreport' */
 ]
 
 const failedPackages = []

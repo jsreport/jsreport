@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const JsReport = require('@jsreport/jsreport-core')
 const should = require('should')
-const parsePdf = require('parse-pdf')
+const parsePdf = require('parse-pdf').parsePdf
 const http = require('http')
 const puppeteer = require('puppeteer')
 
