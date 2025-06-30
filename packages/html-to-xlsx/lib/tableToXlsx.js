@@ -233,7 +233,7 @@ function addRow (sheet, row, context) {
         formula: cellInfo.valueText
       }
     } else {
-      cell.value = cellInfo.valueText
+      cell.value = cellInfo.valueText !== '' ? cellInfo.valueText : null
     }
 
     const styleValues = {}
