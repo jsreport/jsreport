@@ -266,6 +266,46 @@ describe('xlsx generation - base', () => {
     should(sheet.A1.v).be.eql('Hello world John')
   })
 
+  it('variable replace should generate empty cells', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace-empty-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        text: 'TESTABC123 CURR MONTH REPORT',
+        text2: '',
+        text3: null
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
+
+    const emptyCells = cellEls.filter((c) => c.getAttribute('r') === 'B1' || c.getAttribute('r') === 'C1')
+
+    should(emptyCells).have.length(2)
+
+    should(emptyCells[0].hasChildNodes()).be.False()
+    should(emptyCells[1].hasChildNodes()).be.False()
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('TESTABC123 CURR MONTH REPORT')
+    should(sheet.A2).be.not.ok()
+    should(sheet.A3).be.not.ok()
+  })
+
   it('variable replace multi', async () => {
     const result = await reporter.render({
       template: {

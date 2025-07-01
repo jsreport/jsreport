@@ -796,7 +796,15 @@ const __xlsxD = (function () {
 
     assertOk(cellContent != null, `cell type "${cellType}" not supported`)
 
-    return new Handlebars.SafeString(`<c ${serializedAttrs.join(' ')}>${cellContent}</c>`)
+    let cellOutput = `<c ${serializedAttrs.join(' ')}`
+
+    if (cellValue == null || cellValue === '') {
+      cellOutput += ' />'
+    } else {
+      cellOutput += `>${cellContent}</c>`
+    }
+
+    return new Handlebars.SafeString(cellOutput)
   }
 
   function cValue (...args) {
