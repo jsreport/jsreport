@@ -4,7 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
 const xlsx = require('xlsx')
-const { parseCell } = require('xlsx-coordinates')
+const { parseCell, num2col } = require('xlsx-coordinates')
 const chromePageEval = require('chrome-page-eval')
 const phantomPageEval = require('phantom-page-eval')
 const puppeteer = require('puppeteer')
@@ -4716,6 +4716,180 @@ describe('html to xlsx conversion with strategy', () => {
 
         should(cellI6Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellI6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+    })
+
+    it('should work when using cell border collapsing styles (with merge cell) #7', async () => {
+      const stream = await conversion(`
+        <style>
+          :root {
+            --cell-width: 28px;
+          }
+
+          table {
+            table-layout: fixed;
+            border-collapse: collapse;
+          }
+
+          td {
+            border: 1px solid #000;
+            height: 22px;
+          }
+
+          td[colspan="4"] {
+            width: calc(var(--cell-width) * 4);
+          }
+
+          td[colspan="17"] {
+            width: calc(var(--cell-width) * 17);
+          }
+
+          td[colspan="21"] {
+            width: calc(var(--cell-width) * 21);
+          }
+        </style>
+
+        <table>
+          <tbody>
+            <tr>
+              <td colspan="21"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const expectedBlackBorder = {
+        style: 'thin',
+        color: 'ff000000'
+      }
+
+      for (let index = 0; index < 21; index++) {
+        const cellRef = `${num2col(index)}1`
+        should(getCell(sheetDoc, cellRef, 'v')).be.not.ok()
+
+        const cellBorder = getStyle(sheetDoc, stylesDoc, cellRef, 'b')
+
+        for (const side of ['left', 'top', 'right', 'bottom']) {
+          should(cellBorder[side].style).be.eql(expectedBlackBorder.style)
+          should(cellBorder[side].color).be.eql(expectedBlackBorder.color)
+        }
+      }
+
+      for (let rowNumber = 2; rowNumber < 10; rowNumber++) {
+        for (let index = 0; index < 21; index++) {
+          const cellRef = `${num2col(index)}${rowNumber}`
+          should(getCell(sheetDoc, cellRef, 'v')).be.not.ok()
+
+          const cellBorder = getStyle(sheetDoc, stylesDoc, cellRef, 'b')
+
+          for (const side of ['left', 'top', 'right', 'bottom']) {
+            const explicitSides = ['right', 'bottom']
+
+            if (index < 4) {
+              explicitSides.push('left')
+            }
+
+            if (explicitSides.includes(side)) {
+              should(cellBorder[side].style).be.eql(expectedBlackBorder.style)
+              should(cellBorder[side].color).be.eql(expectedBlackBorder.color)
+            } else {
+              should(cellBorder[side]).be.not.ok()
+            }
+          }
+        }
+      }
+
+      for (let index = 0; index < 21; index++) {
+        const cellRef = `${num2col(index)}10`
+        should(getCell(sheetDoc, cellRef, 'v')).be.not.ok()
+
+        const cellBorder = getStyle(sheetDoc, stylesDoc, cellRef, 'b')
+
+        for (const side of ['left', 'top', 'right', 'bottom']) {
+          const explicitSides = ['right', 'bottom']
+
+          if (index === 0) {
+            explicitSides.push('left')
+          }
+
+          if (explicitSides.includes(side)) {
+            should(cellBorder[side].style).be.eql(expectedBlackBorder.style)
+            should(cellBorder[side].color).be.eql(expectedBlackBorder.color)
+          } else {
+            should(cellBorder[side]).be.not.ok()
+          }
+        }
       }
     })
 
