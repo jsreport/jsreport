@@ -341,6 +341,113 @@ describe('docx table', () => {
     text.should.containEql('Literature2')
   })
 
+  it('table nested (as content)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(docxDirPath, 'table-nested-as-content.docx')
+            )
+          }
+        }
+      },
+      data: {
+        items: [
+          {
+            model: 'Model A',
+            tag: 'Tag1',
+            brand: 'BrandX',
+            warranty: '1 year',
+            total: 100,
+            desc: 'Description of item 1',
+            qty: 1
+          },
+          {
+            model: 'Model B',
+            tag: 'Tag2',
+            brand: 'BrandY',
+            warranty: '2 years',
+            total: 200,
+            desc: 'Description of item 2',
+            qty: 2
+          },
+          {
+            model: 'Model C',
+            tag: 'Tag3',
+            brand: 'BrandZ',
+            warranty: '3 years',
+            total: 300,
+            desc: 'Description of item 3',
+            qty: 3
+          },
+          {
+            model: 'Model D',
+            tag: 'Tag4',
+            brand: 'BrandW',
+            warranty: '4 years',
+            total: 400,
+            desc: 'Description of item 4',
+            qty: 4
+          },
+          {
+            model: 'Model E',
+            tag: 'Tag5',
+            brand: 'BrandV',
+            warranty: '5 years',
+            total: 500,
+            desc: 'Description of item 5',
+            qty: 5
+          }
+        ]
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const text = (await extractor.extract(result.content)).getBody()
+
+    text.should.containEql('Header1')
+    text.should.containEql('Header2')
+
+    text.should.containEql('Description of item 1')
+    text.should.containEql('BrandX')
+    text.should.containEql('Model A')
+    text.should.containEql('1 year')
+    text.should.containEql('Tag1')
+    text.should.containEql('100')
+
+    text.should.containEql('Description of item 2')
+    text.should.containEql('BrandY')
+    text.should.containEql('Model B')
+    text.should.containEql('2 years')
+    text.should.containEql('Tag2')
+    text.should.containEql('200')
+
+    text.should.containEql('Description of item 3')
+    text.should.containEql('BrandZ')
+    text.should.containEql('Model C')
+    text.should.containEql('3 years')
+    text.should.containEql('Tag3')
+    text.should.containEql('300')
+
+    text.should.containEql('Description of item 4')
+    text.should.containEql('BrandW')
+    text.should.containEql('Model D')
+    text.should.containEql('4 years')
+    text.should.containEql('Tag4')
+    text.should.containEql('400')
+
+    text.should.containEql('Description of item 5')
+    text.should.containEql('BrandV')
+    text.should.containEql('Model E')
+    text.should.containEql('4 years')
+    text.should.containEql('Tag5')
+    text.should.containEql('500')
+  })
+
   it('table with custom col width (single col configured)', async () => {
     const people = [
       {
