@@ -118,6 +118,14 @@ function concatTextNodes (doc, elements) {
 
       let remainingText = tNodeToEvaluate.textContent
 
+      const blockCases = [
+        ['{{#', () => /^{{#[^{}]{0,500}}}/],
+        ['{{else', () => /^{{else ?[^{}]{0,500}}}/],
+        ['{{/', () => /^{{\/[^{}]{0,500}}}/]
+      ]
+
+      const blockCasesStart = blockCases.map((b) => b[0])
+
       // we execute it in a while because there can be multiple block helpers in one text node
       // (like the end of a block helper and the start of another one)
       // example: {{/if}}{{#if ...}}
@@ -125,14 +133,14 @@ function concatTextNodes (doc, elements) {
         // detect if the text node only contain a block helper call
         // if yes then we mark this node to later remove it if its parent paragraph turns
         // to be empty
-        if (remainingText.startsWith('{{#')) {
-          remainingText = remainingText.replace(/^{{#[^{}]{0,500}}}/, '')
-        } else if (remainingText.startsWith('{{else')) {
-          remainingText = remainingText.replace(/^{{else ?[^{}]{0,500}}}/, '')
-        } else if (remainingText.startsWith('{{/')) {
-          remainingText = remainingText.replace(/^{{\/[^{}]{0,500}}}/, '')
+        for (const [blockStart, getBlockRegexp] of blockCases) {
+          if (remainingText.startsWith(blockStart)) {
+            const blockRegexp = getBlockRegexp()
+            remainingText = remainingText.replace(blockRegexp, '')
+            break
+          }
         }
-      } while (remainingText.startsWith('{{#'))
+      } while (blockCasesStart.find((blockStart) => remainingText.startsWith(blockStart)) != null)
 
       if (remainingText === '') {
         tNodeToEvaluate.setAttribute('__block_helper__', true)

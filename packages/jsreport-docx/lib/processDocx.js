@@ -124,7 +124,9 @@ module.exports = async (reporter, inputs, req) => {
 
       previousEndLine = endLine
 
-      return xmlStr.replace(/<\/?docxRemove>/g, '')
+      const result = xmlStr.replace(/<\/?docxRemove>/g, '')
+
+      return result
     }).join(filesSeparator) // the extra lines is to help to map the files to content
 
     // add the global context in new lines to prevent any error in there modifying the
