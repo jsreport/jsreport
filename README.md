@@ -63,7 +63,6 @@ set NODE_ENV=jsreport-development&&yarn start
 
 ## Roadmap
 - adding more features to docx/pptx/xlsx recipes
-- pdf compression
 - version control extension direct git integration and improvements
 - studio editor intellisense
 - html-to-xlsx - images, filters...

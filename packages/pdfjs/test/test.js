@@ -1177,7 +1177,11 @@ describe('pdfjs', () => {
     fs.writeFileSync('out.pdf', pdfBuffer)
     const { catalog } = await validate(pdfBuffer)
 
-    const xobjects = catalog.properties.get('Pages').object.properties.get('Kids')[0].object.properties.get('Resources').get('XObject')
+    const pageObject = catalog.properties.get('Pages').object.properties.get('Kids')[0].object
+
+    const xobjects = pageObject.properties.get('Resources').get('XObject')
+
+    // images compressed
     for (const xobjectName in xobjects.dictionary) {
       const xobj = xobjects.get(xobjectName)
       if (xobj.object.properties.get('Subtype')?.name === 'Image') {
@@ -1185,5 +1189,16 @@ describe('pdfjs', () => {
         xobj.object.properties.get('Filter')[1].name.should.be.eql('DCTDecode')
       }
     }
+
+    // compress to object streams
+    pdfBuffer.toString().should.containEql('ObjStm')
+    pdfBuffer.toString().should.containEql('/XRef')
+
+    // numbers trim
+    const firstLine = zlib.inflateSync(pageObject.properties.get('Contents').object.content.content).toString().split('\n')[0]
+    firstLine.should.be.eql('0.24 0 0 -0.24 0 792 cm')
+
+    // removeAccessibility
+    pageObject.properties.has('StructParents').should.be.false()
   })
 })

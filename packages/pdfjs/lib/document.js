@@ -39,6 +39,8 @@ module.exports = class Document extends DocumentBase {
     this.finalizers = []
     this.trailerFinalizers = []
     this.postprocessors = []
+    this.afterRegistrations = []
+    this.afterWrites = []
 
     merge(this)
     append(this)
@@ -77,8 +79,20 @@ module.exports = class Document extends DocumentBase {
 
     this._writeObject(this.catalog)
 
+    for (const fn of this.afterRegistrations) {
+      await fn()
+    }
+
     for (const o of objects) {
+      if (o._inStream) {
+        // do not write objects that are in streams
+        continue
+      }
       this._writeObject(o)
+    }
+
+    for (const fn of this.afterWrites) {
+      await fn()
     }
 
     const startxref = this._length

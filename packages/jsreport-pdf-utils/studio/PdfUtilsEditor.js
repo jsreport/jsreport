@@ -731,6 +731,46 @@ class PdfUtilsEditor extends Component {
                 </label>
               </div>
               <div className='form-group'>
+                <label>remove accessibility</label>
+                <input
+                  type='checkbox'
+                  checked={pdfCompression.removeAccessibility !== false}
+                  onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, removeAccessibility: v.target.checked } }))}
+                />
+              </div>
+              <div className='form-group'>
+                <label>recompress streams</label>
+                <input
+                  type='checkbox'
+                  checked={pdfCompression.recompressStreams !== false}
+                  onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, recompressStreams: v.target.checked } }))}
+                />
+              </div>
+              <div className='form-group'>
+                <label>use object streams</label>
+                <input
+                  type='checkbox'
+                  checked={pdfCompression.useObjectStreams !== false}
+                  onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, useObjectStreams: v.target.checked } }))}
+                />
+              </div>
+              <div className='form-group'>
+                <label>remove effects</label>
+                <input
+                  type='checkbox'
+                  checked={pdfCompression.removeEffects !== false}
+                  onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, removeEffects: v.target.checked } }))}
+                />
+              </div>
+              <div className='form-group'>
+                <label>convert images to jpeg</label>
+                <input
+                  type='checkbox'
+                  checked={pdfCompression.convertImagesToJpeg !== false}
+                  onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, convertImagesToJpeg: v.target.checked } }))}
+                />
+              </div>
+              <div className='form-group'>
                 <label>JPEG quality</label>
                 <input
                   type='number'
@@ -739,14 +779,6 @@ class PdfUtilsEditor extends Component {
                   placeholder='60'
                   value={pdfCompression.jpegQuality || ''}
                   onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, jpegQuality: parseInt(v.target.value, 10) } }))}
-                />
-              </div>
-              <div className='form-group'>
-                <label>remove accessibility</label>
-                <input
-                  type='checkbox'
-                  checked={pdfCompression.removeAccessibility !== false}
-                  onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfCompression: { ...entity.pdfCompression, removeAccessibility: v.target.checked } }))}
                 />
               </div>
             </div>
