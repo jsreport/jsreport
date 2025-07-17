@@ -1,3 +1,4 @@
+const { DOMParser } = require('@xmldom/xmldom')
 const { decode } = require('html-entities')
 const { col2num, num2col } = require('xlsx-coordinates')
 const pixelWidth = require('string-pixel-width')
@@ -456,6 +457,11 @@ function decodeXML (str) {
   return decode(str, { level: 'xml' })
 }
 
+function getTextContent (xml) {
+  const doc = new DOMParser().parseFromString(xml)
+  return doc.documentElement.textContent || ''
+}
+
 module.exports.parseCellRef = parseCellRef
 module.exports.getNewCellLetter = getNewCellLetter
 module.exports.getPixelWidthOfValue = getPixelWidthOfValue
@@ -465,3 +471,4 @@ module.exports.getNewFormula = getNewFormula
 module.exports.generateNewCellRefFrom = generateNewCellRefFrom
 module.exports.encodeXML = encodeXML
 module.exports.decodeXML = decodeXML
+module.exports.getTextContent = getTextContent

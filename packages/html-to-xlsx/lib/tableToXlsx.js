@@ -233,7 +233,7 @@ function addRow (sheet, row, context) {
         formula: cellInfo.valueText
       }
     } else {
-      cell.value = cellInfo.valueText
+      cell.value = cellInfo.valueText !== '' ? cellInfo.valueText : null
     }
 
     const styleValues = {}
@@ -247,10 +247,13 @@ function addRow (sheet, row, context) {
     let styles
 
     if (context.parsedStyles.has(styleKey)) {
-      styles = { ...context.parsedStyles.get(styleKey) }
+      // eslint-disable-next-line no-undef
+      styles = structuredClone(context.parsedStyles.get(styleKey))
     } else {
-      styles = getXlsxStyles(cellInfo)
-      context.parsedStyles.set(styleKey, styles)
+      const parsedStyles = getXlsxStyles(cellInfo)
+      context.parsedStyles.set(styleKey, parsedStyles)
+      // eslint-disable-next-line no-undef
+      styles = structuredClone(parsedStyles)
     }
 
     if (!pendingCellStylesByRow.has(context.currentRowInFile + 1)) {
@@ -276,11 +279,8 @@ function addRow (sheet, row, context) {
             pendingCellStylesByRow.set(r, new Map())
           }
 
-          const newStyles = Object.assign({}, styles)
-
-          if (newStyles.border != null) {
-            newStyles.border = { ...newStyles.border }
-          }
+          // eslint-disable-next-line no-undef
+          const newStyles = structuredClone(styles)
 
           const pendingItem = Object.assign({}, r === startRow && c === startCell ? pendingCellStyleEntry : { styles: {} }, {
             merge: { startRow, endRow, startCell, endCell },

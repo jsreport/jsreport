@@ -266,6 +266,46 @@ describe('xlsx generation - base', () => {
     should(sheet.A1.v).be.eql('Hello world John')
   })
 
+  it('variable replace should generate empty cells', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace-empty-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        text: 'TESTABC123 CURR MONTH REPORT',
+        text2: '',
+        text3: null
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
+
+    const emptyCells = cellEls.filter((c) => c.getAttribute('r') === 'B1' || c.getAttribute('r') === 'C1')
+
+    should(emptyCells).have.length(2)
+
+    should(emptyCells[0].hasChildNodes()).be.False()
+    should(emptyCells[1].hasChildNodes()).be.False()
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('TESTABC123 CURR MONTH REPORT')
+    should(sheet.A2).be.not.ok()
+    should(sheet.A3).be.not.ok()
+  })
+
   it('variable replace multi', async () => {
     const result = await reporter.render({
       template: {
@@ -290,6 +330,72 @@ describe('xlsx generation - base', () => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John developer')
     should(sheet.A2.v).be.eql('Another lines John developer with Wick as lastname')
+  })
+
+  it('variable replace multi with cell types', async () => {
+    const data = {
+      string: 'Boris',
+      number: 7,
+      boolean: true
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace-multi-types.xlsx')
+            )
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql(data.string)
+    should(sheet.A1.t).be.eql('s')
+    should(sheet.B1.v).be.eql(data.number)
+    should(sheet.B1.t).be.eql('n')
+    should(sheet.C1.v).be.eql(data.boolean)
+    should(sheet.C1.t).be.eql('b')
+  })
+
+  it('variable replace multi with cell explicit types', async () => {
+    const data = {
+      string: 'Boris',
+      number: '7',
+      boolean: 'true'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace-multi-explicit-types.xlsx')
+            )
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql(data.string)
+    should(sheet.A1.t).be.eql('s')
+    should(sheet.B1.v).be.eql(parseInt(data.number, 10))
+    should(sheet.B1.t).be.eql('n')
+    should(sheet.C1.v).be.eql(data.boolean === 'true')
+    should(sheet.C1.t).be.eql('b')
   })
 
   it('variable replace multi should keep escaping cell values when there was intention to do it {{expr}}', async () => {
@@ -346,9 +452,54 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
+
     const workbook = xlsx.read(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
+
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    const cellEls = sheetDoc.getElementsByTagName('c')
+
+    should(cellEls.length).be.eql(1)
+
+    const colorEl = cellEls[0].getElementsByTagName('color')[0]
+
+    should(colorEl).be.ok()
+    should(colorEl.getAttribute('rgb')).be.eql('FFFF0000')
+  })
+
+  it('variable replace styled (only part of handlebars styled)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace-middle-styled.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world John')
+
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    const cellEls = sheetDoc.getElementsByTagName('c')
+
+    should(cellEls.length).be.eql(1)
+
+    const colorEl = cellEls[0].getElementsByTagName('color')[0]
+
+    should(colorEl).be.not.ok()
   })
 
   it('variable replace syntax error', () => {

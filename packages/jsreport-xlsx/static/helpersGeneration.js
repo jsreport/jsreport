@@ -25,6 +25,28 @@ function xlsxColAutofit (options) {
   return ''
 }
 
+function xlsxCType (options) {
+  if (!Object.hasOwn(options.data, 'cellType')) {
+    return ''
+  }
+
+  const type = options.hash.t
+
+  if (type == null) {
+    throw new Error('xlsxCType helper requires type parameter to be set')
+  }
+
+  const validTypes = ['s', 'b', 'n']
+
+  if (!validTypes.includes(type)) {
+    throw new Error(`xlsxCType helper requires type parameter to be one of: ${validTypes.join(', ')}`)
+  }
+
+  options.data.cellType = type
+
+  return ''
+}
+
 function xlsxChart (options) {
   const Handlebars = require('handlebars')
 
@@ -133,6 +155,7 @@ const __xlsxD = (function () {
     newData.loopItems = []
     newData.evaluatedLoopsIds = []
     newData.outOfLoopTemplates = Object.create(null)
+    newData.cellTemplatesMap = new Map()
 
     return options.fn(this, { data: newData })
   }
@@ -256,8 +279,20 @@ const __xlsxD = (function () {
     return `${refsParts[0]}:${dimensionLetter}${dimensionRowNumber}`
   }
 
-  function loop (data, options) {
+  function loop (...args) {
+    let data
+    let options
+
+    if (args.length === 1) {
+      options = args[0]
+    } else {
+      data = args[0]
+      options = args[1]
+    }
+
     const Handlebars = require('handlebars')
+    const customCells = options.hash.cells
+    const customCellsForColumns = options.hash.cellsT === 'columns'
     const start = options.hash.start
     const columnStart = options.hash.columnStart
     const end = options.hash.end
@@ -274,6 +309,16 @@ const __xlsxD = (function () {
 
     let targetData = data
 
+    if (Object.hasOwn(options.hash, 'cells')) {
+      targetData = customCells
+
+      if (customCells == null || customCells.length === 0) {
+        newData.emptyCells = true
+      }
+    } else if (customCellsForColumns) {
+      targetData = options.data.emptyCells === true ? [] : this
+    }
+
     // for empty we create an array with one empty object,
     // this is needed because we want to preserve the original row
     if (
@@ -285,7 +330,9 @@ const __xlsxD = (function () {
 
     let type
 
-    if (isVertical) {
+    if (customCells) {
+      type = 'row'
+    } else if (isVertical || customCellsForColumns) {
       type = 'vertical'
     } else {
       type = end == null ? 'row' : 'block'
@@ -334,12 +381,62 @@ const __xlsxD = (function () {
       item.trackedCell.currentLoopId = loopItem.id
     }
 
-    const result = Handlebars.helpers.each(targetData, { ...options, data: newData })
+    const dynamicCells = customCells || customCellsForColumns
+
+    if (dynamicCells && !Array.isArray(targetData)) {
+      throw new Error(`Invalid data to generate dynamic cells. data for ${customCells ? 'rows' : 'columns'} is not an array`)
+    }
+
+    const chunks = []
+
+    for (let i = 0; i < targetData.length; i++) {
+      newData.index = i
+      newData.key = i
+
+      if (customCellsForColumns) {
+        newData.firstColumn = i === 0
+        newData.lastColumn = i === targetData.length - 1
+        newData.columnIndex = i
+      } else {
+        newData.first = i === 0
+        newData.last = i === targetData.length - 1
+      }
+
+      if (customCells) {
+        newData.rowIndex = i
+      }
+
+      let dataForItem = targetData[i]
+
+      if (dynamicCells && dataForItem != null && typeof dataForItem === 'object' && !Array.isArray(dataForItem)) {
+        // when dynamic cells if data is plain object, use the value property
+        dataForItem = dataForItem.value ?? ''
+      }
+
+      const addBlockParams = options.fn.blockParams != null && options.fn.blockParams > 0
+
+      const newOptions = {
+        ...options,
+        data: newData
+      }
+
+      if (addBlockParams) {
+        // propagate the expected block params from the loop, this is going to be
+        // used in cell templates
+        newData.blockParams = [dataForItem, newData.key].slice(0, options.fn.blockParams)
+      }
+
+      chunks.push(options.fn(dataForItem, newOptions))
+    }
+
+    const result = new Handlebars.SafeString(chunks.join(''))
 
     loopItem.completed = true
 
     return result
   }
+
+  loop.dynamicParameters = true
 
   function outOfLoop (options) {
     const Handlebars = require('handlebars')
@@ -430,11 +527,9 @@ const __xlsxD = (function () {
     const originalRowNumber = options.data.originalRowNumber
     const rowNumber = options.data.r
     const trackedCells = options.data.meta.trackedCells
-    const isMultipleExpression = typeof options.fn === 'function'
     const { type, originalCellLetter, calcChainUpdate } = info
 
     const generateCellTag = type === 'autodetect'
-
     assertOk(originalRowNumber != null, 'originalRowNumber needs to exists on internal data')
     assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
     assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
@@ -552,10 +647,71 @@ const __xlsxD = (function () {
       return updatedCellRef
     }
 
-    let cellValue = isMultipleExpression ? options.fn(this, { data: options.data }) : info.value
+    const { getTextContent } = require('cellUtils')
+    const cellTemplateFn = options.data.cellTemplatesMap.get(originalCellRef)
 
-    if (!isMultipleExpression && info.escape && typeof cellValue === 'string') {
-      cellValue = Handlebars.escapeExpression(cellValue)
+    assertOk(cellTemplateFn != null, `template for cell "${originalCellRef}" not found`)
+
+    const templateOptions = { ...options }
+
+    if (options.data.blockParams) {
+      templateOptions.blockParams = options.data.blockParams
+    }
+
+    options.data.cellValue = null
+    options.data.cellType = null
+
+    const cellRawValue = cellTemplateFn(this, templateOptions)
+
+    let cellValue
+    let cellType
+
+    if (options.data.cellValue != null) {
+      // there will be cellValue set if there was a cell to auto detect
+      cellValue = options.data.cellValue
+    } else {
+      // otherwise we use the text content from the raw value
+      cellValue = getTextContent(cellRawValue)
+    }
+
+    if (options.data.cellType != null) {
+      cellType = options.data.cellType
+
+      // if we got explicit cellType, try to parse the cell value
+      // to the type specified
+      if (cellType === 'inlineStr' && typeof cellValue !== 'string') {
+        if (cellValue == null) {
+          cellValue = ''
+        } else {
+          cellValue = cellValue.toString()
+        }
+      } else if (cellType === 'b' && typeof cellValue !== 'boolean') {
+        if (cellValue == null) {
+          cellValue = false
+        } else if (cellValue === 'true' || cellValue === 'false') {
+          cellValue = cellValue === 'true'
+        } else {
+          const asNumber = parseInt(cellValue, 10)
+
+          if (isNaN(asNumber)) {
+            cellValue = false
+          } else {
+            cellValue = cellValue !== 0
+          }
+        }
+      } else if (cellType === 'n' && typeof cellValue !== 'number') {
+        if (cellValue == null) {
+          cellValue = 0
+        } else {
+          const asNumber = parseFloat(cellValue)
+
+          if (isNaN(asNumber)) {
+            cellValue = 0
+          } else {
+            cellValue = asNumber
+          }
+        }
+      }
     }
 
     const enabledForCol = options.data.meta.autofit.enabledFor[0] === true ? true : options.data.meta.autofit.enabledFor.includes(originalCellLetter)
@@ -578,8 +734,6 @@ const __xlsxD = (function () {
       }
     }
 
-    let cellType
-
     const serializedAttrs = []
     const attrsKeys = Object.keys(options.hash)
 
@@ -595,8 +749,9 @@ const __xlsxD = (function () {
         // ensure updated cellRef is part of cell xml
         value = updatedCellRef
       } else if (key === 't') {
-        // ensure we put the type according to cell content
-        if (cellValue == null) {
+        if (cellType != null) {
+          value = cellType
+        } else if (cellValue == null) {
           cellType = 'inlineStr'
         } else if (
           typeof cellValue === 'boolean' ||
@@ -632,7 +787,7 @@ const __xlsxD = (function () {
     let cellContent
 
     if (cellType === 'inlineStr') {
-      cellContent = `<is><t>${cellValue == null ? '' : cellValue}</t></is>`
+      cellContent = cellRawValue
     } else if (cellType === 'b') {
       cellContent = `<v>${cellValue ? '1' : '0'}</v>`
     } else if (cellType === 'n') {
@@ -641,7 +796,71 @@ const __xlsxD = (function () {
 
     assertOk(cellContent != null, `cell type "${cellType}" not supported`)
 
-    return new Handlebars.SafeString(`<c ${serializedAttrs.join(' ')}>${cellContent}</c>`)
+    let cellOutput = `<c ${serializedAttrs.join(' ')}`
+
+    if (cellValue == null || cellValue === '') {
+      cellOutput += ' />'
+    } else {
+      cellOutput += `>${cellContent}</c>`
+    }
+
+    return new Handlebars.SafeString(cellOutput)
+  }
+
+  function cValue (...args) {
+    let _value
+    let options
+    let shouldCallBlock = false
+
+    if (args.length === 1) {
+      shouldCallBlock = true
+      options = args[0]
+    } else {
+      _value = args[0]
+      options = args[1]
+    }
+
+    let value
+
+    if (shouldCallBlock) {
+      const thisUnwrapped = this != null && typeof this.valueOf === 'function' ? this.valueOf() : this
+      value = options.fn(thisUnwrapped)
+    } else {
+      value = _value
+
+      // if value is null we try to resolve it from helper, replicating the same
+      // logic that handlebars does
+      if (value === undefined && options.hash.n != null) {
+        const Handlebars = require('handlebars')
+        if (Handlebars.helpers[options.hash.n]) {
+          value = Handlebars.helpers[options.hash.n]()
+        }
+      }
+    }
+
+    if (value != null && typeof value.valueOf === 'function') {
+      // we do this because handlebars something wraps the primitive values with their
+      // object counterparts, so we need to ensure that we get the primitive value for
+      // conditions to work correctly
+      value = value.valueOf()
+    }
+
+    options.data.cellValue = value
+    return value
+  }
+
+  cValue.dynamicParameters = true
+
+  // register cell templates
+  function cTmpl (options) {
+    const Handlebars = require('handlebars')
+    const cellRef = options.hash.cellRef
+
+    assertOk(cellRef != null, 'cellRef arg is required')
+
+    options.data.cellTemplatesMap.set(cellRef, options.fn)
+
+    return new Handlebars.SafeString('')
   }
 
   function mergeOrFormulaCell (type, options) {
@@ -1383,6 +1602,7 @@ const __xlsxD = (function () {
     outOfLoop,
     outOfLoopPlaceholder,
     r,
+    cValue,
     c: function (info, options) {
       delete options.hash.t
 
@@ -1394,6 +1614,7 @@ const __xlsxD = (function () {
 
       return c.call(this, info, options)
     },
+    cTmpl,
     m: function (options) {
       return mergeOrFormulaCell.call(this, 'mergeCell', options)
     },
@@ -1416,7 +1637,13 @@ const __xlsxD = (function () {
   return {
     resolveHelper: (helperName, argumentsLength, context, values, options) => {
       const targetHelper = helpers[helperName]
-      const validCall = targetHelper != null ? argumentsLength === targetHelper.length : false
+      let validCall
+
+      if (targetHelper.dynamicParameters) {
+        validCall = true
+      } else {
+        validCall = targetHelper != null ? argumentsLength === targetHelper.length : false
+      }
 
       if (!validCall) {
         throw new Error(`Invalid usage of _D helper${helperName != null ? ` (t: ${helperName})` : ''}`)
@@ -1479,33 +1706,7 @@ function _c (data, options) {
 }
 
 // alias for {{_D t='c'}} helper with autodetect call
-function _T () {
-  let value
-  let raw
-  let options
-
-  if (arguments.length === 1) {
-    options = arguments[0]
-  } else if (arguments.length === 2) {
-    value = arguments[0]
-    options = arguments[1]
-  } else {
-    value = arguments[0]
-    raw = arguments[1] === 1
-    options = arguments[2]
-  }
-
-  if (value === undefined) {
-    const Handlebars = require('handlebars')
-    if (Handlebars.helpers[options.hash._n]) {
-      value = Handlebars.helpers[options.hash._n]()
-    }
-  }
-
-  if (options.hash._n !== null) {
-    delete options.hash._n
-  }
-
+function _T (options) {
   if (options.hash.t != null) {
     options.hash.__originalT__ = options.hash.t
   }
@@ -1514,44 +1715,11 @@ function _T () {
 
   const data = { type: 'autodetect', originalCellLetter: options.hash.r, calcChainUpdate: false }
 
-  data.value = value
-  data.escape = true
-
-  if (raw != null && raw) {
-    data.escape = false
-  }
-
   return _D.call(this, data, options)
 }
 
 // alias for {{_D t='c'}} helper with autodetect call with calcChainUpdate: true
-function _t () {
-  let value
-  let raw
-  let options
-
-  if (arguments.length === 1) {
-    options = arguments[0]
-  } else if (arguments.length === 2) {
-    value = arguments[0]
-    options = arguments[1]
-  } else {
-    value = arguments[0]
-    raw = arguments[1] === 1
-    options = arguments[2]
-  }
-
-  if (value === undefined) {
-    const Handlebars = require('handlebars')
-    if (Handlebars.helpers[options.hash._n]) {
-      value = Handlebars.helpers[options.hash._n]()
-    }
-  }
-
-  if (options.hash._n !== null) {
-    delete options.hash._n
-  }
-
+function _t (options) {
   if (options.hash.t != null) {
     options.hash.__originalT__ = options.hash.t
   }
@@ -1559,13 +1727,6 @@ function _t () {
   options.hash.t = 'c'
 
   const data = { type: 'autodetect', originalCellLetter: options.hash.r, calcChainUpdate: true }
-
-  data.value = value
-  data.escape = true
-
-  if (raw != null && raw) {
-    data.escape = false
-  }
 
   return _D.call(this, data, options)
 }

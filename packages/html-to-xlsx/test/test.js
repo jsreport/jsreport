@@ -4,7 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
 const xlsx = require('xlsx')
-const { parseCell } = require('xlsx-coordinates')
+const { parseCell, num2col } = require('xlsx-coordinates')
 const chromePageEval = require('chrome-page-eval')
 const phantomPageEval = require('phantom-page-eval')
 const puppeteer = require('puppeteer')
@@ -478,6 +478,8 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
+      let outputBuf
+
       const parsedXlsx = await new Promise((resolve, reject) => {
         const bufs = []
 
@@ -486,6 +488,7 @@ describe('html to xlsx conversion with strategy', () => {
 
         stream.on('end', () => {
           const buf = Buffer.concat(bufs)
+          outputBuf = buf
           resolve(xlsx.read(buf))
         })
       })
@@ -495,6 +498,66 @@ describe('html to xlsx conversion with strategy', () => {
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C1.v).be.eql(true)
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D1.v).be.Number()
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E1.v).be.Number()
+
+      const [sheetDoc] = await getDocumentsFromXlsxBuf(outputBuf, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+      const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
+      const formulaCellEl = cellEls.find((c) => c.getAttribute('r') === 'F1')
+
+      should(formulaCellEl.getElementsByTagName('f')[0].textContent).be.eql('=SUM(A1, B1)')
+    })
+
+    it('should generate empty cells if html cells are empty', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td>TESTABC123 CURR MONTH REPORT</td>
+            <td></td>
+            <td></td>
+            <td data-cell-type="number">10</td>
+            <td data-cell-type="number">10</td>
+            <td data-cell-type="boolean">1</td>
+            <td data-cell-type="formula">=SUM(D1, E1)</td>
+          </tr>
+        </table>
+      `)
+
+      let outputBuf
+
+      const parsedXlsx = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          outputBuf = buf
+          resolve(xlsx.read(buf))
+        })
+      })
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('TESTABC123 CURR MONTH REPORT')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1).be.not.ok()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C1).be.not.ok()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D1.v).be.eql(10)
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E1.v).be.eql(10)
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F1.v).be.eql(true)
+
+      const [sheetDoc] = await getDocumentsFromXlsxBuf(outputBuf, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+      const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
+
+      const emptyCells = cellEls.filter((c) => c.getAttribute('r') === 'B1' || c.getAttribute('r') === 'C1')
+
+      should(emptyCells).have.length(2)
+
+      should(emptyCells[0].hasChildNodes()).be.False()
+      should(emptyCells[1].hasChildNodes()).be.False()
+
+      const formulaCellEl = cellEls.find((c) => c.getAttribute('r') === 'G1')
+
+      should(formulaCellEl.getElementsByTagName('f')[0].textContent).be.eql('=SUM(D1, E1)')
     })
 
     it('should be able to set cell format', async () => {
@@ -2098,24 +2161,24 @@ describe('html to xlsx conversion with strategy', () => {
       })
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('Date')
-      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.v).be.eql('')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.v).be.not.ok()
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.s.bgColor.rgb).be.eql(mainBackgroundColor.slice(1))
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.s.fgColor.rgb).be.eql(mainBackgroundColor.slice(1))
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A3.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.v).be.eql('info1')
-      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B2.v).be.eql('')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B2.v).be.not.ok()
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B3.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C1.v).be.eql('info2')
-      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C2.v).be.eql('')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C2.v).be.not.ok()
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C3.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D1.v).be.eql('info3')
-      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D2.v).be.eql('')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D2.v).be.not.ok()
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D3.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E1.v).be.eql('info4')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E2.v).be.undefined()
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E3.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F1.v).be.eql('info5')
-      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F2.v).be.eql('')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F2.v).be.not.ok()
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F3.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].G1.v).be.eql('info6')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].G2.v).be.eql('info11')
@@ -2130,7 +2193,7 @@ describe('html to xlsx conversion with strategy', () => {
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].J2.v).be.eql('info13')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].J3.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K1.v).be.eql('info10')
-      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K2.v).be.eql('')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K2.v).be.not.ok()
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K3.v).be.eql('1')
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]]['!merges'][0].s.r).be.eql(0)
@@ -4653,6 +4716,180 @@ describe('html to xlsx conversion with strategy', () => {
 
         should(cellI6Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellI6Border[side].color).be.eql(expectedBlackBorder.color)
+      }
+    })
+
+    it('should work when using cell border collapsing styles (with merge cell) #7', async () => {
+      const stream = await conversion(`
+        <style>
+          :root {
+            --cell-width: 28px;
+          }
+
+          table {
+            table-layout: fixed;
+            border-collapse: collapse;
+          }
+
+          td {
+            border: 1px solid #000;
+            height: 22px;
+          }
+
+          td[colspan="4"] {
+            width: calc(var(--cell-width) * 4);
+          }
+
+          td[colspan="17"] {
+            width: calc(var(--cell-width) * 17);
+          }
+
+          td[colspan="21"] {
+            width: calc(var(--cell-width) * 21);
+          }
+        </style>
+
+        <table>
+          <tbody>
+            <tr>
+              <td colspan="21"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td colspan="4"></td>
+              <td colspan="17"></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const expectedBlackBorder = {
+        style: 'thin',
+        color: 'ff000000'
+      }
+
+      for (let index = 0; index < 21; index++) {
+        const cellRef = `${num2col(index)}1`
+        should(getCell(sheetDoc, cellRef, 'v')).be.not.ok()
+
+        const cellBorder = getStyle(sheetDoc, stylesDoc, cellRef, 'b')
+
+        for (const side of ['left', 'top', 'right', 'bottom']) {
+          should(cellBorder[side].style).be.eql(expectedBlackBorder.style)
+          should(cellBorder[side].color).be.eql(expectedBlackBorder.color)
+        }
+      }
+
+      for (let rowNumber = 2; rowNumber < 10; rowNumber++) {
+        for (let index = 0; index < 21; index++) {
+          const cellRef = `${num2col(index)}${rowNumber}`
+          should(getCell(sheetDoc, cellRef, 'v')).be.not.ok()
+
+          const cellBorder = getStyle(sheetDoc, stylesDoc, cellRef, 'b')
+
+          for (const side of ['left', 'top', 'right', 'bottom']) {
+            const explicitSides = ['right', 'bottom']
+
+            if (index < 4) {
+              explicitSides.push('left')
+            }
+
+            if (explicitSides.includes(side)) {
+              should(cellBorder[side].style).be.eql(expectedBlackBorder.style)
+              should(cellBorder[side].color).be.eql(expectedBlackBorder.color)
+            } else {
+              should(cellBorder[side]).be.not.ok()
+            }
+          }
+        }
+      }
+
+      for (let index = 0; index < 21; index++) {
+        const cellRef = `${num2col(index)}10`
+        should(getCell(sheetDoc, cellRef, 'v')).be.not.ok()
+
+        const cellBorder = getStyle(sheetDoc, stylesDoc, cellRef, 'b')
+
+        for (const side of ['left', 'top', 'right', 'bottom']) {
+          const explicitSides = ['right', 'bottom']
+
+          if (index === 0) {
+            explicitSides.push('left')
+          }
+
+          if (explicitSides.includes(side)) {
+            should(cellBorder[side].style).be.eql(expectedBlackBorder.style)
+            should(cellBorder[side].color).be.eql(expectedBlackBorder.color)
+          } else {
+            should(cellBorder[side]).be.not.ok()
+          }
+        }
       }
     })
 
