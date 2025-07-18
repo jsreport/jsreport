@@ -17,8 +17,6 @@ function docxContext (options) {
     const { evalId } = options.hash
 
     data.evalId = evalId
-    data.sections = []
-    data.headerAndFooterSections = new Map()
     data.childCache = new Map()
     data.newDefaultContentTypes = new Map()
     data.newDocumentRels = new Set()
@@ -89,10 +87,10 @@ function docxContext (options) {
 
       // resolve possible async values for content and inline values of docxHtml call
       for (const taskKey of pendingTasks) {
-        const { sectionIdx, content, inline, imageLoader, resolve, reject } = record.pending.get(taskKey)
+        const { sectionId, content, inline, imageLoader, resolve, reject } = record.pending.get(taskKey)
 
         const task = {
-          sectionIdx,
+          sectionId,
           imageLoader,
           resolve,
           reject,
@@ -125,16 +123,17 @@ function docxContext (options) {
       // we just wait until all values are resolved to start processing
       Promise.all(taskValuePromises).then((results) => {
         const embedType = embedTypes.every((value) => value === true) ? 'inline' : 'block'
+        const sectionsData = jsreport.req.context.__docxSharedData.sections
         const processParseHtmlToDocxMeta = jsreport.req.context.__docxSharedData.processParseHtmlToDocxMeta
 
         const processPromises = []
 
         for (const taskKey of results) {
           const task = tasksMap.get(taskKey)
-          const section = data.sections[task.sectionIdx]
+          const section = sectionsData.template.data.get(task.sectionId)
 
           if (section == null) {
-            throw new Error(`Could not find section for idx "${task.sectionIdx}" while processing docxHtml`)
+            throw new Error(`Could not find section for id "${task.sectionId}" while processing docxHtml`)
           }
 
           processPromises.push(
@@ -278,27 +277,6 @@ function docxContext (options) {
         data.htmlCalls.resolveLatestCall(cId)
       }
     }
-  } else if (contextType === 'section') {
-    const sectionIdx = data.sections.length
-    let colsWidth = []
-
-    if (options.hash.colsWidth != null) {
-      colsWidth = options.hash.colsWidth.split(',').map((value) => {
-        return parseFloat(value)
-      })
-    }
-
-    const headerAndFooters = options.hash.hf != null ? options.hash.hf.split(',') : []
-
-    for (const headerOrFooterName of headerAndFooters) {
-      data.headerAndFooterSections.set(headerOrFooterName, sectionIdx)
-    }
-
-    data.sections.push({
-      colsWidth
-    })
-
-    return new Handlebars.SafeString(`<docxWrappedSectPr>${output}</docxWrappedSectPr>`)
   }
 
   return output
@@ -1034,20 +1012,24 @@ async function docxHtml (options) {
 
   const [resolve, reject] = options.data.tasks.add(taskKey)
 
-  let sectionIdx
+  let sectionId
 
   if (options.data.documentType === 'document') {
-    sectionIdx = options.data.sections.length
+    if (options.hash.sId == null) {
+      throw new Error('docxHtml helper parameter sId not found')
+    }
+
+    sectionId = options.hash.sId
   } else {
-    sectionIdx = options.data.headerAndFooterSections.get(options.data.headerFooterName)
+    sectionId = jsreport.req.context.__docxSharedData.headerAndFooterSections.get(options.data.headerFooterName)
   }
 
-  if (sectionIdx == null) {
-    throw new Error('could not find section index, for docxHtml call')
+  if (sectionId == null) {
+    throw new Error('could not find section id, for docxHtml call')
   }
 
   callRecord.pending.set(taskKey, {
-    sectionIdx,
+    sectionId,
     content: options.hash.content,
     inline: options.hash.inline,
     imageLoader: options.hash.imageLoader,
@@ -1360,6 +1342,24 @@ async function docxSData (data, options) {
     }
 
     return new Handlebars.SafeString(result)
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'sectionMark'
+  ) {
+    if (optionsToUse.hash.cId == null) {
+      throw new Error('docxSData "sectionMark" helper cId not found')
+    }
+
+    const jsreport = require('jsreport-proxy')
+    const sectionsData = jsreport.req.context.__docxSharedData.sections
+
+    const currentCount = (sectionsData.output.counter.get(optionsToUse.hash.cId) ?? 0) + 1
+
+    sectionsData.output.counter.set(optionsToUse.hash.cId, currentCount)
+
+    return new Handlebars.SafeString(`<!--__docxSectionPr${optionsToUse.hash.cId}__-->`)
   }
 
   if (

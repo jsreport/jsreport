@@ -1,6 +1,6 @@
 const {
   normalizeSingleTextElInRun, normalizeSingleContentInText, nodeListToArray,
-  getClosestEl
+  getClosestEl, getSectionEl
 } = require('../utils')
 
 module.exports = (files, headerFooterRefs) => {
@@ -11,7 +11,7 @@ module.exports = (files, headerFooterRefs) => {
     toProcess.push(rResult.doc)
   }
 
-  for (const targetDoc of toProcess) {
+  for (const [targetIdx, targetDoc] of toProcess.entries()) {
     let containerCounter = 0
     let htmlCallCounter = 0
 
@@ -34,6 +34,13 @@ module.exports = (files, headerFooterRefs) => {
 
       if (normalizedResults == null) {
         continue
+      }
+
+      let sectionId
+
+      if (targetIdx === 0) {
+        // only get section id for the document.xml file
+        sectionId = getSectionEl(paragraphEl).getAttribute('__cId__')
       }
 
       const paragraphWasProcessed = paragraphEl.hasAttribute('__html_embed_container__')
@@ -65,7 +72,14 @@ module.exports = (files, headerFooterRefs) => {
         const newHtmlEmbedElement = targetDoc.createElement('docxHtmlEmbed')
 
         newHtmlEmbedElement.setAttribute('htmlId', htmlCall.id)
-        newHtmlEmbedElement.textContent = htmlCall.content.replace('{{docxHtml', `{{docxHtml cId='${containerId}'`)
+
+        let replacementHtmlCall = `{{docxHtml cId='${containerId}'`
+
+        if (sectionId) {
+          replacementHtmlCall += ` sId='${sectionId}'`
+        }
+
+        newHtmlEmbedElement.textContent = htmlCall.content.replace('{{docxHtml', replacementHtmlCall)
 
         tEl.parentNode.insertBefore(newHtmlEmbedElement, tEl.nextSibling)
       }

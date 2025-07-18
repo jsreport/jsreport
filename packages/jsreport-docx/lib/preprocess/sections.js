@@ -1,7 +1,7 @@
 const { getSectionDetail } = require('../sectionUtils')
 const { nodeListToArray } = require('../utils')
 
-module.exports = (files) => {
+module.exports = (files, sharedData) => {
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const documentFilePath = documentFile.path
   const documentDoc = documentFile.doc
@@ -11,26 +11,37 @@ module.exports = (files) => {
 
   const sections = []
 
+  sharedData.sections = {
+    template: {
+      data: new Map()
+    },
+    output: {
+      counter: new Map()
+    }
+  }
+
+  sharedData.headerAndFooterSections = new Map()
+
   for (const sectionPrEl of sectionPrEls) {
     const section = getSectionDetail(sectionPrEl, { documentFilePath, documentRelsDoc, files })
 
+    // we are using a simple sequential number as the id just for simplicity,
+    // but we can use anything, we treat it as a opaque string
+    const sectionId = sections.length.toString()
+
+    sharedData.sections.template.data.set(sectionId, {
+      colsWidth: section.colsWidth
+    })
+
+    sectionPrEl.setAttribute('__cId__', sectionId)
+
     sections.push(section)
 
-    const extraAttrs = [`colsWidth="${section.colsWidth.join(',')}"`]
-
     if (section.headerFooterReferences?.length > 0) {
-      extraAttrs.push(`hf="${section.headerFooterReferences.map((ref) => ref.name).join(',')}"`)
+      for (const ref of section.headerFooterReferences) {
+        sharedData.headerAndFooterSections.set(ref.name, sectionId)
+      }
     }
-
-    // we add a wrapper to be able to parse this easily in the post-process
-    const contextStartEl = documentDoc.createElement('docxRemove')
-    contextStartEl.textContent = `{{#docxContext type='section' ${extraAttrs.join(' ')}}}`
-
-    const contextEndEl = documentDoc.createElement('docxRemove')
-    contextEndEl.textContent = '{{/docxContext}}'
-
-    sectionPrEl.parentNode.insertBefore(contextStartEl, sectionPrEl)
-    sectionPrEl.parentNode.insertBefore(contextEndEl, sectionPrEl.nextSibling)
   }
 
   return sections

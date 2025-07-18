@@ -12,7 +12,7 @@ const html = require('./html')
 
 module.exports = async (files, sharedData) => {
   const newBookmarksMap = new Map()
-  const sectionsDetails = await sections(files)
+  const sectionsDetails = await sections(files, sharedData)
 
   const headerFooterRefs = sectionsDetails.reduce((acu, section) => {
     if (section.headerFooterReferences) {

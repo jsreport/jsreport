@@ -20,7 +20,7 @@ module.exports = (files, sharedData) => {
   base(files, sharedData)
   concatTags(files)
 
-  const sectionsDetails = sections(files)
+  const sectionsDetails = sections(files, sharedData)
 
   const headerFooterRefs = sectionsDetails.reduce((acu, section) => {
     if (section.headerFooterReferences) {
@@ -47,7 +47,7 @@ module.exports = (files, sharedData) => {
   html(files, headerFooterRefs)
   // we process context here to ensure we get the chance to pick all changes,
   // no transformation done here other than adding the wrapping helper calls
-  context(files, headerFooterRefs)
+  context(files, headerFooterRefs, sharedData)
 
   return headerFooterRefs
 }

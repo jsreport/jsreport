@@ -700,6 +700,38 @@ function processClosingTag (doc, refElement, closeCall) {
   return fakeElement
 }
 
+function getSectionEl (pEl) {
+  let currentEl
+
+  if (pEl.parentNode.nodeName !== 'w:body') {
+    currentEl = getClosestEl(pEl, (n) => (
+      n.parentNode.nodeName === 'w:body'
+    ))
+  } else {
+    currentEl = pEl
+  }
+
+  let sectionPrEl
+
+  while (sectionPrEl == null) {
+    if (currentEl.nodeName === 'w:p') {
+      const pPrEl = findChildNode('w:pPr', currentEl)
+
+      if (pPrEl) {
+        sectionPrEl = findChildNode('w:sectPr', pPrEl)
+      }
+    } else if (currentEl.nodeName === 'w:sectPr') {
+      sectionPrEl = currentEl
+    }
+
+    if (sectionPrEl == null) {
+      currentEl = currentEl.nextSibling
+    }
+  }
+
+  return sectionPrEl
+}
+
 module.exports.contentIsXML = (content) => {
   if (!Buffer.isBuffer(content) && typeof content !== 'string') {
     return false
@@ -727,7 +759,18 @@ module.exports.emuToTOAP = emuToTOAP
 module.exports.ptToHalfPoint = ptToHalfPoint
 module.exports.ptToTOAP = ptToTOAP
 module.exports.ptToEOAP = ptToEOAP
-module.exports.serializeXml = (doc) => new XMLSerializer().serializeToString(doc).replace(/ xmlns(:[a-z0-9]+)?=""/g, '')
+
+module.exports.serializeXml = (doc, removeAll = false) => {
+  const xml = new XMLSerializer().serializeToString(doc)
+  let targetRegExp = / xmlns(:[a-z0-9]+)?=""/g
+
+  if (removeAll) {
+    targetRegExp = / xmlns(:[a-z0-9]+)?="[^"]*"/g
+  }
+
+  return xml.replace(targetRegExp, '')
+}
+
 module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
@@ -745,3 +788,4 @@ module.exports.nodeListToArray = nodeListToArray
 module.exports.decodeURIComponentRecursive = decodeURIComponentRecursive
 module.exports.processOpeningTag = processOpeningTag
 module.exports.processClosingTag = processClosingTag
+module.exports.getSectionEl = getSectionEl

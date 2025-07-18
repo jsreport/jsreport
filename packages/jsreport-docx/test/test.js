@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const { DOMParser } = require('@xmldom/xmldom')
 const { decompress } = require('@jsreport/office')
-const { nodeListToArray, getDimension } = require('../lib/utils')
+const { nodeListToArray, getDimension, getSectionEl, findChildNode } = require('../lib/utils')
 const { getDocumentsFromDocxBuf } = require('./utils')
 const WordExtractor = require('word-extractor')
 const extractor = new WordExtractor()
@@ -1273,7 +1273,7 @@ describe('docx', () => {
       return node.textContent === 'My Table - '
     })
 
-    textElements.should.have.length(8)
+    should(textElements.length).be.eql(8)
 
     textElements.forEach((node) => {
       node.getAttribute('xml:space').should.be.eql('preserve')
@@ -1323,7 +1323,7 @@ describe('docx', () => {
       return node.textContent === 'My Table - '
     })
 
-    textElements.should.have.length(8)
+    should(textElements.length).be.eql(8)
 
     textElements.should.matchEach((tNode) => {
       const rNode = tNode.parentNode
@@ -1363,6 +1363,36 @@ describe('docx', () => {
     })
   })
 
+  it('remove nodes that were just containing block helper definition calls (start block and end block on the same line)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'remove-block-start-end-on-same-line.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('test')
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    const paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphEls.length).be.eql(1)
+  })
+
   it('remove nodes that were just containing block helper definition calls (end block and start block on the same line)', async () => {
     const result = await reporter.render({
       template: {
@@ -1395,9 +1425,9 @@ describe('docx', () => {
       files.find(f => f.path === 'word/document.xml').data.toString()
     )
 
-    const textElements = nodeListToArray(doc.getElementsByTagName('w:t'))
+    const paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    should(textElements).have.length(1)
+    should(paragraphEls.length).be.eql(1)
   })
 
   it('shape with textbox enclosed in if block', async () => {
@@ -1431,6 +1461,369 @@ describe('docx', () => {
     const textElements = nodeListToArray(doc.getElementsByTagName('w:t'))
     textElements.length.should.be.eql(2)
     should(textElements[0].textContent).be.eql('value')
+  })
+
+  it('section break should work ok when conditional content is there or removed', async () => {
+    let result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'section-break-preserve-with-conditional-content.docx'))
+          }
+        }
+      },
+      data: { hasCategories: false }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    let files = await decompress()(result.content)
+
+    let doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    let paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphEls.length).be.eql(7)
+
+    let sectionPrEls = nodeListToArray(doc.getElementsByTagName('w:sectPr'))
+
+    should(sectionPrEls.length).be.eql(2)
+
+    let bodyChildEls = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes)
+
+    for (const [index, childEl] of bodyChildEls.entries()) {
+      switch (index) {
+        case 0: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page1')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 1: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('')
+
+          const breakEl = childEl.getElementsByTagName('w:br')[0]
+
+          should(breakEl).be.ok()
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 2: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page2')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 3: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('')
+
+          const breakEl = childEl.getElementsByTagName('w:br')[0]
+
+          should(breakEl).be.ok()
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 4: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page3')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(childEl.getElementsByTagName('w:sectPr')[0] === sectionPrEl).be.True()
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 5: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page4')
+
+          const breakEl = childEl.getElementsByTagName('w:br')[0]
+
+          should(breakEl).be.ok()
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 6: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page5')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 7: {
+          should(childEl.nodeName).be.eql('w:sectPr')
+
+          should(findChildNode('w:pgSz', childEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', childEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        default:
+          throw new Error(`Unexpected child element "${childEl.nodeName}" at index ${index}`)
+      }
+    }
+
+    result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'section-break-preserve-with-conditional-content.docx'))
+          }
+        }
+      },
+      data: { hasCategories: true }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    files = await decompress()(result.content)
+
+    doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphEls.length).be.eql(9)
+
+    sectionPrEls = nodeListToArray(doc.getElementsByTagName('w:sectPr'))
+
+    should(sectionPrEls.length).be.eql(3)
+
+    bodyChildEls = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes)
+
+    for (const [index, childEl] of bodyChildEls.entries()) {
+      switch (index) {
+        case 0: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page1')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 1: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('')
+
+          const breakEl = childEl.getElementsByTagName('w:br')[0]
+
+          should(breakEl).be.ok()
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 2: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page2')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 3: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('')
+
+          const breakEl = childEl.getElementsByTagName('w:br')[0]
+
+          should(breakEl).be.ok()
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 4: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page3')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(childEl.getElementsByTagName('w:sectPr')[0] === sectionPrEl).be.True()
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 5: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page4')
+
+          const breakEl = childEl.getElementsByTagName('w:br')[0]
+
+          should(breakEl).be.ok()
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 6: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page5')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 7: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page6')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(childEl.getElementsByTagName('w:sectPr')[0] === sectionPrEl).be.True()
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 8: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Page7')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('15840')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:orient')).be.eql('landscape')
+          break
+        }
+        case 9: {
+          should(childEl.nodeName).be.eql('w:sectPr')
+
+          should(findChildNode('w:pgSz', childEl).getAttribute('w:w')).be.eql('15840')
+          should(findChildNode('w:pgSz', childEl).getAttribute('w:h')).be.eql('12240')
+          should(findChildNode('w:pgSz', childEl).getAttribute('w:orient')).be.eql('landscape')
+          break
+        }
+        default:
+          throw new Error(`Unexpected child element "${childEl.nodeName}" at index ${index}`)
+      }
+    }
+  })
+
+  it('continuous section should be preserved when conditional content is removed', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'continuous-section-preserve-with-conditional-content.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    const paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphEls.length).be.eql(3)
+
+    const bodyChildEls = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes)
+
+    for (const [index, childEl] of bodyChildEls.entries()) {
+      switch (index) {
+        case 0: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Landscape')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:orient')).be.eql('landscape')
+          break
+        }
+        case 1: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(childEl.getElementsByTagName('w:sectPr')[0] === sectionPrEl).be.True()
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:orient')).be.eql('landscape')
+          break
+        }
+        case 2: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('')
+
+          const childEls = nodeListToArray(childEl.childNodes)
+
+          should(childEls.length).be.eql(1)
+
+          should(childEls[0].nodeName).be.eql('w:pPr')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:orient')).be.eql('landscape')
+          should(findChildNode('w:type', sectionPrEl).getAttribute('w:val')).be.eql('continuous')
+          break
+        }
+        case 3: {
+          should(childEl.nodeName).be.eql('w:sectPr')
+
+          should(findChildNode('w:pgSz', childEl).getAttribute('w:orient')).be.eql('landscape')
+          should(findChildNode('w:type', childEl).getAttribute('w:val')).be.eql('continuous')
+          break
+        }
+        default:
+          throw new Error(`Unexpected child element "${childEl.nodeName}" at index ${index}`)
+      }
+    }
   })
 })
 
