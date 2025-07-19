@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@jsreport/sql-store": "3.2.1",
-    "pg-promise": "10.8.1"
+    "pg-promise": "11.15.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "4.7.0",
