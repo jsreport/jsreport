@@ -34,7 +34,7 @@ See https://jsreport.net/learn/reports
 
 ### 3.1.1
 
-- reports cleanup should still clean all old reports found in the current interval, but it does in batches configured by `extensions.reports.cleanLimit`
+- reports cleanup should still clean all old reports found in the current interval, but it does in batches configured by `extensions.reports.cleanParallelLimit`
 - prevent reports cleanup to run if it is already running
 
 ### 3.1.0

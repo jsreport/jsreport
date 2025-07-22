@@ -52,7 +52,7 @@ class Reports {
     })
 
     if (definition.options.cleanInterval && definition.options.cleanThreshold) {
-      this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval}ms, threshold ${definition.options.cleanThreshold}ms and ${definition.options.cleanLimit} report(s) deletion per run`)
+      this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval}ms, threshold ${definition.options.cleanThreshold}ms and ${definition.options.cleanParallelLimit} report(s) deletion per run`)
       this.cleanInterval = setInterval(() => this.clean(), definition.options.cleanInterval)
       this.cleanInterval.unref()
 
