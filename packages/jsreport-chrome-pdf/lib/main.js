@@ -43,7 +43,7 @@ async function ensureMigrated (reporter) {
 
 module.exports = function (reporter, definition) {
   definition.options = Object.assign({}, reporter.options.chrome, definition.options)
-  
+
   if (definition.options.launchOptions?.internalInitialArgs != null && definition.options.launchOptions?.args == null) {
     definition.options.launchOptions = {
       ...definition.options.launchOptions,
