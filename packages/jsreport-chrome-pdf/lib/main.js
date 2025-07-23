@@ -43,6 +43,13 @@ async function ensureMigrated (reporter) {
 
 module.exports = function (reporter, definition) {
   definition.options = Object.assign({}, reporter.options.chrome, definition.options)
+  
+  if (definition.options.launchOptions?.internalInitialArgs != null && definition.options.launchOptions?.args == null) {
+    definition.options.launchOptions = {
+      ...definition.options.launchOptions,
+      args: definition.options.launchOptions.internalInitialArgs
+    }
+  }
 
   // we cant apply the defaults in the jsreport.config.js, because user won't be able to change values in root chrome config
   // it would be always overwritten by defaults from extensions.chrome-pdf

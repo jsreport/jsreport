@@ -19,6 +19,16 @@ const chromeSchema = {
             type: 'array',
             items: { type: 'string' }
           }]
+        },
+        internalInitialArgs: {
+          description: 'Internal use by jsreport default docker image to set image default args with user option to override it as usual',
+          anyOf: [{
+            type: 'string',
+            '$jsreport-constantOrArray': []
+          }, {
+            type: 'array',
+            items: { type: 'string' }
+          }]
         }
       }
     },

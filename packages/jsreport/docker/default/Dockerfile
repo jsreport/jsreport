@@ -104,6 +104,6 @@ RUN node editConfig.js
 RUN chown -R jsreport:jsreport /app
 
 ENV chrome_launchOptions_executablePath=/usr/lib/chromium/chrome
-ENV chrome_launchOptions_args=--no-sandbox,--disable-dev-shm-usage
+ENV chrome_launchOptions_internalInitialArgs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu
 
 CMD ["bash", "run.sh"]
