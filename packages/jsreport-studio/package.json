@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@jsreport/multipart": "1.0.0",
-    "compression": "1.7.4",
+    "compression": "1.8.1",
     "diff2html": "2.5.0",
     "highlight-words-core": "1.2.2",
     "image-size": "2.0.2",
