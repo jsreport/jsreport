@@ -23,7 +23,7 @@
     "test": "standard"
   },
   "dependencies": {
-    "aws-sdk": "2.1644.0"
+    "@aws-sdk/client-s3": "3.850.0"
   },
   "devDependencies": {
     "standard": "16.0.4"

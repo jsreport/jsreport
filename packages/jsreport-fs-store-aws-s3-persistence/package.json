@@ -22,7 +22,8 @@
     "test": "standard"
   },
   "dependencies": {
-    "aws-sdk": "2.1644.0",
+    "@aws-sdk/client-s3": "3.850.0",
+    "@aws-sdk/client-sqs": "3.848.0",
     "uuid": "8.3.2"
   },
   "devDependencies": {

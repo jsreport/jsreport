@@ -1,7 +1,10 @@
-const util = require('util')
 const path = require('path')
-const S3 = require('aws-sdk/clients/s3')
-const SQS = require('aws-sdk/clients/sqs')
+const {
+  S3Client,
+  ListObjectsV2Command, GetObjectCommand, HeadObjectCommand, GetBucketLocationCommand,
+  CopyObjectCommand, PutObjectCommand, DeleteObjectsCommand, HeadBucketCommand
+} = require('@aws-sdk/client-s3')
+const { SQSClient, CreateQueueCommand, SendMessageCommand, ReceiveMessageCommand, ChangeMessageVisibilityCommand, DeleteMessageCommand } = require('@aws-sdk/client-sqs')
 const { v4: uuidv4 } = require('uuid')
 const instanceId = uuidv4()
 
@@ -10,36 +13,42 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
     throw new Error('The fs store is configured to use aws s3 persistence but the bucket is not set. Use store.persistence.bucket or extensions.fs-store-aws-s3-persistence.bucket to set the proper value.')
   }
 
-  let s3
-
-  if (accessKeyId != null && secretAccessKey != null) {
-    s3 = new S3({ accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, ...s3Options })
-  } else {
-    s3 = new S3({ ...s3Options })
+  const s3ClientConfig = { ...s3Options }
+  if (accessKeyId && secretAccessKey) {
+    s3ClientConfig.credentials = {
+      accessKeyId,
+      secretAccessKey
+    }
   }
 
-  const s3Async = {
-    listObjectsV2: util.promisify(s3.listObjectsV2).bind(s3),
-    getObject: util.promisify(s3.getObject).bind(s3),
-    headObject: util.promisify(s3.headObject).bind(s3),
-    copyObject: util.promisify(s3.copyObject).bind(s3),
-    putObject: util.promisify(s3.putObject).bind(s3),
-    deleteObject: util.promisify(s3.deleteObject).bind(s3),
-    deleteObjects: util.promisify(s3.deleteObjects).bind(s3),
-    headBucket: util.promisify(s3.headBucket).bind(s3)
+  let s3 = null
+
+  // Helper: Convert Readable stream (from GetObjectCommand) to Buffer
+  function streamToBuffer (stream) {
+    return new Promise((resolve, reject) => {
+      const chunks = []
+      stream.on('data', (chunk) => chunks.push(chunk))
+      stream.once('end', () => resolve(Buffer.concat(chunks)))
+      stream.once('error', reject)
+    })
   }
 
+  // List all S3 object keys under a prefix (recursively)
   async function listObjectKeys (p) {
     const opts = {
       Bucket: bucket,
       Prefix: p
     }
     const result = []
+    let continuationToken
     do {
-      const data = await s3Async.listObjectsV2(opts)
-      opts.ContinuationToken = data.NextContinuationToken
-      result.push(...data.Contents)
-    } while (opts.ContinuationToken)
+      const cmd = new ListObjectsV2Command({ ...opts, ContinuationToken: continuationToken })
+      const data = await s3.send(cmd)
+      continuationToken = data.NextContinuationToken
+      if (data.Contents) {
+        result.push(...data.Contents)
+      }
+    } while (continuationToken)
 
     return result
       .filter(e =>
@@ -50,13 +59,18 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
   }
 
   let queueUrl
-  let sqsAsync
+  let sqs
 
   return {
     init: async () => {
+      if (!s3ClientConfig.region) {
+        s3ClientConfig.region = await getBucketRegion(bucket, s3ClientConfig)
+      }
+      s3 = new S3Client(s3ClientConfig)
+
       logger.info(`fs store is verifying aws s3 bucket ${bucket} exists and is accessible`)
       try {
-        await s3Async.headBucket({ Bucket: bucket })
+        await s3.send(new HeadBucketCommand({ Bucket: bucket }))
       } catch (e) {
         throw new Error(`fs store aws s3 bucket "${bucket}" doesn't exist or user doesn't have permissions to it. ` + e)
       }
@@ -65,85 +79,81 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
         lock.queueName = lock.queueName || 'jsreport-lock.fifo'
         lock.attributes = Object.assign({
           FifoQueue: 'true',
-          // we don't need lock messages to be stored by aws longer than 1min which is the lowest AWS value
           MessageRetentionPeriod: '60',
-          // the time in s for which the message is blocked for others when we pop it up
           VisibilityTimeout: '10'
         }, lock.attributes)
-        lock.region = lock.region || 'us-east-1'
+        lock.region = lock.region || s3ClientConfig.region
 
         logger.info(`fs store is verifying SQS for locking in ${lock.region} with name ${lock.queueName} `)
 
-        let sqs
-
-        if (accessKeyId != null && secretAccessKey != null) {
-          sqs = new SQS({ accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, region: lock.region })
-        } else {
-          sqs = new SQS({ region: lock.region })
+        const sqsClientConfig = { region: lock.region }
+        if (accessKeyId && secretAccessKey) {
+          sqsClientConfig.credentials = {
+            accessKeyId,
+            secretAccessKey
+          }
         }
+        sqs = new SQSClient(sqsClientConfig)
 
-        sqsAsync = {
-          createQueue: util.promisify(sqs.createQueue).bind(sqs),
-          sendMessage: util.promisify(sqs.sendMessage).bind(sqs),
-          receiveMessage: util.promisify(sqs.receiveMessage).bind(sqs),
-          changeMessageVisibility: util.promisify(sqs.changeMessageVisibility).bind(sqs),
-          deleteMessage: util.promisify(sqs.deleteMessage).bind(sqs)
-        }
-
-        const queueRes = await sqsAsync.createQueue({
+        const queueRes = await sqs.send(new CreateQueueCommand({
           QueueName: lock.queueName,
           Attributes: lock.attributes
-        })
+        }))
         queueUrl = queueRes.QueueUrl
       }
     },
+
     readdir: async (p) => {
       p = pathWithPrefix(p)
       const res = await listObjectKeys(p)
       const topFilesOrDirectories = res.map(e => e.replace(p, '').split('/').filter(f => f)[0]).filter(f => f)
       return [...new Set(topFilesOrDirectories)]
     },
+
     readFile: async (p) => {
       p = pathWithPrefix(p)
-      const res = await s3Async.getObject({
+      const res = await s3.send(new GetObjectCommand({
         Bucket: bucket,
         Key: p
-      })
-      return res.Body
+      }))
+      // res.Body is a stream
+      return await streamToBuffer(res.Body)
     },
-    writeFile: (p, c) => {
+
+    writeFile: async (p, c) => {
       p = pathWithPrefix(p)
-      return s3Async.putObject({
+      await s3.send(new PutObjectCommand({
         Bucket: bucket,
         Key: p,
-        Body: c,
+        Body: Buffer.from(c),
         Metadata: {
           mtime: new Date().getTime().toString()
         }
-      })
+      }))
     },
+
     appendFile: async (p, c) => {
       p = pathWithPrefix(p)
       let existingBuffer = Buffer.from([])
       try {
-        const res = await s3Async.getObject({
+        const res = await s3.send(new GetObjectCommand({
           Bucket: bucket,
           Key: p
-        })
-        existingBuffer = res.Body
+        }))
+        existingBuffer = await streamToBuffer(res.Body)
       } catch (e) {
-        // doesn't exists yet
+        // doesn't exist yet
       }
-
-      return s3Async.putObject({
+      await s3.send(new PutObjectCommand({
         Bucket: bucket,
         Key: p,
         Body: Buffer.concat([existingBuffer, Buffer.from(c)]),
         Metadata: {
           mtime: new Date().getTime().toString()
         }
-      })
+      }))
     },
+
     rename: async (p, pp) => {
       p = pathWithPrefix(p)
       pp = pathWithPrefix(pp)
@@ -151,11 +161,11 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
 
       await Promise.all(objectsToRename.map(async (key) => {
         const newName = key.replace(p, pp)
-        await s3Async.copyObject({
+        await s3.send(new CopyObjectCommand({
           Bucket: bucket,
-          CopySource: `/${bucket}/${encodeURIComponent(key)}`,
+          CopySource: `${bucket}/${encodeURIComponent(key)}`,
           Key: newName
-        })
+        }))
       }))
 
       const chunks = objectsToRename.reduce((all, one, i) => {
@@ -164,39 +174,42 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
         return all
       }, [])
 
-      await Promise.all(chunks.map(ch => s3Async.deleteObjects({
+      await Promise.all(chunks.map(ch => s3.send(new DeleteObjectsCommand({
         Bucket: bucket,
         Delete: {
           Objects: ch.map(e => ({ Key: e })),
           Quiet: true
         }
-      })))
+      }))))
     },
+
     exists: async (p) => {
       if (!p) {
-        // root always exist
+        // root always exists
         return true
       }
       p = pathWithPrefix(p)
       try {
-        await s3Async.headObject({ Bucket: bucket, Key: p })
+        await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: p }))
         return true
       } catch (e) {
         return false
       }
     },
+
     stat: async (p) => {
       p = pathWithPrefix(p)
-      // directory always fail for some reason
       try {
-        const r = await s3Async.headObject({ Bucket: bucket, Key: p })
-        const mtime = r.Metadata.mtime ? new Date(parseInt(r.Metadata.mtime)) : new Date(r.lastModified)
+        const r = await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: p }))
+        const mtime = r.Metadata?.mtime ? new Date(parseInt(r.Metadata.mtime)) : new Date(r.LastModified)
         return { isDirectory: () => false, mtime }
       } catch (e) {
         return { isDirectory: () => true }
       }
     },
-    mkdir: (p) => Promise.resolve(),
+
+    mkdir: async (p) => {},
+
     remove: async (p) => {
       p = pathWithPrefix(p)
       const blobsToRemove = await listObjectKeys(p)
@@ -206,30 +219,31 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
         return all
       }, [])
 
-      await Promise.all(chunks.map(ch => s3Async.deleteObjects({
+      await Promise.all(chunks.map(ch => s3.send(new DeleteObjectsCommand({
         Bucket: bucket,
         Delete: {
           Objects: ch.map(e => ({ Key: e })),
           Quiet: true
         }
-      })))
+      }))))
     },
-    copyFile: (p, pp) => {
+
+    copyFile: async (p, pp) => {
       p = pathWithPrefix(p)
       pp = pathWithPrefix(pp)
-
-      return s3Async.copyObject({
+      await s3.send(new CopyObjectCommand({
         Bucket: bucket,
-        CopySource: `/${bucket}/${encodeURIComponent(p)}`,
+        CopySource: `${bucket}/${encodeURIComponent(p)}`,
         Key: pp
-      })
+      }))
     },
+
     path: {
-      // removing leading and trailing slashes
       join: (...args) => args.filter(a => a).map(a => a.replace(/\/+$/, '').replace(/^\/+/, '')).join('/'),
       sep: '/',
       basename: path.basename
     },
+
     async lock () {
       if (lock.enabled === false) {
         return null
@@ -243,10 +257,10 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
           return this.lock()
         }
 
-        const res = await sqsAsync.receiveMessage({
+        const res = await sqs.send(new ReceiveMessageCommand({
           QueueUrl: queueUrl,
           WaitTimeSeconds: 1
-        })
+        }))
 
         if (res.Messages && res.Messages.length) {
           const message = JSON.parse(res.Messages[0].Body)
@@ -254,22 +268,19 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
           if (message.instanceId !== instanceId || message.lockId !== lockId) {
             if (message.sentOn && (message.sentOn + 10000 < Date.now())) {
               try {
-                await sqsAsync.deleteMessage({ QueueUrl: queueUrl, ReceiptHandle: res.Messages[0].ReceiptHandle })
-              } catch (e) {
-              }
+                await sqs.send(new DeleteMessageCommand({
+                  QueueUrl: queueUrl, ReceiptHandle: res.Messages[0].ReceiptHandle
+                }))
+              } catch (e) {}
             } else {
-              // we have event that the original locker is waiting for
-              // unblock the message for other receivers
               try {
-                await sqsAsync.changeMessageVisibility({
+                await sqs.send(new ChangeMessageVisibilityCommand({
                   QueueUrl: queueUrl,
                   ReceiptHandle: res.Messages[0].ReceiptHandle,
                   VisibilityTimeout: 0
-                })
-              } catch (e) {
-              }
+                }))
+              } catch (e) {}
             }
-
             return waitForMessage()
           }
 
@@ -279,25 +290,26 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
         return waitForMessage()
       }
 
-      await sqsAsync.sendMessage({
+      await sqs.send(new SendMessageCommand({
         QueueUrl: queueUrl,
         MessageBody: JSON.stringify({ instanceId, lockId, sentOn: Date.now() }),
         MessageGroupId: 'default',
         MessageDeduplicationId: Date.now() + ''
-      })
+      }))
 
       return waitForMessage()
     },
+
     releaseLock: async (l) => {
       if (lock.enabled === false) {
         return null
       }
-
       try {
-        await sqsAsync.deleteMessage({ QueueUrl: queueUrl, ReceiptHandle: l.Messages[0].ReceiptHandle })
-      } catch (e) {
-
-      }
+        await sqs.send(new DeleteMessageCommand({
+          QueueUrl: queueUrl,
+          ReceiptHandle: l.Messages[0].ReceiptHandle
+        }))
+      } catch (e) {}
     }
   }
 
@@ -305,14 +317,29 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
     if (!prefix) {
       return p
     }
-
     const prefixNoSlash = prefix.endsWith('/') ? prefix.substring(0, prefix.length - 1) : prefix
     const pNoSlash = p.startsWith('/') ? p.substring(1) : p
-
     if (!p) {
       return prefixNoSlash
     }
-
     return prefixNoSlash + '/' + pNoSlash
   }
+}
+
+async function getBucketRegion (bucket, s3Options = {}) {
+  // Use us-east-1 to query bucket location (recommended by AWS)
+  const s3 = new S3Client({ region: 'us-east-1', ...s3Options })
+
+  const cmd = new GetBucketLocationCommand({ Bucket: bucket })
+  const result = await s3.send(cmd)
+
+  // result.LocationConstraint may be null, '', or a region string
+  // See: https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLocation.html
+  let region = result.LocationConstraint
+  if (!region || region === '') {
+    region = 'us-east-1' // us-east-1 is returned as null/empty
+  } else if (region === 'EU') {
+    region = 'eu-west-1' // legacy EU code
+  }
+  return region
 }
