@@ -33,7 +33,7 @@
     "express": "4.21.2",
     "lodash.omit": "4.5.0",
     "lodash.unset": "4.5.2",
-    "multer": "1.4.4-lts.1",
+    "multer": "2.0.2",
     "serve-static": "1.16.2",
     "simple-odata-server": "1.2.1",
     "stream-to-array": "2.3.0",
