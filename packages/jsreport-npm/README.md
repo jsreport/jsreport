@@ -7,6 +7,10 @@ See https://jsreport.net/learn/npm
 
 ## Changelog
 
+### 4.0.1
+
+- use fs based lockfile to avoid parallel npm install
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

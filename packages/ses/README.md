@@ -5,6 +5,10 @@
 
 ## Changelog
 
+### 1.3.0
+
+- fix audit by updating to ses@1.14.0
+
 ### 1.2.0
 
 - fix audit by updating to ses@1.12.0

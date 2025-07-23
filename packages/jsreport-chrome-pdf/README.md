@@ -29,6 +29,10 @@ chrome-image
 
 ## Changelog
 
+### 4.3.0
+
+- allow to use default docker image without extra flags
+
 ### 4.2.0
 
 - implement chrome connect strategy

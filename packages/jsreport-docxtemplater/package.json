@@ -32,13 +32,13 @@
     "test": "mocha test --timeout 8000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "4.1.4",
+    "@jsreport/office": "4.1.5",
     "docxtemplater": "3.37.0",
     "pizzip": "3.1.4"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.2.2",
-    "@jsreport/jsreport-core": "4.7.0",
+    "@jsreport/jsreport-assets": "4.2.3",
+    "@jsreport/jsreport-core": "4.7.1",
     "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
     "should": "13.2.3",

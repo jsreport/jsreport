@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.2.1
+
+- update multer to fix audit
+
 ### 4.2.0
 
 - update express to fix audit

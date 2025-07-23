@@ -7,6 +7,12 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.9.0
+
+- update deps to fix audit
+- make document with section breaks to work properly with conditional content
+- fix block_helper_container recognition not working for single block that start and end in single text nodes
+
 ### 4.8.0
 
 - update deps to fix audit

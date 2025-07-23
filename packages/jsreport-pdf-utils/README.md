@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.4.0
+
+- add support for pdf compression
+
 ### 4.3.0
 
 - update deps to fix audit

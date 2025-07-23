@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.7.1
+
+- update @jsreport/ses to 1.4.0 to fix audit
+
 ### 4.7.0
 
 - update deps to fix npm audit

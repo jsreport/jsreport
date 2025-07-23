@@ -130,6 +130,10 @@ main()
 
 ## Changelog
 
+### 1.0.1
+- fix regression in table borders for specific colspan layout
+- fix xlsx viewer clipping content. generate empty cell (no child `<v>`) if cell does not have value
+
 ### 1.0.0
 
 - support for vertical text (transform: rotate() to rotate text at certain angles, using together writing-mode and text-orientation)

@@ -5,6 +5,10 @@ Some helpers for officed based jsreport recipes
 
 ## Changelog
 
+### 4.1.5
+
+- update form-data to fix audit
+
 ### 4.1.4
 
 - update axios to fix audit

@@ -7,6 +7,11 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.2.2
+
+- update `@jsreport/office` to fix audit
+- update `@jsreport/html-to-xlsx` to fix regression in table borders for specific colspan layout and fix xlsx viewer clipping content
+
 ### 4.2.1
 
 - update deps to fix npm audit

@@ -18,6 +18,10 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.3.2
+
+- update deps to fix audit
+
 ### 4.3.1
 
 - migrate from Enzyme to @testing-library/react to fix running tests

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 4.1.5
+
+- fix logging
+
 ### 4.1.4
 
 - fix async reports handling when user group is logged in

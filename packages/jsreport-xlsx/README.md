@@ -7,6 +7,14 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.5.0
+
+- update deps to fix audit
+- fix xlsx viewer clipping content. generate empty cell (no child `<v>`) if handlebars returns empty value
+- support for generating dynamic cells in a loop
+- support for preserving rich text in cell
+- support for setting explicit cell type
+
 ### 4.4.1
 
 - update deps to fix audit

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-core",
-  "version": "4.7.0",
+  "version": "4.7.1",
   "description": "javascript based business reporting",
   "keywords": [
     "report",
@@ -44,7 +44,7 @@
     "@jsreport/mingo": "2.4.1",
     "@jsreport/reap": "0.1.0",
     "@jsreport/serializator": "1.0.1",
-    "@jsreport/ses": "1.2.0",
+    "@jsreport/ses": "1.3.0",
     "ajv": "6.12.6",
     "app-root-path": "3.0.0",
     "bytes": "3.1.2",

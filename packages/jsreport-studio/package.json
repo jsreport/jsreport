@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-studio",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "description": "jsreport templates editor and designer",
   "keywords": [
     "jsreport"
@@ -57,8 +57,8 @@
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "6.4.0",
-    "@jsreport/jsreport-core": "4.7.0",
-    "@jsreport/jsreport-express": "4.2.0",
+    "@jsreport/jsreport-core": "4.7.1",
+    "@jsreport/jsreport-express": "4.2.1",
     "@jsreport/studio-dev": "4.0.1",
     "@redux-devtools/extension": "3.2.5",
     "@seznam/compose-react-refs": "1.0.6",
