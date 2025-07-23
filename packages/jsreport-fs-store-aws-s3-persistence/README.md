@@ -46,6 +46,10 @@ This persistence implementation also guarantees consistency for parallel access 
 
 ## Changelog
 
+### 4.1.0
+
+- update aws client
+
 ### 4.0.1
 
 - fix jsreport v4 regression #1104

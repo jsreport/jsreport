@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-html-embedded-in-docx",
-  "version": "4.1.4",
+  "version": "4.1.5",
   "description": "jsreport recipe embedding output html into the docx",
   "keywords": [
     "jsreport",

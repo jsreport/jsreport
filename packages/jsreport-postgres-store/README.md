@@ -37,6 +37,10 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 4.2.0
+
+- update postgres client `pg-promise`
+
 ### 4.1.0
 
 - add schema to the postgres blob table

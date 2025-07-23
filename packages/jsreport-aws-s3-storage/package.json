@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-aws-s3-storage",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "jsreport extension adding support for storing blobs in aws s3 storage",
   "keywords": [
     "jsreport",
