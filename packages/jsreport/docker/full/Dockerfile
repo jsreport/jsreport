@@ -25,7 +25,7 @@ RUN apt-get update && \
     # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
-    apt install -y chromium=136.0.7103.113-1xtradeb1.2404.1 && \
+    apt install -y chromium=138.0.7204.157-1xtradeb1.2404.1 && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
@@ -104,6 +104,6 @@ RUN node editConfig.js
 RUN chown -R jsreport:jsreport /app
 USER jsreport:jsreport
 
-ENV chrome_launchOptions_args=--no-sandbox,--disable-dev-shm-usage
+ENV chrome_launchOptions_internalInitialArgs=--no-sandbox,--disable-dev-shm-usage
 
 CMD ["bash", "run.sh"]
