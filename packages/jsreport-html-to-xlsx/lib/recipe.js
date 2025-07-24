@@ -21,14 +21,23 @@ module.exports = async (reporter, definition, req, res) => {
     eval: Object.assign({}, reporter.options.chrome, definition.options.chrome)
   }
 
+  if (chromeOptions.eval.launchOptions?.internalInitialArgs != null && chromeOptions.eval.launchOptions?.args == null) {
+    chromeOptions.eval.launchOptions = {
+      ...chromeOptions.eval.launchOptions,
+      args: chromeOptions.eval.launchOptions.internalInitialArgs
+    }
+  }
+
   Object.assign(chromeOptions.eval, {
-    launchOptions: { ...(chromeOptions.eval.launchOptions || {}) },
-    args: [
-      '--window-size=12800000000000,1024',
-      ...(
-        chromeOptions.eval.launchOptions && chromeOptions.eval.launchOptions.args ? chromeOptions.eval.launchOptions.args : []
-      )
-    ]
+    launchOptions: {
+      ...(chromeOptions.eval.launchOptions || {}),
+      args: [
+        '--window-size=12800000000000,1024',
+        ...(
+          chromeOptions.eval.launchOptions && chromeOptions.eval.launchOptions.args ? chromeOptions.eval.launchOptions.args : []
+        )
+      ]
+    }
   })
 
   // NOTE: make sure that we default to the old headless mode for now,
