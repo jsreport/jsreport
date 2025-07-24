@@ -39,7 +39,7 @@
     "file-saver": "2.0.5",
     "microbundle": "0.14.0",
     "mocha": "10.1.0",
-    "puppeteer": "24.8.1",
+    "puppeteer": "24.15.0",
     "rollup": "2.58.0",
     "should": "13.2.3",
     "standard": "16.0.4"

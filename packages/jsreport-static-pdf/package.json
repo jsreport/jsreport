@@ -50,7 +50,7 @@
     "@jsreport/jsreport-core": "4.7.1",
     "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
-    "puppeteer": "24.8.1",
+    "puppeteer": "24.15.0",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
