@@ -74,16 +74,16 @@ RUN jsreport init
 
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.0.1 \
     @jsreport/jsreport-pug@5.0.1 \
-    @jsreport/jsreport-aws-s3-storage@4.0.1 \
+    @jsreport/jsreport-aws-s3-storage@4.1.0 \
     @jsreport/jsreport-azure-storage@4.1.0 \
-    @jsreport/jsreport-docxtemplater@4.1.4 \
+    @jsreport/jsreport-docxtemplater@4.1.5 \
     @jsreport/jsreport-mssql-store@4.1.0 \
-    @jsreport/jsreport-postgres-store@4.1.0 \
+    @jsreport/jsreport-postgres-store@4.2.0 \
     @jsreport/jsreport-mongodb-store@4.1.0 \
     @jsreport/jsreport-office-password@4.1.0 \
     @jsreport/jsreport-html-to-text@4.2.0 \
-    @jsreport/jsreport-html-embedded-in-docx@4.1.4 \
-    @jsreport/jsreport-fs-store-aws-s3-persistence@4.0.2 \
+    @jsreport/jsreport-html-embedded-in-docx@4.1.5 \
+    @jsreport/jsreport-fs-store-aws-s3-persistence@4.1.0 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@4.1.0 \
     @jsreport/jsreport-unoconv@4.1.0 \
     @jsreport/jsreport-libreoffice@1.0.0 \
