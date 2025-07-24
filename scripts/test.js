@@ -4,6 +4,7 @@ const jsreportPackages = [
   '@jsreport/pdfjs',
   '@jsreport/advanced-workers',
   '@jsreport/html-to-xlsx',
+  '@jsreport/odata-parser',
   '@jsreport/odata-to-sql',
   '@jsreport/nodejs-client',
   '@jsreport/jsreport-assets',

@@ -1,0 +1,29 @@
+{
+  "name": "@jsreport/odata-parser",
+  "version": "0.0.0",
+  "description": "OData query string parser",
+  "keywords": [
+    "odata",
+    "parser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": "auth0",
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+    "Jan Blaha <jan.blaha@hotmail.com> (https://github.com/pofider)"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "prepublish": "pegjs src/odata.pegjs lib/odata-parser.js",
+    "test": "rm -f lib/odata-parser.js && npm run-script prepublish && mocha -R spec"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "2.1.0",
+    "pegjs": "0.7.0"
+  }
+}

@@ -82,6 +82,7 @@ function getPriorityOrder () {
     'chrome-page-eval',
     'phantom-page-eval',
     'cheerio-page-eval',
+    '@jsreport/odata-parser',
     '@jsreport/odata-to-sql',
     '@jsreport/html-to-xlsx',
     '@jsreport/mingo',
