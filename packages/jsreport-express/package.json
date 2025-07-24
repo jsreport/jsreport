@@ -35,7 +35,7 @@
     "lodash.unset": "4.5.2",
     "multer": "2.0.2",
     "serve-static": "1.16.2",
-    "simple-odata-server": "1.2.1",
+    "simple-odata-server": "1.2.2",
     "stream-to-array": "2.3.0",
     "yauzl": "2.10.0"
   },
