@@ -19,11 +19,20 @@
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "pegjs src/odata.pegjs lib/odata-parser.js",
-    "test": "rm -f lib/odata-parser.js && npm run-script prepublish && mocha -R spec"
+    "test": "rm -f lib/odata-parser.js && npm run-script prepublish && mocha -R spec && standard"
   },
   "dependencies": {},
   "devDependencies": {
-    "mocha": "2.1.0",
-    "pegjs": "0.7.0"
+    "mocha": "10.1.0",
+    "pegjs": "0.7.0",
+    "standard": "16.0.4"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it",
+      "beforeEach",
+      "define"
+    ]
   }
 }

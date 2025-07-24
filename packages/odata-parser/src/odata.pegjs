@@ -179,7 +179,7 @@ identifierPart              = a:[_a-zA-Z] b:unreserved? { return a + b; }
 identifier                  =
                                 a:identifierPart list:("." i:identifier {return i;})? {
                                     if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
+                                    if (Array.isArray(list[0])) {
                                         list = list[0];
                                     }
                                     list.unshift(a);
@@ -206,7 +206,7 @@ expand                      =   "$expand=" list:expandList { return { "$expand":
 
 expandList                  =   i:identifierPath list:("," WSP? l:expandList {return l;})? {
                                     if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
+                                    if (Array.isArray(list[0])) {
                                         list = list[0];
                                     }
                                     list.unshift(i);
@@ -237,7 +237,7 @@ orderbyList                 = i:(id:identifier ord:(WSP ("asc"/"desc"))? {
                               list:("," WSP? l:orderbyList{return l;})? {
 
                                     if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
+                                    if (Array.isArray(list[0])) {
                                         list = list[0];
                                     }
                                     list.unshift(i);
@@ -249,7 +249,7 @@ select                      =   "$select=" list:selectList { return { "$select":
                             /   "$select=" .* { return {"error": 'invalid $select parameter'}; }
 
 identifierPathParts         =   "/" i:identifierPart list:identifierPathParts? {
-                                    if (require('util').isArray(list[0])) {
+                                    if (Array.isArray(list[0])) {
                                         list = list[0];
                                     }
                                     return "/" + i + list;
@@ -258,7 +258,7 @@ identifierPath              =   a:identifier b:identifierPathParts? { return a +
 selectList                  =
                                 i:(a:identifierPath b:".*"?{return a + b;}/"*") list:("," WSP? l:selectList {return l;})? {
                                     if (list === "") list = [];
-                                    if (require('util').isArray(list[0])) {
+                                    if (Array.isArray(list[0])) {
                                         list = list[0];
                                     }
                                     list.unshift(i);
@@ -273,12 +273,12 @@ filter                      =   "$filter=" list:filterExpr {
                                 }
                             /   "$filter=" .* { return {"error": 'invalid $filter parameter'}; }
 
-filterExpr                  = 
+filterExpr                  =
                               left:("(" WSP? filter:filterExpr WSP? ")"{return filter}) right:( WSP type:("and"/"or") WSP value:filterExpr{
                                     return { type: type, value: value}
                               })? {
                                 return filterExprHelper(left, right);
-                              } / 
+                              } /
                               left:cond right:( WSP type:("and"/"or") WSP value:filterExpr{
                                     return { type: type, value: value}
                               })? {

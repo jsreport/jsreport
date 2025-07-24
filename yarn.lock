@@ -16134,6 +16134,11 @@ peberminta@^0.9.0:
   resolved "https://registry.yarnpkg.com/peberminta/-/peberminta-0.9.0.tgz#8ec9bc0eb84b7d368126e71ce9033501dca2a352"
   integrity sha512-XIxfHpEuSJbITd1H3EeQwpcZbTLHc+VVr8ANI9t5sit565tsI4/xK3KWTUFE2e6QiangUkh3B0jihzmGnNrRsQ==
 
+pegjs@0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/pegjs/-/pegjs-0.7.0.tgz#aaa1f824f9e7197ec44e22a57af522f700dd689e"
+  integrity sha512-LKb5vROzG2N6FVpITS8zy4BSB8M5z8JgiM0LzgvUVRIdScHys8RYlYvHVSL3WeXMLowF9MZj1hPusuVvTgeq4w==
+
 pend@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/pend/-/pend-1.2.0.tgz#7a57eb550a6783f9115331fcf4663d5c8e007a50"
