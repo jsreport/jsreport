@@ -52,7 +52,7 @@
     "@jsreport/jsreport-core": "4.7.1",
     "@jsreport/jsreport-data": "4.1.0",
     "@jsreport/jsreport-docx": "4.9.0",
-    "@jsreport/jsreport-express": "4.2.1",
+    "@jsreport/jsreport-express": "4.2.2",
     "@jsreport/jsreport-freeze": "4.0.0",
     "@jsreport/jsreport-fs-store": "4.1.1",
     "@jsreport/jsreport-handlebars": "4.0.1",

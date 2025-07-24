@@ -31,7 +31,7 @@
     "@jsreport/jsreport-authentication": "4.2.3",
     "@jsreport/jsreport-chrome-pdf": "4.3.0",
     "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-express": "4.2.1",
+    "@jsreport/jsreport-express": "4.2.2",
     "@jsreport/jsreport-fs-store": "4.1.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-scripts": "4.2.0",
