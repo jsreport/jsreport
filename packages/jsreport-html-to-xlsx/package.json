@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-html-to-xlsx",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "jsreport recipe capable of converting html into excel",
   "keywords": [
     "jsreport",

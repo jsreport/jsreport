@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-html-to-xlsx": "4.2.2",
+    "@jsreport/jsreport-html-to-xlsx": "4.2.3",
     "@jsreport/studio-dev": "4.0.1",
     "mocha": "10.1.0",
     "puppeteer": "24.15.0",

@@ -37,7 +37,7 @@
     "@jsreport/jsreport-data": "4.1.0",
     "@jsreport/jsreport-fs-store": "4.1.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
-    "@jsreport/jsreport-html-to-xlsx": "4.2.2",
+    "@jsreport/jsreport-html-to-xlsx": "4.2.3",
     "@jsreport/jsreport-pdf-utils": "4.4.0",
     "@jsreport/jsreport-scripts": "4.2.0",
     "@jsreport/jsreport-xlsx": "4.5.0",
