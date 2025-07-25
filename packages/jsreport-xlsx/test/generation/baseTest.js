@@ -392,10 +392,12 @@ describe('xlsx generation - base', () => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql(data.string)
     should(sheet.A1.t).be.eql('s')
-    should(sheet.B1.v).be.eql(parseInt(data.number, 10))
-    should(sheet.B1.t).be.eql('n')
-    should(sheet.C1.v).be.eql(data.boolean === 'true')
-    should(sheet.C1.t).be.eql('b')
+    should(sheet.B1.v).be.eql(data.string)
+    should(sheet.B1.t).be.eql('s')
+    should(sheet.C1.v).be.eql(parseInt(data.number, 10))
+    should(sheet.C1.t).be.eql('n')
+    should(sheet.D1.v).be.eql(data.boolean === 'true')
+    should(sheet.D1.t).be.eql('b')
   })
 
   it('variable replace multi should keep escaping cell values when there was intention to do it {{expr}}', async () => {

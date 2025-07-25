@@ -42,7 +42,7 @@ function xlsxCType (options) {
     throw new Error(`xlsxCType helper requires type parameter to be one of: ${validTypes.join(', ')}`)
   }
 
-  options.data.cellType = type
+  options.data.cellType = type === 's' ? 'inlineStr' : type
 
   return ''
 }
