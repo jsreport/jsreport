@@ -327,38 +327,67 @@ function addRow (sheet, row, context) {
       const end = start + (rowSpan - 1)
 
       for (let r = start; r < end; r++) {
-        if (currentCellOffsetsPerRow[r] != null) {
-          const cellOffsetsInRow = currentCellOffsetsPerRow[r]
-          const idx = cellOffsetsInRow.length - 1
+        if (currentCellOffsetsPerRow[r] == null) {
+          continue
+        }
 
-          if (startCell === cellOffsetsInRow[0].startCell || idx === 0) {
-            // if we are in the same spot (or passing it) than the next offset,
-            // or there is only one record in the offsets collection
-            // then we should increase the next offset
-            cellOffsetsInRow[0].startCell += cellSpan
-          } else {
-            // otherwise increase the limit
-            cellOffsetsInRow[cellOffsetsInRow.length - 1].startCell += cellSpan
-          }
+        const cellOffsetsInRow = currentCellOffsetsPerRow[r]
+        const idx = cellOffsetsInRow.length - 1
+
+        if (startCell === cellOffsetsInRow[0].startCell || idx === 0) {
+          // if we are in the same spot (or passing it) than the next offset,
+          // or there is only one record in the offsets collection
+          // then we should increase the next offset
+          cellOffsetsInRow[0].startCell += cellSpan
+        } else {
+          // otherwise increase the limit
+          cellOffsetsInRow[cellOffsetsInRow.length - 1].startCell += cellSpan
         }
       }
     }
 
-    const nextCell = currentCellOffsetsPerRow[context.currentRowInFile][0].startCell + currentCellOffsetsPerRow[context.currentRowInFile][0].offset
+    const moveToNextOffset = (targetRowIdx) => {
+      let removed
+      const nextCell = currentCellOffsetsPerRow[targetRowIdx][0].startCell + currentCellOffsetsPerRow[targetRowIdx][0].offset
 
-    if (currentCellOffsetsPerRow[context.currentRowInFile][1] != null) {
-      let shouldMoveToNext = true
-      const max = currentCellOffsetsPerRow[context.currentRowInFile][1].startCell
+      if (currentCellOffsetsPerRow[targetRowIdx][1] != null) {
+        let shouldMoveToNext = true
+        const max = currentCellOffsetsPerRow[targetRowIdx][1].startCell
 
-      for (let c = nextCell; c < max; c++) {
-        if (context.usedCells[`${context.currentRowInFile + 1},${c}`] == null) {
-          shouldMoveToNext = false
-          break
+        for (let c = nextCell; c < max; c++) {
+          if (context.usedCells[`${targetRowIdx + 1},${c}`] == null) {
+            shouldMoveToNext = false
+            break
+          }
+        }
+
+        if (shouldMoveToNext) {
+          removed = currentCellOffsetsPerRow[targetRowIdx].shift()
         }
       }
 
-      if (shouldMoveToNext) {
-        currentCellOffsetsPerRow[context.currentRowInFile].shift()
+      return removed
+    }
+
+    const removedOffset = moveToNextOffset(context.currentRowInFile)
+
+    // when removing an offset make sure to check if we need to remove also offsets in next
+    // rows, if the current cell has rowspan
+    if (removedOffset && rowSpan > 1) {
+      const start = context.currentRowInFile + 1
+      const end = start + (rowSpan - 1)
+
+      for (let r = start; r < end; r++) {
+        if (currentCellOffsetsPerRow[r] == null) {
+          continue
+        }
+
+        const cellOffsetsInRow = currentCellOffsetsPerRow[r]
+        const startCell = removedOffset.startCell + removedOffset.offset
+
+        if (startCell === cellOffsetsInRow[0].startCell) {
+          moveToNextOffset(r)
+        }
       }
     }
 

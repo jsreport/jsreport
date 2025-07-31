@@ -2207,6 +2207,271 @@ describe('html to xlsx conversion with strategy', () => {
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]]['!merges'][1].e.c).be.eql(8)
     })
 
+    it('should work when using special rowspan layout #16 (using rowspan and colspan in different rows and leaving holes)', async function () {
+      const stream = await conversion(`
+        <style>
+          td {
+            border: 1px solid black;
+          }
+        </style>
+        <table>
+          <tbody>
+            <tr>
+              <td rowspan="5">Root A</td>
+              <td rowspan="5">Root B</td>
+              <td colspan="21">Sub 1</td>
+            </tr>
+            <tr>
+              <td rowspan="4">Sub 1.A</td>
+              <td rowspan="4">Sub 1.B</td>
+              <td rowspan="4">Sub 1.C</td>
+              <td rowspan="4">Sub 1.D</td>
+              <td rowspan="4">Sub 1.E</td>
+              <td rowspan="4">Sub 1.F</td>
+              <td colspan="15">Sub 1.1</td>
+            </tr>
+            <tr>
+              <td colspan="2">Sub 1.1.1</td>
+              <td rowspan="3">Sub 1.1.B</td>
+              <td rowspan="3">Sub 1.1.C</td>
+              <td rowspan="3">Sub 1.1.D</td>
+              <td colspan="4">Sub 1.1.2</td>
+              <td colspan="4">Sub 1.1.3</td>
+              <td rowspan="3">Sub 1.1.E</td>
+              <td rowspan="3">Sub 1.1.F</td>
+            </tr>
+            <tr>
+              <td rowspan="2">Sub 1.1.1.A</td>
+              <td rowspan="2">Sub 1.1.1.B</td>
+              <td rowspan="2">Sub 1.1.2.A</td>
+              <td rowspan="2">Sub 1.1.2.B</td>
+              <td rowspan="2">Sub 1.1.2.C</td>
+              <td rowspan="2">Sub 1.1.2.D</td>
+              <td colspan="4">Sub 1.1.3.1</td>
+            </tr>
+            <tr>
+              <td>Sub 1.1.3.1.A</td>
+              <td>Sub 1.1.3.1.B</td>
+              <td>Sub 1.1.3.1.C</td>
+              <td>Sub 1.1.3.1.D</td>
+            </tr>
+          </tbody>
+        </table>
+      `)
+
+      const { parsedXlsx, outputBuf } = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve({
+            parsedXlsx: xlsx.read(buf),
+            outputBuf: buf
+          })
+        })
+      })
+
+      fs.writeFileSync(outputPath, outputBuf)
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('Root A')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.v).be.eql('Root B')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C1.v).be.eql('Sub 1')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].G1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].H1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].I1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].J1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].L1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].M1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].N1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].O1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].P1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].Q1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].R1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].S1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].T1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].U1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].V1).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].W1).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C2.v).be.eql('Sub 1.A')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].C5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D2.v).be.eql('Sub 1.B')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].D5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E2.v).be.eql('Sub 1.C')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].E5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F2.v).be.eql('Sub 1.D')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].F5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].G2.v).be.eql('Sub 1.E')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].G3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].G4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].G5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].H2.v).be.eql('Sub 1.F')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].H3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].H4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].H5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].I2.v).be.eql('Sub 1.1')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].J2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].L2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].M2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].N2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].O2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].P2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].Q2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].R2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].S2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].T2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].U2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].V2).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].W2).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].I3.v).be.eql('Sub 1.1.1')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].J3).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].I4.v).be.eql('Sub 1.1.1.A')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].I5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].J4.v).be.eql('Sub 1.1.1.B')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].J5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K3.v).be.eql('Sub 1.1.B')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].K5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].L3.v).be.eql('Sub 1.1.C')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].L4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].L5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].M3.v).be.eql('Sub 1.1.D')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].M4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].M5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].N3.v).be.eql('Sub 1.1.2')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].O3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].P3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].Q3).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].N4.v).be.eql('Sub 1.1.2.A')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].N5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].O4.v).be.eql('Sub 1.1.2.B')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].O5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].P4.v).be.eql('Sub 1.1.2.C')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].P5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].Q4.v).be.eql('Sub 1.1.2.D')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].Q5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].R3.v).be.eql('Sub 1.1.3')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].S3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].T3).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].U3).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].R4.v).be.eql('Sub 1.1.3.1')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].S4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].T4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].U4).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].R5.v).be.eql('Sub 1.1.3.1.A')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].S5.v).be.eql('Sub 1.1.3.1.B')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].T5.v).be.eql('Sub 1.1.3.1.C')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].U5.v).be.eql('Sub 1.1.3.1.D')
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].V3.v).be.eql('Sub 1.1.E')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].V4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].V5).be.undefined()
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].W3.v).be.eql('Sub 1.1.F')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].W4).be.undefined()
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].W5).be.undefined()
+
+      const mergedCells = parsedXlsx.Sheets[parsedXlsx.SheetNames[0]]['!merges']
+
+      const expectedMergeCells = [
+        ['A1', 'A5'],
+        ['B1', 'B5'],
+        ['C1', 'W1'],
+        ['C2', 'C5'],
+        ['D2', 'D5'],
+        ['E2', 'E5'],
+        ['F2', 'F5'],
+        ['G2', 'G5'],
+        ['H2', 'H5'],
+        ['I2', 'W2'],
+        ['I3', 'J3'],
+        ['I4', 'I5'],
+        ['J4', 'J5'],
+        ['K3', 'K5'],
+        ['L3', 'L5'],
+        ['M3', 'M5'],
+        ['N3', 'Q3'],
+        ['N4', 'N5'],
+        ['O4', 'O5'],
+        ['P4', 'P5'],
+        ['Q4', 'Q5'],
+        ['R3', 'U3'],
+        ['R4', 'U4'],
+        ['V3', 'V5'],
+        ['W3', 'W5']
+      ]
+
+      should(mergedCells.length).be.eql(
+        expectedMergeCells.length,
+        `Expected number of expected merged cells ${expectedMergeCells.length} to match with the merged cells in output ${mergedCells.length}`
+      )
+
+      for (const [startCellRef, endCellRef] of expectedMergeCells) {
+        const parsedStart = parseCell(startCellRef)
+        const parsedEnd = parseCell(endCellRef)
+
+        const foundMerge = mergedCells.find((merge) => {
+          const startCol = parsedStart[0]
+          const startRow = parsedStart[1]
+          const endCol = parsedEnd[0]
+          const endRow = parsedEnd[1]
+
+          return (
+            merge.s.r === startRow && merge.s.c === startCol &&
+            merge.e.r === endRow && merge.e.c === endCol
+          )
+        })
+
+        should(foundMerge != null).be.True(`Expected merge from ${startCellRef} to ${endCellRef} be found`)
+      }
+    })
+
     it('should work when using cell border collapsing styles', async () => {
       const stream = await conversion(`
         <table>

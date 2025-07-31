@@ -180,6 +180,49 @@ function getBorder (cellInfo, type) {
   return { style, color }
 }
 
+// this function is used debug the shape of pendingCellStyles,
+// which is something we use when debugging why some complex layout with colspan/rowspan
+// doesn't work as expected
+function getPendingStylesAsCells (pendingCellStylesByRow) {
+  const output = []
+  let prevRIdx
+
+  for (const rIdx of [...pendingCellStylesByRow.keys()].sort((a, b) => a - b)) {
+    const cellMap = pendingCellStylesByRow.get(rIdx)
+    const cellsOutput = []
+
+    if (prevRIdx && rIdx - 1 !== prevRIdx) {
+      for (let index = prevRIdx + 1; index < rIdx; index++) {
+        output.push('-------------(placeholder row)-------------')
+      }
+    }
+
+    let prevCIdx
+
+    for (const cIdx of [...cellMap.keys()].sort((a, b) => a - b)) {
+      const cellInfo = cellMap.get(cIdx)
+
+      if (prevCIdx && cIdx - 1 !== prevCIdx) {
+        for (let index = prevCIdx + 1; index < cIdx; index++) {
+          cellsOutput.push(`${'-'.repeat(rIdx.toString().length)}-${'-'.repeat(index.toString().length)}`)
+        }
+      }
+
+      if (cellInfo.styles == null) {
+        throw new Error(`Pending Cell style not found for cell ${rIdx}-${cIdx}`)
+      }
+
+      cellsOutput.push(`${rIdx}-${cIdx}`)
+      prevCIdx = cIdx
+    }
+
+    output.push(cellsOutput.join('  '))
+    prevRIdx = rIdx
+  }
+
+  return output.join('\n')
+}
+
 module.exports.sizePxToPt = sizePxToPt
 module.exports.parsePx = parsePx
 module.exports.parseTransform = parseTransform
@@ -187,3 +230,4 @@ module.exports.isColorDefined = isColorDefined
 module.exports.numFmtMap = numFmtMap
 module.exports.colorToArgb = colorToArgb
 module.exports.getBorder = getBorder
+module.exports.getPendingStylesAsCells = getPendingStylesAsCells
