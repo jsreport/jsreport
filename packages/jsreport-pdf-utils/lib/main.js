@@ -1,4 +1,5 @@
 
+const FooterStyleProblem = require('./footerStyleProblem')
 const missingSecretMessage = 'pdf-sign extension uses encryption to store sensitive data and needs secret key to be defined. Please fill "encryption.secretKey" at the root of the config or disable encryption using "encryption.enabled=false".'
 
 module.exports = (reporter, definition) => {
@@ -121,6 +122,26 @@ module.exports = (reporter, definition) => {
 
       u.$set.pdfSign.passwordRaw = null
       u.$set.pdfSign.passwordFilled = true
+    })
+
+    await FooterStyleProblem.startupCheck(reporter)
+  })
+
+  reporter.on('express-configure', (app) => {
+    app.get('/api/pdf-utils/footer-style-problems', (req, res, next) => {
+      FooterStyleProblem.getTemlatesAndAssetsWithProblematicFooterStyle(reporter)
+        .then((problematicEntities) => {
+          res.json(problematicEntities)
+        })
+        .catch(next)
+    })
+
+    app.post('/api/pdf-utils/footer-style-problems', (req, res, next) => {
+      FooterStyleProblem.fixTemlatesAndAssetsWithProblematicFooterStyle(reporter)
+        .then(() => {
+          res.json({ message: 'Footer styles fixed' })
+        })
+        .catch(next)
     })
   })
 }

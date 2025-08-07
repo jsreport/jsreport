@@ -165,7 +165,7 @@ function getDefaultHeaderFooterContent () {
               flex-direction: column;
               justify-content: space-between;
               width: 100%;
-              height: 100%;
+              height: 100vh;
           }
 
           .header {

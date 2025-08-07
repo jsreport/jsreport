@@ -1308,7 +1308,7 @@ function getDefaultHeaderFooterContent() {
               flex-direction: column;
               justify-content: space-between;
               width: 100%;
-              height: 100%;
+              height: 100vh;
           }
 
           .header {
@@ -1995,6 +1995,92 @@ __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"separator":"x-pdf-utils-PdfUtilsEditor-separator","operationTable":"x-pdf-utils-PdfUtilsEditor-operationTable","customMetadataTable":"x-pdf-utils-PdfUtilsEditor-customMetadataTable","tabContainer":"x-pdf-utils-PdfUtilsEditor-tabContainer","tabTitles":"x-pdf-utils-PdfUtilsEditor-tabTitles","tabTitle":"x-pdf-utils-PdfUtilsEditor-tabTitle","active":"x-pdf-utils-PdfUtilsEditor-active","tabPanel":"x-pdf-utils-PdfUtilsEditor-tabPanel"});
 
+/***/ }),
+/* 14 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+
+
+class FooterStyleProblemModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      problematicEntities: null
+    };
+  }
+  async componentDidMount() {
+    try {
+      const res = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.get('/api/pdf-utils/footer-style-problems');
+      this.setState({
+        problematicEntities: res
+      });
+    } catch (e) {
+      alert(e);
+    }
+  }
+  ignore() {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().setSetting('pdf-utils-footer-style-problem-checked-found', false);
+    this.props.close();
+  }
+  async fix() {
+    try {
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('/api/pdf-utils/footer-style-problems');
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().setSetting('pdf-utils-footer-style-problem-checked-found', false);
+      alert('Footer styles fixed');
+    } catch (e) {
+      alert(e);
+    } finally {
+      this.props.close();
+    }
+  }
+  render() {
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "Eventual footers style problems found"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "The latest Chromium contains breaking changes in the CSS flexbox calculation and we found that this may eventually impact your footers alignment. The fix is to change the CSS used to render footers and replace the following CSS:"), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("code", null, ".main.height=100%"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), "with", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("code", null, ".main.height=100vh"), ".", /*#__PURE__*/React.createElement("br", null)), /*#__PURE__*/React.createElement("p", null, "You can do this manually later and ignore this now or you can let the automation to correct the styles using \"Try to fix\" button."), /*#__PURE__*/React.createElement("p", null, "This is the list of affected entities jsreport found:", /*#__PURE__*/React.createElement("br", null), this.state.problematicEntities == null ? /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin"
+    }) : '', /*#__PURE__*/React.createElement("textarea", {
+      style: {
+        width: '100%',
+        boxSizing: 'border-box'
+      },
+      rows: "10",
+      readOnly: true,
+      value: (this.state.problematicEntities || []).map(entity => `${entity.path} (${entity.entitySet})`).join('\n')
+    })), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontWeight: 'bold'
+      }
+    }, "Make sure you have backup before performing the automatic fix!")), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("div", {
+      className: "button-bar"
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "button confirmation",
+      title: "The same popup will open after you refresh studio",
+      onClick: () => this.props.close()
+    }, "Remind later"), /*#__PURE__*/React.createElement("button", {
+      style: {
+        whiteSpace: 'nowrap'
+      },
+      className: "button confirmation",
+      title: "The above entities content will be fixed",
+      onClick: () => this.fix()
+    }, "Try to fix"), /*#__PURE__*/React.createElement("button", {
+      style: {
+        whiteSpace: 'nowrap'
+      },
+      className: "button confirmation",
+      title: "Nothing happends and you can fix entities by hand or ignore it",
+      onClick: () => this.ignore()
+    }, "Ignore")));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FooterStyleProblemModal);
+
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -2075,6 +2161,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _PdfUtilsTitle_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
 /* harmony import */ var _PdfUtilsEditor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(7);
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2);
+/* harmony import */ var _FooterStyleProblemModal_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(14);
+
 
 
 
@@ -2085,6 +2173,15 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addPropertiesComponent(_T
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addPropertiesComponent(_AssetProperties__WEBPACK_IMPORTED_MODULE_1__["default"].title, _AssetProperties__WEBPACK_IMPORTED_MODULE_1__["default"], entity => entity.__entitySet === 'assets' && entity.name && entity.name.includes('.p12'));
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEditorComponent(_constants_js__WEBPACK_IMPORTED_MODULE_5__.PDF_UTILS_TAB_EDITOR, _PdfUtilsEditor_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addTabTitleComponent(_constants_js__WEBPACK_IMPORTED_MODULE_5__.PDF_UTILS_TAB_TITLE, _PdfUtilsTitle_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().readyListeners.push(() => {
+  if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication) && !jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.isUserAdmin((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user)) {
+    return;
+  }
+  const foundProblems = jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().getSettingValueByKey('pdf-utils-footer-style-problem-checked-found', false) === true;
+  if (foundProblems) {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openModal(_FooterStyleProblemModal_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
+  }
+});
 })();
 
 /******/ })()
