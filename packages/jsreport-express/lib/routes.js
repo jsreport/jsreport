@@ -107,7 +107,9 @@ module.exports = (app, reporter, exposedOptions) => {
 
         pipeline(renderResponse.stream, res, (pipeErr) => {
           if (pipeErr) {
-            return next(pipeErr)
+            reporter.logger.warn('Error while streaming the response:', pipeErr)
+            res.destroy()
+            return
           }
 
           next()
