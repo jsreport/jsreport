@@ -1434,7 +1434,9 @@ describe('sandbox', () => {
       should(result).be.True('expected module "moduleWithNodeBuiltin" to be required normally')
     })
 
-    it('throw error when requiring .mjs module', async () => {
+    const requireESMSupported = process.features.require_module === true
+
+    it(`requiring .mjs module should ${requireESMSupported && !isolate ? 'work' : 'throw an error'}`, async () => {
       reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
         const r = await reporter.runInSandbox({
           context: {
@@ -1472,12 +1474,17 @@ describe('sandbox', () => {
 
       const { result, errMsg } = JSON.parse(res.content)
 
-      should(result).be.True('expected module "moduleWithMJS" to not be required normally')
-      should(errMsg).containEql('require() of ES Module')
-      should(errMsg).containEql('not supported')
+      if (requireESMSupported && !isolate) {
+        should(result).be.False('expected module "moduleWithMJS" to be required normally')
+        should(errMsg).be.not.ok()
+      } else {
+        should(result).be.True('expected module "moduleWithMJS" to not be required normally')
+        should(errMsg).containEql('require() of ES Module')
+        should(errMsg).containEql('not supported')
+      }
     })
 
-    it('throw error when requiring .js that has the scope of type: module in its package.json', async () => {
+    it(`requiring .js that has the scope of type: module in its package.json should ${requireESMSupported && !isolate ? 'work' : 'throw an error'}`, async () => {
       reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
         const r = await reporter.runInSandbox({
           context: {
@@ -1515,9 +1522,14 @@ describe('sandbox', () => {
 
       const { result, errMsg } = JSON.parse(res.content)
 
-      should(result).be.True('expected module "module-with-type-module" to not be required normally')
-      should(errMsg).containEql('require() of ES Module')
-      should(errMsg).containEql('not supported')
+      if (requireESMSupported && !isolate) {
+        should(result).be.False('expected module "module-with-type-module" to be required normally')
+        should(errMsg).not.be.ok()
+      } else {
+        should(result).be.True('expected module "module-with-type-module" to not be required normally')
+        should(errMsg).containEql('require() of ES Module')
+        should(errMsg).containEql('not supported')
+      }
     })
 
     it('module that uses .json file should work', async () => {
