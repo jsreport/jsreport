@@ -1,7 +1,7 @@
 import should from 'should'
 import { actions } from '../../../../src/redux/editor'
 import * as entities from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from './../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('editor.actions.closeTab', ({ store, api, history }) => {
   itAsync('should remove tab from collection and unload', async () => {

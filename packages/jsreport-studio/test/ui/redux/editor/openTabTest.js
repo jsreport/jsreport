@@ -1,8 +1,8 @@
 import 'should'
 import { actions } from '../../../../src/redux/editor'
-import resolveUrl from '../../../../src/helpers/resolveUrl.js'
+import resolveUrl from '../../../../src/helpers/resolveUrl'
 import { ActionTypes as EntitiesActionTypes } from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from './../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('editor.actions.openTab', ({ store, api, history }) => {
   itAsync('should add custom tabs collection and activate it', async () => {

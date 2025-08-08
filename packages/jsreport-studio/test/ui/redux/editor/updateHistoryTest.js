@@ -1,7 +1,7 @@
 import 'should'
 import { actions } from '../../../../src/redux/editor'
-import resolveUrl from '../../../../src/helpers/resolveUrl.js'
-import { describeAsyncStore, itAsync } from './../asyncStore.js'
+import resolveUrl from '../../../../src/helpers/resolveUrl'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('editor.actions.updateHistory', ({ store, api, history }) => {
   itAsync('should push to history routes based on active entity', async () => {

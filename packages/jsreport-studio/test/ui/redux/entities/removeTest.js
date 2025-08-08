@@ -1,6 +1,6 @@
 import 'should'
 import { actions, ActionTypes } from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from '../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('entities.actions.remove', async ({ store, api, history }) => {
   itAsync('should delete to API and remove entity from state', async () => {

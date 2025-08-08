@@ -1,6 +1,6 @@
 import 'should'
 import { actions, ActionTypes } from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from '../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
   itAsync('should request API and update state with entity', async () => {

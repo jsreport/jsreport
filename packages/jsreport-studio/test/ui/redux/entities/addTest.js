@@ -1,6 +1,6 @@
 import 'should'
 import { actions } from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from '../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('entities.actions.add', async ({ store, api, history }) => {
   itAsync('should include entity in state and set __isNew, __isDirty, __name metadata', async () => {

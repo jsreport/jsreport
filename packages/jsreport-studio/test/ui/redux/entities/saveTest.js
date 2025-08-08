@@ -1,6 +1,6 @@
 import 'should'
 import { actions, ActionTypes } from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from '../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
   itAsync('should patch to API if entity not __isNew and clear __isDirty', async () => {

@@ -1,6 +1,6 @@
 import should from 'should'
 import { actions } from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from '../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('entities.actions.unload', async ({ store, api, history }) => {
   itAsync('should false __isLoaded', async () => {

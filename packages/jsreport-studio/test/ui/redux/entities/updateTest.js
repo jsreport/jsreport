@@ -1,6 +1,6 @@
 import 'should'
 import { actions } from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from '../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('entities.actions.update', async ({ store, api, history }) => {
   itAsync('should update internal state and set __isDirty', async () => {

@@ -39,7 +39,7 @@
     "start": "npm run check-build-eslint-browser && npm run check-build-babel-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
     "test": "npm run ui-test && npm run server-test && standard",
     "test:watch": "npm test -- --watch",
-    "ui-test": "mocha test/ui/.setup.js test/ui --recursive --exit --require @babel/register --require mocha-clean --require ignore-styles"
+    "ui-test": "mocha test/ui --recursive --exit --require mocha-clean --require ignore-styles --require test/ui/.setup.js"
   },
   "dependencies": {
     "@jsreport/multipart": "1.0.0",

@@ -3,7 +3,7 @@ import { createStore, applyMiddleware } from 'redux'
 import createReducer from '../../../src/redux/reducer'
 import thunk from 'redux-thunk'
 import _assign from 'lodash/assign'
-import { stub as api } from '../../../src/helpers/api.js'
+import { stub as api } from '../../../src/helpers/api'
 import Invariant from 'redux-immutable-state-invariant'
 import { values as configuration } from '../../../src/lib/configuration'
 

@@ -1,6 +1,6 @@
 import should from 'should'
 import { actions } from '../../../../src/redux/entities'
-import { describeAsyncStore, itAsync } from '../asyncStore.js'
+import { describeAsyncStore, itAsync } from '../asyncStore'
 
 describeAsyncStore('entities.actions.loadReference', ({ store, api, history }) => {
   itAsync('should hash results by _id into the state', async () => {
