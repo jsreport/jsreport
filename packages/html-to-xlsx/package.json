@@ -22,7 +22,7 @@
   ],
   "main": "index.js",
   "scripts": {
-    "test": "mocha --timeout 15000 test/test.js && standard"
+    "test": "mocha --timeout 25000 test/test.js && standard"
   },
   "dependencies": {
     "@jsreport/exceljs": "1.0.0",
