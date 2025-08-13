@@ -2,6 +2,7 @@ const sharp = require('sharp')
 const zlib = require('zlib')
 const PDF = require('../object')
 const { getObjectsRecursive } = require('../parser/parser')
+const drawingCommands = [' Tj', ' TJ', '\nS\n', '\ns\n', '\nf\n', '\nF\n', '\nf*\n', '\nB\n', '\nB*\n', '\nb\n', '\nb*\n', ' Do', ' sh']
 
 module.exports = (doc) => {
   /*
@@ -14,25 +15,30 @@ module.exports = (doc) => {
   */
   doc.compress = (options = {}) => {
     doc.finalizers.push(async () => {
-      await Promise.all(doc.pages.map(async page => {
+      const processedXObjects = new Map()
+
+      for (const page of doc.pages) {
         if (options.removeAccessibility !== false) {
           page.properties.del('StructParents')
         }
-        await processContentStream(page.properties.get('Contents').object, options)
 
+        const xobjectNamesToDelete = []
         const xobjects = page.properties.get('Resources').get('XObject')
 
         if (xobjects) {
-          const xobjectNamesToDelete = []
           for (const xobjectName in xobjects.dictionary) {
-            await processXObject(xobjects.get(xobjectName).object, xobjectName, xobjectNamesToDelete, options)
+            await processXObject(xobjects.get(xobjectName).object, xobjectName, xobjectNamesToDelete, processedXObjects, options)
           }
 
           for (const xobjectName of xobjectNamesToDelete) {
             xobjects.del(xobjectName)
           }
         }
-      }))
+
+        if (!Array.isArray(page.properties.get('Contents'))) {
+          await processContentStream(page.properties.get('Contents').object, xobjectNamesToDelete, options)
+        }
+      }
 
       if (options.recompressStreams !== false) {
         await recompressStreams(doc)
@@ -49,27 +55,36 @@ module.exports = (doc) => {
   }
 }
 
-async function processXObject (xobj, name, xobjectNamesToDelete, options = {}) {
+async function processXObject (xobj, name, xobjectNamesToDelete, processedXObjects, options = {}) {
+  if (processedXObjects.has(xobj.content)) {
+    return
+  }
+
+  processedXObjects.set(xobj.content, true)
+
   if (options.removeEffects !== false) {
     const group = xobj.properties.get('Group')
 
     if (group && group.get('S')?.name === 'Transparency' && group.get('I') === true) {
-      xobjectNamesToDelete.push(name)
-    }
+      const str = xobj.content.getDecompressedString()
 
-    if (xobj.properties.get('Subtype')?.name === 'Form') {
-      processContentStream(xobj, options)
+      if (!drawingCommands.some(cmd => str.includes(cmd))) {
+        xobjectNamesToDelete.push(name)
+      }
     }
 
     const xobjects = xobj.properties.get('Resources')?.get('XObject')
     if (xobjects) {
-      const xobjectNamesToDelete = []
       for (const xobjectName in xobjects.dictionary) {
-        await processXObject(xobjects.get(xobjectName).object, xobjectName, xobjectNamesToDelete, options)
+        await processXObject(xobjects.get(xobjectName).object, xobjectName, xobjectNamesToDelete, processedXObjects, options)
       }
       for (const xobjectName of xobjectNamesToDelete) {
         xobjects.del(xobjectName)
       }
+    }
+
+    if (xobj.properties.get('Subtype')?.name === 'Form' && !xobjectNamesToDelete.includes(name)) {
+      processContentStream(xobj, xobjectNamesToDelete, options)
     }
   }
 
@@ -127,12 +142,13 @@ async function recompressStreams (doc) {
   }))
 }
 
-async function processContentStream (streamObject, options) {
+async function processContentStream (streamObject, xobjectNamesToDelete, options) {
   if (options.trimNumbers === false && options.removeAccessibility === false) {
     return
   }
 
-  const contentStr = zlib.unzipSync(streamObject.content.content).toString('utf8')
+  const contentStr = streamObject.content.getDecompressedString()
+
   const lines = contentStr.split('\n')
   const filteredLines = []
 
@@ -149,14 +165,15 @@ async function processContentStream (streamObject, options) {
       processedLine = trimNumbersInContentStream(processedLine)
     }
 
+    if (processedLine.includes('Do') && xobjectNamesToDelete.some(name => processedLine.includes(name))) {
+      continue
+    }
+
     filteredLines.push(processedLine)
   }
 
   const newContentBuf = Buffer.from(filteredLines.join('\n'), 'utf8')
-  const compressedContent = zlib.deflateSync(newContentBuf, { level: zlib.constants.Z_BEST_COMPRESSION })
-
-  streamObject.content.content = compressedContent
-  streamObject.prop('Length', compressedContent.length)
+  streamObject.content.setAndCompress(newContentBuf)
 }
 
 const roundableCommands = ['cm', 're', 'm', 'l', ' Tm', 'Td']

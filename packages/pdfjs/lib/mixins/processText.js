@@ -47,17 +47,7 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
     return
   }
 
-  const filterProp = streamObject.object.properties.get('Filter')
-  let lines = null
-
-  if (filterProp && filterProp.name === 'FlateDecode') {
-    lines = zlib.unzipSync(streamObject.content).toString('latin1').split('\n')
-  }
-
-  if (!filterProp) {
-    lines = Buffer.from(streamObject.content).toString('latin1').split('\n')
-  }
-
+  const lines = streamObject.getDecompressedString()?.split('\n')
   if (lines == null) {
     return
   }
@@ -231,8 +221,7 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
 
   const filteredLines = lines.filter((l, i) => removeLines.find(ri => ri === i) == null)
 
-  streamObject.content = zlib.deflateSync(Buffer.from(filteredLines.join('\n'), 'latin1'))
-  streamObject.object.prop('Length', streamObject.content.length)
+  streamObject.setAndCompress(Buffer.from(filteredLines.join('\n'), 'latin1'))
 }
 
 async function createCMap (stream) {
@@ -304,16 +293,11 @@ function concatStreams (streams) {
   for (const content of streams) {
     const pageStreamObject = content.object?.content?.object
     if (pageStreamObject) {
-      const filterProp = pageStreamObject.properties.get('Filter')
-      if (filterProp && filterProp.name === 'FlateDecode') {
-        buffers.push(zlib.unzipSync(pageStreamObject.content.content))
-      }
+      buffers.push(pageStreamObject.content.getDecompressed())
     }
   }
   const contentsObject = new PDF.Object('Contents')
   const streamObject = new PDF.Stream(contentsObject)
-  streamObject.content = zlib.deflateSync(Buffer.concat(buffers))
-  contentsObject.prop('Length', streamObject.content.length)
-  contentsObject.prop('Filter', 'FlateDecode')
+  streamObject.setAndCompress(Buffer.concat(buffers))
   return streamObject
 }

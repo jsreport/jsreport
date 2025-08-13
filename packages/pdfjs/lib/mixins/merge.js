@@ -56,11 +56,11 @@ function mergePage (docPage, page, mergeToFront, doc, ext) {
   let content = ''
   if (Array.isArray(page.properties.get('Contents'))) {
     for (const contentRef of page.properties.get('Contents')) {
-      content += zlib.unzipSync(contentRef.object.content.content).toString('latin1')
+      content += contentRef.object.content.getDecompressedString() + '\n'
     }
   } else {
     if (page.properties.get('Contents').object.properties.get('Length') !== 0) {
-      content = zlib.unzipSync(page.properties.get('Contents').object.content.content).toString('latin1')
+      content = page.properties.get('Contents').object.content.getDecompressedString()
     }
   }
 

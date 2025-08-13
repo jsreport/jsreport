@@ -55,6 +55,13 @@ module.exports = class PDFStream {
     }
     return this.content
   }
+
+  getDecompressedString () {
+    if (this.object.properties.get('Filter')?.toString() === '/FlateDecode') {
+      return zlib.unzipSync(this.content).toString('latin1')
+    }
+    return uint8ToString(this.content)
+  }
 }
 
 // source: http://stackoverflow.com/questions/12710001/how-to-convert-uint8-array-to-base64-encoded-string/12713326#12713326

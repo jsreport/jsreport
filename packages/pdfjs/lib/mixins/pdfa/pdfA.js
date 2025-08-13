@@ -130,8 +130,8 @@ function processSMask (xobj) {
   smaskObject.prop('BitsPerComponent', 1)
   smaskObject.properties.del('ColorSpace')
 
-  const smaskBuf = zlib.unzipSync(smaskObject.content.content)
-  const contentBuf = zlib.unzipSync(xobj.content.content)
+  const smaskBuf = smaskObject.content.getDecompressed()
+  const contentBuf = xobj.content.getDecompressed()
 
   const maskBytes = []
   let maskInex = 0

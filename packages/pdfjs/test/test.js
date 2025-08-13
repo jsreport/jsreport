@@ -217,6 +217,20 @@ describe('pdfjs', () => {
     require('fs').writeFileSync('out.pdf', pdfBuffer)
   })
 
+  it('merge should merge not flatedecoded pages', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.append(external)
+    const external2 = new External(fs.readFileSync(path.join(__dirname, 'not-flatedecoded-watermark.pdf')))
+    document.merge(external2)
+    const pdfBuffer = await document.asBuffer()
+    const { texts } = await validate(pdfBuffer)
+    texts.should.have.length(1)
+    texts[0].should.containEql('main')
+    texts[0].should.containEql('SALES')
+    require('fs').writeFileSync('out.pdf', pdfBuffer)
+  })
+
   it('merge should merge to specific page when specified', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, '3pages.pdf')))
@@ -1200,5 +1214,18 @@ describe('pdfjs', () => {
 
     // removeAccessibility
     pageObject.properties.has('StructParents').should.be.false()
+  })
+
+  it('compress not fladecoded content should work and not removed used effect', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'not-flatedecoded-watermark.pdf')))
+    document.append(external)
+    document.compress({
+      quality: 100
+    })
+    const pdfBuffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdfBuffer)
+    const { texts } = await validate(pdfBuffer)
+    texts[0].should.containEql('SALES')
   })
 })
