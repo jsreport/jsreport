@@ -130,6 +130,10 @@ main()
 
 ## Changelog
 
+### 1.0.2
+
+- fix rowspan/colspan based layout not working
+
 ### 1.0.1
 - fix regression in table borders for specific colspan layout
 - fix xlsx viewer clipping content. generate empty cell (no child `<v>`) if cell does not have value

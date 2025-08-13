@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.5.1
+
+- `xlsxCType` helper normalize input "s" type to internal "inlineStr"
+
 ### 4.5.0
 
 - update deps to fix audit

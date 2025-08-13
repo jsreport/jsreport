@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-cli",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "Command line interface for jsreport",
   "keywords": [
     "jsreport",
@@ -72,7 +72,7 @@
   "devDependencies": {
     "@jsreport/jsreport-authentication": "4.2.3",
     "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-express": "4.2.2",
+    "@jsreport/jsreport-express": "4.2.3",
     "@jsreport/jsreport-fs-store": "4.1.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "cross-env": "7.0.3",

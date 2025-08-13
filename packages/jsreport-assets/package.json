@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-express": "4.2.2",
+    "@jsreport/jsreport-express": "4.2.3",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/jsreport-scripts": "4.2.0",

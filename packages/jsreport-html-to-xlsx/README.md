@@ -7,6 +7,15 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.2.4
+
+- fix rowspan/colspan based layout not working
+
+### 4.2.3
+
+- fix regression in table borders for specific colspan layout
+- fix xlsx viewer clipping content. generate empty cell (no child <v>) if cell does not have value
+
 ### 4.2.2
 
 - update `@jsreport/office` to fix audit
