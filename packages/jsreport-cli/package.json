@@ -53,7 +53,7 @@
     "@jsreport/nodejs-client": "4.0.5",
     "chalk": "2.4.2",
     "cliui": "7.0.4",
-    "inquirer": "8.2.0",
+    "inquirer": "8.2.7",
     "ip-address": "5.8.9",
     "is-absolute-url": "2.1.0",
     "is-promise": "2.1.0",
