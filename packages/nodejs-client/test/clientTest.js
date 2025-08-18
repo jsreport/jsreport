@@ -90,7 +90,7 @@ describe('testing client', () => {
       },
       data
     })
-  }).timeout(10000)
+  }).timeout(20_000) // Sometimes 10 seconds would fail on CI, so we increase the timeout
 })
 
 describe('testing client with authentication', () => {

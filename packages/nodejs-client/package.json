@@ -20,9 +20,7 @@
     "test": "mocha --timeout=10000 --reporter spec test && standard"
   },
   "dependencies": {
-    "axios": "1.9.0",
-    "concat-stream": "2.0.0",
-    "mimic-response": "2.1.0"
+    "concat-stream": "2.0.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "4.2.3",
@@ -38,6 +36,7 @@
   },
   "licence": "MIT",
   "standard": {
+    "globals": ["fetch", "AbortController"],
     "env": {
       "node": true,
       "mocha": true
