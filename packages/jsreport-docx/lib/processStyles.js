@@ -1,6 +1,5 @@
 const { DOMParser } = require('@xmldom/xmldom')
-const { nodeListToArray } = require('./utils')
-const { findCommonParent } = require('./styleUtils')
+const { nodeListToArray, findCommonParent } = require('./utils')
 
 module.exports = function processStyles (stylesMap, xmlStr) {
   const doc = new DOMParser().parseFromString(`<docxXml>${xmlStr}</docxXml>`)

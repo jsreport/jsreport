@@ -348,6 +348,34 @@ function findChildNode (nodeNameOrFn, targetNode, allNodes = false) {
   return allNodes ? result : result[0]
 }
 
+function findCommonParent (el, parentsHierarchy = []) {
+  if (el == null || parentsHierarchy.length === 0) {
+    return el
+  }
+
+  const validParents = [...parentsHierarchy]
+  let parentEl = el
+  let lastMatchEl = parentEl
+
+  while (parentEl.parentNode != null) {
+    const expectedTag = validParents[0]
+    const currentTag = parentEl.parentNode.tagName
+
+    parentEl = parentEl.parentNode
+
+    if (currentTag === expectedTag) {
+      lastMatchEl = parentEl
+      validParents.shift()
+    }
+
+    if (validParents.length === 0) {
+      break
+    }
+  }
+
+  return lastMatchEl
+}
+
 function createNode (doc, name, opts = {}) {
   const attributes = opts.attributes || {}
   const properties = opts.properties || {}
@@ -783,6 +811,7 @@ module.exports.getClosestEl = getClosestEl
 module.exports.clearEl = clearEl
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
+module.exports.findCommonParent = findCommonParent
 module.exports.createNode = createNode
 module.exports.nodeListToArray = nodeListToArray
 module.exports.decodeURIComponentRecursive = decodeURIComponentRecursive

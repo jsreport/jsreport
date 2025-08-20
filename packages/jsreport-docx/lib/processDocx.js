@@ -158,6 +158,11 @@ module.exports = async (reporter, inputs, req) => {
       return processStyles(...args)
     }
 
+    sharedData.processRemove = function processRemove (...args) {
+      const processRemove = require('./processRemove')
+      return processRemove(...args)
+    }
+
     sharedData.processContentTypes = function processContentTypes (...args) {
       const processContentTypes = require('./processContentTypes')
       return processContentTypes(...args)

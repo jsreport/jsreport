@@ -777,6 +777,41 @@ function docxStyle (options) {
   return new Handlebars.SafeString(`$docxStyleStart${styleId}$`)
 }
 
+function docxRemove (options) {
+  const Handlebars = require('handlebars')
+
+  if (options.data.remove == null) {
+    throw new Error('docxRemove helper remove data not found')
+  }
+
+  const removeData = options.data.remove
+  const value = options.hash.v ?? true
+  const target = options.hash.t ?? 'paragraph'
+
+  if (typeof value !== 'boolean') {
+    throw new Error('docxRemove helper parameter v must be a boolean')
+  }
+
+  if (typeof target !== 'string') {
+    throw new Error('docxRemove helper parameter t must be a string')
+  }
+
+  const validTargets = ['paragraph', 'row', 'table']
+
+  if (!validTargets.includes(target)) {
+    throw new Error(`docxRemove helper parameter t has invalid value "${target}", it must be one of these values: ${validTargets.map((t) => `"${t}"`).join(', ')}`)
+  }
+
+  const id = removeData.size + 1
+
+  removeData.set(id, {
+    value,
+    target
+  })
+
+  return new Handlebars.SafeString(`<!--__docxRemove${id}__-->`)
+}
+
 function docxCheckbox (options) {
   const Handlebars = require('handlebars')
 
@@ -1497,6 +1532,24 @@ async function docxSData (data, options) {
     const processStyles = jsreport.req.context.__docxSharedData.processStyles
 
     result = processStyles(newData.styles, result)
+
+    return result
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'remove'
+  ) {
+    const jsreport = require('jsreport-proxy')
+    const newData = Handlebars.createFrame(optionsToUse.data)
+
+    newData.remove = new Map()
+
+    let result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
+
+    const processRemove = jsreport.req.context.__docxSharedData.processRemove
+
+    result = processRemove(newData.remove, result)
 
     return result
   }
