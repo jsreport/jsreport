@@ -26,6 +26,8 @@
   },
   "dependencies": {
     "@jsreport/exceljs": "1.0.1",
+    "escape-string-regexp": "4.0.0",
+    "excel-formula-tokenizer": "3.0.0",
     "moment": "2.29.4",
     "tinycolor2": "1.4.2",
     "transform-parser": "1.0.1",

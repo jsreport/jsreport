@@ -1,0 +1,197 @@
+
+// a future function is a function that is not available in the original Excel 2007 version specification,
+// these functions need to be defined in xml using a prefix to retain backward compatibility with older versions of Excel.
+
+// as a reference here is a list of the excel functions and the year they were introduced:
+// https://support.microsoft.com/en-us/office/excel-functions-alphabetical-b3944572-255d-4efb-bb96-c6d90033e188
+
+// list taken from:
+// https://learn.microsoft.com/en-us/openspecs/office_standards/ms-xlsx/5d1b6d44-6fc1-4ecd-8fef-0b27406cc2bf
+// generated selecting tbody and using this code in browser devtools
+// Array.from($0.querySelectorAll('td')).map((n) => n.innerText).join('\n')
+const futureFunctions = [
+  '_xlfn._xlws.FILTER',
+  '_xlfn._xlws.PY',
+  '_xlfn._xlws.SORT',
+  '_xlfn.ACOT',
+  '_xlfn.ACOTH',
+  '_xlfn.AGGREGATE',
+  '_xlfn.ARABIC',
+  '_xlfn.BASE',
+  '_xlfn.BETA.DIST',
+  '_xlfn.BETA.INV',
+  '_xlfn.BINOM.DIST',
+  '_xlfn.BINOM.DIST.RANGE',
+  '_xlfn.BINOM.INV',
+  '_xlfn.BITAND',
+  '_xlfn.BITLSHIFT',
+  '_xlfn.BITOR',
+  '_xlfn.BITRSHIFT',
+  '_xlfn.BITXOR',
+  '_xlfn.BYCOL',
+  '_xlfn.BYROW',
+  '_xlfn.CEILING.MATH',
+  '_xlfn.CEILING.PRECISE',
+  '_xlfn.CHISQ.DIST',
+  '_xlfn.CHISQ.DIST.RT',
+  '_xlfn.CHISQ.INV',
+  '_xlfn.CHISQ.INV.RT',
+  '_xlfn.CHISQ.TEST',
+  '_xlfn.CHOOSECOLS',
+  '_xlfn.CHOOSEROWS',
+  '_xlfn.COMBINA',
+  '_xlfn.CONCAT',
+  '_xlfn.CONFIDENCE.NORM',
+  '_xlfn.CONFIDENCE.T',
+  '_xlfn.COT',
+  '_xlfn.COTH',
+  '_xlfn.COVARIANCE.P',
+  '_xlfn.COVARIANCE.S',
+  '_xlfn.CSC',
+  '_xlfn.CSCH',
+  '_xlfn.DAYS',
+  '_xlfn.DECIMAL',
+  '_xlfn.DROP',
+  'ECMA.CEILING',
+  '_xlfn.ERF.PRECISE',
+  '_xlfn.ERFC.PRECISE',
+  '_xlfn.EXPAND',
+  '_xlfn.EXPON.DIST',
+  '_xlfn.F.DIST',
+  '_xlfn.F.DIST.RT',
+  '_xlfn.F.INV',
+  '_xlfn.F.INV.RT',
+  '_xlfn.F.TEST',
+  '_xlfn.FIELDVALUE',
+  '_xlfn.FILTERXML',
+  '_xlfn.FLOOR.MATH',
+  '_xlfn.FLOOR.PRECISE',
+  '_xlfn.FORECAST.ETS',
+  '_xlfn.FORECAST.ETS.CONFINT',
+  '_xlfn.FORECAST.ETS.SEASONALITY',
+  '_xlfn.FORECAST.ETS.STAT',
+  '_xlfn.FORECAST.LINEAR',
+  '_xlfn.FORMULATEXT',
+  '_xlfn.GAMMA',
+  '_xlfn.GAMMA.DIST',
+  '_xlfn.GAMMA.INV',
+  '_xlfn.GAMMALN.PRECISE',
+  '_xlfn.GAUSS',
+  '_xlfn.HSTACK',
+  '_xlfn.HYPGEOM.DIST',
+  '_xlfn.IFNA',
+  '_xlfn.IFS',
+  '_xlfn.IMCOSH',
+  '_xlfn.IMCOT',
+  '_xlfn.IMCSC',
+  '_xlfn.IMCSCH',
+  '_xlfn.IMSEC',
+  '_xlfn.IMSECH',
+  '_xlfn.IMSINH',
+  '_xlfn.IMTAN',
+  '_xlfn.ISFORMULA',
+  'ISO.CEILING',
+  '_xlfn.ISOMITTED',
+  '_xlfn.ISOWEEKNUM',
+  '_xlfn.LAMBDA',
+  '_xlfn.LET',
+  '_xlfn.LOGNORM.DIST',
+  '_xlfn.LOGNORM.INV',
+  '_xlfn.MAKEARRAY',
+  '_xlfn.MAP',
+  '_xlfn.MAXIFS',
+  '_xlfn.MINIFS',
+  '_xlfn.MODE.MULT',
+  '_xlfn.MODE.SNGL',
+  '_xlfn.MUNIT',
+  '_xlfn.NEGBINOM.DIST',
+  'NETWORKDAYS.INTL',
+  '_xlfn.NORM.DIST',
+  '_xlfn.NORM.INV',
+  '_xlfn.NORM.S.DIST',
+  '_xlfn.NORM.S.INV',
+  '_xlfn.NUMBERVALUE',
+  '_xlfn.PDURATION',
+  '_xlfn.PERCENTILE.EXC',
+  '_xlfn.PERCENTILE.INC',
+  '_xlfn.PERCENTRANK.EXC',
+  '_xlfn.PERCENTRANK.INC',
+  '_xlfn.PERMUTATIONA',
+  '_xlfn.PHI',
+  '_xlfn.POISSON.DIST',
+  '_xlfn.PQSOURCE',
+  '_xlfn.PYTHON_STR',
+  '_xlfn.PYTHON_TYPE',
+  '_xlfn.PYTHON_TYPENAME',
+  '_xlfn.QUARTILE.EXC',
+  '_xlfn.QUARTILE.INC',
+  '_xlfn.QUERYSTRING',
+  '_xlfn.RANDARRAY',
+  '_xlfn.RANK.AVG',
+  '_xlfn.RANK.EQ',
+  '_xlfn.REDUCE',
+  '_xlfn.RRI',
+  '_xlfn.SCAN',
+  '_xlfn.SEC',
+  '_xlfn.SECH',
+  '_xlfn.SEQUENCE',
+  '_xlfn.SHEET',
+  '_xlfn.SHEETS',
+  '_xlfn.SKEW.P',
+  '_xlfn.SORTBY',
+  '_xlfn.STDEV.P',
+  '_xlfn.STDEV.S',
+  '_xlfn.SWITCH',
+  '_xlfn.T.DIST',
+  '_xlfn.T.DIST.2T',
+  '_xlfn.T.DIST.RT',
+  '_xlfn.T.INV',
+  '_xlfn.T.INV.2T',
+  '_xlfn.T.TEST',
+  '_xlfn.TAKE',
+  '_xlfn.TEXTAFTER',
+  '_xlfn.TEXTBEFORE',
+  '_xlfn.TEXTJOIN',
+  '_xlfn.TEXTSPLIT',
+  '_xlfn.TOCOL',
+  '_xlfn.TOROW',
+  '_xlfn.UNICHAR',
+  '_xlfn.UNICODE',
+  '_xlfn.UNIQUE',
+  '_xlfn.VAR.P',
+  '_xlfn.VAR.S',
+  '_xlfn.VSTACK',
+  '_xlfn.WEBSERVICE',
+  '_xlfn.WEIBULL.DIST',
+  'WORKDAY.INTL',
+  '_xlfn.WRAPCOLS',
+  '_xlfn.WRAPROWS',
+  '_xlfn.XLOOKUP',
+  '_xlfn.XOR',
+  '_xlfn.Z.TEST'
+]
+
+const fullFutureFunctionsEntries = []
+
+for (const futureFunction of futureFunctions) {
+  const prefixParts = []
+  const nameParts = []
+  const parts = futureFunction.split('.')
+
+  for (const part of parts) {
+    if (!part.startsWith('_')) {
+      nameParts.push(part)
+    } else {
+      prefixParts.push(part)
+    }
+  }
+
+  const prefix = prefixParts.join('.')
+  const name = nameParts.join('.')
+
+  fullFutureFunctionsEntries.push([name, prefix])
+  // ensure functions in lowercase works too
+  fullFutureFunctionsEntries.push([name.toLowerCase(), prefix])
+}
+
+module.exports = new Map(fullFutureFunctionsEntries)

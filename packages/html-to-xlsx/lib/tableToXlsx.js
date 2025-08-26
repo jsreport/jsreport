@@ -2,6 +2,9 @@ const path = require('path')
 const fs = require('fs')
 const moment = require('moment')
 const ExcelJS = require('@jsreport/exceljs')
+const { tokenize } = require('excel-formula-tokenizer')
+const escapeStringRegexp = require('escape-string-regexp')
+const futureFunctionsMap = require('./futureFunctions')
 const stylesMap = require('./stylesMap')
 const styleNames = Object.entries(stylesMap)
 const utils = require('./utils')
@@ -230,7 +233,7 @@ function addRow (sheet, row, context) {
       cell.numFmt = 'yyyy-mm-dd h:mm:ss'
     } else if (cellInfo.type === 'formula') {
       cell.value = {
-        formula: cellInfo.valueText
+        formula: prefixIfFutureFunction(cellInfo.valueText)
       }
     } else {
       cell.value = cellInfo.valueText !== '' ? cellInfo.valueText : null
@@ -617,6 +620,65 @@ function setStyles (cell, styles) {
 
     cell[styleName] = styleValue
   }
+}
+
+function prefixIfFutureFunction (formulaStr) {
+  // in the future, if we need to work with ast like structure for formula, check:
+  // https://github.com/psalaets/excel-formula-ast
+  // if at some point in the future we need to detect if formula contain usage of array formulas
+  // then check the following information as theory:
+  // - https://support.microsoft.com/en-us/office/guidelines-and-examples-of-array-formulas-7d94a64e-3ff3-4686-9372-ecfd5caa57c7#:~:text=Array%20formula%20syntax,Enter%20to%20enter%20your%20formula.
+  // - https://support.microsoft.com/en-us/office/excel-functions-that-return-ranges-or-arrays-7d1970e2-cbaa-4279-b59c-b9dd3900fc69
+  // - https://support.microsoft.com/en-us/office/dynamic-array-formulas-and-spilled-array-behavior-205c6b06-03ba-4151-89a1-87a7eb36e531
+  // - https://hyperformula.handsontable.com/guide/arrays.html#about-arrays
+  const tokens = tokenize(formulaStr)
+
+  const itemsToReplace = []
+
+  for (const token of tokens) {
+    if (token.type === 'function' && token.subtype === 'start') {
+      // function detected
+      const prefix = futureFunctionsMap.get(token.value)
+
+      if (prefix) {
+        itemsToReplace.push({
+          target: token.value,
+          prefix
+        })
+      }
+    }
+  }
+
+  let newFormulaStr = formulaStr
+  let formulaStrOffset = 0
+
+  while (itemsToReplace.length > 0) {
+    const itemToReplace = itemsToReplace[0]
+    const targetStr = newFormulaStr.slice(formulaStrOffset)
+
+    newFormulaStr = newFormulaStr.slice(0, formulaStrOffset) + targetStr.replace(
+      new RegExp(`.?${escapeStringRegexp(itemToReplace.target)}\\(`),
+      function (match, offset) {
+        const haveLeadingCharacter = (itemToReplace.target.length + 1) !== match.length
+
+        formulaStrOffset += offset + match.length
+
+        if (haveLeadingCharacter && match[0] === '.') {
+          // no update for calls that have a ".", this prevents prefixing a fn
+          // that was already prefixed by the user in the input
+          return match
+        }
+
+        itemsToReplace.shift()
+        const prefix = `${itemToReplace.prefix}.`
+        formulaStrOffset += prefix.length
+
+        return `${haveLeadingCharacter ? match[0] : ''}${prefix}${haveLeadingCharacter ? match.slice(1) : match}`
+      }
+    )
+  }
+
+  return newFormulaStr
 }
 
 module.exports = tableToXlsx

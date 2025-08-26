@@ -9267,6 +9267,11 @@ evp_bytestokey@^1.0.0, evp_bytestokey@^1.0.3:
     md5.js "^1.3.4"
     safe-buffer "^5.1.1"
 
+excel-formula-tokenizer@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/excel-formula-tokenizer/-/excel-formula-tokenizer-3.0.0.tgz#35ed25418aaac4a64f0ec3c9e32aa442a233113a"
+  integrity sha512-nAye/kpycUUX4+K5Mgu2J1hJ/gsrqvE7e7QRJkx4pSvvSHt4DWSxtR8T/z8+Q1yzc1Td/mab2TlPsN0c36JwVw==
+
 execa@1.0.0, execa@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-1.0.0.tgz#c6236a5bb4df6d6f15e88e7f017798216749ddd8"

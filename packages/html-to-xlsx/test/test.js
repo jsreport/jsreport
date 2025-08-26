@@ -2,6 +2,7 @@ const should = require('should')
 const util = require('util')
 const path = require('path')
 const fs = require('fs')
+const { buffer: streamToBuffer } = require('node:stream/consumers')
 const { v4: uuidv4 } = require('uuid')
 const xlsx = require('xlsx')
 const { parseCell, num2col } = require('xlsx-coordinates')
@@ -5645,6 +5646,31 @@ describe('html to xlsx conversion with strategy', () => {
 
       parsedXlsx.Sheets.Data2.A1.v.should.be.eql('foo3')
       parsedXlsx.Sheets.Data2.B1.v.should.be.eql('bar3')
+    })
+
+    it('should work with future function', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td data-cell-type="formula">=if("test"="test", 1)</td>
+            <td data-cell-type="formula">=ifs("test"="not", 1, "test"="test", 2)</td>
+          </tr>
+        </table>
+      `)
+
+      const outputBuf = await streamToBuffer(stream)
+
+      const [sheetDoc] = await getDocumentsFromXlsxBuf(outputBuf, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+      const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
+
+      should(cellEls.length).be.eql(2)
+
+      const cellA1El = cellEls.find((c) => c.getAttribute('r') === 'A1')
+      should(cellA1El.getElementsByTagName('f')[0].textContent).be.eql('=if("test"="test", 1)')
+
+      const cellB1El = cellEls.find((c) => c.getAttribute('r') === 'B1')
+      should(cellB1El.getElementsByTagName('f')[0].textContent).be.eql('=_xlfn.ifs("test"="not", 1, "test"="test", 2)')
     })
   }
 })
