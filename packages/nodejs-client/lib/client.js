@@ -6,11 +6,8 @@
  */
 
 const path = require('path')
-const https = require('https')
-const axios = require('axios')
 const concat = require('concat-stream')
-const mimicResponse = require('mimic-response')
-const { PassThrough } = require('stream')
+const { PassThrough, Readable } = require('stream')
 
 class Client {
   constructor (url, username, password) {
@@ -20,95 +17,94 @@ class Client {
   }
 
   /**
-   * Render report in remote server and return response
-   * @returns object containing header property with response headers and body property with response body
-   */
+     * Render report in remote server and return response
+     * @returns object containing header property with response headers and body property with response body
+     */
   async render (req, options = {}) {
     const rootUrl = this.url
     const username = this.username
     const password = this.password
 
     const baseUrl = new URL(rootUrl)
+    const urlToFetch = new URL(path.posix.join(baseUrl.pathname, 'api/report'), baseUrl).toString()
 
-    const optionsToUse = Object.assign({
-      method: 'post',
-      url: new URL(path.posix.join(baseUrl.pathname, 'api/report'), baseUrl).toString(),
-      data: JSON.stringify(req),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      httpsAgent: new https.Agent({ rejectUnauthorized: false }),
-      responseType: 'stream',
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity
-    }, options)
+    const headers = Object.assign({
+      'Content-Type': 'application/json'
+    }, options.headers)
 
-    if (username) {
-      optionsToUse.auth = {
-        username,
-        password
-      }
+    if (username && !headers.Authorization) {
+      headers.Authorization = 'Basic ' + Buffer.from(`${username}:${password || ''}`).toString('base64')
     }
 
-    let response
+    const controller = new AbortController()
+    const { timeout } = options
+    let timeoutId
+    if (typeof timeout === 'number') {
+      timeoutId = setTimeout(() => controller.abort(), timeout)
+    }
+
+    let res
 
     try {
-      response = await axios(optionsToUse)
+      res = await fetch(urlToFetch, {
+        method: (options.method || 'post').toUpperCase(), headers, body: JSON.stringify(req), signal: controller.signal
+      })
     } catch (err) {
-      if (err.response) {
-        response = err.response
-      } else {
-        const error = new Error('Error while executing request to remote server')
-        const errorProps = { ...err }
+      if (timeoutId) clearTimeout(timeoutId)
 
-        Object.assign(error, errorProps)
+      const error = new Error('Error while executing request to remote server')
+      const errorProps = { ...err }
 
-        if (error.response) {
-          error.response.statusCode = error.response.status
-        }
+      Object.assign(error, errorProps)
 
-        addStack(error, err.stack, {
-          stackPrefix: 'Request Error stack: '
-        })
+      addStack(error, err.stack, {
+        stackPrefix: 'Request Error stack: '
+      })
 
-        error.message = `${error.message}. ${err.message}`
+      error.message = `${error.message}. ${err.message}`
 
-        throw error
-      }
+      throw error
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId)
     }
 
-    const responseStream = response.data
+    // axios used to reject on non-2xx; here we emulate the old behavior (specifically 200 OK)
+    if (res.status !== 200) {
+      let bodyText = ''
+      try {
+        bodyText = await res.text()
+      } catch (e) {
+        // ignore body read errors
+      }
 
-    let bodyData
-
-    response.statusCode = response.status
-
-    if (response.status !== 200) {
-      bodyData = await responseToBuffer(responseStream)
       let error
 
       try {
-        const errorMessage = JSON.parse(bodyData.toString())
+        const errorMessage = JSON.parse(bodyText)
         error = new Error(errorMessage.message)
 
         addStack(error, errorMessage.stack, {
-          stripMessage: true,
-          stackPrefix: 'Remote stack: '
+          stripMessage: true, stackPrefix: 'Remote stack: '
         })
 
         error.remoteStack = errorMessage.stack
       } catch (e) {
-        error = new Error(`Error while executing request to remote server: Unknown error, status code ${response.status}`)
+        error = new Error(`Error while executing request to remote server: Unknown error, status code ${res.status}`)
 
         addStack(error, e.stack, {
           stackPrefix: 'Parsing Error stack: '
         })
 
-        error.response = response
+        error.response = {
+          status: res.status, statusCode: res.status, headers: Object.fromEntries(res.headers.entries())
+        }
       }
 
       throw error
     }
+
+    // convert Fetch's Web ReadableStream to a Node stream
+    const responseStream = res.body ? Readable.fromWeb(res.body) : Readable.from([])
 
     // when working with streams and promises we should be extra-careful,
     // promises resolves in next ticks so there is a chance that a stream
@@ -119,8 +115,9 @@ class Client {
     // and will start emiting it when consumer calls `.body()` or any other stream method like `.pipe`
     const newResponseStream = new PassThrough()
 
-    mimicResponse(responseStream, newResponseStream)
-
+    // attach response-like metadata so callers depending on it keep working
+    newResponseStream.statusCode = res.status
+    newResponseStream.headers = Object.fromEntries(res.headers.entries())
     newResponseStream.body = () => responseToBuffer(newResponseStream)
 
     responseStream.pipe(newResponseStream)
