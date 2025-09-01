@@ -1,6 +1,8 @@
 const fs = require('fs')
+const { customAlphabet } = require('nanoid')
 const { getImageSizeInEMU } = require('../imageUtils')
 const { nodeListToArray, findOrCreateChildNode, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
+const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 
 module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)
@@ -156,10 +158,16 @@ module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc,
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
   )
 
-  relEl.setAttribute('Target', `media/imageDocx${newImageRelId}.${imageExtension}`)
+  let docxImageName = `imageDocx${newImageRelId}.${imageExtension}`
+
+  while (files.find(f => f.path === `word/media/${docxImageName}`) != null) {
+    docxImageName = `imageDocx${newImageRelId}_${generateRandomId()}.${imageExtension}`
+  }
+
+  relEl.setAttribute('Target', `media/${docxImageName}`)
 
   files.push({
-    path: `word/media/imageDocx${newImageRelId}.${imageExtension}`,
+    path: `word/media/${docxImageName}`,
     data: imageContent.type === 'path' ? fs.createReadStream(imageContent.data) : imageContent.data,
     // this will make it store the svg file to be stored correctly
     serializeFromDoc: false

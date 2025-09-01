@@ -66,18 +66,20 @@ async function extract (officePathArg, noFormatArg) {
   const xmlFiles = await getXMLFilesContent(outputPath)
   const noFormat = noFormatArg === 'noformat'
 
-  for (const { fullPath, content } of xmlFiles) {
-    let contentToWrite = content
+  if (!noFormat) {
+    for (const { fullPath, content } of xmlFiles) {
+      let contentToWrite = content
 
-    if (!noFormat) {
-      contentToWrite = format(content, {
-        indentation: '  ',
-        collapseContent: true,
-        lineSeparator: '\n'
-      })
+      if (!noFormat) {
+        contentToWrite = format(content, {
+          indentation: '  ',
+          collapseContent: true,
+          lineSeparator: '\n'
+        })
+      }
+
+      await fs.promises.writeFile(fullPath, contentToWrite)
     }
-
-    await fs.promises.writeFile(fullPath, contentToWrite)
   }
 
   console.log(`extracted into ${outputPath}${noFormat ? ' (not formatted)' : ''}`)

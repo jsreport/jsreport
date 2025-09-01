@@ -2473,6 +2473,53 @@ describe('docx image', () => {
 
     fs.writeFileSync(outputPath, result.content)
   })
+
+  it('same image in multiple footers', async () => {
+    const footerImageBuf = fs.readFileSync(path.join(docxDirPath, 'logo.png'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'same-image-in-multiple-footers.docx'))
+          }
+        }
+      },
+      data: {
+        footer_1: 'data:image/png;base64,' + footerImageBuf.toString('base64'),
+        footer_2: 'data:image/png;base64,' + footerImageBuf.toString('base64'),
+        footer_3: 'data:image/png;base64,' + footerImageBuf.toString('base64'),
+        footer_4: 'data:image/png;base64,' + footerImageBuf.toString('base64')
+      }
+    })
+
+    const withImageInFooter = []
+
+    for (const footerPath of ['word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml', 'word/footer4.xml', 'word/footer5.xml']) {
+      const outputInFooterImageMeta = await getImageMeta(result.content, footerPath)
+      const outputInFooterImage = outputInFooterImageMeta?.image
+
+      if (outputInFooterImage == null) {
+        continue
+      }
+
+      withImageInFooter.push(outputInFooterImage)
+    }
+
+    should(withImageInFooter).have.length(5)
+
+    for (const target of withImageInFooter) {
+      if (target.name.startsWith('imageDocx')) {
+        should(Buffer.compare(target.content, footerImageBuf)).be.eql(0)
+      }
+
+      should(target.extension).be.eql('.png')
+    }
+
+    fs.writeFileSync(outputPath, result.content)
+  })
 })
 
 function getImageMimeType (format) {
