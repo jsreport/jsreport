@@ -35,26 +35,19 @@ function getCurrentTheme () {
 function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) {
   const callOnComplete = () => {
     if (onComplete) {
-      onComplete()
+      onComplete(getCurrentTheme())
     }
   }
 
   if (theme == null && editorTheme == null) {
-    if (callOnComplete) {
-      callOnComplete()
-    }
-
-    return getCurrentTheme()
+    callOnComplete()
+    return
   }
 
   if (theme == null && editorTheme != null) {
     changeEditorTheme(editorTheme)
-
-    if (callOnComplete) {
-      callOnComplete()
-    }
-
-    return getCurrentTheme()
+    callOnComplete()
+    return
   }
 
   const themeLinks = Array.prototype.slice.call(document.querySelectorAll('link[data-jsreport-studio-theme]'))
@@ -64,7 +57,8 @@ function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) 
   let targetThemeLink = themeLinks.find((l) => l.dataset.jsreportStudioTheme === theme)
 
   if (!defaultThemeLink) {
-    return getCurrentTheme()
+    callOnComplete()
+    return
   }
 
   let newEditorTheme
@@ -88,7 +82,7 @@ function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) 
       changeEditorTheme(newEditorTheme)
 
       if (customCssLink) {
-        changeCustomCss(theme, callOnComplete, onError)
+        changeCustomCss(theme, () => callOnComplete, onError)
       } else {
         callOnComplete()
       }
@@ -105,11 +99,6 @@ function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) 
     themeLinks.push(newThemeLink)
 
     targetThemeLink = newThemeLink
-
-    return {
-      theme: theme,
-      editorTheme: newEditorTheme
-    }
   } else {
     changeTheme(theme)
     changeEditorTheme(newEditorTheme)
@@ -119,8 +108,6 @@ function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) 
     } else {
       callOnComplete()
     }
-
-    return getCurrentTheme()
   }
 
   function changeTheme (newTheme) {
@@ -167,12 +154,12 @@ function setCurrentThemeToDefault (opts = {}) {
     editorTheme: configuration.extensions.studio.options.editorTheme
   }, {
     ...opts,
-    onComplete: () => {
+    onComplete: (changed) => {
       window.localStorage.removeItem('studioTheme')
       window.localStorage.removeItem('studioEditorTheme')
 
       if (opts.onComplete) {
-        opts.onComplete()
+        opts.onComplete(changed)
       }
     }
   })

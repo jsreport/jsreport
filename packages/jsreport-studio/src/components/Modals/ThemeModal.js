@@ -42,15 +42,15 @@ class ThemeModal extends Component {
   changeEditorTheme (newEditorTheme) {
     const { theme, editorTheme } = getCurrentTheme()
 
-    const { theme: newTheme } = setCurrentTheme({
+    setCurrentTheme({
       editorTheme: newEditorTheme
     }, {
-      onComplete: () => {
+      onComplete: (changed) => {
         configuration.triggerThemeChange({
           oldTheme: theme,
           oldEditorTheme: editorTheme,
-          newTheme: newTheme,
-          newEditorTheme: newEditorTheme
+          newTheme: changed.theme,
+          newEditorTheme: changed.editorTheme
         })
       }
     })
