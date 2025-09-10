@@ -66,12 +66,14 @@ function getNewIdFromBaseId (itemsMap, baseId, maxId) {
 function getPictureElInfo (drawingEl) {
   const els = []
   let wpExtentEl
+  let wpEffectExtentEl
 
   if (isDrawingPicture(drawingEl)) {
     const wpDocPrEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:docPr')
     let linkInDrawing
 
     wpExtentEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:extent')
+    wpEffectExtentEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:effectExtent')
 
     if (wpDocPrEl) {
       linkInDrawing = nodeListToArray(wpDocPrEl.childNodes).find((el) => el.nodeName === 'a:hlinkClick')
@@ -88,6 +90,7 @@ function getPictureElInfo (drawingEl) {
     return {
       picture: undefined,
       wpExtent: undefined,
+      wpEffectExtent: undefined,
       links: els
     }
   }
@@ -101,6 +104,7 @@ function getPictureElInfo (drawingEl) {
   return {
     picture: pictureEl,
     wpExtent: wpExtentEl,
+    wpEffectExtent: wpEffectExtentEl,
     links: els
   }
 }

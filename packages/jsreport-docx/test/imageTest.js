@@ -510,6 +510,228 @@ describe('docx image', () => {
     })
   })
 
+  it('image with custom rotation and flip', async () => {
+    const imagePath = path.join(docxDirPath, 'image.png')
+
+    const baseImageBase64 = (
+      'data:image/png;base64,' +
+      fs.readFileSync(imagePath).toString('base64')
+    )
+
+    const images = [
+      { src: baseImageBase64, imagePath },
+      { src: baseImageBase64, imagePath, rotation: 12 },
+      { src: baseImageBase64, imagePath, rotation: 90 },
+      { src: baseImageBase64, imagePath, flip: 'horizontal' },
+      { src: baseImageBase64, imagePath, flip: 'vertical' },
+      { src: baseImageBase64, imagePath, flip: 'horizontal-vertical' }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'image-rotation-and-flip.docx'))
+          }
+        }
+      },
+      data: {
+        images
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    drawingEls.length.should.be.eql(images.length)
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const docPrEl = getDocPrEl(drawingEl)
+      const pictureEl = getPictureElInfo(drawingEl).picture
+      const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
+      const isImg = pictureEl != null
+
+      should(isImg).be.True()
+
+      // should autogenerate id when image is created from loop
+      docPrEl.getAttribute('id').should.be.eql(pictureCnvPrEl.getAttribute('id'))
+
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      imageRelEl.getAttribute('Type').should.be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, fs.readFileSync(imagePath)).should.be.eql(0)
+
+      const pictureSpPrEl = nodeListToArray(pictureEl.childNodes).find(n => n.nodeName === 'pic:spPr')
+
+      should(pictureCnvPrEl).be.ok()
+
+      const xfrmEl = nodeListToArray(pictureSpPrEl.childNodes).find(n => n.nodeName === 'a:xfrm')
+
+      if (idx === 0) {
+        should(xfrmEl.hasAttribute('rot')).be.False()
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      } else if (idx === 1) {
+        should(xfrmEl.getAttribute('rot')).be.eql('720000')
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      } else if (idx === 2) {
+        should(xfrmEl.getAttribute('rot')).be.eql('5400000')
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      } else if (idx === 3) {
+        should(xfrmEl.hasAttribute('rot')).be.False()
+        should(xfrmEl.hasAttribute('flipH')).be.True()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      } else if (idx === 4) {
+        should(xfrmEl.hasAttribute('rot')).be.False()
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.True()
+      } else if (idx === 5) {
+        should(xfrmEl.hasAttribute('rot')).be.False()
+        should(xfrmEl.hasAttribute('flipH')).be.True()
+        should(xfrmEl.hasAttribute('flipV')).be.True()
+      }
+    }
+  })
+
+  it('image with orientation in exif metadata', async () => {
+    // if we need to get more samples of these images, check:
+    // https://github.com/ianare/exif-samples/tree/master/jpg/orientation
+    // https://www.galloway.me.uk/2012/01/uiimageorientation-exif-orientation-sample-images/
+    const images = [
+      'orientation1.jpg',
+      'orientation2.jpg',
+      'orientation3.jpg',
+      'orientation4.jpg',
+      'orientation5.jpg',
+      'orientation6.jpg',
+      'orientation7.jpg',
+      'orientation8.jpg'
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'image-exif-orientation.docx'))
+          }
+        },
+        helpers: `
+          const { Readable } = require('node:stream')
+          const jsreport = require('jsreport-proxy')
+
+          function getImageExif (imgPath) {
+            return async function () {
+              const fsAsync = require('fs/promises')
+              const assetBuf = await fsAsync.readFile(imgPath)
+
+              return {
+                type: 'jpg',
+                stream: Readable.from(assetBuf)
+              }
+            }
+          }
+        `
+      },
+      data: {
+        images: images.map((imageName) => {
+          return {
+            imagePath: path.join(docxDirPath, imageName)
+          }
+        })
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    drawingEls.length.should.be.eql(8)
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const docPrEl = getDocPrEl(drawingEl)
+      const pictureEl = getPictureElInfo(drawingEl).picture
+      const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
+      const isImg = pictureEl != null
+
+      should(isImg).be.True()
+
+      // should autogenerate id when image is created from loop
+      docPrEl.getAttribute('id').should.be.eql(pictureCnvPrEl.getAttribute('id'))
+
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      imageRelEl.getAttribute('Type').should.be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      const imageName = images[idx]
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, fs.readFileSync(path.join(docxDirPath, imageName))).should.be.eql(0)
+
+      const pictureSpPrEl = nodeListToArray(pictureEl.childNodes).find(n => n.nodeName === 'pic:spPr')
+
+      should(pictureCnvPrEl).be.ok()
+
+      const xfrmEl = nodeListToArray(pictureSpPrEl.childNodes).find(n => n.nodeName === 'a:xfrm')
+
+      if (imageName === 'orientation1.jpg') {
+        should(xfrmEl.hasAttribute('rot')).be.False()
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      } else if (imageName === 'orientation2.jpg') {
+        should(xfrmEl.hasAttribute('rot')).be.False()
+        should(xfrmEl.hasAttribute('flipH')).be.True()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      } else if (imageName === 'orientation3.jpg') {
+        should(xfrmEl.getAttribute('rot')).be.eql('10800000')
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      } else if (imageName === 'orientation4.jpg') {
+        should(xfrmEl.hasAttribute('rot')).be.False()
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.True()
+      } else if (imageName === 'orientation5.jpg') {
+        should(xfrmEl.getAttribute('rot')).be.eql('5400000')
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.True()
+      } else if (imageName === 'orientation6.jpg') {
+        should(xfrmEl.getAttribute('rot')).be.eql('5400000')
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      } else if (imageName === 'orientation7.jpg') {
+        should(xfrmEl.getAttribute('rot')).be.eql('16200000')
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.True()
+      } else if (imageName === 'orientation8.jpg') {
+        should(xfrmEl.getAttribute('rot')).be.eql('16200000')
+        should(xfrmEl.hasAttribute('flipH')).be.False()
+        should(xfrmEl.hasAttribute('flipV')).be.False()
+      }
+    }
+  })
+
   it('image with extra static tooltip text', async () => {
     const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
 
