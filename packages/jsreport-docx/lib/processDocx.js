@@ -74,42 +74,39 @@ module.exports = async (reporter, inputs, req) => {
 
     const validPathsForParagraphs = ['word/document.xml', ...headerFooterRefs.map((r) => r.path)]
     const paragraphSeparator = '$$$p$$$\n'
+    const paragraphsByFileMap = new Map()
+
+    for (const pathForParagraph of validPathsForParagraphs) {
+      const file = filesToRender.find((f) => f.path === pathForParagraph)
+
+      if (file == null) {
+        continue
+      }
+
+      const allParagraphs = nodeListToArray(file.doc.getElementsByTagName('w:p'))
+
+      for (const pEl of allParagraphs) {
+        const tEl = file.doc.createTextNode(paragraphSeparator)
+        pEl.parentNode.insertBefore(tEl, pEl)
+      }
+
+      paragraphsByFileMap.set(pathForParagraph, allParagraphs)
+    }
 
     let contentToRender = filesToRender.map((f) => {
       const startLine = previousEndLine != null ? previousEndLine + 1 : firstLine
-      let paragraphsCount = 0
-      const paragraphsText = []
+      const paragraphsCount = paragraphsByFileMap.has(f.path) ? paragraphsByFileMap.get(f.path).length : 0
 
-      const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
-        if (validPathsForParagraphs.includes(f.path) && node.nodeType === 1 && node.tagName === 'w:p') {
-          paragraphsCount++
-
-          const str = new XMLSerializer().serializeToString(
-            node,
-            undefined,
-            normalizeAttributeAndTextNode
-          )
-
-          paragraphsText.push(str)
-
-          // we include new lines for each paragraph in these documents to help
-          // identify the problematic line for handlebars compile errors. we need to do
-          // this because handlebars error does not expose the columnNumber for all its
-          // compile errors, so we need to rely on the line number to identify the error,
-          // with that in mind we include each paragraph in new lines
-          return `${paragraphSeparator}${str}`
-        }
-
-        return normalizeAttributeAndTextNode(node)
-      })
+      const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, normalizeAttributeAndTextNode)
 
       if (paragraphsCount > 0) {
+        const allParagraphs = paragraphsByFileMap.get(f.path)
         // we add 2 because the first line is xml declaration and the second line is the
         // content before paragraph
         const paragraphStartLine = startLine + 2
         for (let paragraphLine = paragraphStartLine; paragraphLine < paragraphStartLine + paragraphsCount; paragraphLine++) {
           const paragraphIdx = paragraphLine - paragraphStartLine
-          lineToParagraphMap.set(paragraphLine, paragraphsText[paragraphIdx])
+          lineToParagraphMap.set(paragraphLine, () => allParagraphs[paragraphIdx])
         }
       }
 
@@ -202,7 +199,7 @@ module.exports = async (reporter, inputs, req) => {
       }, req)
     } catch (renderErr) {
       // decorate the error with the xml file path in which it happened,
-      // .property will be "content" when the error happens at handlebars compile time (syntax errors).
+      // .property will be "content" when the erns at handlebars compile time (syntax errors).
       // it is important to be aware that we can only trust lineNumber to be present, because
       // handlebars compile error may contain detailed properties or just the line number.
       if (renderErr.property === 'content' && renderErr.lineNumber != null) {
@@ -216,14 +213,19 @@ module.exports = async (reporter, inputs, req) => {
           renderErr.docFilePath = xmlFilePath
         }
 
-        const paragraphStr = lineToParagraphMap.get(renderErr.lineNumber)
+        const paragraphEntry = lineToParagraphMap.get(renderErr.lineNumber)
 
-        if (paragraphStr != null) {
+        if (paragraphEntry != null) {
+          const paragraphStr = typeof paragraphEntry === 'function' ? paragraphEntry().toString() : paragraphEntry
           renderErr.docxSurroundingText = extractTextFromParagraphStr(paragraphStr)
         }
       }
 
       throw renderErr
+    } finally {
+      // ensure nodes in memory is not held longer than needed
+      paragraphsByFileMap.clear()
+      lineToParagraphMap.clear()
     }
 
     // we remove NUL, VERTICAL TAB unicode characters, which are characters that are illegal in XML
