@@ -584,13 +584,19 @@ describe('docx', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const text = (await extractor.extract(result.content)).getBody().replace(/\t/g, ' ')
+    const text = (await extractor.extract(result.content)).getBody()
+    const parts = text.split('\n').filter((t) => t)
 
-    text.should.containEql('1 Preliminary 1')
-    text.should.containEql('1.1 Name of the Company 1')
-    text.should.containEql('1.2 Type of Company 1')
-    text.should.containEql('1.3 Limited liability of Members 1')
-    text.should.containEql('1.4 The Guarantee 1')
+    const tocStartIndex = parts.findIndex((p) => p === 'Contents')
+    const tocItems = parts.slice(tocStartIndex + 1, tocStartIndex + 6)
+
+    should(tocItems.length).be.eql(5)
+
+    should(tocItems[0]).containEql('1\tPreliminary\t1')
+    should(tocItems[1]).containEql('1.1\tName of the Company\t1')
+    should(tocItems[2]).containEql('1.2\tType of Company\t1')
+    should(tocItems[3]).containEql('1.3\tLimited liability of Members\t1')
+    should(tocItems[4]).containEql('1.4\tThe Guarantee \t1')
   })
 
   it('list', async () => {

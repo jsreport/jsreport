@@ -9,8 +9,8 @@ module.exports = async (files) => {
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const titles = []
 
+  const levelIds = new Map()
   const listIds = new Map()
-
   const tocStyleIdRegExp = /^([^\d]+)(\d+)/
   const tocOptionalPrefixStyleId = /^([^\d]*)(\d+)$/
 
@@ -72,6 +72,8 @@ module.exports = async (files) => {
       settingsDoc.documentElement.insertBefore(newUpdateFieldsEl, settingsDoc.documentElement.firstChild)
     }
   }
+
+  let lastLevel
 
   documentFile.data = await recursiveStringReplaceAsync(
     documentFile.data.toString(),
@@ -141,13 +143,24 @@ module.exports = async (files) => {
             title.listItemId = items.join('.')
           }
         }
+
+        let currentLevelItem = levelIds.get(title.level) || 0
+
+        if (title.level > 1 && lastLevel != null && title.level > lastLevel) {
+          currentLevelItem = 0
+        }
+
+        title.levelItemId = currentLevelItem + 1
+        levelIds.set(title.level, title.levelItemId)
+
+        lastLevel = title.level
       }
 
       const bookmarkStartEl = nodeListToArray(paragraphEl.childNodes).find((el) => el.nodeName === 'w:bookmarkStart')
       const textContainerEl = nodeListToArray(paragraphEl.childNodes).find((el) => el.nodeName === 'w:r')
 
       if (textContainerEl != null && bookmarkStartEl != null) {
-        title.title = textContainerEl.textContent
+        title.title = paragraphEl.textContent
 
         title.bookmark = {
           id: bookmarkStartEl.getAttribute('w:id'),
@@ -179,15 +192,20 @@ module.exports = async (files) => {
       }
 
       const sdtContentEl = new DOMParser().parseFromString(val).documentElement
-      const paragraphEls = nodeListToArray(sdtContentEl.childNodes).filter((el) => el.nodeName === 'w:p')
-      const paragraphRefEl = paragraphEls.find((pEl) => nodeListToArray(pEl.childNodes).find((cEl) => cEl.nodeName === 'w:hyperlink') != null)
-      const paragraphRefIndex = paragraphEls.findIndex((pEl) => nodeListToArray(pEl.childNodes).find((cEl) => cEl.nodeName === 'w:hyperlink') != null)
-      const lastParagraphEl = paragraphEls[paragraphEls.length - 1]
 
-      if (paragraphEls.length > (paragraphRefIndex + 2)) {
-        // delete all from second paragraph to the penultimate paragraph
-        for (let idx = paragraphRefIndex + 1; idx < paragraphEls.length - 1; idx++) {
-          const paragraphEl = paragraphEls[idx]
+      const paragraphWithHyperlinkEls = nodeListToArray(sdtContentEl.childNodes).filter(
+        (el) => el.nodeName === 'w:p'
+      ).filter(
+        (pEl) => nodeListToArray(pEl.childNodes).find((cEl) => cEl.nodeName === 'w:hyperlink') != null
+      )
+
+      const paragraphRefEl = paragraphWithHyperlinkEls[0]
+      let lastParagraphEl = paragraphRefEl
+
+      if (paragraphWithHyperlinkEls.length > 0) {
+        // delete all from second paragraph to the last paragraph with hyperlink
+        for (let idx = 1; idx < paragraphWithHyperlinkEls.length; idx++) {
+          const paragraphEl = paragraphWithHyperlinkEls[idx]
           paragraphEl.parentNode.removeChild(paragraphEl)
         }
       }
@@ -202,7 +220,6 @@ module.exports = async (files) => {
 
           for (const childNode of childNodes) {
             if (childNode.nodeName === 'w:pPr') {
-              const itemNumber = idx + 1
               const pStyleEl = nodeListToArray(childNode.childNodes).find((el) => el.nodeName === 'w:pStyle')
 
               if (pStyleEl != null) {
@@ -213,22 +230,25 @@ module.exports = async (files) => {
                 pStyleEl.setAttribute('w:val', `${tocAlternativeTitlePrefix}${titleInfo.level}`)
               }
 
-              if (itemNumber >= 10) {
-                const tabsEl = nodeListToArray(childNode.childNodes).filter((el) => el.nodeName === 'w:tabs')[0]
+              const tabsEl = nodeListToArray(childNode.childNodes).filter((el) => el.nodeName === 'w:tabs')[0]
 
-                if (tabsEl == null) {
-                  continue
-                }
-
-                const leftTabEl = nodeListToArray(tabsEl.childNodes).find((el) => el.nodeName === 'w:tab' && el.getAttribute('w:val') === 'left')
-
-                if (leftTabEl == null) {
-                  continue
-                }
-
-                leftTabEl.setAttribute('w:pos', 720)
+              if (tabsEl == null) {
+                continue
               }
+
+              const leftTabEl = nodeListToArray(tabsEl.childNodes).find((el) => el.nodeName === 'w:tab' && el.getAttribute('w:val') === 'left')
+
+              if (leftTabEl == null) {
+                continue
+              }
+
+              // if there are more than 9 items in the same level then we need to increase the position of the tab
+              // as if there is one level more, this is because the number of characters in the toc increases
+              const targetLevel = titleInfo.levelItemId >= 10 ? titleInfo.level + 1 : titleInfo.level
+              const pos = 480 + ((480 / 2) * (targetLevel - 1))
+              leftTabEl.setAttribute('w:pos', pos)
             } else if (childNode.nodeName === 'w:r') {
+              // preserve the w:r with w:fldChar and w:instrText only for the first title element
               if (idx !== 0) {
                 childNode.parentNode.removeChild(childNode)
               }
@@ -259,11 +279,25 @@ module.exports = async (files) => {
                 }
               }
 
-              if (rEls.length > 2 && titleInfo.listItemId != null) {
-                updateTextInNode(rEls[0], `${titleInfo.listItemId}${hasPointSuffix ? '.' : ''}`)
+              let elForTitle = rEls[0]
+
+              if (
+                (rEls.length > 1 && hasPointSuffix) ||
+                (rEls.length > 2 && titleInfo.listItemId != null)
+              ) {
+                let level
+
+                if (titleInfo.listItemId != null) {
+                  level = titleInfo.listItemId
+                } else {
+                  level = titleInfo.levelItemId
+                }
+
+                updateTextInNode(rEls[0], `${level}${hasPointSuffix ? '.' : ''}`)
+                elForTitle = rEls[1]
               }
 
-              updateTextInNode(rEls.length > 2 ? rEls[1] : rEls[0], titleInfo.title)
+              updateTextInNode(elForTitle, titleInfo.title)
 
               const instrTextEl = childNode.getElementsByTagName('w:instrText')[0]
 
@@ -274,7 +308,8 @@ module.exports = async (files) => {
           }
 
           if (newParagraphEl != null) {
-            lastParagraphEl.parentNode.insertBefore(newParagraphEl, lastParagraphEl)
+            lastParagraphEl.parentNode.insertBefore(newParagraphEl, lastParagraphEl.nextSibling)
+            lastParagraphEl = newParagraphEl
           }
         }
       }
