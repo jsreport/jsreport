@@ -704,6 +704,93 @@ describe('import-export', () => {
   }
 })
 
+describe('with authentication', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport({
+      workers: { numberOfWorkers: 1 }
+    })
+      .use(require('../')())
+      .use(require('@jsreport/jsreport-authentication')({
+        admin: {
+          username: 'admin',
+          password: 'password'
+        },
+        cookieSession: {
+          secret: 'secret'
+        }
+      }))
+      .use(require('@jsreport/jsreport-authorization')())
+      .use(require('@jsreport/jsreport-express')())
+
+    return reporter.init()
+  })
+
+  afterEach(async () => {
+    if (reporter) {
+      await reporter.close()
+    }
+  })
+
+  it('should be able to import and keep visibilityPermissions applied to groups', async () => {
+    const u1 = await reporter.documentStore.collection('users').insert({ name: 'uTest', password: 'xxxx' })
+
+    const g1 = await reporter.documentStore.collection('usersGroups').insert({
+      name: 'gtest',
+      users: [{
+        shortid: u1.shortid
+      }]
+    })
+
+    const f1 = await reporter.documentStore.collection('folders').insert({ name: 'test', shortid: 'test' })
+
+    const t1 = await reporter.documentStore.collection('templates').insert({
+      name: 'a',
+      engine: 'none',
+      recipe: 'html',
+      folder: { shortid: f1.shortid },
+      readPermissionsGroup: [g1._id.toString()]
+    })
+
+    const req = reporter.Request({})
+
+    const { stream } = await reporter.export([
+      u1._id.toString(), g1._id.toString(), f1._id.toString(), t1._id.toString()
+    ], req)
+
+    const exportPath = await saveExportStream(reporter, stream)
+
+    await reporter.documentStore.collection('templates').remove({})
+    await reporter.documentStore.collection('folders').remove({})
+    await reporter.documentStore.collection('usersGroups').remove({})
+    await reporter.documentStore.collection('users').remove({})
+
+    await reporter.import(exportPath, req)
+
+    const reqUser = () => reporter.Request({
+      context: {
+        user: { _id: u1._id.toString(), shortid: u1.shortid }
+      }
+    })
+
+    const foldersRes = await reporter.documentStore.collection('folders').find({}, reqUser())
+    should(foldersRes).have.length(1)
+    const templatesRes = await reporter.documentStore.collection('templates').find({}, reqUser())
+    templatesRes.should.have.length(1)
+    should(foldersRes[0].name).be.eql(f1.name)
+    should(templatesRes[0].name).be.eql(t1.name)
+    should(templatesRes[0].folder.shortid).be.eql(f1.shortid)
+
+    const usersRes = await reporter.documentStore.collection('users').find({}, reqUser())
+    should(usersRes).have.length(1)
+    should(usersRes[0].name).be.eql(u1.name)
+    const usersGroupsRes = await reporter.documentStore.collection('usersGroups').find({}, reqUser())
+    should(usersGroupsRes).have.length(1)
+    should(usersGroupsRes[0].name).be.eql(g1.name)
+  })
+})
+
 /*
 describe('exports across stores', function () {
   describe('from fs to mongo', function () {
