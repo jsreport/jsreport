@@ -15,7 +15,7 @@ describe('docx image', () => {
   beforeEach(() => {
     reporter = jsreport({
       sandbox: {
-        allowedModules: ['fs']
+        allowedModules: ['fs', 'stream']
       },
       store: {
         provider: 'memory'
@@ -632,7 +632,7 @@ describe('docx image', () => {
           }
         },
         helpers: `
-          const { Readable } = require('node:stream')
+          const { Readable } = require('stream')
           const jsreport = require('jsreport-proxy')
 
           function getImageExif (imgPath) {
