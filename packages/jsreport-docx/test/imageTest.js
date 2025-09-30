@@ -15,7 +15,7 @@ describe('docx image', () => {
   beforeEach(() => {
     reporter = jsreport({
       sandbox: {
-        allowedModules: ['fs', 'stream']
+        allowedModules: ['fs', 'fs/promises', 'stream']
       },
       store: {
         provider: 'memory'
