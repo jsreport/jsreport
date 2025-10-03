@@ -656,7 +656,7 @@ class Studio {
    * @returns {Object}
    */
   getActiveEntity () {
-    return editor.selectors.getActiveEntity(this.store.getState().activeTabKey, this.store.getState().editor.tabs, this.store.getState().entities)
+    return editor.selectors.getActiveEntity(this.store.getState().editor.activeTabKey, this.store.getState().editor.tabs, this.store.getState().entities)
   }
 
   /**
