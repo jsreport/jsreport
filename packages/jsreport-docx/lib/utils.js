@@ -357,27 +357,27 @@ function findCommonParent (el, parentsHierarchy = []) {
     return el
   }
 
-  const validParents = [...parentsHierarchy]
-  let parentEl = el
-  let lastMatchEl = parentEl
+  const validParents = [...parentsHierarchy].reverse()
+  const allParents = []
 
-  while (parentEl.parentNode != null) {
-    const expectedTag = validParents[0]
-    const currentTag = parentEl.parentNode.tagName
+  while (el.parentNode != null && el.parentNode.tagName !== null) {
+    allParents.push(el.parentNode)
+    el = el.parentNode
+  }
 
-    parentEl = parentEl.parentNode
+  let matchEl
 
-    if (currentTag === expectedTag) {
-      lastMatchEl = parentEl
+  while (validParents.length > 0) {
+    matchEl = allParents.find((p) => p.tagName === validParents[0])
+
+    if (matchEl == null) {
       validParents.shift()
-    }
-
-    if (validParents.length === 0) {
+    } else {
       break
     }
   }
 
-  return lastMatchEl
+  return matchEl == null ? el.parentNode : matchEl
 }
 
 function createNode (doc, name, opts = {}) {
