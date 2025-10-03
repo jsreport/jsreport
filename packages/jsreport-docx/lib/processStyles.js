@@ -52,6 +52,7 @@ function color (doc, wR, currentStyle) {
 
   const validParents = [
     { target: 'paragraph', tag: 'w:p' },
+    { target: 'shape', tag: 'wps:wsp' },
     { target: 'cell', tag: 'w:tc' },
     { target: 'row', tag: 'w:tr' }
   ]
@@ -89,6 +90,10 @@ function color (doc, wR, currentStyle) {
       elsForBackground = [targetEl]
       elsForText = nodeListToArray(targetEl.childNodes).filter((node) => node.tagName === 'w:r')
       break
+    case 'wps:wsp':
+      elsForBackground = [targetEl]
+      elsForText = nodeListToArray(targetEl.getElementsByTagName('w:r'))
+      break
     case 'w:tc':
       elsForBackground = [targetEl]
       elsForText = nodeListToArray(targetEl.getElementsByTagName('w:r'))
@@ -110,7 +115,7 @@ function color (doc, wR, currentStyle) {
 
   for (const { type, els } of [{ type: 'backgroundColor', els: elsForBackground }, { type: 'textColor', els: elsForText }]) {
     for (const currentEl of els) {
-      const expectedPrTag = `${currentEl.tagName}Pr`
+      const expectedPrTag = currentEl.tagName === 'wps:wsp' ? 'wps:spPr' : `${currentEl.tagName}Pr`
 
       // we add function to allow the creation of nodes to be lazy and only when really needed
       targetPr[type].push(() => {
@@ -130,22 +135,42 @@ function color (doc, wR, currentStyle) {
   if (currentBackgroundColor != null && currentBackgroundColor !== '') {
     for (const getTargetPrEl of targetPr.backgroundColor) {
       const targetPrEl = getTargetPrEl()
-      let wshdEl = nodeListToArray(targetPrEl.childNodes).find((node) => node.tagName === 'w:shd')
 
-      if (!wshdEl) {
-        wshdEl = doc.createElement('w:shd')
-        targetPrEl.insertBefore(wshdEl, targetPrEl.firstChild)
+      if (targetPrEl.tagName === 'wps:spPr') {
+        let solidFillEl = nodeListToArray(targetPrEl.childNodes).find((node) => node.tagName === 'a:solidFill')
+
+        if (!solidFillEl) {
+          solidFillEl = doc.createElement('a:solidFill')
+          targetPrEl.appendChild(solidFillEl)
+        }
+
+        let rgbClrEl = nodeListToArray(solidFillEl.childNodes).find((node) => node.tagName === 'a:srgbClr')
+
+        if (!rgbClrEl) {
+          const newRgbClrEl = doc.createElement('a:srgbClr')
+          solidFillEl.appendChild(newRgbClrEl)
+          rgbClrEl = newRgbClrEl
+        }
+
+        rgbClrEl.setAttribute('val', currentBackgroundColor)
+      } else {
+        let wshdEl = nodeListToArray(targetPrEl.childNodes).find((node) => node.tagName === 'w:shd')
+
+        if (!wshdEl) {
+          wshdEl = doc.createElement('w:shd')
+          targetPrEl.insertBefore(wshdEl, targetPrEl.firstChild)
+        }
+
+        wshdEl.setAttribute('w:val', 'clear')
+        wshdEl.setAttribute('w:color', 'auto')
+        wshdEl.setAttribute('w:fill', currentBackgroundColor)
+        wshdEl.removeAttribute('w:themeColor')
+        wshdEl.removeAttribute('w:themeTint')
+        wshdEl.removeAttribute('w:themeShade')
+        wshdEl.removeAttribute('w:themeFill')
+        wshdEl.removeAttribute('w:themeFillTint')
+        wshdEl.removeAttribute('w:themeFillShade')
       }
-
-      wshdEl.setAttribute('w:val', 'clear')
-      wshdEl.setAttribute('w:color', 'auto')
-      wshdEl.setAttribute('w:fill', currentBackgroundColor)
-      wshdEl.removeAttribute('w:themeColor')
-      wshdEl.removeAttribute('w:themeTint')
-      wshdEl.removeAttribute('w:themeShade')
-      wshdEl.removeAttribute('w:themeFill')
-      wshdEl.removeAttribute('w:themeFillTint')
-      wshdEl.removeAttribute('w:themeFillShade')
     }
   }
 

@@ -16,7 +16,7 @@ const {
 const docxStyleCallRegExp = /{{#docxStyle [^{}]{0,500}}}/
 // here we added w:tbl just because we want the max parent to be it,
 // and want that if possible {{#docxSData type='styles'}} to be inserted as wrapper of table
-const validParents = ['w:p', 'w:tc', 'w:tr', 'w:tbl']
+const validParents = ['w:p', 'wps:wsp', 'w:tc', 'w:tr', 'w:tbl']
 
 module.exports = (files) => {
   let styleIdCounter = 1

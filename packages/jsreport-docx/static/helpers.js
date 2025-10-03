@@ -749,7 +749,7 @@ function docxStyle (options) {
   const styleId = options.hash.id
   const textColor = options.hash.textColor || ''
   const backgroundColor = options.hash.backgroundColor || ''
-  const validTargets = ['text', 'paragraph', 'cell', 'row']
+  const validTargets = ['text', 'paragraph', 'shape', 'cell', 'row']
   const target = options.hash.target || 'text'
 
   if (styleId == null) {
