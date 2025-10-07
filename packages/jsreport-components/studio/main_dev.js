@@ -3,7 +3,6 @@ import ComponentProperties from './ComponentProperties'
 import ComponentPreview from './ComponentPreview'
 import PreviewComponentToolbar from './PreviewComponentToolbar'
 import Studio from 'jsreport-studio'
-import crawlEntityPath from '../lib/crawlEntityPath'
 
 Studio.addEntitySet({
   name: 'components',
@@ -50,15 +49,15 @@ function registerHandlebarsLanguage (monaco) {
         let match
         while ((match = handlebarComponentRegex.exec(lines[lineNumber])) !== null) {
           const path = match[2]
-          // verify that the path can be resolved to avoid broken links
-          const targetEntity = crawlEntityPath(
-            Studio.getAllEntities(),
-            path,
-            Studio.getActiveEntity()
-          )
+          const entityPath = Studio.resolveEntityPath(Studio.getActiveEntity())
+          const parentPath = `/${entityPath.split('/').slice(1, -1).join('/')}`
+
+          const { entity: targetEntity } = Studio.resolveEntityFromPath(path, 'components', { currentPath: parentPath })
+
           if (targetEntity?.__entitySet !== 'components') {
             continue
           }
+
           // Add link to the editor model
           const url = `${handlebarLinkScheme}://${handlebarLinkAuthority}/${encodeURIComponent(path)}`
           const startColumn = match.index + match[0].indexOf(path)
@@ -79,11 +78,9 @@ function registerHandlebarsLanguage (monaco) {
         return false
       }
 
-      const targetEntity = crawlEntityPath(
-        Studio.getAllEntities(),
-        url.path.slice(1), // url.path contains an extra leading slash
-        Studio.getActiveEntity()
-      )
+      const entityPath = Studio.resolveEntityPath(Studio.getActiveEntity())
+      const parentPath = `/${entityPath.split('/').slice(1, -1).join('/')}`
+      const { entity: targetEntity } = Studio.resolveEntityFromPath(url.path.slice(1), 'components', { currentPath: parentPath })
 
       if (!targetEntity) {
         return false

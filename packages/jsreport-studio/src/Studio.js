@@ -709,6 +709,10 @@ class Studio {
     return storeMethods.resolveEntityPath(entity)
   }
 
+  resolveEntityFromPath (entityPathParam, targetEntitySet, options = {}) {
+    return storeMethods.resolveEntityFromPath(entityPathParam, targetEntitySet, options)
+  }
+
   /**
    * Creates a hook that will retrieve entities from store with selector,
    * useful when you need to subscribe to store changes in a component

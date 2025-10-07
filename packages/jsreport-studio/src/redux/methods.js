@@ -1,9 +1,11 @@
-import { getById, getByShortid } from './entities/selectors'
+import { getById, getByShortid, getReferences } from './entities/selectors'
 import { getCanSaveAll, getActiveEntity, getActiveTabWithEntity, getLastActiveTemplate } from './editor/selectors'
 import { clearPreview, openTab, preview, run, stopRun, updatePreview } from './editor/actions'
 import { start as progressStart, stop as progressStop } from './progress/actions'
 import { getValueByKey } from './settings/selectors'
+import { values as configuration } from '../lib/configuration'
 import resolveEPath from '../helpers/resolveEntityPath'
+import resolveEFromPath from '../helpers/resolveEntityFromPath'
 
 let store
 
@@ -17,13 +19,17 @@ const methods = {
   resolveEntityPath (entity) {
     const entities = store.getState().entities
 
-    const foldersByShortid = Object.keys(entities).reduce((acu, _id) => {
+    const entitiesByShortid = Object.keys(entities).reduce((acu, _id) => {
       const entity = entities[_id]
       acu[entity.shortid] = entity
       return acu
     }, {})
 
-    return resolveEPath(entity, foldersByShortid)
+    return resolveEPath(entity, entitiesByShortid)
+  },
+  resolveEntityFromPath (entityPathParam, targetEntitySet, options = {}) {
+    const references = getReferences(store.getState().entities)
+    return resolveEFromPath(configuration.entitySets, references, entityPathParam, targetEntitySet, options)
   },
   getSettingsByKey (key, shouldThrow = true) {
     return getValueByKey(store.getState().settings, key, shouldThrow)

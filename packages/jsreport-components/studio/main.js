@@ -493,6 +493,78 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().entityEditorComponentKeyR
 jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addPropertiesComponent(_ComponentProperties__WEBPACK_IMPORTED_MODULE_1__["default"].title, _ComponentProperties__WEBPACK_IMPORTED_MODULE_1__["default"], entity => entity.__entitySet === 'components');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addToolbarComponent(_PreviewComponentToolbar__WEBPACK_IMPORTED_MODULE_3__["default"]);
 jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addPreviewComponent('component', _ComponentPreview__WEBPACK_IMPORTED_MODULE_2__["default"]);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().textEditorInitializeListeners.push(_ref => {
+  let {
+    monaco
+  } = _ref;
+  registerHandlebarsLanguage(monaco);
+});
+
+/**
+ * We implement monaco registerLinkProvider & registerLinkOpener for Handlebars.
+ * This allows to Ctrl+Click (or Cmd+Click on Mac) on {{component "path/to/component"}} expressions
+ */
+function registerHandlebarsLanguage(monaco) {
+  const languageId = 'handlebars';
+  const handlebarComponentRegex = /\{\{\s*component\s+(["'])([^"']+)\1[^}]*?\}\}/g;
+  const handlebarLinkScheme = 'jsreport-studio';
+  const handlebarLinkAuthority = 'handlebars-link';
+  monaco.languages.registerLinkProvider(languageId, {
+    provideLinks: model => {
+      const links = [];
+      const lines = model.getLinesContent();
+      for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
+        let match;
+        while ((match = handlebarComponentRegex.exec(lines[lineNumber])) !== null) {
+          const path = match[2];
+          const entityPath = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityPath(jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().getActiveEntity());
+          const parentPath = `/${entityPath.split('/').slice(1, -1).join('/')}`;
+          const {
+            entity: targetEntity
+          } = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityFromPath(path, 'components', {
+            currentPath: parentPath
+          });
+          if ((targetEntity === null || targetEntity === void 0 ? void 0 : targetEntity.__entitySet) !== 'components') {
+            continue;
+          }
+
+          // Add link to the editor model
+          const url = `${handlebarLinkScheme}://${handlebarLinkAuthority}/${encodeURIComponent(path)}`;
+          const startColumn = match.index + match[0].indexOf(path);
+          const endColumn = startColumn + path.length;
+          links.push({
+            range: new monaco.Range(lineNumber + 1, startColumn + 1, lineNumber + 1, endColumn + 1),
+            url: url
+          });
+        }
+      }
+      return {
+        links
+      };
+    }
+  });
+  monaco.editor.registerLinkOpener({
+    open: url => {
+      if (!(url.scheme === handlebarLinkScheme && url.authority === handlebarLinkAuthority)) {
+        return false;
+      }
+      const entityPath = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityPath(jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().getActiveEntity());
+      const parentPath = `/${entityPath.split('/').slice(1, -1).join('/')}`;
+      const {
+        entity: targetEntity
+      } = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityFromPath(url.path.slice(1), 'components', {
+        currentPath: parentPath
+      });
+      if (!targetEntity) {
+        return false;
+      }
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().openTab({
+        _id: targetEntity._id
+      });
+      return true;
+    }
+  });
+}
 })();
 
 /******/ })()
