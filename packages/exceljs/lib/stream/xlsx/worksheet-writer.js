@@ -440,9 +440,17 @@ class WorksheetWriter {
   }
 
   mergeCells(...cells) {
-    // may fail if rows have been comitted
+    // may fail if rows have been committed
     const dimensions = new Dimensions(cells);
+    this._mergeCellsInternal(dimensions);
+  }
 
+  mergeCellsWithoutStyle(...cells) {
+    const dimensions = new Dimensions(cells);
+    this._mergeCellsInternal(dimensions, true);
+  }
+
+  _mergeCellsInternal(dimensions, ignoreStyle) {
     // check cells aren't already merged
     this._merges.forEach(merge => {
       if (merge.intersects(dimensions)) {
@@ -455,7 +463,7 @@ class WorksheetWriter {
     for (let i = dimensions.top; i <= dimensions.bottom; i++) {
       for (let j = dimensions.left; j <= dimensions.right; j++) {
         if (i > dimensions.top || j > dimensions.left) {
-          this.getCell(i, j).merge(master);
+          this.getCell(i, j).merge(master, ignoreStyle);
         }
       }
     }

@@ -2473,6 +2473,167 @@ describe('html to xlsx conversion with strategy', () => {
       }
     })
 
+    it('should work when using special rowspan layout #17 (using rowspan and colspan in different rows)', async function () {
+      const stream = await conversion(`
+        <html>
+          <head>
+            <style>
+              td,
+              th {
+                border: 1px solid;
+              }
+            </style>
+          </head>
+          <body>
+            <table class="table" style="margin-top: 20px">
+              <th class="head-cell" rowspan="3">A</th>
+              <th class="head-cell" colspan="12">B</th>
+              <th class="head-cell" rowspan="3">C</th>
+              <th class="head-cell" rowspan="2">D</th>
+              <th class="head-cell" rowspan="2">E</th>
+              <th class="head-cell" rowspan="2">F</th>
+              <th class="head-cell" rowspan="3" style="width: 100px">G</th>
+              <tr>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+                <th rowspan="2">-</th>
+              </tr>
+              <tr>
+                <th>sub D</th>
+                <td>sub E</td>
+                <td>sub F</td>
+              </tr>
+            </table>
+          </body>
+        </html>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      fs.writeFileSync(outputPath, resultBuf)
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const expected = new Map([
+        ['A1', { text: 'A', borders: ['left', 'top', 'right', 'bottom'] }],
+        ['B1', { text: 'B', borders: ['top', 'right', 'bottom'] }],
+        ['C1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['D1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['E1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['F1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['G1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['H1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['I1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['J1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['K1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['L1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['M1', { text: null, borders: ['top', 'right', 'bottom'] }],
+        ['N1', { text: 'C', borders: ['top', 'right', 'bottom'] }],
+        ['O1', { text: 'D', borders: ['top', 'right', 'bottom'] }],
+        ['P1', { text: 'E', borders: ['top', 'right', 'bottom'] }],
+        ['Q1', { text: 'F', borders: ['top', 'right', 'bottom'] }],
+        ['R1', { text: 'G', borders: ['top', 'right', 'bottom'] }],
+        ['A2', { text: null, borders: ['left', 'right', 'bottom'] }],
+        ['B2', { text: '-', borders: ['right', 'bottom'] }],
+        ['C2', { text: '-', borders: ['right', 'bottom'] }],
+        ['D2', { text: '-', borders: ['right', 'bottom'] }],
+        ['E2', { text: '-', borders: ['right', 'bottom'] }],
+        ['F2', { text: '-', borders: ['right', 'bottom'] }],
+        ['G2', { text: '-', borders: ['right', 'bottom'] }],
+        ['H2', { text: '-', borders: ['right', 'bottom'] }],
+        ['I2', { text: '-', borders: ['right', 'bottom'] }],
+        ['J2', { text: '-', borders: ['right', 'bottom'] }],
+        ['K2', { text: '-', borders: ['right', 'bottom'] }],
+        ['L2', { text: '-', borders: ['right', 'bottom'] }],
+        ['M2', { text: '-', borders: ['right', 'bottom'] }],
+        ['N2', { text: null, borders: ['right', 'bottom'] }],
+        ['O2', { text: null, borders: ['right', 'bottom'] }],
+        ['P2', { text: null, borders: ['right', 'bottom'] }],
+        ['Q2', { text: null, borders: ['right', 'bottom'] }],
+        ['R2', { text: null, borders: ['right', 'bottom'] }],
+        ['A3', { text: null, borders: ['left', 'right', 'bottom'] }],
+        ['B3', { text: null, borders: ['right', 'bottom'] }],
+        ['C3', { text: null, borders: ['right', 'bottom'] }],
+        ['D3', { text: null, borders: ['right', 'bottom'] }],
+        ['E3', { text: null, borders: ['right', 'bottom'] }],
+        ['F3', { text: null, borders: ['right', 'bottom'] }],
+        ['G3', { text: null, borders: ['right', 'bottom'] }],
+        ['H3', { text: null, borders: ['right', 'bottom'] }],
+        ['I3', { text: null, borders: ['right', 'bottom'] }],
+        ['J3', { text: null, borders: ['right', 'bottom'] }],
+        ['K3', { text: null, borders: ['right', 'bottom'] }],
+        ['L3', { text: null, borders: ['right', 'bottom'] }],
+        ['M3', { text: null, borders: ['right', 'bottom'] }],
+        ['N3', { text: null, borders: ['right', 'bottom'] }],
+        ['O3', { text: 'sub D', borders: ['right', 'bottom'] }],
+        ['P3', { text: 'sub E', borders: ['right', 'bottom'] }],
+        ['Q3', { text: 'sub F', borders: ['right', 'bottom'] }],
+        ['R3', { text: null, borders: ['right', 'bottom'] }]
+      ])
+
+      for (const [cellRef, info] of expected.entries()) {
+        const targetBorder = info.borders.reduce((acu, borderText) => {
+          const [side, color] = borderText.split(':')
+          const validSides = ['left', 'top', 'right', 'bottom']
+
+          if (!validSides.includes(side)) {
+            throw new Error(`Invalid border side ${side} in cell ${cellRef}`)
+          }
+
+          acu[side] = {
+            style: 'thin'
+          }
+
+          if (color) {
+            acu[side].color = color
+          } else {
+            acu[side].color = 'ff000000'
+          }
+
+          return acu
+        }, { left: null, top: null, right: null, bottom: null })
+
+        if (info.text != null) {
+          should(getCell(sheetDoc, cellRef, 'v')).be.eql(info.text)
+        } else {
+          should(getCell(sheetDoc, cellRef, 'v')).be.not.ok()
+        }
+
+        const cellBorder = getStyle(sheetDoc, stylesDoc, cellRef, 'b')
+
+        for (const side of ['left', 'top', 'right', 'bottom']) {
+          if (targetBorder[side] == null) {
+            should(cellBorder[side]).be.not.ok()
+            continue
+          }
+
+          const sideBorder = targetBorder[side]
+
+          should(cellBorder[side].style).be.eql(sideBorder.style)
+          should(cellBorder[side].color).be.eql(sideBorder.color)
+        }
+      }
+    })
+
     it('should work when using cell border collapsing styles', async () => {
       const stream = await conversion(`
         <table>
@@ -3564,6 +3725,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA2Border = getStyle(sheetDoc, stylesDoc, 'A2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA2Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA2Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA2Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -3573,7 +3739,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB2Border[side]).be.not.ok()
           continue
         }
@@ -3629,7 +3795,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF2Border = getStyle(sheetDoc, stylesDoc, 'F2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF2Border[side]).be.not.ok()
           continue
         }
@@ -3643,7 +3809,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellG2Border = getStyle(sheetDoc, stylesDoc, 'G2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellG2Border[side]).be.not.ok()
           continue
         }
@@ -3657,7 +3823,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellH2Border = getStyle(sheetDoc, stylesDoc, 'H2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellH2Border[side]).be.not.ok()
           continue
         }
@@ -3671,7 +3837,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellI2Border = getStyle(sheetDoc, stylesDoc, 'I2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellI2Border[side]).be.not.ok()
           continue
         }
@@ -3685,6 +3851,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA3Border = getStyle(sheetDoc, stylesDoc, 'A3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA3Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA3Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA3Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -3694,7 +3865,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB3Border = getStyle(sheetDoc, stylesDoc, 'B3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB3Border[side]).be.not.ok()
           continue
         }
@@ -3750,7 +3921,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF3Border = getStyle(sheetDoc, stylesDoc, 'F3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF3Border[side]).be.not.ok()
           continue
         }
@@ -3764,7 +3935,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellG3Border = getStyle(sheetDoc, stylesDoc, 'G3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellG3Border[side]).be.not.ok()
           continue
         }
@@ -3778,7 +3949,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellH3Border = getStyle(sheetDoc, stylesDoc, 'H3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellH3Border[side]).be.not.ok()
           continue
         }
@@ -3792,7 +3963,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellI3Border = getStyle(sheetDoc, stylesDoc, 'I3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellI3Border[side]).be.not.ok()
           continue
         }
@@ -3806,6 +3977,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA4Border = getStyle(sheetDoc, stylesDoc, 'A4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA4Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA4Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA4Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -3815,7 +3991,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB4Border = getStyle(sheetDoc, stylesDoc, 'B4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB4Border[side]).be.not.ok()
           continue
         }
@@ -3874,7 +4050,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF4Border = getStyle(sheetDoc, stylesDoc, 'F4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF4Border[side]).be.not.ok()
           continue
         }
@@ -3888,7 +4064,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellG4Border = getStyle(sheetDoc, stylesDoc, 'G4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellG4Border[side]).be.not.ok()
           continue
         }
@@ -3902,7 +4078,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellH4Border = getStyle(sheetDoc, stylesDoc, 'H4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellH4Border[side]).be.not.ok()
           continue
         }
@@ -3916,7 +4092,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellI4Border = getStyle(sheetDoc, stylesDoc, 'I4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellI4Border[side]).be.not.ok()
           continue
         }
@@ -3930,6 +4106,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA5Border = getStyle(sheetDoc, stylesDoc, 'A5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA5Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA5Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA5Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -3939,7 +4120,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB5Border = getStyle(sheetDoc, stylesDoc, 'B5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB5Border[side]).be.not.ok()
           continue
         }
@@ -3995,7 +4176,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF5Border = getStyle(sheetDoc, stylesDoc, 'F5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF5Border[side]).be.not.ok()
           continue
         }
@@ -4009,7 +4190,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellG5Border = getStyle(sheetDoc, stylesDoc, 'G5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellG5Border[side]).be.not.ok()
           continue
         }
@@ -4023,7 +4204,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellH5Border = getStyle(sheetDoc, stylesDoc, 'H5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellH5Border[side]).be.not.ok()
           continue
         }
@@ -4037,7 +4218,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellI5Border = getStyle(sheetDoc, stylesDoc, 'I5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellI5Border[side]).be.not.ok()
           continue
         }
@@ -4051,6 +4232,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA6Border = getStyle(sheetDoc, stylesDoc, 'A6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA6Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA6Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA6Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -4060,7 +4246,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB6Border = getStyle(sheetDoc, stylesDoc, 'B6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB6Border[side]).be.not.ok()
           continue
         }
@@ -4116,7 +4302,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF6Border = getStyle(sheetDoc, stylesDoc, 'F6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF6Border[side]).be.not.ok()
           continue
         }
@@ -4130,7 +4316,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellG6Border = getStyle(sheetDoc, stylesDoc, 'G6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellG6Border[side]).be.not.ok()
           continue
         }
@@ -4144,7 +4330,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellH6Border = getStyle(sheetDoc, stylesDoc, 'H6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellH6Border[side]).be.not.ok()
           continue
         }
@@ -4158,7 +4344,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellI6Border = getStyle(sheetDoc, stylesDoc, 'I6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellI6Border[side]).be.not.ok()
           continue
         }
@@ -4384,6 +4570,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA2Border = getStyle(sheetDoc, stylesDoc, 'A2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA2Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA2Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA2Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -4393,7 +4584,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB2Border = getStyle(sheetDoc, stylesDoc, 'B2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB2Border[side]).be.not.ok()
           continue
         }
@@ -4407,7 +4598,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellC2Border = getStyle(sheetDoc, stylesDoc, 'C2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellC2Border[side]).be.not.ok()
           continue
         }
@@ -4421,7 +4612,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellD2Border = getStyle(sheetDoc, stylesDoc, 'D2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellD2Border[side]).be.not.ok()
           continue
         }
@@ -4435,7 +4626,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellE2Border = getStyle(sheetDoc, stylesDoc, 'E2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellE2Border[side]).be.not.ok()
           continue
         }
@@ -4449,7 +4640,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF2Border = getStyle(sheetDoc, stylesDoc, 'F2', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF2Border[side]).be.not.ok()
           continue
         }
@@ -4505,6 +4696,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA3Border = getStyle(sheetDoc, stylesDoc, 'A3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA3Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA3Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA3Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -4514,7 +4710,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB3Border = getStyle(sheetDoc, stylesDoc, 'B3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB3Border[side]).be.not.ok()
           continue
         }
@@ -4528,7 +4724,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellC3Border = getStyle(sheetDoc, stylesDoc, 'C3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellC3Border[side]).be.not.ok()
           continue
         }
@@ -4542,7 +4738,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellD3Border = getStyle(sheetDoc, stylesDoc, 'D3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellD3Border[side]).be.not.ok()
           continue
         }
@@ -4556,7 +4752,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellE3Border = getStyle(sheetDoc, stylesDoc, 'E3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellE3Border[side]).be.not.ok()
           continue
         }
@@ -4570,7 +4766,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF3Border = getStyle(sheetDoc, stylesDoc, 'F3', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF3Border[side]).be.not.ok()
           continue
         }
@@ -4626,6 +4822,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA4Border = getStyle(sheetDoc, stylesDoc, 'A4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellA4Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA4Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA4Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -4635,7 +4836,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB4Border = getStyle(sheetDoc, stylesDoc, 'B4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB4Border[side]).be.not.ok()
           continue
         }
@@ -4649,7 +4850,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellC4Border = getStyle(sheetDoc, stylesDoc, 'C4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellC4Border[side]).be.not.ok()
           continue
         }
@@ -4663,7 +4864,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellD4Border = getStyle(sheetDoc, stylesDoc, 'D4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellD4Border[side]).be.not.ok()
           continue
         }
@@ -4677,7 +4878,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellE4Border = getStyle(sheetDoc, stylesDoc, 'E4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellE4Border[side]).be.not.ok()
           continue
         }
@@ -4691,7 +4892,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF4Border = getStyle(sheetDoc, stylesDoc, 'F4', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF4Border[side]).be.not.ok()
           continue
         }
@@ -4747,6 +4948,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA5Border = getStyle(sheetDoc, stylesDoc, 'A5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellI3Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA5Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA5Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -4756,7 +4962,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB5Border = getStyle(sheetDoc, stylesDoc, 'B5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB5Border[side]).be.not.ok()
           continue
         }
@@ -4770,7 +4976,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellC5Border = getStyle(sheetDoc, stylesDoc, 'C5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellC5Border[side]).be.not.ok()
           continue
         }
@@ -4784,7 +4990,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellD5Border = getStyle(sheetDoc, stylesDoc, 'D5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellD5Border[side]).be.not.ok()
           continue
         }
@@ -4798,7 +5004,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellE5Border = getStyle(sheetDoc, stylesDoc, 'E5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellE5Border[side]).be.not.ok()
           continue
         }
@@ -4812,7 +5018,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF5Border = getStyle(sheetDoc, stylesDoc, 'F5', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF5Border[side]).be.not.ok()
           continue
         }
@@ -4868,6 +5074,11 @@ describe('html to xlsx conversion with strategy', () => {
       const cellA6Border = getStyle(sheetDoc, stylesDoc, 'A6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
+        if (side === 'top') {
+          should(cellI3Border[side]).be.not.ok()
+          continue
+        }
+
         should(cellA6Border[side].style).be.eql(expectedBlackBorder.style)
         should(cellA6Border[side].color).be.eql(expectedBlackBorder.color)
       }
@@ -4877,7 +5088,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellB6Border = getStyle(sheetDoc, stylesDoc, 'B6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellB6Border[side]).be.not.ok()
           continue
         }
@@ -4891,7 +5102,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellC6Border = getStyle(sheetDoc, stylesDoc, 'C6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellC6Border[side]).be.not.ok()
           continue
         }
@@ -4905,7 +5116,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellD6Border = getStyle(sheetDoc, stylesDoc, 'D6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellD6Border[side]).be.not.ok()
           continue
         }
@@ -4919,7 +5130,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellE6Border = getStyle(sheetDoc, stylesDoc, 'E6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellE6Border[side]).be.not.ok()
           continue
         }
@@ -4933,7 +5144,7 @@ describe('html to xlsx conversion with strategy', () => {
       const cellF6Border = getStyle(sheetDoc, stylesDoc, 'F6', 'b')
 
       for (const side of ['left', 'top', 'right', 'bottom']) {
-        if (side === 'left') {
+        if (side === 'left' || side === 'top') {
           should(cellF6Border[side]).be.not.ok()
           continue
         }
@@ -5107,8 +5318,12 @@ describe('html to xlsx conversion with strategy', () => {
         const cellBorder = getStyle(sheetDoc, stylesDoc, cellRef, 'b')
 
         for (const side of ['left', 'top', 'right', 'bottom']) {
-          should(cellBorder[side].style).be.eql(expectedBlackBorder.style)
-          should(cellBorder[side].color).be.eql(expectedBlackBorder.color)
+          if (index > 0 && side === 'left') {
+            should(cellBorder[side]).be.not.ok()
+          } else {
+            should(cellBorder[side].style).be.eql(expectedBlackBorder.style)
+            should(cellBorder[side].color).be.eql(expectedBlackBorder.color)
+          }
         }
       }
 
@@ -5122,7 +5337,7 @@ describe('html to xlsx conversion with strategy', () => {
           for (const side of ['left', 'top', 'right', 'bottom']) {
             const explicitSides = ['right', 'bottom']
 
-            if (index < 4) {
+            if (index === 0) {
               explicitSides.push('left')
             }
 
