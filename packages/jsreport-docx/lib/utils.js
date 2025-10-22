@@ -66,12 +66,14 @@ function getNewIdFromBaseId (itemsMap, baseId, maxId) {
 function getPictureElInfo (drawingEl) {
   const els = []
   let wpExtentEl
+  let wpEffectExtentEl
 
   if (isDrawingPicture(drawingEl)) {
     const wpDocPrEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:docPr')
     let linkInDrawing
 
     wpExtentEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:extent')
+    wpEffectExtentEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:effectExtent')
 
     if (wpDocPrEl) {
       linkInDrawing = nodeListToArray(wpDocPrEl.childNodes).find((el) => el.nodeName === 'a:hlinkClick')
@@ -88,6 +90,7 @@ function getPictureElInfo (drawingEl) {
     return {
       picture: undefined,
       wpExtent: undefined,
+      wpEffectExtent: undefined,
       links: els
     }
   }
@@ -101,6 +104,7 @@ function getPictureElInfo (drawingEl) {
   return {
     picture: pictureEl,
     wpExtent: wpExtentEl,
+    wpEffectExtent: wpEffectExtentEl,
     links: els
   }
 }
@@ -346,6 +350,34 @@ function findChildNode (nodeNameOrFn, targetNode, allNodes = false) {
   }
 
   return allNodes ? result : result[0]
+}
+
+function findCommonParent (el, parentsHierarchy = []) {
+  if (el == null || parentsHierarchy.length === 0) {
+    return el
+  }
+
+  const validParents = [...parentsHierarchy].reverse()
+  const allParents = []
+
+  while (el.parentNode != null && el.parentNode.tagName !== null) {
+    allParents.push(el.parentNode)
+    el = el.parentNode
+  }
+
+  let matchEl
+
+  while (validParents.length > 0) {
+    matchEl = allParents.find((p) => p.tagName === validParents[0])
+
+    if (matchEl == null) {
+      validParents.shift()
+    } else {
+      break
+    }
+  }
+
+  return matchEl == null ? el.parentNode : matchEl
 }
 
 function createNode (doc, name, opts = {}) {
@@ -783,6 +815,7 @@ module.exports.getClosestEl = getClosestEl
 module.exports.clearEl = clearEl
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
+module.exports.findCommonParent = findCommonParent
 module.exports.createNode = createNode
 module.exports.nodeListToArray = nodeListToArray
 module.exports.decodeURIComponentRecursive = decodeURIComponentRecursive

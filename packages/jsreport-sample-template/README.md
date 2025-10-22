@@ -22,6 +22,10 @@
 
 ## Changelog
 
+### 4.0.2
+
+- update style in Orders sample needed to work after the Chromium 138 update
+
 ### 4.0.1
 
 - fix demo chart

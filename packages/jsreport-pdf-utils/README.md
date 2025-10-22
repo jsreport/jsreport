@@ -7,6 +7,11 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.4.1
+
+- reflect and add guided autofix for the chromium 138 flexbox change
+- adapt to work with uncompressed content streams produced by latest chromium
+
 ### 4.4.0
 
 - add support for pdf compression

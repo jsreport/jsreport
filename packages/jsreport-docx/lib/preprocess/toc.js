@@ -219,11 +219,14 @@ module.exports = (files) => {
     } while (!evaluated)
 
     const clonedParagraphEl = paragraphEl.cloneNode(true)
-    const textNode = clonedParagraphEl.getElementsByTagName('w:t')[0]
+    const textNodes = nodeListToArray(clonedParagraphEl.getElementsByTagName('w:t'))
+    const firstTextNode = textNodes[0]
+    const previousSiblingForFirstTextNode = getPreviousSiblingWithoutRemove(firstTextNode.parentNode)
 
     // we verify that bookmark exists on title elements, if not there it means that we have to create it
-    if (textNode != null && textNode.parentNode.previousSibling?.nodeName !== 'w:bookmarkStart') {
-      const rNode = textNode.parentNode
+    if (firstTextNode != null && previousSiblingForFirstTextNode?.nodeName !== 'w:bookmarkStart') {
+      const firstRNode = firstTextNode.parentNode
+      const lastRNode = textNodes[textNodes.length - 1].parentNode
       const bookmarkStartEl = documentDoc.createElement('w:bookmarkStart')
       const bookmarkEndEl = documentDoc.createElement('w:bookmarkEnd')
 
@@ -232,8 +235,8 @@ module.exports = (files) => {
       bookmarkStartEl.setAttribute('w:name', `_Toc${randomInteger(30000000, 90000000)}_r'`)
       bookmarkEndEl.setAttribute('w:id', maxBookmarkId)
 
-      rNode.parentNode.insertBefore(bookmarkStartEl, rNode)
-      rNode.parentNode.insertBefore(bookmarkEndEl, rNode.nextSibling)
+      firstRNode.parentNode.insertBefore(bookmarkStartEl, firstRNode)
+      lastRNode.parentNode.insertBefore(bookmarkEndEl, lastRNode.nextSibling)
     }
 
     const wrapperEl = documentDoc.createElement('TOCTitle')
@@ -244,6 +247,20 @@ module.exports = (files) => {
   if (maxBookmarkId != null) {
     contentTypesDoc.documentElement.setAttribute('bookmarkMaxId', maxBookmarkId)
   }
+}
+
+function getPreviousSiblingWithoutRemove (el) {
+  let targetEl = el?.previousSibling
+
+  while (targetEl != null) {
+    if (targetEl.nodeName !== 'docxRemove') {
+      break
+    }
+
+    targetEl = targetEl.previousSibling
+  }
+
+  return targetEl
 }
 
 function getParagraphStyleId (pEl) {

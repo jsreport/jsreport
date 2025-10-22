@@ -1,5 +1,5 @@
 
-function resolveEntityPath (entity, foldersByShortid) {
+function resolveEntityPath (entity, entitiesByShortid) {
   if (!entity) {
     return
   }
@@ -7,7 +7,7 @@ function resolveEntityPath (entity, foldersByShortid) {
   const pathFragments = [entity.name]
 
   while (entity.folder) {
-    const folder = foldersByShortid[entity.folder.shortid]
+    const folder = entitiesByShortid[entity.folder.shortid]
 
     if (folder == null) {
       throw new Error(`Unable to find entity with shortid ${entity.folder.shortid}`)

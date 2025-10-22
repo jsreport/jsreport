@@ -1,8 +1,7 @@
 const {
   nodeListToArray, normalizeSingleTextElInRun, normalizeSingleContentInText,
-  processOpeningTag, processClosingTag
+  findCommonParent, processOpeningTag, processClosingTag
 } = require('../utils')
-const { findCommonParent } = require('../styleUtils')
 
 // the specification of {{docxStyle}} is very rich
 // it should add color to all text between the docxStyle tag
@@ -15,13 +14,12 @@ const { findCommonParent } = require('../styleUtils')
 // the <docxStyle> node will then include the handlebars generated values for color
 
 const docxStyleCallRegExp = /{{#docxStyle [^{}]{0,500}}}/
-// here we added w:tbl just because we want to max parent to be it,
+// here we added w:tbl just because we want the max parent to be it,
 // and want that if possible {{#docxSData type='styles'}} to be inserted as wrapper of table
-const validParents = ['w:p', 'w:tc', 'w:tr', 'w:tbl']
-
-let styleIdCounter = 1
+const validParents = ['w:p', 'wps:wsp', 'w:tc', 'w:tr', 'w:tbl']
 
 module.exports = (files) => {
+  let styleIdCounter = 1
   const startStyleCall = '{{#docxStyle'
   const endStyleCall = '{{/docxStyle}}'
 
@@ -37,7 +35,7 @@ module.exports = (files) => {
     }
 
     // first we normalize that w:r elements containing the docxStyle calls only contain one child w:t element
-    // usually office does not generated documents like this but it is valid that
+    // usually office does not generate documents like this but it is valid that
     // the w:r element can contain multiple w:t elements
     for (const textEl of textElementsWithDocxStyle) {
       normalizeSingleTextElInRun(textEl, doc)

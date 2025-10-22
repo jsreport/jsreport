@@ -25,6 +25,22 @@ module.exports = async function getImportRecords (reporter, req, {
     )
   })
 
+  const usersCollectionIdx = exportableCollectionsWithoutFolders.indexOf('users')
+
+  // ensure userGroups and users are the collections processed first after folders,
+  // this is to ensure visibilityPermissions propagation works correctly
+  if (usersCollectionIdx !== -1) {
+    exportableCollectionsWithoutFolders.splice(usersCollectionIdx, 1)
+    exportableCollectionsWithoutFolders.unshift('users')
+  }
+
+  const userGroupsCollectionIdx = exportableCollectionsWithoutFolders.indexOf('usersGroups')
+
+  if (userGroupsCollectionIdx !== -1) {
+    exportableCollectionsWithoutFolders.splice(userGroupsCollectionIdx, 1)
+    exportableCollectionsWithoutFolders.unshift('usersGroups')
+  }
+
   const exportableCollections = [...exportableCollectionsWithoutFolders, 'folders']
 
   if (fullImport) {

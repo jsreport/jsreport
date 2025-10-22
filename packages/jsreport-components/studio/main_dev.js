@@ -25,3 +25,70 @@ Studio.addPropertiesComponent(ComponentProperties.title, ComponentProperties, (e
 Studio.addToolbarComponent(PreviewComponentToolbar)
 
 Studio.addPreviewComponent('component', ComponentPreview)
+
+Studio.textEditorInitializeListeners.push(({ monaco }) => {
+  registerHandlebarsLanguage(monaco)
+})
+
+/**
+ * We implement monaco registerLinkProvider & registerLinkOpener for Handlebars.
+ * This allows to Ctrl+Click (or Cmd+Click on Mac) on {{component "path/to/component"}} expressions
+ */
+function registerHandlebarsLanguage (monaco) {
+  const languageId = 'handlebars'
+  const handlebarComponentRegex = /\{\{\s*component\s+(["'])([^"']+)\1[^}]*?\}\}/g
+  const handlebarLinkScheme = 'jsreport-studio'
+  const handlebarLinkAuthority = 'handlebars-link'
+
+  monaco.languages.registerLinkProvider(languageId, {
+    provideLinks: (model) => {
+      const links = []
+      const lines = model.getLinesContent()
+
+      for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
+        let match
+        while ((match = handlebarComponentRegex.exec(lines[lineNumber])) !== null) {
+          const path = match[2]
+          const entityPath = Studio.resolveEntityPath(Studio.getActiveEntity())
+          const parentPath = `/${entityPath.split('/').slice(1, -1).join('/')}`
+
+          const { entity: targetEntity } = Studio.resolveEntityFromPath(path, 'components', { currentPath: parentPath })
+
+          if (targetEntity?.__entitySet !== 'components') {
+            continue
+          }
+
+          // Add link to the editor model
+          const url = `${handlebarLinkScheme}://${handlebarLinkAuthority}/${encodeURIComponent(path)}`
+          const startColumn = match.index + match[0].indexOf(path)
+          const endColumn = startColumn + path.length
+          links.push({
+            range: new monaco.Range(lineNumber + 1, startColumn + 1, lineNumber + 1, endColumn + 1),
+            url: url
+          })
+        }
+      }
+      return { links }
+    }
+  })
+
+  monaco.editor.registerLinkOpener({
+    open: (url) => {
+      if (!(url.scheme === handlebarLinkScheme && url.authority === handlebarLinkAuthority)) {
+        return false
+      }
+
+      const entityPath = Studio.resolveEntityPath(Studio.getActiveEntity())
+      const parentPath = `/${entityPath.split('/').slice(1, -1).join('/')}`
+      const { entity: targetEntity } = Studio.resolveEntityFromPath(url.path.slice(1), 'components', { currentPath: parentPath })
+
+      if (!targetEntity) {
+        return false
+      }
+
+      Studio.openTab({ _id: targetEntity._id })
+
+      return true
+    }
+  })
+}

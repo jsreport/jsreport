@@ -247,6 +247,39 @@ describe('docx style', () => {
     }
   })
 
+  it('style - textColor target shape', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-textcolor-target-shape.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wspEl = doc.getElementsByTagName('wps:wsp')[0]
+    const wREls = nodeListToArray(wspEl.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wcolorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
+      should(wcolorEl.getAttribute('w:val')).be.eql(targetColors.one)
+    }
+  })
+
   it('style - textColor target cell', async () => {
     const targetColors = {
       one: '0000FF'
@@ -664,6 +697,38 @@ describe('docx style', () => {
           throw new Error(`Unexpected text "${wTEl.textContent}"`)
       }
     }
+  })
+
+  it('style - backgroundColor target shape', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-backgroundcolor-target-shape.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wspEl = doc.getElementsByTagName('wps:wsp')[0]
+    const spPrEl = nodeListToArray(wspEl.childNodes).find((node) => node.tagName === 'wps:spPr')
+    const solidFillEl = spPrEl != null ? nodeListToArray(spPrEl.childNodes).find((node) => node.tagName === 'a:solidFill') : undefined
+    const srgbClrEl = solidFillEl != null ? nodeListToArray(solidFillEl.childNodes).find((node) => node.tagName === 'a:srgbClr') : undefined
+
+    should(srgbClrEl).be.ok()
+    should(srgbClrEl.getAttribute('val')).be.eql(targetColors.one)
   })
 
   it('style - backgroundColor target cell', async () => {

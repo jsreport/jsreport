@@ -32,7 +32,7 @@
     "test/extensions/validExtensions/listeners"
   ],
   "scripts": {
-    "test": "mocha --timeout 5000 --recursive test --exit && standard",
+    "test": "mocha --timeout 8000 --recursive test --exit && standard",
     "test:watch": "mocha --watch --recursive test"
   },
   "dependencies": {

@@ -1,6 +1,8 @@
 const fs = require('fs')
+const { customAlphabet } = require('nanoid')
 const { getImageSizeInEMU } = require('../imageUtils')
 const { nodeListToArray, findOrCreateChildNode, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
+const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 
 module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)
@@ -156,10 +158,16 @@ module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc,
     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
   )
 
-  relEl.setAttribute('Target', `media/imageDocx${newImageRelId}.${imageExtension}`)
+  let docxImageName = `imageDocx${newImageRelId}.${imageExtension}`
+
+  while (files.find(f => f.path === `word/media/${docxImageName}`) != null) {
+    docxImageName = `imageDocx${newImageRelId}_${generateRandomId()}.${imageExtension}`
+  }
+
+  relEl.setAttribute('Target', `media/${docxImageName}`)
 
   files.push({
-    path: `word/media/imageDocx${newImageRelId}.${imageExtension}`,
+    path: `word/media/${docxImageName}`,
     data: imageContent.type === 'path' ? fs.createReadStream(imageContent.data) : imageContent.data,
     // this will make it store the svg file to be stored correctly
     serializeFromDoc: false
@@ -179,8 +187,63 @@ module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc,
   relsEl.appendChild(relEl)
 
   const blipEl = pictureEl.getElementsByTagName('a:blip')[0]
-  const aExtEl = pictureEl.getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]
+  const aXFrm = pictureEl.getElementsByTagName('a:xfrm')[0]
+  const aExtEl = aXFrm.getElementsByTagName('a:ext')[0]
   const wpExtentEl = pictureElInfo.wpExtent
+  const wpEffectExtentEl = pictureElInfo.wpEffectExtent
+
+  let flipH
+  let flipV
+  let imageRotation60thsDegree
+
+  // values for the exif orientation tag
+  // https://exiftool.org/TagNames/EXIF.html#:~:text=0x0112,8%20=%20Rotate%20270%20CW
+  if (imageConfig.image.orientation === 2) {
+    flipH = true
+  } else if (imageConfig.image.orientation === 3) {
+    imageRotation60thsDegree = 180
+  } else if (imageConfig.image.orientation === 4) {
+    flipV = true
+  } else if (imageConfig.image.orientation === 5) {
+    flipV = true
+    imageRotation60thsDegree = 90
+  } else if (imageConfig.image.orientation === 6) {
+    imageRotation60thsDegree = 90
+  } else if (imageConfig.image.orientation === 7) {
+    flipV = true
+    imageRotation60thsDegree = 270
+  } else if (imageConfig.image.orientation === 8) {
+    imageRotation60thsDegree = 270
+  }
+
+  // user rotation has precedence over exif orientation
+  if (imageConfig.rotation != null) {
+    // round to avoid using float values
+    imageRotation60thsDegree = Math.round(imageConfig.rotation)
+  }
+
+  if (imageRotation60thsDegree != null) {
+    imageRotation60thsDegree = imageRotation60thsDegree * 60000
+    aXFrm.setAttribute('rot', imageRotation60thsDegree)
+  }
+
+  // user flip has precedence over exif orientation
+  if (imageConfig.flip === 'horizontal') {
+    flipH = true
+  } else if (imageConfig.flip === 'vertical') {
+    flipV = true
+  } else if (imageConfig.flip === 'horizontal-vertical') {
+    flipH = true
+    flipV = true
+  }
+
+  if (flipH != null) {
+    aXFrm.setAttribute('flipH', flipH === true ? '1' : '0')
+  }
+
+  if (flipV != null) {
+    aXFrm.setAttribute('flipV', flipV === true ? '1' : '0')
+  }
 
   let imageWidthEMU
   let imageHeightEMU
@@ -191,8 +254,12 @@ module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc,
     imageHeightEMU = parseFloat(aExtEl.getAttribute('cy'))
   } else {
     const imageSizeEMU = getImageSizeInEMU(imageSize, {
-      width: imageConfig.width,
-      height: imageConfig.height
+      // if user has specified custom width/height and the
+      // exif orientation is greater or equal than 5 then we
+      // invert the width/height to make it easier for the user
+      // to get the size they want
+      width: imageConfig.image.orientation >= 5 ? imageConfig.height : imageConfig.width,
+      height: imageConfig.image.orientation >= 5 ? imageConfig.width : imageConfig.height
     })
 
     imageWidthEMU = imageSizeEMU.width
@@ -239,6 +306,14 @@ module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc,
   if (wpExtentEl) {
     wpExtentEl.setAttribute('cx', imageWidthEMU)
     wpExtentEl.setAttribute('cy', imageHeightEMU)
+  }
+
+  if (wpEffectExtentEl) {
+    // reset effect extent to 0
+    wpEffectExtentEl.setAttribute('l', '0')
+    wpEffectExtentEl.setAttribute('t', '0')
+    wpEffectExtentEl.setAttribute('r', '0')
+    wpEffectExtentEl.setAttribute('b', '0')
   }
 
   aExtEl.setAttribute('cx', imageWidthEMU)

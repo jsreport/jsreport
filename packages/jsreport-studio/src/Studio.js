@@ -656,7 +656,7 @@ class Studio {
    * @returns {Object}
    */
   getActiveEntity () {
-    return editor.selectors.getActiveEntity(this.store.getState().activeTabKey, this.store.getState().editor.tabs, this.store.getState().entities)
+    return editor.selectors.getActiveEntity(this.store.getState().editor.activeTabKey, this.store.getState().editor.tabs, this.store.getState().entities)
   }
 
   /**
@@ -707,6 +707,10 @@ class Studio {
    */
   resolveEntityPath (entity) {
     return storeMethods.resolveEntityPath(entity)
+  }
+
+  resolveEntityFromPath (entityPathParam, targetEntitySet, options = {}) {
+    return storeMethods.resolveEntityFromPath(entityPathParam, targetEntitySet, options)
   }
 
   /**

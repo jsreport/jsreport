@@ -749,7 +749,7 @@ function docxStyle (options) {
   const styleId = options.hash.id
   const textColor = options.hash.textColor || ''
   const backgroundColor = options.hash.backgroundColor || ''
-  const validTargets = ['text', 'paragraph', 'cell', 'row']
+  const validTargets = ['text', 'paragraph', 'shape', 'cell', 'row']
   const target = options.hash.target || 'text'
 
   if (styleId == null) {
@@ -775,6 +775,41 @@ function docxStyle (options) {
   }
 
   return new Handlebars.SafeString(`$docxStyleStart${styleId}$`)
+}
+
+function docxRemove (options) {
+  const Handlebars = require('handlebars')
+
+  if (options.data.remove == null) {
+    throw new Error('docxRemove helper remove data not found')
+  }
+
+  const removeData = options.data.remove
+  const value = options.hash.v ?? true
+  const target = options.hash.t ?? 'paragraph'
+
+  if (typeof value !== 'boolean') {
+    throw new Error('docxRemove helper parameter v must be a boolean')
+  }
+
+  if (typeof target !== 'string') {
+    throw new Error('docxRemove helper parameter t must be a string')
+  }
+
+  const validTargets = ['paragraph', 'row', 'table']
+
+  if (!validTargets.includes(target)) {
+    throw new Error(`docxRemove helper parameter t has invalid value "${target}", it must be one of these values: ${validTargets.map((t) => `"${t}"`).join(', ')}`)
+  }
+
+  const id = removeData.size + 1
+
+  removeData.set(id, {
+    value,
+    target
+  })
+
+  return new Handlebars.SafeString(`<!--__docxRemove${id}__-->`)
 }
 
 function docxCheckbox (options) {
@@ -1060,6 +1095,8 @@ async function docxImage (optionsToUse) {
   optionsToUse.hash.failurePlaceholderAction = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.failurePlaceholderAction)
   optionsToUse.hash.width = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.width)
   optionsToUse.hash.height = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.height)
+  optionsToUse.hash.flip = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.flip)
+  optionsToUse.hash.rotation = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.rotation)
   optionsToUse.hash.usePlaceholderSize = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.usePlaceholderSize)
   optionsToUse.hash.bookmarkName = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.bookmarkName)
 
@@ -1148,6 +1185,34 @@ async function docxImage (optionsToUse) {
     )
   }
 
+  if (
+    optionsToUse.hash.flip != null &&
+    (
+      optionsToUse.hash.flip !== 'horizontal' &&
+      optionsToUse.hash.flip !== 'vertical' &&
+      optionsToUse.hash.flip !== 'horizontal-vertical'
+    )
+  ) {
+    throw new Error(
+      'docxImage helper requires flip parameter to be either "horizontal", "vertical", "horizontal-vertical". Got ' +
+      optionsToUse.hash.flip
+    )
+  }
+
+  if (
+    optionsToUse.hash.rotation != null &&
+    (
+      typeof optionsToUse.hash.rotation !== 'number' ||
+      optionsToUse.hash.rotation < 0 ||
+      optionsToUse.hash.rotation > 360
+    )
+  ) {
+    throw new Error(
+      'docxImage helper requires rotation parameter to be a number between 0 and 360. Got ' +
+      optionsToUse.hash.rotation
+    )
+  }
+
   const processImageLoader = jsreport.req.context.__docxSharedData.processImageLoader
   let imageResolved
 
@@ -1169,6 +1234,8 @@ async function docxImage (optionsToUse) {
     failurePlaceholderAction: optionsToUse.hash.failurePlaceholderAction,
     width: optionsToUse.hash.width,
     height: optionsToUse.hash.height,
+    flip: optionsToUse.hash.flip,
+    rotation: optionsToUse.hash.rotation,
     usePlaceholderSize: (
       optionsToUse.hash.usePlaceholderSize === true ||
       optionsToUse.hash.usePlaceholderSize === 'true'
@@ -1497,6 +1564,24 @@ async function docxSData (data, options) {
     const processStyles = jsreport.req.context.__docxSharedData.processStyles
 
     result = processStyles(newData.styles, result)
+
+    return result
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'remove'
+  ) {
+    const jsreport = require('jsreport-proxy')
+    const newData = Handlebars.createFrame(optionsToUse.data)
+
+    newData.remove = new Map()
+
+    let result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
+
+    const processRemove = jsreport.req.context.__docxSharedData.processRemove
+
+    result = processRemove(newData.remove, result)
 
     return result
   }

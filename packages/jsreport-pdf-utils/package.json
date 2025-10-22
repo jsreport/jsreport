@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-pdf-utils",
-  "version": "4.4.0",
+  "version": "4.4.1",
   "description": "jsreport extension providing pdf operations like merge or concatenation",
   "keywords": [
     "jsreport",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@jsreport/node-signpdf": "1.4.2",
-    "@jsreport/pdfjs": "1.8.0",
+    "@jsreport/pdfjs": "1.8.1",
     "cheerio": "1.0.0-rc.12",
     "lodash.omit": "4.5.0",
     "nanoid": "3.3.8",

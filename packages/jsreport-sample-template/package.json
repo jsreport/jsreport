@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-sample-template",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "jsreport extension which creates a sample template at the first run",
   "keywords": [
     "jsreport"
@@ -37,10 +37,10 @@
     "@jsreport/jsreport-data": "4.1.0",
     "@jsreport/jsreport-fs-store": "4.1.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
-    "@jsreport/jsreport-html-to-xlsx": "4.2.3",
-    "@jsreport/jsreport-pdf-utils": "4.4.0",
+    "@jsreport/jsreport-html-to-xlsx": "4.2.4",
+    "@jsreport/jsreport-pdf-utils": "4.4.1",
     "@jsreport/jsreport-scripts": "4.2.0",
-    "@jsreport/jsreport-xlsx": "4.5.0",
+    "@jsreport/jsreport-xlsx": "4.5.1",
     "@jsreport/studio-dev": "4.0.1",
     "handlebars": "4.7.7",
     "mocha": "10.1.0",

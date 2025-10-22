@@ -2,6 +2,9 @@ const path = require('path')
 const fs = require('fs')
 const moment = require('moment')
 const ExcelJS = require('@jsreport/exceljs')
+const { tokenize } = require('excel-formula-tokenizer')
+const escapeStringRegexp = require('escape-string-regexp')
+const futureFunctionsMap = require('./futureFunctions')
 const stylesMap = require('./stylesMap')
 const styleNames = Object.entries(stylesMap)
 const utils = require('./utils')
@@ -32,12 +35,62 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
 
   for (const table of tablesToProcess) {
     const sheet = await workbook.addWorksheetAsync(table.name)
+    const usedCells = new Map()
 
     const context = {
       currentRowInFile: 0,
       currentCellOffsetsPerRow: [],
       pendingCellOffsetsPerRow: [],
-      usedCells: [],
+      usedCells: {
+        get: (row, col) => {
+          if (row == null && col == null) {
+            // this is used just for debugging purposes
+            const rowIndexes = usedCells.keys()
+            const result = []
+
+            for (const rowIndex of rowIndexes) {
+              const rowItems = usedCells.get(rowIndex)
+              const colIndexes = rowItems.keys()
+
+              for (const colIndex of colIndexes) {
+                if (rowItems.get(colIndex) !== true) {
+                  continue
+                }
+
+                result.push(`${rowIndex}.${colIndex}`)
+              }
+            }
+
+            return result.join(',')
+          }
+
+          const targetRow = usedCells.get(row)
+
+          if (targetRow == null) {
+            return
+          }
+
+          if (col == null) {
+            return targetRow
+          }
+
+          return targetRow.get(col)
+        },
+        set: (row, col) => {
+          let targetRow = usedCells.get(row)
+
+          if (targetRow == null) {
+            targetRow = new Map()
+            usedCells.set(row, targetRow)
+          }
+
+          if (col == null) {
+            throw new Error('col is required')
+          }
+
+          targetRow.set(col, true)
+        }
+      },
       maxWidths: [],
       pendingCellStylesByRow: new Map(),
       parsedStyles: new Map(),
@@ -149,7 +202,12 @@ function addRow (sheet, row, context) {
     currentCellOffsetsPerRow[context.currentRowInFile] = [{ startCell: 1, offset: 0 }]
   }
 
-  const allCellsAreRowSpan = row.filter(c => c.rowspan > 1).length === row.length
+  const usedCellsInRow = usedCells.get(context.currentRowInFile + 1)
+
+  const allCellsAreRowSpan = (
+    row.filter(c => c.rowspan > 1).length === row.length &&
+   (usedCellsInRow == null || usedCellsInRow.size === 0)
+  )
 
   if (row.length === 0) {
     throw new Error('Cell not found, make sure there are td elements inside tr')
@@ -216,7 +274,7 @@ function addRow (sheet, row, context) {
     const startRow = cell.row
     let endRow = cell.row
 
-    usedCells[`${cell.row},${cell.col}`] = true
+    usedCells.set(cell.row, cell.col)
 
     if (cellInfo.type === 'number') {
       cell.value = parseFloat(cellInfo.valueText)
@@ -230,7 +288,7 @@ function addRow (sheet, row, context) {
       cell.numFmt = 'yyyy-mm-dd h:mm:ss'
     } else if (cellInfo.type === 'formula') {
       cell.value = {
-        formula: cellInfo.valueText
+        formula: prefixIfFutureFunction(cellInfo.valueText)
       }
     } else {
       cell.value = cellInfo.valueText !== '' ? cellInfo.valueText : null
@@ -271,8 +329,8 @@ function addRow (sheet, row, context) {
 
       for (let r = startRow; r <= endRow; r++) {
         for (let c = startCell; c <= endCell; c++) {
-          if (usedCells[`${r},${c}`] == null) {
-            usedCells[`${r},${c}`] = true
+          if (usedCells.get(r, c) == null) {
+            usedCells.set(r, c)
           }
 
           if (!pendingCellStylesByRow.has(r)) {
@@ -282,7 +340,28 @@ function addRow (sheet, row, context) {
           // eslint-disable-next-line no-undef
           const newStyles = structuredClone(styles)
 
-          const pendingItem = Object.assign({}, r === startRow && c === startCell ? pendingCellStyleEntry : { styles: {} }, {
+          const basePendingItem = {
+            styles: {}
+          }
+
+          // share style only for the bounds of merge cell
+          if (
+            (
+              r === startRow &&
+              (c >= startCell && c <= endCell)
+            ) || (
+              r === endRow &&
+              (c >= startCell && c <= endCell)
+            ) || (
+              r > startRow && r < endRow &&
+              (c === startCell || c === endCell)
+            )
+          ) {
+            // eslint-disable-next-line no-undef
+            basePendingItem.styles = structuredClone(pendingCellStyleEntry.styles)
+          }
+
+          const pendingItem = Object.assign({}, basePendingItem, {
             merge: { startRow, endRow, startCell, endCell },
             mergeBaseStyle: newStyles
           })
@@ -291,10 +370,12 @@ function addRow (sheet, row, context) {
         }
       }
 
-      sheet.mergeCells(startRow, startCell, endRow, endCell)
+      // NOTE: we should merge without styles to prevent cell.styles to be a shared instance
+      // across all the merged cells, we dont want that because we customize the borders and that
+      // needs that we dont end with shared styles, otherwise what we modify on one cell
+      // will affect the other cells
+      sheet.mergeCellsWithoutStyle(startRow, startCell, endRow, endCell)
     } else {
-      // NOTE: remember that merged cells share the same style object so setting the style
-      // in one cell will do it also for the other cells
       pendingCellStylesByRow.get(context.currentRowInFile + 1).set(startCell, pendingCellStyleEntry)
     }
 
@@ -355,7 +436,7 @@ function addRow (sheet, row, context) {
         const max = currentCellOffsetsPerRow[targetRowIdx][1].startCell
 
         for (let c = nextCell; c < max; c++) {
-          if (context.usedCells[`${targetRowIdx + 1},${c}`] == null) {
+          if (context.usedCells.get(targetRowIdx + 1, c) == null) {
             shouldMoveToNext = false
             break
           }
@@ -449,6 +530,7 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
     styles.border = { ...styles.border }
 
     const currentBorder = styles.border
+
     const sourceBorder = currentIsMergeCell ? currentCell.mergeBaseStyle.border : currentBorder
 
     for (const currentSide of ['top', 'right', 'bottom', 'left']) {
@@ -460,10 +542,6 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
         case 'top': {
           const isCollapsed = rowId !== 1
           const previousBorderRowId = rowId - 1
-
-          if (currentIsMergeCell && isPartOfMerge(currentCell.merge, previousBorderRowId, colId)) {
-            break
-          }
 
           const previousCell = pendingCellStylesByRow.get(previousBorderRowId)?.get(colId)
           const previousBorder = (previousCell?.merge != null ? previousCell.mergeBaseStyle?.border : previousCell?.styles?.border) || {}
@@ -491,10 +569,6 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
               break
             }
 
-            if (currentIsMergeCell && isPartOfMerge(currentCell.merge, rowId, nextColId)) {
-              break
-            }
-
             const currentCellIsFullRowspan = currentCell.merge != null && ((currentCell.merge.endRow - currentCell.merge.startRow) + 1) === totalRows
             const nextCell = pendingCellStylesByRow.get(rowId)?.get(nextColId)
             const nextCellIsFullRowspan = nextCell?.merge != null && ((nextCell.merge.endRow - nextCell.merge.startRow) + 1) === totalRows
@@ -509,6 +583,11 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
               currentBorder.right = { ...targetSourceBorderValue }
             } else {
               targetSourceBorderValue = sourceBorder?.[currentSide]
+            }
+
+            // stop processing if there is no cell to normalize in the next row
+            if (!pendingCellStylesByRow.get(rowId).has(nextColId)) {
+              break
             }
 
             const nextBorder = Object.assign({}, nextCell?.styles?.border)
@@ -534,10 +613,6 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
               break
             }
 
-            if (currentIsMergeCell && isPartOfMerge(currentCell.merge, nextRowId, colId)) {
-              break
-            }
-
             // stop processing if there is no cell to normalize in the next row
             if (pendingCellStylesByRow.get(nextRowId)?.get(colId) == null) {
               break
@@ -560,10 +635,6 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
           const isCollapsed = colId !== 1
           const previousBorderColId = colId - 1
 
-          if (currentIsMergeCell && isPartOfMerge(currentCell.merge, rowId, previousBorderColId)) {
-            break
-          }
-
           const previousCell = pendingCellStylesByRow.get(rowId)?.get(previousBorderColId)
           const previousBorder = (previousCell?.merge != null ? previousCell.mergeBaseStyle?.border : previousCell?.styles?.border) || {}
 
@@ -584,15 +655,6 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
       }
     }
   }
-}
-
-function isPartOfMerge (mergeInfo, targetRowId, targetColId) {
-  return (
-    targetRowId >= mergeInfo.startRow &&
-    targetRowId <= mergeInfo.endRow &&
-    targetColId >= mergeInfo.startCell &&
-    targetColId <= mergeInfo.endCell
-  )
 }
 
 function getXlsxStyles (cellInfo) {
@@ -617,6 +679,65 @@ function setStyles (cell, styles) {
 
     cell[styleName] = styleValue
   }
+}
+
+function prefixIfFutureFunction (formulaStr) {
+  // in the future, if we need to work with ast like structure for formula, check:
+  // https://github.com/psalaets/excel-formula-ast
+  // if at some point in the future we need to detect if formula contain usage of array formulas
+  // then check the following information as theory:
+  // - https://support.microsoft.com/en-us/office/guidelines-and-examples-of-array-formulas-7d94a64e-3ff3-4686-9372-ecfd5caa57c7#:~:text=Array%20formula%20syntax,Enter%20to%20enter%20your%20formula.
+  // - https://support.microsoft.com/en-us/office/excel-functions-that-return-ranges-or-arrays-7d1970e2-cbaa-4279-b59c-b9dd3900fc69
+  // - https://support.microsoft.com/en-us/office/dynamic-array-formulas-and-spilled-array-behavior-205c6b06-03ba-4151-89a1-87a7eb36e531
+  // - https://hyperformula.handsontable.com/guide/arrays.html#about-arrays
+  const tokens = tokenize(formulaStr)
+
+  const itemsToReplace = []
+
+  for (const token of tokens) {
+    if (token.type === 'function' && token.subtype === 'start') {
+      // function detected
+      const prefix = futureFunctionsMap.get(token.value)
+
+      if (prefix) {
+        itemsToReplace.push({
+          target: token.value,
+          prefix
+        })
+      }
+    }
+  }
+
+  let newFormulaStr = formulaStr
+  let formulaStrOffset = 0
+
+  while (itemsToReplace.length > 0) {
+    const itemToReplace = itemsToReplace[0]
+    const targetStr = newFormulaStr.slice(formulaStrOffset)
+
+    newFormulaStr = newFormulaStr.slice(0, formulaStrOffset) + targetStr.replace(
+      new RegExp(`.?${escapeStringRegexp(itemToReplace.target)}\\(`),
+      function (match, offset) {
+        const haveLeadingCharacter = (itemToReplace.target.length + 1) !== match.length
+
+        formulaStrOffset += offset + match.length
+
+        if (haveLeadingCharacter && match[0] === '.') {
+          // no update for calls that have a ".", this prevents prefixing a fn
+          // that was already prefixed by the user in the input
+          return match
+        }
+
+        itemsToReplace.shift()
+        const prefix = `${itemToReplace.prefix}.`
+        formulaStrOffset += prefix.length
+
+        return `${haveLeadingCharacter ? match[0] : ''}${prefix}${haveLeadingCharacter ? match.slice(1) : match}`
+      }
+    )
+  }
+
+  return newFormulaStr
 }
 
 module.exports = tableToXlsx

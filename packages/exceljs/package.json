@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/exceljs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "description": "Excel Workbook Manager - Read and Write xlsx and csv Files.",
   "keywords": [
@@ -83,7 +83,7 @@
     "jszip": "3.10.1",
     "readable-stream": "^3.6.0",
     "saxes": "^5.0.1",
-    "tmp": "0.2.3",
+    "tmp": "0.2.5",
     "unzipper": "0.12.3",
     "uuid": "^8.3.0"
   },
