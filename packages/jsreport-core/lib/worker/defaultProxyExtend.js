@@ -42,6 +42,8 @@ module.exports = (reporter) => (proxy, req) => {
     }
   }
 
+  proxy.version = reporter.version
+
   // expose tempfile functions
   const createTempFileFns = [
     'getTempFilePath', 'openTempFile', 'writeTempFileSync', 'writeTempFile',
