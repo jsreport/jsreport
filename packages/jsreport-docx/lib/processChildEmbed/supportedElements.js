@@ -5,6 +5,8 @@
  * a non existing "allowedAttributes" or "allowedChildren" means just inherit the values
  */
 
+const { nodeListToArray } = require('../utils')
+
 const elements = [
   {
     name: 'w:p',
@@ -25,7 +27,7 @@ const elements = [
     name: 'w:r',
     allowedAttributes: [],
     allowedChildren: [
-      'w:br', 'w:cr', 'w:rPr', 'w:t', 'w:tab'
+      'w:br', 'w:cr', 'w:rPr', 'w:t', 'w:tab', 'w:drawing'
     ]
   },
   {
@@ -46,12 +48,51 @@ const elements = [
           'w:kern', 'w:lang', 'w:outline', 'w:position',
           'w:rtl', 'w:shadow', 'w:smallCaps', 'w:spacing',
           'w:specVanish', 'w:strike', 'w:sz', 'w:szCs',
-          'w:vanish', 'w:vertAlign', 'w:w', 'w:webHidden'
+          'w:vanish', 'w:vertAlign', 'w:w', 'w:webHidden',
+          'w:noProof'
         ])
       }
 
       return allowed
     }
+  },
+  {
+    name: 'w:drawing',
+    validate: (el) => (
+      el.parentNode != null &&
+      nodeListToArray(el.childNodes).map((n) => n.nodeName).some((name) => name === 'wp:inline')
+    ),
+    allowedChildren: ['wp:inline']
+  },
+  {
+    name: 'wp:inline',
+    allowedAttributes: ['distB', 'distL', 'distR', 'distT'],
+    allowedChildren: [
+      'wp:extent', 'wp:effectExtent', 'wp:docPr', 'wp:cNvGraphicFramePr', 'a:graphic'
+    ]
+  },
+  {
+    name: 'wp:extent',
+    allowedAttributes: ['cx', 'cy']
+  },
+  {
+    name: 'wp:effectExtent',
+    allowedAttributes: ['b', 'l', 'r', 't']
+  },
+  {
+    name: 'wp:docPr',
+    allowedAttributes: ['id', 'name', 'descr', 'hidden'],
+    // we just want to parse the simple form of the docPr
+    allowedChildren: []
+  },
+  {
+    name: 'wp:cNvGraphicFramePr',
+    allowedChildren: ['a:graphicFrameLocks']
+  },
+  {
+    name: 'a:graphicFrameLocks',
+    allowedAttributes: ['noChangeAspect', 'noDrilldown', 'noGrp', 'noMove', 'noResize', 'noSelect'],
+    allowedChildren: []
   }
 ]
 

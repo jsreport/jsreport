@@ -1522,7 +1522,12 @@ async function docxSData (data, options) {
       try {
         const childDocxBuf = Buffer.from(docxChildInfo.content, docxChildInfo.encoding)
         const processChildEmbed = jsreport.req.context.__docxSharedData.processChildEmbed
-        const xmlOutput = await processChildEmbed(childDocxBuf)
+
+        const xmlOutput = await processChildEmbed(childDocxBuf, {
+          ...newData,
+          idManagers: jsreport.req.context.__docxSharedData.idManagers
+        })
+
         const partialId = `docxChild${evalId}${newData.childCache.size}`
         Handlebars.registerPartial(partialId, xmlOutput)
         newData.childCache.set(childCacheKey, partialId)
@@ -1606,7 +1611,7 @@ async function docxSData (data, options) {
       return ''
     }
 
-    return new Handlebars.SafeString(`${separator}docxFile${separator}${output.join(`${separator}docxFile${separator}`)}`)
+    return new Handlebars.SafeString(`${separator}docxFile${separator}\n${output.join(`${separator}docxFile${separator}\n`)}`)
   }
 
   throw new Error(`invalid usage of docxSData helper${type != null ? ` (type: ${type})` : ''}`)

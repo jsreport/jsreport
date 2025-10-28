@@ -188,6 +188,20 @@ module.exports.getImageMeta = async function getImageMeta (buf, _target, all = f
         path: imagePath,
         content: files.find(f => f.path === imagePath).data
       }
+
+      if (existingSVGBlipExt) {
+        const secondaryRelEl = targetRelEls.find((el) => el.getAttribute('Id') === blipEl.getAttribute('r:embed'))
+        const secondaryImagePath = secondaryRelEl ? path.posix.join(path.posix.dirname(path.posix.dirname(targetRelsFile.path)), secondaryRelEl.getAttribute('Target')) : null
+
+        if (secondaryImagePath) {
+          meta.secondaryImage = {
+            name: path.posix.basename(secondaryImagePath),
+            extension: path.posix.extname(secondaryImagePath),
+            path: secondaryImagePath,
+            content: files.find(f => f.path === secondaryImagePath).data
+          }
+        }
+      }
     }
 
     const aExtEl = pictureEl.getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]

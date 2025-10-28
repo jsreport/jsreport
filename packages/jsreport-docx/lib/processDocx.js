@@ -273,7 +273,7 @@ module.exports = async (reporter, inputs, req) => {
         shouldSerializeFromDoc = f.serializeFromDoc === true
       }
 
-      if (shouldSerializeFromDoc) {
+      if (shouldSerializeFromDoc && f.doc != null) {
         f.data = Buffer.from(new XMLSerializer().serializeToString(f.doc))
       }
     }

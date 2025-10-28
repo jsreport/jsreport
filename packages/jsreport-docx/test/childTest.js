@@ -2,7 +2,7 @@ const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
 const path = require('path')
-const { getDocumentsFromDocxBuf } = require('./utils')
+const { getDocumentsFromDocxBuf, getImageMeta } = require('./utils')
 const { nodeListToArray } = require('../lib/utils')
 
 const docxDirPath = path.join(__dirname, './docx')
@@ -154,6 +154,212 @@ describe('docx child', () => {
 
     should(textNodes.length).eql(1)
     should(textNodes[0].textContent).eql('Simple text from template')
+  })
+
+  it('child and jpg image', async () => {
+    const childTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'child-image-template.docx'))
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: childTemplateBuf
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'child.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(0)
+
+    const templateImageMeta = await getImageMeta(childTemplateBuf)
+    const outputImagesMeta = await getImageMeta(result.content, null, true)
+
+    should(outputImagesMeta.length).be.eql(1)
+
+    const outputImageMeta = outputImagesMeta[0]
+
+    should(outputImageMeta.image.extension).be.eql('.jpeg')
+
+    // should preserve original image size by default
+    should(outputImageMeta.size.width).be.eql(templateImageMeta.size.width)
+    should(outputImageMeta.size.height).be.eql(templateImageMeta.size.height)
+
+    should(Buffer.compare(templateImageMeta.image.content, outputImageMeta.image.content)).be.eql(0)
+  })
+
+  it('child and png image', async () => {
+    const childTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'child-png-image-template.docx'))
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: childTemplateBuf
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'child.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(0)
+
+    const templateImageMeta = await getImageMeta(childTemplateBuf)
+    const outputImagesMeta = await getImageMeta(result.content, null, true)
+
+    should(outputImagesMeta.length).be.eql(1)
+
+    const outputImageMeta = outputImagesMeta[0]
+
+    should(outputImageMeta.image.extension).be.eql('.png')
+
+    // should preserve original image size by default
+    should(outputImageMeta.size.width).be.eql(templateImageMeta.size.width)
+    should(outputImageMeta.size.height).be.eql(templateImageMeta.size.height)
+
+    should(Buffer.compare(templateImageMeta.image.content, outputImageMeta.image.content)).be.eql(0)
+  })
+
+  it('child and svg image', async () => {
+    const childTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'child-svg-image-template.docx'))
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: childTemplateBuf
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'child.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(0)
+
+    const templateImageMeta = await getImageMeta(childTemplateBuf)
+    const outputImagesMeta = await getImageMeta(result.content, null, true)
+
+    should(outputImagesMeta.length).be.eql(1)
+
+    const outputImageMeta = outputImagesMeta[0]
+
+    should(outputImageMeta.image.extension).be.eql('.svg')
+
+    // should preserve original image size by default
+    should(outputImageMeta.size.width).be.eql(templateImageMeta.size.width)
+    should(outputImageMeta.size.height).be.eql(templateImageMeta.size.height)
+
+    should(Buffer.compare(templateImageMeta.image.content, outputImageMeta.image.content)).be.eql(0)
+
+    should(outputImageMeta.secondaryImage.extension).be.eql('.png')
+
+    should(Buffer.compare(templateImageMeta.secondaryImage.content, outputImageMeta.secondaryImage.content)).be.eql(0)
+  })
+
+  it('child and image with existing content', async () => {
+    const childTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'child-image-template.docx'))
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: childTemplateBuf
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'child-with-existing-content.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(3)
+
+    const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodesInParagraph1.length).eql(1)
+    should(textNodesInParagraph1[0].textContent).eql('Paragraph before')
+
+    const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+
+    should(textNodesInParagraph2.length).eql(0)
+
+    const textNodesInParagraph3 = nodeListToArray(paragraphNodes[2].getElementsByTagName('w:t'))
+
+    should(textNodesInParagraph3.length).eql(1)
+    should(textNodesInParagraph3[0].textContent).eql('Paragraph after')
+
+    const templateImageMeta = await getImageMeta(childTemplateBuf)
+    const outputImagesMeta = await getImageMeta(result.content, null, true)
+
+    should(outputImagesMeta.length).be.eql(1)
+
+    const outputImageMeta = outputImagesMeta[0]
+
+    should(outputImageMeta.image.extension).be.eql('.jpeg')
+
+    // should preserve original image size by default
+    should(outputImageMeta.size.width).be.eql(templateImageMeta.size.width)
+    should(outputImageMeta.size.height).be.eql(templateImageMeta.size.height)
+
+    should(Buffer.compare(templateImageMeta.image.content, outputImageMeta.image.content)).be.eql(0)
   })
 
   it('child and simple paragraph in document header', async () => {
