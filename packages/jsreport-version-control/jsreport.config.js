@@ -3,6 +3,7 @@ const schema = {
   type: 'object',
   properties: {
     provider: { type: 'string' },
+    concurrencyLimit: { type: 'number', default: 10 },
     diffLimit: { type: 'string', default: '300kb' }
   }
 }

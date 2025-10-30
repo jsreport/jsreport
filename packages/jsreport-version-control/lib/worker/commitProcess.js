@@ -1,6 +1,4 @@
 const omit = require('lodash.omit')
-const pEach = require('p-each-series')
-const pReduce = require('p-reduce')
 const { applyPatches, createPatch } = require('./patches')
 const { serialize, deepEqual } = require('./customUtils')
 
@@ -8,7 +6,9 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
   const newCommit = { message: commitMessage, creationDate: new Date(), changes: [] }
   const lastState = await applyPatches(versions, documentModel, reporter, req)
 
-  newCommit.changes = await pReduce(lastState, async (res, s) => {
+  const changes = []
+
+  for (const s of lastState) {
     const entity = currentEntities[s.entitySet].find((e) => e._id === s.entityId)
 
     if (!entity) {
@@ -17,7 +17,7 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
       const entityByPath = currentEntities[s.entitySet].find((e) => e.__entityPath === s.path)
 
       if (entityByPath) {
-        return res.concat({
+        changes.push({
           operation: 'update',
           path: entityByPath.__entityPath,
           entitySet: s.entitySet,
@@ -32,10 +32,11 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
             diffLimit
           }))
         })
+        continue
       }
 
       // entity is not in the new state, it was removed
-      return res.concat({
+      changes.push({
         operation: 'remove',
         entitySet: s.entitySet,
         entityId: s.entityId,
@@ -44,14 +45,15 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
           folder: s.entity.folder
         }
       })
+      continue
     }
 
-    // entity is equal so it was not modified, don't adding change
+    // entity is equal so it was not modified, don't add change
     if (deepEqual(omit(entity, '__entityPath'), s.entity)) {
-      return res
+      continue
     }
 
-    return res.concat({
+    changes.push({
       operation: 'update',
       path: entity.__entityPath,
       entitySet: s.entitySet,
@@ -66,11 +68,13 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
         diffLimit
       }))
     })
-  }, [])
+  }
+
+  newCommit.changes = changes
 
   // the entities that exist in store and are not in the last state gets insert change operation
-  await pEach(Object.keys(currentEntities), (es) => {
-    return pEach(currentEntities[es], async (e) => {
+  for (const es of Object.keys(currentEntities)) {
+    for (const e of currentEntities[es]) {
       const foundById = lastState.find((s) => s.entityId === e._id && s.entitySet === es)
       const foundByPath = lastState.find((s) => s.path === e.__entityPath && s.entitySet === es)
 
@@ -84,8 +88,8 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
           serializedDoc: serialize(omit(e, ['__entityPath']))
         })
       }
-    })
-  })
+    }
+  }
 
   return {
     commit: newCommit,

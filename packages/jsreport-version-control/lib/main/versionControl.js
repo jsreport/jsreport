@@ -6,6 +6,7 @@
 const bytes = require('bytes')
 const mimeTypes = require('mime-types')
 const omit = require('lodash.omit')
+const pMap = require('p-map')
 const { customAlphabet } = require('nanoid')
 const DocumentModel = require('./documentModel')
 const sortVersions = require('../shared/sortVersions')
@@ -85,11 +86,11 @@ module.exports = (reporter, options) => {
         if (documentModel.entitySets[es].splitIntoDirectories) {
           let existingEntities = await reporter.documentStore.collection(es).find({}, req)
 
-          existingEntities = await Promise.all(existingEntities.map(async (entity) => {
+          existingEntities = await pMap(existingEntities, async (entity) => {
             const entityPath = await reporter.folders.resolveEntityPath(entity, es, req)
             entity.__entityPath = entityPath
             return entity
-          }))
+          }, { concurrency: options.concurrencyLimit })
 
           for (const entity of existingEntities.filter((e) => !state.find((s) => s.entityId === e._id))) {
             // if not found we try to search by entity path, if we found it, it means that the id changed
@@ -113,11 +114,11 @@ module.exports = (reporter, options) => {
       // remove folders that are not in the new state
       let existingFolders = await reporter.documentStore.collection('folders').find({}, req)
 
-      existingFolders = await Promise.all(existingFolders.map(async (folder) => {
+      existingFolders = await pMap(existingFolders, async (folder) => {
         const entityPath = await reporter.folders.resolveEntityPath(folder, 'folders', req)
         folder.__entityPath = entityPath
         return folder
-      }))
+      }, { concurrency: options.concurrencyLimit })
 
       const notFoundFoldersPathSortedDesc = existingFolders.filter((f) => !state.find((s) => s.entityId === f._id)).sort((a, b) => {
         const aLevel = a.__entityPath.split('/')
@@ -304,11 +305,11 @@ module.exports = (reporter, options) => {
         if (documentModel.entitySets[entitySet].splitIntoDirectories) {
           currentEntities[entitySet] = await reporter.documentStore.collection(entitySet).find({}, req)
 
-          currentEntities[entitySet] = await Promise.all(currentEntities[entitySet].map(async (entity) => {
+          currentEntities[entitySet] = await pMap(currentEntities[entitySet], async (entity) => {
             const entityPath = await reporter.folders.resolveEntityPath(entity, entitySet, req)
             entity.__entityPath = entityPath
             return entity
-          }))
+          }, { concurrency: options.concurrencyLimit })
         }
       }
 
@@ -330,7 +331,7 @@ module.exports = (reporter, options) => {
 
       const newCommit = result.commit
 
-      newCommit.changes = await Promise.all(newCommit.changes.map(async (change) => {
+      newCommit.changes = await pMap(newCommit.changes, async (change) => {
         if (change.path != null || change.__local == null) {
           return change
         }
@@ -350,7 +351,7 @@ module.exports = (reporter, options) => {
         })
 
         return { ...change, path: entityPath }
-      }))
+      }, { concurrency: options.concurrencyLimit })
 
       if (preview) {
         return newCommit

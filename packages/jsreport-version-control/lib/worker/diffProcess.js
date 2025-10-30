@@ -1,4 +1,3 @@
-const pReduce = require('p-reduce')
 const { createPatch, applyPatches } = require('./patches')
 const sortVersions = require('../shared/sortVersions')
 const { parse } = require('./customUtils')
@@ -18,7 +17,9 @@ module.exports = async function scriptDiffProcessing ({ commitToDiff, versions, 
   // cannot simply provide because it works only with files. There are no document properties
   // or entity ids available in git. I wanted to keep the API same for both, so we return here
   // document properties as extra items (files) in array and omit some information
-  const diff = await pReduce(commitToDiff.changes, async (res, c) => {
+  const diff = []
+
+  for (const c of commitToDiff.changes) {
     let state
 
     const change = {
@@ -83,7 +84,7 @@ module.exports = async function scriptDiffProcessing ({ commitToDiff, versions, 
 
     const entityName = change.path.split('/').slice(-1)[0]
 
-    return res.concat({
+    diff.push({
       ...change,
       name: entityName,
       state,
@@ -102,7 +103,7 @@ module.exports = async function scriptDiffProcessing ({ commitToDiff, versions, 
         }
       })
     })
-  }, [])
+  }
 
   return {
     diff

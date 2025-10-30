@@ -28,6 +28,7 @@
     "test": "set DEBUG=jsreport && mocha test --timeout 5000 && standard"
   },
   "dependencies": {
+    "@jsreport/serializator": "1.0.1",
     "bytes": "3.0.0",
     "diff": "3.5.0",
     "diff-match-patch": "1.0.5",
@@ -36,9 +37,7 @@
     "mime-types": "2.1.27",
     "nanoid": "3.3.8",
     "node.extend.without.arrays": "1.1.6",
-    "p-each-series": "2.2.0",
-    "p-reduce": "2.1.0",
-    "@jsreport/serializator": "1.0.1"
+    "p-map": "4.0.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.2.3",
