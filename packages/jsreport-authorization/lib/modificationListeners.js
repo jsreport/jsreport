@@ -29,7 +29,7 @@ module.exports = (reporter) => {
           return
         }
 
-        let assertFirst = false
+        let lazySetPermissionsToDoc = false
 
         if (req && req.context && req.context.user && !req.context.user.isSuperAdmin) {
           if (!req.context.user.isGroup) {
@@ -37,12 +37,12 @@ module.exports = (reporter) => {
             doc.editPermissions = mergeArrays(doc.editPermissions, [req.context.user._id.toString()])
           } else {
             // if entity target is root folder we need to replicate the behavior of a normal user
-            // insert, which is to allow the insert, in this case then we don't assert first
+            // insert, which is to allow or reject the insert depending on the value of allowInsertInRootFolderWithoutEditPermissions
             if (doc.folder == null) {
               doc.readPermissionsGroup = mergeArrays(doc.readPermissionsGroup, [req.context.user._id.toString()])
               doc.editPermissionsGroup = mergeArrays(doc.editPermissionsGroup, [req.context.user._id.toString()])
             } else {
-              assertFirst = () => {
+              lazySetPermissionsToDoc = () => {
                 doc.readPermissionsGroup = mergeArrays(doc.readPermissionsGroup, [req.context.user._id.toString()])
                 doc.editPermissionsGroup = mergeArrays(doc.editPermissionsGroup, [req.context.user._id.toString()])
               }
@@ -50,7 +50,7 @@ module.exports = (reporter) => {
           }
         }
 
-        if (!assertFirst) {
+        if (!lazySetPermissionsToDoc) {
           await propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)
           await assertPermissions.assertInsert(col, doc, req)
         } else {
@@ -58,7 +58,7 @@ module.exports = (reporter) => {
           await propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)
 
           await assertPermissions.assertInsert(col, doc, req)
-          assertFirst()
+          lazySetPermissionsToDoc()
 
           // propagate the remaining (current user as group)
           await propagatePermissions(reporter, 'insert', { entity: doc, entitySet: col.entitySet }, req)

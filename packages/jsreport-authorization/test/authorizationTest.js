@@ -3263,8 +3263,10 @@ describe('authorization', () => {
     t.editPermissionsGroup[0].should.be.eql(g._id)
   })
 
-  // NOTE: this test should pass until we implement this https://github.com/jsreport/jsreport/issues/1143
-  it('adding to root folder should work if no explicit permissions with both users (normal user and user that is group)', async () => {
+  // NOTE: this test should pass until we switch the default value of
+  // extensions.authorization.allowInsertInRootFolderWithoutEditPermissions to false
+  // https://github.com/jsreport/jsreport/issues/1143
+  it('adding to root folder should work by default if no explicit permissions with both users (normal user and user that is group)', async () => {
     const g = await addUserToGroup('g1', req1())
     const gReq = reqGroup(g)
 
@@ -3436,5 +3438,331 @@ describe('authorization', () => {
     return reporter.documentStore.collection('templates').remove({
       name: 'template'
     }, req).should.not.be.rejected()
+  })
+})
+
+describe('authorization with allowInsertInRootFolderWithoutEditPermissions=true', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport()
+    reporter.use(require('@jsreport/jsreport-authentication')({
+      admin: {
+        username: 'admin',
+        password: 'password'
+      },
+      cookieSession: {
+        secret: 'secret'
+      }
+    }))
+    reporter.use(require('@jsreport/jsreport-express')())
+    reporter.use(require('../')({
+      allowInsertInRootFolderWithoutEditPermissions: true
+    }))
+
+    reporter.use((reporter, definition) => {
+      reporter.initializeListeners.add('authorization-test', async () => {
+        await reporter.documentStore.collection('users').insert({
+          _id: 'a',
+          name: 'a',
+          password: 'a',
+          shortid: 'a'
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'b',
+          name: 'b',
+          password: 'b',
+          shortid: 'b'
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'cEditAll',
+          name: 'cEditAll',
+          password: 'cEditAll',
+          shortid: 'cEditAll',
+          editAllPermissions: true
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'cAdmin',
+          isAdmin: true,
+          name: 'cAdmin',
+          password: 'cAdmin',
+          shortid: 'cAdmin'
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'cAdminFromGroup',
+          name: 'cAdminFromGroup',
+          password: 'cAdminFromGroup',
+          shortid: 'cAdminFromGroup'
+        })
+
+        await reporter.documentStore.collection('usersGroups').insert({
+          name: 'gAdmin',
+          isAdmin: true,
+          users: [{
+            shortid: 'cAdminFromGroup'
+          }]
+        }, reqAdmin())
+      })
+    })
+    return reporter.init()
+  })
+
+  afterEach(() => reporter.close())
+
+  const req1 = () => reporter.Request({ context: { user: { _id: 'a', shortid: 'a' } } })
+  const reqAdmin = () => reporter.Request({ context: { user: { _id: 'admin', isSuperAdmin: true, isAdmin: true } } })
+  const reqCustomAdmin = () => reporter.Request({ context: { user: { _id: 'cAdmin', shortid: 'cAdmin' } } })
+  const reqCustomAdminFromGroup = () => reporter.Request({ context: { user: { _id: 'cAdminFromGroup', shortid: 'cAdminFromGroup' } } })
+  const reqGroup = (g) => reporter.Request({ context: { user: { _id: g._id, isGroup: true } } })
+  const reqEditAll = (g) => reporter.Request({ context: { user: { _id: 'cEditAll', shortid: 'cEditAll', editAllPermissions: true } } })
+
+  const addUserToGroup = async (name, userReq) => {
+    let group = await reporter.documentStore.collection('usersGroups').findOne({ name }, reqAdmin())
+
+    if (group == null) {
+      group = await reporter.documentStore.collection('usersGroups').insert({ name, users: [] }, reqAdmin())
+    }
+
+    if (userReq) {
+      await reporter.documentStore.collection('usersGroups').update({
+        _id: group._id
+      }, {
+        $set: {
+          users: [...group.users, { shortid: userReq.context.user.shortid }]
+        }
+      }, reqAdmin())
+    }
+
+    return reporter.documentStore.collection('usersGroups').findOne({ name }, reqAdmin())
+  }
+
+  it('adding to root folder should work by default', async () => {
+    const g = await addUserToGroup('g1', req1())
+    const gReq = reqGroup(g)
+
+    const createFromNormalUserPromise = reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, req1())
+
+    const createFromGroupUserPromise = reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb'
+    }, gReq)
+
+    const createFromAdminPromise = reporter.documentStore.collection('folders').insert({
+      name: 'folderc',
+      shortid: 'folderc'
+    }, reqAdmin())
+
+    const createFromCustomAdminPromise = reporter.documentStore.collection('folders').insert({
+      name: 'folderd',
+      shortid: 'folderd'
+    }, reqCustomAdmin())
+
+    const createFromCustomAdminFromGroupPromise = reporter.documentStore.collection('folders').insert({
+      name: 'foldere',
+      shortid: 'foldere'
+    }, reqCustomAdminFromGroup())
+
+    const createFromEditAllUserPromise = reporter.documentStore.collection('folders').insert({
+      name: 'folderf',
+      shortid: 'folderf'
+    }, reqEditAll())
+
+    // should pass for normal user
+    const normalUserAssertPromise = should(createFromNormalUserPromise).be.fulfilled()
+    // should pass for regular group user
+    const groupUserAssertPromise = should(createFromGroupUserPromise).be.fulfilled()
+    // should pass for admin user
+    const adminAssertPromise = should(createFromAdminPromise).be.fulfilled()
+    // should pass for custom admin user
+    const customAdminAssertPromise = should(createFromCustomAdminPromise).be.fulfilled()
+    // should pass for custom admin from group user
+    const customAdminFromGroupAssertPromise = should(createFromCustomAdminFromGroupPromise).be.fulfilled()
+    // should pass for edit all user
+    const editAllUserAssertPromise = should(createFromEditAllUserPromise).be.fulfilled()
+
+    await Promise.all([
+      normalUserAssertPromise, groupUserAssertPromise, adminAssertPromise,
+      customAdminAssertPromise, customAdminFromGroupAssertPromise, editAllUserAssertPromise
+    ])
+
+    const folders = await reporter.documentStore.collection('folders').find({}, reqAdmin())
+
+    should(folders).have.length(6)
+
+    should(folders.find(f => f.name === 'foldera')).be.ok()
+    should(folders.find(f => f.name === 'folderb')).be.ok()
+    should(folders.find(f => f.name === 'folderc')).be.ok()
+    should(folders.find(f => f.name === 'folderd')).be.ok()
+    should(folders.find(f => f.name === 'foldere')).be.ok()
+    should(folders.find(f => f.name === 'folderf')).be.ok()
+  })
+})
+
+describe('authorization with allowInsertInRootFolderWithoutEditPermissions=false', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport()
+    reporter.use(require('@jsreport/jsreport-authentication')({
+      admin: {
+        username: 'admin',
+        password: 'password'
+      },
+      cookieSession: {
+        secret: 'secret'
+      }
+    }))
+    reporter.use(require('@jsreport/jsreport-express')())
+    reporter.use(require('../')({
+      allowInsertInRootFolderWithoutEditPermissions: false
+    }))
+
+    reporter.use((reporter, definition) => {
+      reporter.initializeListeners.add('authorization-test', async () => {
+        await reporter.documentStore.collection('users').insert({
+          _id: 'a',
+          name: 'a',
+          password: 'a',
+          shortid: 'a'
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'b',
+          name: 'b',
+          password: 'b',
+          shortid: 'b'
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'cEditAll',
+          name: 'cEditAll',
+          password: 'cEditAll',
+          shortid: 'cEditAll',
+          editAllPermissions: true
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'cAdmin',
+          isAdmin: true,
+          name: 'cAdmin',
+          password: 'cAdmin',
+          shortid: 'cAdmin'
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'cAdminFromGroup',
+          name: 'cAdminFromGroup',
+          password: 'cAdminFromGroup',
+          shortid: 'cAdminFromGroup'
+        })
+
+        await reporter.documentStore.collection('usersGroups').insert({
+          name: 'gAdmin',
+          isAdmin: true,
+          users: [{
+            shortid: 'cAdminFromGroup'
+          }]
+        }, reqAdmin())
+      })
+    })
+    return reporter.init()
+  })
+
+  afterEach(() => reporter.close())
+
+  const req1 = () => reporter.Request({ context: { user: { _id: 'a', shortid: 'a' } } })
+  const reqAdmin = () => reporter.Request({ context: { user: { _id: 'admin', isSuperAdmin: true, isAdmin: true } } })
+  const reqCustomAdmin = () => reporter.Request({ context: { user: { _id: 'cAdmin', shortid: 'cAdmin' } } })
+  const reqCustomAdminFromGroup = () => reporter.Request({ context: { user: { _id: 'cAdminFromGroup', shortid: 'cAdminFromGroup' } } })
+  const reqGroup = (g) => reporter.Request({ context: { user: { _id: g._id, isGroup: true } } })
+  const reqEditAll = (g) => reporter.Request({ context: { user: { _id: 'cEditAll', shortid: 'cEditAll', editAllPermissions: true } } })
+
+  const addUserToGroup = async (name, userReq) => {
+    let group = await reporter.documentStore.collection('usersGroups').findOne({ name }, reqAdmin())
+
+    if (group == null) {
+      group = await reporter.documentStore.collection('usersGroups').insert({ name, users: [] }, reqAdmin())
+    }
+
+    if (userReq) {
+      await reporter.documentStore.collection('usersGroups').update({
+        _id: group._id
+      }, {
+        $set: {
+          users: [...group.users, { shortid: userReq.context.user.shortid }]
+        }
+      }, reqAdmin())
+    }
+
+    return reporter.documentStore.collection('usersGroups').findOne({ name }, reqAdmin())
+  }
+
+  it('adding to root folder should fail by default', async () => {
+    const g = await addUserToGroup('g1', req1())
+    const gReq = reqGroup(g)
+
+    const createFromNormalUserPromise = reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, req1())
+
+    const createFromGroupUserPromise = reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb'
+    }, gReq)
+
+    const createFromAdminPromise = reporter.documentStore.collection('folders').insert({
+      name: 'folderc',
+      shortid: 'folderc'
+    }, reqAdmin())
+
+    const createFromCustomAdminPromise = reporter.documentStore.collection('folders').insert({
+      name: 'folderd',
+      shortid: 'folderd'
+    }, reqCustomAdmin())
+
+    const createFromCustomAdminFromGroupPromise = reporter.documentStore.collection('folders').insert({
+      name: 'foldere',
+      shortid: 'foldere'
+    }, reqCustomAdminFromGroup())
+
+    const createFromEditAllUserPromise = reporter.documentStore.collection('folders').insert({
+      name: 'folderf',
+      shortid: 'folderf'
+    }, reqEditAll())
+
+    // should fail for normal user
+    const normalUserAssertPromise = should(createFromNormalUserPromise).be.rejectedWith(/Unauthorized for folders/)
+    // should fail for regular group user
+    const groupUserAssertPromise = should(createFromGroupUserPromise).be.rejectedWith(/Unauthorized for folders/)
+    // should pass for admin user
+    const adminAssertPromise = should(createFromAdminPromise).be.fulfilled()
+    // should pass for custom admin user
+    const customAdminAssertPromise = should(createFromCustomAdminPromise).be.fulfilled()
+    // should pass for custom admin from group user
+    const customAdminFromGroupAssertPromise = should(createFromCustomAdminFromGroupPromise).be.fulfilled()
+    // should pass for edit all user
+    const editAllUserAssertPromise = should(createFromEditAllUserPromise).be.fulfilled()
+
+    await Promise.all([
+      normalUserAssertPromise, groupUserAssertPromise, adminAssertPromise,
+      customAdminAssertPromise, customAdminFromGroupAssertPromise, editAllUserAssertPromise
+    ])
+
+    const folders = await reporter.documentStore.collection('folders').find({}, reqAdmin())
+
+    should(folders).have.length(4)
+
+    should(folders.find(f => f.name === 'folderc')).be.ok()
+    should(folders.find(f => f.name === 'folderd')).be.ok()
+    should(folders.find(f => f.name === 'foldere')).be.ok()
+    should(folders.find(f => f.name === 'folderf')).be.ok()
   })
 })

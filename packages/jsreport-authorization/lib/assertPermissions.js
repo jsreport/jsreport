@@ -5,7 +5,13 @@ module.exports = (reporter) => ({
     if (!req || req.context.skipAuthorizationForInsert === doc) {
       return
     }
-    return check(reporter, col, req, () => authorizeInsert(doc, col, req))
+
+    return check(reporter, col, req, () => authorizeInsert(
+      doc,
+      col,
+      reporter.options.extensions.authorization.allowInsertInRootFolderWithoutEditPermissions,
+      req)
+    )
   },
 
   assertUpdate (col, q, u, opts, req) {
@@ -114,11 +120,10 @@ async function authorizeRemove (query, collection, req) {
   return result
 }
 
-async function authorizeInsert (doc, collection, req) {
+async function authorizeInsert (doc, collection, allowInsertInRootFolderWithoutEditPermissions, req) {
   if (doc.folder == null) {
-    // entities at root should both check for edit and
-    // inheritedEdit permissions
-    return checkPermissions(doc, req)
+    // the result for entities at root will depend on the configuration
+    return allowInsertInRootFolderWithoutEditPermissions
   }
 
   return (
