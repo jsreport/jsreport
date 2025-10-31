@@ -165,11 +165,8 @@ module.exports = async (reporter, definition, req, res) => {
       })
     }
 
-    const error = new Error(htmlToXlsxError.message)
-    error.stack = htmlToXlsxError.stack
-
     throw reporter.createError('Error while executing html-to-xlsx recipe', {
-      original: error,
+      original: htmlToXlsxError,
       weak: true
     })
   }

@@ -153,126 +153,130 @@ class WorkbookWriter {
   }
 
   async waitForTemplateParse() {
-    const templateStream = Readable.from(this.templateBuf, {
-      objectMode: false,
-    });
-
-    const files = {};
-    const pendingOperations = [];
-    const waitingWorkSheets = [];
-
-    await new Promise((resolve, reject) => {
-      this.templateZip.on('entry', entry => {
-        switch (entry.path) {
-          case '[Content_Types].xml':
-          case 'xl/styles.xml':
-          case 'xl/workbook.xml':
-          case 'xl/_rels/workbook.xml.rels':
-          case 'xl/calcChain.xml':
-            pendingOperations.push(parseXMLFile(files, entry));
-            break;
-          default:
-            if (entry.path.match(/xl\/worksheets\/sheet\d+[.]xml/)) {
-              pendingOperations.push(new Promise((_resolve, _reject) => {
-                // eslint-disable-next-line consistent-return
-                tmp.file((err, tmpFilePath) => {
-                  if (err) { return reject(err); }
-
-                  const tempStream = fs.createWriteStream(tmpFilePath);
-
-                  waitingWorkSheets.push({
-                    ref: entry.path,
-                    path: tmpFilePath,
-                  });
-
-                  entry.on('error', _reject);
-                  tempStream.on('error', _reject);
-                  tempStream.on('finish', _resolve);
-
-                  entry.pipe(tempStream);
-                });
-              }));
-            } else {
-              this.templateWrites.push(new Promise(_resolve => {
-                this.zip.append(entry, {name: entry.path});
-                _resolve();
-              }));
-            }
-            break;
-        }
-      });
-
-      this.templateZip.on('close', () => {
-        resolve();
-      });
-
-      this.templateZip.on('error', reject);
-
-      templateStream.pipe(this.templateZip);
-    });
-
-    await Promise.all(pendingOperations);
-
-    this.templateInfo.filesDocuments = files;
-
-    const workbookDoc = this.templateInfo.filesDocuments['xl/workbook.xml'].doc;
-    const relsDoc = this.templateInfo.filesDocuments['xl/_rels/workbook.xml.rels'].doc;
-
-    let lastSheetId;
-    let lastSheetFileId;
-
-    const sheets = Array.from(workbookDoc.getElementsByTagName('sheet')).map(sheetNode => {
-      const sheetId = parseInt(sheetNode.getAttribute('sheetId'), 10);
-      const rId = sheetNode.getAttribute('r:id');
-      const targetRNode = Array.from(relsDoc.getElementsByTagName('Relationship')).find(rNode => rNode.getAttribute('Id') === rId);
-      const sheetFile = targetRNode.getAttribute('Target');
-      const sheetFileId = parseInt(sheetFile.match(/worksheets\/sheet(\d+)[.]xml/)[1], 10);
-      const sheetFileFound = waitingWorkSheets.find(w => w.ref === `xl/worksheets/sheet${sheetFileId}.xml`);
-
-      if (lastSheetId == null || lastSheetId < sheetId) {
-        lastSheetId = sheetId;
-      }
-
-      if (lastSheetFileId == null || lastSheetFileId < sheetFileId) {
-        lastSheetFileId = sheetFileId;
-      }
-
-      return {
-        id: sheetId,
-        name: sheetNode.getAttribute('name'),
-        rId,
-        sheetFile,
-        sheetFileId,
-        sheetFileSrc: {
-          path: sheetFileFound.path,
-        },
-      };
-    });
-
-    // take existing styles from template as the base of new styles
-    await this.styles.parseStream(
-      Readable.from(this.templateInfo.filesDocuments['xl/styles.xml'].originalSrc, {
+    try {
+      const templateStream = Readable.from(this.templateBuf, {
         objectMode: false,
-      })
-    );
+      });
 
-    const lastWorkbookRelsId = Array.from(
-      relsDoc.getElementsByTagName('Relationship')
-    ).reduce((acu, relNode) => {
-      const rId = relNode.getAttribute('Id');
-      const rIdNumber = parseInt(rId.match(/rId(\d+)/)[1], 10);
+      const files = {};
+      const pendingOperations = [];
+      const waitingWorkSheets = [];
 
-      if (rIdNumber > acu) {
-        return rIdNumber;
-      }
+      await new Promise((resolve, reject) => {
+        this.templateZip.on('entry', entry => {
+          switch (entry.path) {
+            case '[Content_Types].xml':
+            case 'xl/styles.xml':
+            case 'xl/workbook.xml':
+            case 'xl/_rels/workbook.xml.rels':
+            case 'xl/calcChain.xml':
+              pendingOperations.push(parseXMLFile(files, entry));
+              break;
+            default:
+              if (entry.path.match(/xl\/worksheets\/sheet\d+[.]xml/)) {
+                pendingOperations.push(new Promise((_resolve, _reject) => {
+                  // eslint-disable-next-line consistent-return
+                  tmp.file((err, tmpFilePath) => {
+                    if (err) { return reject(err); }
 
-      return acu;
-    }, 0);
+                    const tempStream = fs.createWriteStream(tmpFilePath);
 
-    this.templateInfo.sheets = sheets;
-    this.templateInfo.lastSheetId = lastSheetId;
-    this.templateInfo.lastSheetFileId = lastSheetFileId;
-    this.templateInfo.lastWorkbookRelsId = lastWorkbookRelsId;
+                    waitingWorkSheets.push({
+                      ref: entry.path,
+                      path: tmpFilePath,
+                    });
+
+                    entry.on('error', _reject);
+                    tempStream.on('error', _reject);
+                    tempStream.on('finish', _resolve);
+
+                    entry.pipe(tempStream);
+                  });
+                }));
+              } else {
+                this.templateWrites.push(new Promise(_resolve => {
+                  this.zip.append(entry, {name: entry.path});
+                  _resolve();
+                }));
+              }
+              break;
+          }
+        });
+
+        this.templateZip.on('close', () => {
+          resolve();
+        });
+
+        this.templateZip.on('error', reject);
+
+        templateStream.pipe(this.templateZip);
+      });
+
+      await Promise.all(pendingOperations);
+
+      this.templateInfo.filesDocuments = files;
+
+      const workbookDoc = this.templateInfo.filesDocuments['xl/workbook.xml'].doc;
+      const relsDoc = this.templateInfo.filesDocuments['xl/_rels/workbook.xml.rels'].doc;
+
+      let lastSheetId;
+      let lastSheetFileId;
+
+      const sheets = Array.from(workbookDoc.getElementsByTagName('sheet')).map(sheetNode => {
+        const sheetId = parseInt(sheetNode.getAttribute('sheetId'), 10);
+        const rId = sheetNode.getAttribute('r:id');
+        const targetRNode = Array.from(relsDoc.getElementsByTagName('Relationship')).find(rNode => rNode.getAttribute('Id') === rId);
+        const sheetFile = targetRNode.getAttribute('Target');
+        const sheetFileId = parseInt(sheetFile.match(/worksheets\/sheet(\d+)[.]xml/)[1], 10);
+        const sheetFileFound = waitingWorkSheets.find(w => w.ref === `xl/worksheets/sheet${sheetFileId}.xml`);
+
+        if (lastSheetId == null || lastSheetId < sheetId) {
+          lastSheetId = sheetId;
+        }
+
+        if (lastSheetFileId == null || lastSheetFileId < sheetFileId) {
+          lastSheetFileId = sheetFileId;
+        }
+
+        return {
+          id: sheetId,
+          name: sheetNode.getAttribute('name'),
+          rId,
+          sheetFile,
+          sheetFileId,
+          sheetFileSrc: {
+            path: sheetFileFound.path,
+          },
+        };
+      });
+
+      // take existing styles from template as the base of new styles
+      await this.styles.parseStream(
+        Readable.from(this.templateInfo.filesDocuments['xl/styles.xml'].originalSrc, {
+          objectMode: false,
+        })
+      );
+
+      const lastWorkbookRelsId = Array.from(
+        relsDoc.getElementsByTagName('Relationship')
+      ).reduce((acu, relNode) => {
+        const rId = relNode.getAttribute('Id');
+        const rIdNumber = parseInt(rId.match(/rId(\d+)/)[1], 10);
+
+        if (rIdNumber > acu) {
+          return rIdNumber;
+        }
+
+        return acu;
+      }, 0);
+
+      this.templateInfo.sheets = sheets;
+      this.templateInfo.lastSheetId = lastSheetId;
+      this.templateInfo.lastSheetFileId = lastSheetFileId;
+      this.templateInfo.lastWorkbookRelsId = lastWorkbookRelsId;
+    } catch (error) {
+      throw new Error('Failed to parse xlsx template input', {cause: error});
+    }
   }
 
   async commit() {
