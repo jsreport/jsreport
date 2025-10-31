@@ -35,7 +35,8 @@
   },
   "standard": {
     "ignore": [
-      "data/**"
+      "data/**",
+      "packages/exceljs/**"
     ],
     "env": {
       "mocha": true,
