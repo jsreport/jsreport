@@ -359,19 +359,17 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
 
   if (meta.type === 'normal' && lazyCellRefsCount > 0) {
     const { lazyFormulas, currentCellRef } = meta
-    lazyFormulas.count = lazyFormulas.count || 0
-    lazyFormulas.count += 1
-    lazyFormulas.data = lazyFormulas.data || {}
+    const lazyFormulaRefId = `$lazyFormulaRef${lazyFormulas.data.size + 1}`
 
-    const lazyFormulaRefId = `$lazyFormulaRef${lazyFormulas.count}`
-
-    lazyFormulas.data[lazyFormulaRefId] = {
+    lazyFormulas.data.set(lazyFormulaRefId, {
       // the formulaCellRef here is just added for easy debugging
+      // (it is the origin cell ref but updated to include the changes from additions)
       formulaCellRef: currentCellRef,
       formula: newValue,
       // just placeholder for the key, this is going to be fill at runtime
       //  with the updated formula
       newFormula: null,
+      originCellRef: `${parsedOriginCellRef.letter}${parsedOriginCellRef.rowNumber}`,
       parsedOriginCellRef,
       originCellIsFromLoop,
       rowPreviousLoopIncrement,
@@ -379,7 +377,7 @@ function getNewFormula (originalFormula, parsedOriginCellRef, meta) {
       columnPreviousLoopIncrement,
       columnCurrentLoopIncrement,
       cellRefs: result.lazyCellRefs
-    }
+    })
 
     newFormula = lazyFormulaRefId
   } else {

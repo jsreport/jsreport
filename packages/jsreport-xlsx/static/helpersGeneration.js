@@ -136,7 +136,6 @@ const __xlsxD = (function () {
 
     // init tasks
     newData.tasks.add('sd')
-    newData.tasks.add('lazyFormulas')
 
     newData.meta = {
       calcChainCellRefsSet: null,
@@ -148,7 +147,14 @@ const __xlsxD = (function () {
       trackedCells: null,
       nonExistingCellsByLoopHierarchyMap: null,
       updatedOriginalCells: {},
-      lazyFormulas: {},
+      lazyFormulas: {
+        pending: {
+          notCompletedLoops: new Map(),
+          cellsToFormulaRefs: new Map(),
+          tasks: new Map()
+        },
+        data: new Map()
+      },
       lastCellRef: null
     }
 
@@ -527,15 +533,40 @@ const __xlsxD = (function () {
     const originalRowNumber = options.data.originalRowNumber
     const rowNumber = options.data.r
     const trackedCells = options.data.meta.trackedCells
+    const lazyFormulas = options.data.meta.lazyFormulas
     const { type, originalCellLetter, calcChainUpdate } = info
 
     const generateCellTag = type === 'autodetect'
     assertOk(originalRowNumber != null, 'originalRowNumber needs to exists on internal data')
     assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
     assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
+    assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
 
     const { parseCellRef, getNewCellLetter } = require('cellUtils')
     const originalCellRef = `${originalCellLetter}${originalRowNumber}`
+
+    // check if the pending not completed loops are done, if so,
+    // resolve pending lazy formulas
+    if (lazyFormulas.pending.notCompletedLoops.size > 0) {
+      const targetLoopIds = [...lazyFormulas.pending.notCompletedLoops.keys()]
+
+      for (const loopId of targetLoopIds) {
+        const lazyCellRefs = lazyFormulas.pending.notCompletedLoops.get(loopId)
+        const loopItem = getCurrentLoopItem(loopId, options.data.loopItems)
+
+        if (!loopItem.completed) {
+          continue
+        }
+
+        for (const [lazyCellRef, lazyFormulaIds] of lazyCellRefs) {
+          for (const lazyFormulaId of lazyFormulaIds) {
+            tryToResolvePendingLazyFormula(lazyFormulaId, lazyCellRef, lazyFormulas, trackedCells, options.data.loopItems)
+          }
+        }
+
+        lazyFormulas.pending.notCompletedLoops.delete(loopId)
+      }
+    }
 
     const {
       increment: columnIncrement,
@@ -592,8 +623,14 @@ const __xlsxD = (function () {
 
     trackedCells[originalCellRef] = trackedCells[originalCellRef] || { first: null, last: null, count: 0 }
 
+    const lazyFormulaIds = lazyFormulas.pending.cellsToFormulaRefs.get(originalCellRef) || []
+    let targetLazyFormulas = []
+    const isPartOfLazyFormula = lazyFormulaIds.length > 0
+
+    let loopItem
+
     if (options.data.currentLoopId != null) {
-      const loopItem = getCurrentLoopItem(options.data.currentLoopId, options.data.loopItems)
+      loopItem = getCurrentLoopItem(options.data.currentLoopId, options.data.loopItems)
 
       if (loopItem?.type === 'vertical') {
         const parsedUpdatedCellRef = parseCellRef(updatedCellRef)
@@ -610,6 +647,34 @@ const __xlsxD = (function () {
       }
 
       trackedCells[originalCellRef].currentLoopId = options.data.currentLoopId
+    }
+
+    if (isPartOfLazyFormula) {
+      targetLazyFormulas = lazyFormulaIds.map((lazyFormulaId) => {
+        const lazyFormula = lazyFormulas.data.get(lazyFormulaId)
+
+        const originCellLoopId = trackedCells[lazyFormula.originCellRef]?.currentLoopId
+        let inSameLoopLevel
+
+        // check if the referenced cell is at same level than the origin formula cell
+        if (originCellLoopId == null && options.data.currentLoopId == null) {
+          inSameLoopLevel = true
+        } else {
+          inSameLoopLevel = originCellLoopId === options.data.currentLoopId
+        }
+
+        let resolve = true
+
+        if (!inSameLoopLevel && loopItem != null) {
+          resolve = loopItem.completed
+        }
+
+        return {
+          id: lazyFormulaId,
+          loopItem,
+          resolve
+        }
+      })
     }
 
     if (trackedCells[originalCellRef].first == null) {
@@ -642,6 +707,31 @@ const __xlsxD = (function () {
     options.data.columnPreviousLoopIncrement = columnPreviousRootLoopIncrement
     // this is a value that represents all the executions of the current loop (considering nested loops too)
     options.data.columnCurrentLoopIncrement = columnCurrentLoopIncrement + (columnPreviousLoopIncrement - columnPreviousRootLoopIncrement)
+
+    // we try to resolve lazy formulas here
+    for (const targetLazyFormula of targetLazyFormulas) {
+      if (targetLazyFormula.resolve) {
+        tryToResolvePendingLazyFormula(targetLazyFormula.id, originalCellRef, lazyFormulas, trackedCells, options.data.loopItems)
+      } else if (targetLazyFormula.loopItem != null) {
+        let cellsForLoopMap = lazyFormulas.pending.notCompletedLoops.get(targetLazyFormula.loopItem.id)
+
+        if (!cellsForLoopMap) {
+          cellsForLoopMap = new Map()
+          lazyFormulas.pending.notCompletedLoops.set(targetLazyFormula.loopItem.id, cellsForLoopMap)
+        }
+
+        let formulasInCell = cellsForLoopMap.get(originalCellRef)
+
+        if (!formulasInCell) {
+          formulasInCell = []
+          cellsForLoopMap.set(originalCellRef, formulasInCell)
+        }
+
+        if (!formulasInCell.includes(targetLazyFormula.id)) {
+          formulasInCell.push(targetLazyFormula.id)
+        }
+      }
+    }
 
     if (!generateCellTag) {
       return updatedCellRef
@@ -955,8 +1045,33 @@ const __xlsxD = (function () {
       // ensure we encode just some basic xml entities, formula values does not need to
       // have the full xml entities escaped
       if (Object.keys(lazyCellRefs).length > 0) {
-        return options.data.tasks.wait('lazyFormulas').then(() => {
-          const finalFormula = lazyFormulas.data[newFormula].newFormula
+        const [resolve, reject] = options.data.tasks.add(newFormula)
+
+        const pendingTaskForFormula = { resolve, reject, cellRefs: [], pendingCellRefs: [] }
+
+        lazyFormulas.pending.tasks.set(newFormula, pendingTaskForFormula)
+
+        for (const lazyCellRefItem of Object.values(lazyCellRefs)) {
+          let cellToFormulaRefItem = lazyFormulas.pending.cellsToFormulaRefs.get(lazyCellRefItem.cellRef)
+
+          if (!cellToFormulaRefItem) {
+            lazyFormulas.pending.cellsToFormulaRefs.set(lazyCellRefItem.cellRef, [])
+          }
+
+          cellToFormulaRefItem = lazyFormulas.pending.cellsToFormulaRefs.get(lazyCellRefItem.cellRef)
+
+          if (!cellToFormulaRefItem.includes(newFormula)) {
+            cellToFormulaRefItem.push(newFormula)
+          }
+
+          if (!pendingTaskForFormula.pendingCellRefs.includes(lazyCellRefItem.cellRef)) {
+            pendingTaskForFormula.cellRefs.push(lazyCellRefItem.cellRef)
+            pendingTaskForFormula.pendingCellRefs.push(lazyCellRefItem.cellRef)
+          }
+        }
+
+        return options.data.tasks.wait(newFormula).then(() => {
+          const finalFormula = lazyFormulas.data.get(newFormula).newFormula
           return encodeXML(finalFormula, 'basic')
         })
       }
@@ -1136,62 +1251,26 @@ const __xlsxD = (function () {
   }
 
   function lazyFormulas (options) {
-    const [resolveTask, rejectTask] = options.data.tasks.add('lazyFormulas')
+    const trackedCells = options.data.meta.trackedCells
+    const lazyFormulas = options.data.meta.lazyFormulas
 
-    try {
-      const trackedCells = options.data.meta.trackedCells
-      const lazyFormulas = options.data.meta.lazyFormulas
+    assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
+    assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
 
-      assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
-      assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
-
-      if (lazyFormulas.count == null || lazyFormulas.count === 0) {
-        resolveTask()
-        return ''
-      }
-
-      const lazyFormulaIds = Object.keys(lazyFormulas.data)
-
-      const { getNewFormula } = require('cellUtils')
-
-      for (const lazyFormulaId of lazyFormulaIds) {
-        const lazyFormulaInfo = lazyFormulas.data[lazyFormulaId]
-
-        const {
-          formula,
-          parsedOriginCellRef,
-          originCellIsFromLoop,
-          rowPreviousLoopIncrement,
-          rowCurrentLoopIncrement,
-          columnPreviousLoopIncrement,
-          columnCurrentLoopIncrement,
-          cellRefs
-        } = lazyFormulaInfo
-
-        const { formula: newFormula } = getNewFormula(formula, parsedOriginCellRef, {
-          type: 'lazy',
-          originCellIsFromLoop,
-          rowPreviousLoopIncrement,
-          rowCurrentLoopIncrement,
-          columnPreviousLoopIncrement,
-          columnCurrentLoopIncrement,
-          trackedCells,
-          getCurrentLoopItem: (currentLoopId) => {
-            return getCurrentLoopItem(currentLoopId, options.data.loopItems)
-          },
-          lazyCellRefs: cellRefs
-        })
-
-        // ensure we encode just some basic xml entities, formula values does not need to
-        // have the full xml entities escaped
-        lazyFormulaInfo.newFormula = newFormula
-      }
-
-      resolveTask()
+    if (lazyFormulas.pending.tasks.size === 0) {
       return ''
-    } catch (e) {
-      rejectTask(e)
-      throw e
+    }
+
+    const targetLazyFormulaIds = [...lazyFormulas.pending.tasks.keys()]
+
+    for (const lazyFormulaId of targetLazyFormulaIds) {
+      const lazyTask = lazyFormulas.pending.tasks.get(lazyFormulaId)
+
+      for (const cellRef of lazyTask.pendingCellRefs) {
+        // resolve all the lazy pending formulas, the reason we got until this point is likely
+        // that a formula is referencing a cell that does not have a definition in the sheet
+        tryToResolvePendingLazyFormula(lazyFormulaId, cellRef, lazyFormulas, trackedCells, options.data.loopItems)
+      }
     }
   }
 
@@ -1586,6 +1665,74 @@ const __xlsxD = (function () {
     }
 
     return newCellRef
+  }
+
+  function tryToResolvePendingLazyFormula (lazyFormulaId, cellRef, lazyFormulas, trackedCells, loopItems) {
+    const { getNewFormula } = require('cellUtils')
+
+    const lazyTask = lazyFormulas.pending.tasks.get(lazyFormulaId)
+
+    const matchIdx = lazyTask.pendingCellRefs.indexOf(cellRef)
+
+    if (matchIdx === -1) {
+      return
+    }
+
+    lazyTask.pendingCellRefs.splice(matchIdx, 1)
+
+    if (lazyTask.pendingCellRefs.length > 0) {
+      return
+    }
+
+    const lazyFormulaInfo = lazyFormulas.data.get(lazyFormulaId)
+
+    const {
+      formula,
+      formulaCellRef,
+      parsedOriginCellRef,
+      originCellIsFromLoop,
+      rowPreviousLoopIncrement,
+      rowCurrentLoopIncrement,
+      columnPreviousLoopIncrement,
+      columnCurrentLoopIncrement,
+      cellRefs
+    } = lazyFormulaInfo
+
+    const { formula: newFormula } = getNewFormula(formula, parsedOriginCellRef, {
+      type: 'lazy',
+      originCellIsFromLoop,
+      rowPreviousLoopIncrement,
+      rowCurrentLoopIncrement,
+      columnPreviousLoopIncrement,
+      columnCurrentLoopIncrement,
+      trackedCells,
+      getCurrentLoopItem: (currentLoopId) => {
+        return getCurrentLoopItem(currentLoopId, loopItems)
+      },
+      lazyCellRefs: cellRefs,
+      currentCellRef: formulaCellRef
+    })
+
+    // ensure we encode just some basic xml entities, formula values does not need to
+    // have the full xml entities escaped
+    lazyFormulaInfo.newFormula = newFormula
+
+    for (const cellRef of lazyTask.cellRefs) {
+      const originalLazyFormulaIds = lazyFormulas.pending.cellsToFormulaRefs.get(cellRef)
+      const matchIdx = originalLazyFormulaIds.indexOf(lazyFormulaId)
+
+      if (matchIdx !== -1) {
+        originalLazyFormulaIds.splice(matchIdx, 1)
+      }
+
+      if (originalLazyFormulaIds.length === 0) {
+        lazyFormulas.pending.cellsToFormulaRefs.delete(cellRef)
+      }
+    }
+
+    lazyFormulas.pending.tasks.delete(lazyFormulaId)
+
+    lazyTask.resolve()
   }
 
   function assertOk (valid, message) {
