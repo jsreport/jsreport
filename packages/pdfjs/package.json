@@ -14,7 +14,7 @@
     "@jsreport/node-signpdf": "1.4.2",
     "crypto-js": "4.2.0",
     "parse-color": "1.0.0",
-    "sharp": "0.34.2"
+    "jimp": "1.6.0"
   },
   "devDependencies": {
     "mocha": "10.1.0",

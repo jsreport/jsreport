@@ -1,4 +1,4 @@
-const sharp = require('sharp')
+const { Jimp } = require('jimp')
 const zlib = require('zlib')
 const PDF = require('../object')
 const { getObjectsRecursive } = require('../parser/parser')
@@ -117,9 +117,19 @@ async function imageToJpeg (xobj, options) {
 
   const contentBuf = zlib.unzipSync(xobj.content.content)
 
-  const content = await sharp(contentBuf, { raw: { width: xobj.properties.get('Width'), height: xobj.properties.get('Height'), channels: 3 } })
-    .jpeg({ mozjpeg: true, quality: options.jpegQuality || 60 })
-    .toBuffer()
+  // Jimp expects RGBA, but we have RGB
+  const rgb = contentBuf
+  const rgba = Buffer.alloc(xobj.properties.get('Width') * xobj.properties.get('Height') * 4)
+
+  for (let i = 0, j = 0; i < rgb.length; i += 3, j += 4) {
+    rgba[j] = rgb[i] // R
+    rgba[j + 1] = rgb[i + 1] // G
+    rgba[j + 2] = rgb[i + 2] // B
+    rgba[j + 3] = 255 // A (opaque)
+  }
+
+  const jimpImage = new Jimp({ data: rgba, width: xobj.properties.get('Width'), height: xobj.properties.get('Height') })
+  const content = await jimpImage.getBuffer('image/jpeg', { quality: options.jpegQuality || 60 })
 
   const newContent = zlib.deflateSync(content, { level: zlib.constants.Z_BEST_COMPRESSION })
 
