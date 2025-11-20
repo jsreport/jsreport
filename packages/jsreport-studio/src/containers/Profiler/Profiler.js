@@ -310,7 +310,7 @@ class Profiler extends Component {
 export default connect((state) => ({
   activeProfile: state.editor.activeProfile
 }),
-{ ...settingsActions, ...editorActions },
+{ ...editorActions, ...settingsActions },
 undefined,
 { forwardRef: true }
 )(Profiler)
