@@ -82,7 +82,7 @@ function pdfCreatePagesGroup (groupId) {
   return result
 }
 
-function pdfAddPageItem (item) {
+function pdfAddPageItem (item) {  
   // handlebars
   if (item && item.hash) {
     item = item.hash

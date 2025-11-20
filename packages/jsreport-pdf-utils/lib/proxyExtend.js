@@ -10,10 +10,10 @@ module.exports = (proxy, req) => {
 
       return parsedPdf
     },
-    prepend: async (sourcePdfBuf, extraPdfBuf) => {
+    prepend: async (sourcePdfBuf, extraPdfBuf, options) => {
       const manipulator = require('./pdfManipulator')(sourcePdfBuf)
 
-      await manipulator.prepend(extraPdfBuf)
+      await manipulator.prepend(extraPdfBuf, options)
 
       const resultPdfBuf = await manipulator.toBuffer()
 
@@ -28,7 +28,8 @@ module.exports = (proxy, req) => {
 
       return resultPdfBuf
     },
-    merge: async (sourcePdfBuf, extraPdfBufOrPages, mergeToFront) => {
+    merge: async (sourcePdfBuf, extraPdfBufOrPages, mergeToFrontOrOptions = {}) => {
+      const options = typeof mergeToFrontOrOptions === 'boolean' ? { mergeToFront: mergeToFrontOrOptions } : mergeToFrontOrOptions
       const manipulator = require('./pdfManipulator')(sourcePdfBuf)
 
       // merge needs to have information about total of pages in source pdf
@@ -36,7 +37,7 @@ module.exports = (proxy, req) => {
         hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
       })
 
-      await manipulator.merge(extraPdfBufOrPages, { mergeToFront })
+      await manipulator.merge(extraPdfBufOrPages, options)
 
       const resultPdfBuf = await manipulator.toBuffer()
 
@@ -63,8 +64,8 @@ module.exports = (proxy, req) => {
 
       return resultPdfBuf
     },
-    postprocess: async (sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, pdfCompression } = {}) => {
-      const manipulator = require('./pdfManipulator')(sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, pdfCompression, removeHiddenMarks: true })
+    postprocess: async (sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, pdfCompression, pdfAccessibility } = {}) => {
+      const manipulator = require('./pdfManipulator')(sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, pdfCompression, pdfAccessibility, removeHiddenMarks: true })
       await manipulator.postprocess({
         hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
       })

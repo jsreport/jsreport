@@ -3,7 +3,6 @@ const PDF = require('../../object')
 const fs = require('fs')
 const path = require('path')
 const metadataXml = fs.readFileSync(path.join(__dirname, 'metadata.xml')).toString()
-const zlib = require('zlib')
 
 module.exports = (doc) => {
   doc.pdfUA = () => {
@@ -71,11 +70,7 @@ async function processUntaggedObjects (doc) {
 // the pdfua needs everything in the stream to have tag in the StructTree or be marked as artifact without a meaning for accessibility
 function processStreamWithUntaggedObjects ({ doc, streamObject, page, pages }) {
   // we just support known structures chrome produces
-  if (streamObject == null || !streamObject.object.properties.get('Filter')) {
-    return
-  }
-
-  if (streamObject.object.properties.get('Filter').name !== 'FlateDecode') {
+  if (streamObject == null) {
     return
   }
 
@@ -84,7 +79,7 @@ function processStreamWithUntaggedObjects ({ doc, streamObject, page, pages }) {
     return
   }
 
-  const lines = zlib.unzipSync(streamObject.content).toString('latin1').split('\n')
+  const lines = streamObject.getDecompressedString().split('\n').map(l => l.trim()).filter(l => l)
 
   // good reference for pdf stream instructions
   // https://gendignoux.com/blog/images/pdf-graphics/cheat-sheet-by-nc-sa.png
@@ -92,6 +87,20 @@ function processStreamWithUntaggedObjects ({ doc, streamObject, page, pages }) {
   const finalLines = []
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
+
+    // skip marked content
+    if (line.endsWith('BDC')) {
+      finalLines.push(line)
+      while (!lines[i++].endsWith('EMC')) {
+        const lineToAdd = lines[i]
+        finalLines.push(lineToAdd)
+        if (i > lines.length) {
+          return
+        }
+      }
+      i--
+      continue
+    }
 
     if (lines[i - 1] !== '/Artifact BMC' && (line.endsWith(' m') || line.endsWith(' l') || line.endsWith(' c'))) {
       let j = i
@@ -175,8 +184,7 @@ function processStreamWithUntaggedObjects ({ doc, streamObject, page, pages }) {
     }
   }
 
-  streamObject.content = zlib.deflateSync(Buffer.from(finalLines.join('\n'), 'latin1'))
-  streamObject.object.prop('Length', streamObject.content.length)
+  streamObject.setAndCompress(Buffer.from(finalLines.join('\n'), 'latin1'))
 }
 
 function findInStructTree (mcid, doc) {

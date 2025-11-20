@@ -24,30 +24,33 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
     },
 
     async append (appendBuffer, options = {}) {
+      const copyAccessibilityTags = options?.pdfAccessibility?.enabled != null ? options?.pdfAccessibility?.enabled : pdfAccessibility?.enabled
       const document = new Document()
-      document.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
+      document.append(new External(currentBuffer), { copyAccessibilityTags })
       document.append(new External(appendBuffer), {
-        copyAccessibilityTags: pdfAccessibility?.enabled,
+        copyAccessibilityTags,
         appendAfterIndex: options.appendAfterPageNumber != null ? options.appendAfterPageNumber - 1 : null
       })
       currentBuffer = await document.asBuffer()
     },
 
-    async prepend (prependBuffer) {
+    async prepend (prependBuffer, options = {}) {
+      const copyAccessibilityTags = options?.pdfAccessibility?.enabled != null ? options?.pdfAccessibility?.enabled : pdfAccessibility?.enabled
       const document = new Document()
-      document.append(new External(prependBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
-      document.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
+      document.append(new External(prependBuffer), { copyAccessibilityTags })
+      document.append(new External(currentBuffer), { copyAccessibilityTags })
       currentBuffer = await document.asBuffer()
     },
 
-    async merge (pageBuffersOrDocBuffer, mergeToFront) {
+    async merge (pageBuffersOrDocBuffer, mergeToFront, options = {}) {
+      const copyAccessibilityTags = options?.pdfAccessibility?.enabled != null ? options?.pdfAccessibility?.enabled : pdfAccessibility?.enabled
       const document = new Document()
-      document.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
+      document.append(new External(currentBuffer), { copyAccessibilityTags })
       if (Buffer.isBuffer(pageBuffersOrDocBuffer)) {
-        document.merge(new External(pageBuffersOrDocBuffer), { mergeToFront, copyAccessibilityTags: pdfAccessibility?.enabled })
+        document.merge(new External(pageBuffersOrDocBuffer), { mergeToFront, copyAccessibilityTags })
       } else {
         for (const i in pageBuffersOrDocBuffer) {
-          document.merge(new External(pageBuffersOrDocBuffer[i]), { mergeToFront, pageNum: i, copyAccessibilityTags: pdfAccessibility?.enabled })
+          document.merge(new External(pageBuffersOrDocBuffer[i]), { mergeToFront, pageNum: i, copyAccessibilityTags })
         }
       }
       currentBuffer = await document.asBuffer()

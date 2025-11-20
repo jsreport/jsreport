@@ -40,7 +40,7 @@
     "mocha": "10.1.0",
     "phantom-page-eval": "2.0.1",
     "phantomjs-prebuilt": "2.1.16",
-    "puppeteer": "24.15.0",
+    "puppeteer": "24.30.0",
     "sax": "1.4.1",
     "should": "13.2.3",
     "standard": "16.0.4",

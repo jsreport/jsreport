@@ -100,7 +100,7 @@ module.exports = async (inputs, reporter, req, res) => {
       }, req, res)
       if (operation.mergeWholeDocument) {
         const mergeBuffer = await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } })
-        await manipulator.merge(mergeBuffer, operation.mergeToFront)
+        await manipulator.merge(mergeBuffer, { mergeToFront: operation.mergeToFront })
 
         reporter.profiler.emit({
           type: 'operationEnd',
@@ -129,7 +129,7 @@ module.exports = async (inputs, reporter, req, res) => {
         })
       }
 
-      await manipulator.merge(pagesBuffers, operation.mergeToFront)
+      await manipulator.merge(pagesBuffers, { mergeToFront: operation.mergeToFront })
       reporter.profiler.emit({
         type: 'operationEnd',
         operationId: profilerEvent.operationId

@@ -99,17 +99,25 @@ function findStructsForPageAndReplaceOldPg (structTreeRoot, newPage, originalPag
       if (nodeOrDict.object && nodeOrDict.object.properties.get('Pg')?.object === newPage) {
         nodeOrDict.object.properties.set('Pg', (originalPage || newPage).toReference())
 
-        if (xobj && Number.isInteger(nodeOrDict.object.properties.get('K')[0])) {
-          const mcr = new PDF.Dictionary()
-          mcr.set('Type', new PDF.Name('MCR'))
-          mcr.set('Pg', nodeOrDict.object.properties.get('Pg'))
-          mcr.set('MCID', nodeOrDict.object.properties.get('K')[0])
-          mcr.set('Stm', xobj.toReference())
-          nodeOrDict.object.properties.set('K', new PDF.Array([mcr]))
-          nodeOrDict.object.properties.del('Pg')
+        if (xobj) {
+          const childNodeOrArray = nodeOrDict.object.properties.get('K')
+          const childNodes = Array.isArray(childNodeOrArray) ? childNodeOrArray : [childNodeOrArray]
+
+          for (let i = 0; i < childNodes.length; i++) {
+            const child = childNodes[i]
+            if (Number.isInteger(child)) {
+              const mcr = new PDF.Dictionary()
+              mcr.set('Type', new PDF.Name('MCR'))
+              mcr.set('Pg', nodeOrDict.object.properties.get('Pg'))
+              mcr.set('MCID', child)
+              mcr.set('Stm', xobj.toReference())
+              nodeOrDict.object.properties.set('K', new PDF.Array([...childNodes.slice(0, i), mcr, ...childNodes.slice(i + 1)]))
+              nodeOrDict.object.properties.del('Pg')
+            }
+          }
         }
 
-        return structsInPage.push({ parent, node: nodeOrDict.object.properties })
+        structsInPage.push({ parent: nodeOrDict.object, node: nodeOrDict.object.properties })
       }
     }
 
@@ -122,7 +130,9 @@ function findStructsForPageAndReplaceOldPg (structTreeRoot, newPage, originalPag
     }
   }
 
-  const firstExtNodes = structTreeRoot.properties.get('K').object.properties.get('K')
+  const firstExtNodeOrArray = structTreeRoot.properties.get('K').object.properties.get('K')
+  const firstExtNodes = Array.isArray(firstExtNodeOrArray) ? firstExtNodeOrArray : [firstExtNodeOrArray]
+
   for (const node of firstExtNodes) {
     f(node)
   }

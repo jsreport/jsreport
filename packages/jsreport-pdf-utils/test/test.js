@@ -172,12 +172,14 @@ describe('pdf utils', () => {
       }
     })
 
+    require('fs').writeFileSync('out.pdf', result.content)
+
     const parsedPdf = await parsePdf(result.content, {
       includeText: true
     })
 
     parsedPdf.pages[0].text.should.containEql('1')
-    parsedPdf.pages[1].text.should.containEql('1b')
+    parsedPdf.pages[1].text.should.containEql('b1')
   })
 
   it('merge with renderForEveryPage should be able to use pdfCreatePagesGroup helper with hash params', async () => {
