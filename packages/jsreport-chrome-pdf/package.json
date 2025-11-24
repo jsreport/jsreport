@@ -45,7 +45,7 @@
     "puppeteer": ">=21.1.x"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

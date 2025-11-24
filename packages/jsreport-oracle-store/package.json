@@ -30,7 +30,7 @@
     "oracledb": "5.1.0"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "env": [

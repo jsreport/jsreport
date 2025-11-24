@@ -48,7 +48,7 @@
     "xlsx-coordinates": "1.0.1"
   },
   "engines": {
-    "node": ">=18.15.0"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

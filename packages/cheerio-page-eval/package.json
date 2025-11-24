@@ -20,7 +20,7 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=8.9"
+    "node": ">=22.18"
   },
   "standard": {
     "env": {

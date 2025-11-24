@@ -86,7 +86,7 @@
     "winston-loggly-bulk": "3.2.1"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "env": {

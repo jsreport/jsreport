@@ -46,7 +46,7 @@
     "textract": "2.5.0"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

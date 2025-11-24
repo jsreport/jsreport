@@ -91,7 +91,7 @@
     "winser-with-api": "1.0.2"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

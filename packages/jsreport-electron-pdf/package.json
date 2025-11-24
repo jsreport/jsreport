@@ -42,7 +42,7 @@
     "electron": "1.6.6"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [
