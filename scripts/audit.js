@@ -73,6 +73,10 @@ const withVulnerabilities = []
 for (const ext of extensionsList) {
   console.log(`\n..checking audit for ${ext}..\n`)
 
+  console.log('\n===== removing node_modules if present =====')
+
+  fs.rmSync(path.join(process.cwd(), 'packages', packagesInWorkspace.get(ext), 'node_modules'), { recursive: true, force: true })
+
   const args = ['install', '--legacy-peer-deps', '--ignore-scripts', '--workspaces=false']
 
   console.log('\n===== dependencies install started =====')
