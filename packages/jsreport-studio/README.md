@@ -18,6 +18,13 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.4.0
+- update minimum nodejs to 22.18
+- fix error when switching profiler mode in studio
+- update highlight components to use studio api for path resolution
+- fix activeTabKey reference in Studio.getActiveEntity method
+- fix browser error when changing themes
+
 ### 4.3.2
 
 - update deps to fix audit

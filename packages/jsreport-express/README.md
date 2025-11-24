@@ -7,6 +7,9 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.3.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.2.3
 
 - dont visit common error handler when response streaming fails, end immediately

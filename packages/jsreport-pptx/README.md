@@ -7,6 +7,9 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.5.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.4.2
 
 - update deps to fix audit

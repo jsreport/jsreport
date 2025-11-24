@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-import-export",
-  "version": "4.0.8",
+  "version": "4.1.0",
   "description": "jsreport extension adding templates exporting and importing API",
   "keywords": [
     "jsreport",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "archiver": "7.0.1",
-    "axios": "1.9.0",
+    "axios": "1.13.2",
     "form-data": "4.0.4",
     "lodash.isequal": "4.5.0",
     "lodash.omit": "4.5.0",
@@ -40,17 +40,17 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.2.3",
-    "@jsreport/jsreport-authentication": "4.2.3",
-    "@jsreport/jsreport-authorization": "4.1.0",
-    "@jsreport/jsreport-cli": "4.1.2",
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-data": "4.1.0",
-    "@jsreport/jsreport-express": "4.2.3",
-    "@jsreport/jsreport-fs-store": "4.1.1",
+    "@jsreport/jsreport-assets": "4.3.0",
+    "@jsreport/jsreport-authentication": "4.3.0",
+    "@jsreport/jsreport-authorization": "4.2.0",
+    "@jsreport/jsreport-cli": "4.2.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-data": "4.2.0",
+    "@jsreport/jsreport-express": "4.3.0",
+    "@jsreport/jsreport-fs-store": "4.2.0",
     "@jsreport/jsreport-mongodb-store": "4.1.0",
     "@jsreport/jsreport-postgres-store": "4.2.0",
-    "@jsreport/studio-dev": "4.0.1",
+    "@jsreport/studio-dev": "4.1.0",
     "execa": "1.0.0",
     "mkdirp": "0.5.5",
     "mocha": "10.1.0",

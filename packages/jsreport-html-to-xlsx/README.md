@@ -7,6 +7,11 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.3.0
+- minimum node.js version is now `22.18.0`
+- fix support for more colspan/rowspan based layouts
+- better error for invalid base xlsx template
+
 ### 4.2.4
 
 - fix rowspan/colspan based layout not working

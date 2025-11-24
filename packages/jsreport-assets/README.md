@@ -8,6 +8,9 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 4.3.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.2.3
 
 - update deps to fix audit

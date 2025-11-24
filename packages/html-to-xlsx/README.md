@@ -130,6 +130,11 @@ main()
 
 ## Changelog
 
+### 1.1.0
+- update minimum nodejs to 22.18
+- better error for invalid base xlsx template
+- fix support for more colspan/rowspan based layouts
+
 ### 1.0.2
 
 - fix rowspan/colspan based layout not working

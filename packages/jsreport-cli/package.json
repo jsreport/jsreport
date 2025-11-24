@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-cli",
-  "version": "4.1.2",
+  "version": "4.2.0",
   "description": "Command line interface for jsreport",
   "keywords": [
     "jsreport",
@@ -50,7 +50,7 @@
     "test:watch": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit --watch"
   },
   "dependencies": {
-    "@jsreport/nodejs-client": "4.0.5",
+    "@jsreport/nodejs-client": "4.1.0",
     "chalk": "2.4.2",
     "cliui": "7.0.4",
     "inquirer": "8.2.7",
@@ -70,11 +70,11 @@
     "yargs": "17.3.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.2.3",
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-express": "4.2.3",
-    "@jsreport/jsreport-fs-store": "4.1.1",
-    "@jsreport/jsreport-handlebars": "4.0.1",
+    "@jsreport/jsreport-authentication": "4.3.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-express": "4.3.0",
+    "@jsreport/jsreport-fs-store": "4.2.0",
+    "@jsreport/jsreport-handlebars": "4.1.0",
     "cross-env": "7.0.3",
     "execa": "1.0.0",
     "handlebars": "4.7.7",

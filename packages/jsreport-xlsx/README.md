@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.6.0
+- minimum node.js version is now `22.18.0`
+- fix more cases with lazy formulas
+
 ### 4.5.1
 
 - `xlsxCType` helper normalize input "s" type to internal "inlineStr"

@@ -7,6 +7,9 @@ See https://jsreport.net/learn/scripts
 
 ## Changelog
 
+### 4.3.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.2.0
 
 - modify script entity type to support creating store indexes

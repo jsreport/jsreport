@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-sample-template",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "description": "jsreport extension which creates a sample template at the first run",
   "keywords": [
     "jsreport"
@@ -31,20 +31,20 @@
     "lodash.omit": "4.5.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.2.3",
-    "@jsreport/jsreport-chrome-pdf": "4.3.0",
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-data": "4.1.0",
-    "@jsreport/jsreport-fs-store": "4.1.1",
-    "@jsreport/jsreport-handlebars": "4.0.1",
-    "@jsreport/jsreport-html-to-xlsx": "4.2.4",
-    "@jsreport/jsreport-pdf-utils": "4.4.1",
-    "@jsreport/jsreport-scripts": "4.2.0",
-    "@jsreport/jsreport-xlsx": "4.5.1",
-    "@jsreport/studio-dev": "4.0.1",
+    "@jsreport/jsreport-assets": "4.3.0",
+    "@jsreport/jsreport-chrome-pdf": "4.4.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-data": "4.2.0",
+    "@jsreport/jsreport-fs-store": "4.2.0",
+    "@jsreport/jsreport-handlebars": "4.1.0",
+    "@jsreport/jsreport-html-to-xlsx": "4.3.0",
+    "@jsreport/jsreport-pdf-utils": "4.5.1",
+    "@jsreport/jsreport-scripts": "4.3.0",
+    "@jsreport/jsreport-xlsx": "4.6.0",
+    "@jsreport/studio-dev": "4.1.0",
     "handlebars": "4.7.7",
     "mocha": "10.1.0",
-    "puppeteer": "24.30.0",
+    "puppeteer": "24.31.0",
     "rimraf": "^3.0.2",
     "should": "13.2.3",
     "standard": "16.0.4"

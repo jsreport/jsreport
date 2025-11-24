@@ -22,6 +22,9 @@
 
 ## Changelog
 
+### 4.1.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.0.2
 
 - update style in Orders sample needed to work after the Chromium 138 update

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-scripts",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "jsreport extension capable of running custom javascript functions during the rendering process",
   "keywords": [
     "jsreport"
@@ -29,10 +29,10 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.2.3",
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-jsrender": "4.0.0",
-    "@jsreport/studio-dev": "4.0.1",
+    "@jsreport/jsreport-assets": "4.3.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-jsrender": "4.1.0",
+    "@jsreport/studio-dev": "4.1.0",
     "bluebird": "3.7.2",
     "mocha": "10.1.0",
     "should": "13.2.3",

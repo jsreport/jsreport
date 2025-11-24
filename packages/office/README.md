@@ -5,6 +5,11 @@ Some helpers for officed based jsreport recipes
 
 ## Changelog
 
+### 4.2.0
+- update minimum nodejs to 22.18
+- update axios to fix audit
+- throw error when there is duplicated file in `saveXmlsToOfficeFile`
+
 ### 4.1.5
 
 - update form-data to fix audit

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/nodejs-client",
-  "version": "4.0.5",
+  "version": "4.1.0",
   "description": "jsreport node.js client",
   "homepage": "https://jsreport.net/learn/nodejs-client",
   "repository": {
@@ -20,15 +20,15 @@
     "test": "mocha --timeout=10000 --reporter spec test && standard"
   },
   "dependencies": {
-    "axios": "1.9.0",
+    "axios": "1.13.2",
     "concat-stream": "2.0.0",
     "mimic-response": "2.1.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.2.3",
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-express": "4.2.3",
-    "@jsreport/jsreport-jsrender": "4.0.0",
+    "@jsreport/jsreport-authentication": "4.3.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-express": "4.3.0",
+    "@jsreport/jsreport-jsrender": "4.1.0",
     "mocha": "10.1.0",
     "should": "13.2.3",
     "standard": "16.0.4"

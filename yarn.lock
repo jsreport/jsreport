@@ -2691,33 +2691,6 @@
   resolved "https://registry.yarnpkg.com/@jsreport/node-signpdf/-/node-signpdf-1.4.2.tgz#982ba2cdb1571b5eb75c8ec473d9563a657f42b4"
   integrity sha512-qk2IBd27OcrUc0JTNgzTwErZtOWO1BRzMEp153ShtZv9HGRF5KiyhAR0PqBx32LKdwlzcaCwHzSC9ciiuZJC/g==
 
-"@jsreport/studio-dev@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@jsreport/studio-dev/-/studio-dev-4.0.0.tgz#20e5db93d755ccbf35e98a1b039d43dd8201fd8e"
-  integrity sha512-sKS1uyfMP2Sbmfb12/j5FlqzB6DSGoh0+3iQZvspZFjtiXymequxpjF78MA0gPQb9G9NG4yKPGkuAx7Q+gPfJQ==
-  dependencies:
-    "@babel/core" "7.22.9"
-    "@babel/plugin-transform-runtime" "7.22.9"
-    "@babel/preset-env" "7.22.9"
-    "@babel/preset-react" "7.22.5"
-    "@babel/register" "7.22.5"
-    "@babel/runtime-corejs3" "7.22.6"
-    "@rbarilani/remove-source-map-url-webpack-plugin" "1.1.0"
-    autoprefixer "10.4.14"
-    babel-loader "9.1.3"
-    clean-webpack-plugin "4.0.0"
-    css-loader "6.8.1"
-    html-webpack-plugin "5.5.3"
-    mini-css-extract-plugin "2.7.6"
-    nanoid "3.3.6"
-    postcss "8.4.26"
-    postcss-flexbugs-fixes "5.0.2"
-    postcss-loader "7.3.3"
-    style-loader "3.3.3"
-    webpack "5.88.2"
-    webpack-bundle-analyzer "4.9.0"
-    yargs-parser "21.1.1"
-
 "@mongodb-js/saslprep@^1.1.9":
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.3.2.tgz#51e5cad2f24b8759702d9cc185da0a3ef3784bad"
@@ -5068,10 +5041,10 @@ async-limiter@~1.0.0:
   resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.1.tgz#dd379e94f0db8310b08291f9d64c3209766617fd"
   integrity sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
 
-async-replace-with-limit@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/async-replace-with-limit/-/async-replace-with-limit-2.0.0.tgz#0bca6a30efa93aff4fa4ae1fe07545757f242a7b"
-  integrity sha512-MIRGonDyqMmdKauC3iW4u9WEk0vIcUKkAlyN4yiKmvpzE2wFfN8u1OtlCZr/Fow/f37SkUEmvY+Rsc7VDY4HHA==
+async-replace-with-limit@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/async-replace-with-limit/-/async-replace-with-limit-2.1.0.tgz#77f9e34f235871cd29ce850a4864de624c0ffec1"
+  integrity sha512-Im3EYZTJETMtVZfy8kL7s7Hz8eJFdgI+qbTkYU5iJ9L1y4tkzXHz0Wt1V139Gz88BBi/3Q82dfTrelo/O4Sdlw==
   dependencies:
     async "3.2.3"
 
@@ -5180,22 +5153,13 @@ axios@0.21.1:
   dependencies:
     follow-redirects "^1.10.0"
 
-axios@1.8.1:
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.8.1.tgz#7c118d2146e9ebac512b7d1128771cdd738d11e3"
-  integrity sha512-NN+fvwH/kV01dYUQ3PTOZns4LWtWhOFCAhQ/pHb88WQ1hNe5V/dvFwc4VJcDL11LT9xSX0QtsR8sWUuyOuOq7g==
+axios@1.13.2:
+  version "1.13.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.13.2.tgz#9ada120b7b5ab24509553ec3e40123521117f687"
+  integrity sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==
   dependencies:
     follow-redirects "^1.15.6"
-    form-data "^4.0.0"
-    proxy-from-env "^1.1.0"
-
-axios@1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.9.0.tgz#25534e3b72b54540077d33046f77e3b8d7081901"
-  integrity sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==
-  dependencies:
-    follow-redirects "^1.15.6"
-    form-data "^4.0.0"
+    form-data "^4.0.4"
     proxy-from-env "^1.1.0"
 
 b4a@^1.6.4:
@@ -6421,10 +6385,10 @@ chownr@^1.1.1, chownr@^1.1.2, chownr@^1.1.4:
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-1.1.4.tgz#6fc9d7b42d32a583596337666e7d08084da2cc6b"
   integrity sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==
 
-chrome-page-eval@1.3.2:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/chrome-page-eval/-/chrome-page-eval-1.3.2.tgz#38a3a26a2b9c1c9882726c5c075b22719b15e607"
-  integrity sha512-nVjsuExp7NpbxT9tQcwEt3fHkh2D1TwiqrQhfygQ82/q+6Yhtfmq1xM3ox57y7cqdqLjjhg6bcOmF0JkYZUSAg==
+chrome-page-eval@1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/chrome-page-eval/-/chrome-page-eval-1.4.0.tgz#58f9b5f67259ce934491f3807b5f8c570b4e5acf"
+  integrity sha512-d3UF9hSf1qQw8KNOyVp7RFm24ov2wAm8emI/fXJENqeC85IVItjY5O6BVYPTesGspr173fr+5xDbKYYxzY+v0w==
   dependencies:
     debug "3.1.0"
 
@@ -10161,7 +10125,7 @@ form-data@^3.0.0:
     hasown "^2.0.2"
     mime-types "^2.1.35"
 
-form-data@^4.0.0:
+form-data@^4.0.0, form-data@^4.0.4:
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.5.tgz#b49e48858045ff4cbf6b03e1805cebcad3679053"
   integrity sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==
@@ -13408,6 +13372,13 @@ listener-collection@2.0.0:
   dependencies:
     async "3.2.3"
 
+listener-collection@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/listener-collection/-/listener-collection-2.1.0.tgz#76ede4759bc853c6a3b2e7047a4e5a4a8e288003"
+  integrity sha512-rg6uVJVHdIrP1VPv7LLRjzlowdasxUkf/rjtFIh6/1ZqfcwZ83UQHsHrljjtV0Zhhh58sABK0eK/CFbdB++fsw==
+  dependencies:
+    async "3.2.3"
+
 livereload-js@^2.3.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/livereload-js/-/livereload-js-2.4.0.tgz#447c31cf1ea9ab52fc20db615c5ddf678f78009c"
@@ -14872,11 +14843,6 @@ nanoid@3.3.3:
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.3.tgz#fd8e8b7aa761fe807dba2d1b98fb7241bb724a25"
   integrity sha512-p1sjXuopFs0xg+fPASzQ28agW1oHD7xDsd9Xkf3T15H3c/cifrFHVwrh74PdoklAPi+i7MdRsE47vm2r6JoB+w==
 
-nanoid@3.3.6:
-  version "3.3.6"
-  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.6.tgz#443380c856d6e9f9824267d960b4236ad583ea4c"
-  integrity sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==
-
 nanoid@3.3.8:
   version "3.3.8"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.8.tgz#b1be3030bee36aaff18bacb375e5cce521684baf"
@@ -15043,10 +15009,10 @@ node-fetch@^2.6.0, node-fetch@^2.6.6:
   dependencies:
     whatwg-url "^5.0.0"
 
-node-forge@1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-1.3.1.tgz#be8da2af243b2417d5f646a770663a92b7e9ded3"
-  integrity sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==
+node-forge@1.3.2:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-1.3.2.tgz#d0d2659a26eef778bf84d73e7f55c08144ee7750"
+  integrity sha512-6xKiQ+cph9KImrRh0VsjH2d8/GXA4FIMlgU4B757iI1ApvcyA9VlouP0yZJha01V+huImO+kKMU7ih+2+E14fw==
 
 node-int64@^0.4.0:
   version "0.4.0"
@@ -16003,10 +15969,10 @@ parse-passwd@^1.0.0:
   resolved "https://registry.yarnpkg.com/parse-passwd/-/parse-passwd-1.0.0.tgz#6d5b934a456993b23d37f40a382d6f1666a8e5c6"
   integrity sha512-1Y1A//QUXEZK7YKz+rD9WydcE1+EuPr6ZBgKecAB8tmoW6UFv0NREVJe1p+jRxtThkcbbKkfwIbWJe/IeE6m2Q==
 
-parse-pdf@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/parse-pdf/-/parse-pdf-3.0.0.tgz#cdf94038871653436cb6f5a6fd43102e005b4412"
-  integrity sha512-5KNdZBTp9LzqOYzeIXJIw6IDV6GwLbVckiQ8Y/AfvP3+yvmnsehgScaD/86vipwUuO5fsWnljptRV4SKFHuN+A==
+parse-pdf@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/parse-pdf/-/parse-pdf-3.1.0.tgz#5d1e89c927c04ed1a39fd56c8e6f31cbe8368683"
+  integrity sha512-WTjda7TPtjQdDwH31b4jYcP7i0uIkX3Pou/v7LF7W6v73CcWB2OLU4LOAQ+t0BriXDcR942y6UJsbGicSz7iqg==
   dependencies:
     pdfjs-dist "2.16.105"
 
@@ -17398,29 +17364,29 @@ punycode@^2.1.0, punycode@^2.1.1, punycode@^2.3.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-puppeteer-core@24.30.0:
-  version "24.30.0"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.30.0.tgz#7d0d15ce6aee4f1aa8a8f046bf0198f025ee6c81"
-  integrity sha512-2S3Smy0t0W4wJnNvDe7W0bE7wDmZjfZ3ljfMgJd6hn2Hq/f0jgN+x9PULZo2U3fu5UUIJ+JP8cNUGllu8P91Pg==
+puppeteer-core@24.31.0:
+  version "24.31.0"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.31.0.tgz#a00daa971fb6a9f722264afda7290dd0bfd566f0"
+  integrity sha512-pnAohhSZipWQoFpXuGV7xCZfaGhqcBR9C4pVrU0QSrcMi7tQMH9J9lDBqBvyMAHQqe8HCARuREqFuVKRQOgTvg==
   dependencies:
     "@puppeteer/browsers" "2.10.13"
     chromium-bidi "11.0.0"
     debug "^4.4.3"
     devtools-protocol "0.0.1521046"
     typed-query-selector "^2.12.0"
-    webdriver-bidi-protocol "0.3.8"
+    webdriver-bidi-protocol "0.3.9"
     ws "^8.18.3"
 
-puppeteer@24.30.0:
-  version "24.30.0"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.30.0.tgz#26ed830277d23c43fdc30104226d117be19e1a3d"
-  integrity sha512-A5OtCi9WpiXBQgJ2vQiZHSyrAzQmO/WDsvghqlN4kgw21PhxA5knHUaUQq/N3EMt8CcvSS0RM+kmYLJmedR3TQ==
+puppeteer@24.31.0:
+  version "24.31.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.31.0.tgz#cacd8c4563ff8bd49ee62bd03ae80e11944e698a"
+  integrity sha512-q8y5yLxLD8xdZdzNWqdOL43NbfvUOp60SYhaLZQwHC9CdKldxQKXOyJAciOr7oUJfyAH/KgB2wKvqT2sFKoVXA==
   dependencies:
     "@puppeteer/browsers" "2.10.13"
     chromium-bidi "11.0.0"
     cosmiconfig "^9.0.0"
     devtools-protocol "0.0.1521046"
-    puppeteer-core "24.30.0"
+    puppeteer-core "24.31.0"
     typed-query-selector "^2.12.0"
 
 puppeteer@^1.19.0:
@@ -21486,10 +21452,10 @@ web-streams-polyfill@^3.2.1:
   resolved "https://registry.yarnpkg.com/web-streams-polyfill/-/web-streams-polyfill-3.3.3.tgz#2073b91a2fdb1fbfbd401e7de0ac9f8214cecb4b"
   integrity sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==
 
-webdriver-bidi-protocol@0.3.8:
-  version "0.3.8"
-  resolved "https://registry.yarnpkg.com/webdriver-bidi-protocol/-/webdriver-bidi-protocol-0.3.8.tgz#9c822b2647fd16d22b1b6fd730d4a3b863c93b93"
-  integrity sha512-21Yi2GhGntMc671vNBCjiAeEVknXjVRoyu+k+9xOMShu+ZQfpGQwnBqbNz/Sv4GXZ6JmutlPAi2nIJcrymAWuQ==
+webdriver-bidi-protocol@0.3.9:
+  version "0.3.9"
+  resolved "https://registry.yarnpkg.com/webdriver-bidi-protocol/-/webdriver-bidi-protocol-0.3.9.tgz#89abf021f2a557a2dd81772f9ce7172b01f8a0f0"
+  integrity sha512-uIYvlRQ0PwtZR1EzHlTMol1G0lAlmOe6wPykF9a77AK3bkpvZHzIVxRE2ThOx5vjy2zISe0zhwf5rzuUfbo1PQ==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"
