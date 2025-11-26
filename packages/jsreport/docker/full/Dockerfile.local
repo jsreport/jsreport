@@ -31,7 +31,8 @@ RUN apt-get update && \
     # unoconv
     apt-get -y install unoconv && \
     # libreoffice
-    apt-get -y install default-jre libreoffice-java-common
+    apt-get -y install default-jre libreoffice-java-common && \
+    apt install -y python3-setuptools
 
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \

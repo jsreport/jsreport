@@ -55,8 +55,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
-    libcurl@edge=8.15.0-r0 \
-    git@edge=2.50.1-r0 \
+    libcurl@edge=8.17.0-r1 \
+    git@edge=2.51.2-r0 \
     # so user can docker exec -it test /bin/bash
     bash
 

@@ -1,10 +1,102 @@
-FROM jsreport/jsreport:4.10.0
+FROM node:22.15-alpine3.21
 EXPOSE 5488
+USER root
 ARG TARGETPLATFORM
 ARG UID=2500
 ARG GID=2500
 
-RUN npm install jsreport@4.10.1
+ENV GOSU_VERSION=1.17
+RUN set -eux; \
+    \
+    apk add --no-cache --virtual .gosu-deps \
+    ca-certificates \
+    dpkg \
+    gnupg \
+    ; \
+    \
+    dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+    wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+    wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+    \
+    # verify the signature
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+    gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+    command -v gpgconf && gpgconf --kill all || :; \
+    rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+    \
+    # clean up fetch dependencies
+    apk del --no-network .gosu-deps; \
+    \
+    chmod +x /usr/local/bin/gosu; \
+    # verify that the binary works
+    gosu --version; \
+    gosu nobody true
+
+RUN addgroup -g "${GID}" -S jsreport && adduser --shell /bin/bash -u "${UID}" -S -G jsreport jsreport
+
+# this condition is useful when the alpine registry contain different latest versions
+# per architecture, if the versions match then just use the same version number on both paths
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    export CHROMIUM_TO_INSTALL_VERSION="138.0.7204.157-r0"; \
+    elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    export CHROMIUM_TO_INSTALL_VERSION="138.0.7204.157-r0"; \
+    fi && \
+    echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
+    apk update --no-cache && \
+    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.21/community >> /etc/apk/repositories && \
+    echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
+    echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
+    apk add --no-cache \
+    libstdc++@edge \
+    chromium@edge=$CHROMIUM_TO_INSTALL_VERSION \
+    nss \
+    freetype \
+    harfbuzz \
+    ttf-freefont@edge \
+    # just for now as we npm install from git
+    libcurl@edge=8.17.0-r1 \
+    git@edge=2.51.2-r0 \
+    # so user can docker exec -it test /bin/bash
+    bash
+
+RUN rm -rf /var/cache/apk/* /tmp/*
+
+RUN mkdir -p /app
+
+# we need to create the volume and give it expected owner
+# before the VOLUME step in order for the volume to be created with non-root user
+RUN mkdir /jsreport
+RUN chown jsreport:jsreport /jsreport
+RUN chmod g+s /jsreport
+
+VOLUME ["/jsreport"]
+
+ENV NPM_CONFIG_PREFIX=/home/jsreport/.npm-global
+ENV PATH=$PATH:/home/jsreport/.npm-global/bin
+
+WORKDIR /app
+
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+
+RUN npm install -g npm
+# ====== COMMENT THIS WHEN CHECKING trivy audit ======
+RUN npm i -g @jsreport/jsreport-cli
+RUN jsreport init
+# =====================================================
+
+# ====== UNCOMMENT THIS WHEN CHECKING trivy audit ======
+# trivy checks should be done with this image default/Dockerfile,
+# because it does not add the whole yarn workspace
+# (which makes it report vulnerabilities for other packages in the workspace that are not relevant here)
+# (we need to build with latest package.json in workspace)
+# COPY ./packages/jsreport/server.js server.js
+# COPY ./packages/jsreport/index.js index.js
+# COPY ./packages/jsreport/package.json package.json
+# COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json
+# RUN npm install
+# =====================================================
+
 RUN npm cache clean -f && rm -rf /tmp/*
 
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
@@ -12,3 +104,9 @@ COPY ./packages/jsreport/docker/default/run.sh run.sh
 RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
+USER jsreport:jsreport
+
+ENV chrome_launchOptions_executablePath=/usr/lib/chromium/chrome
+ENV chrome_launchOptions_internalInitialArgs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu
+
+CMD ["bash", "run.sh"]
