@@ -39,7 +39,7 @@
     "@jsreport/jsreport-express": "4.3.0",
     "@jsreport/jsreport-fs-store": "4.2.0",
     "@jsreport/studio-dev": "4.1.0",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "ncp": "2.0.0",
     "rimraf": "2.6.3",
     "should": "13.2.3",

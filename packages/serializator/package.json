@@ -32,7 +32,7 @@
     "test": "mocha --timeout 5000 test/test.js && standard"
   },
   "devDependencies": {
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4"
   }

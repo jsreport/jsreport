@@ -40,7 +40,7 @@
     "@jsreport/jsreport-child-templates": "4.2.0",
     "@jsreport/jsreport-handlebars": "4.1.0",
     "@jsreport/studio-dev": "4.1.0",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4"
   },

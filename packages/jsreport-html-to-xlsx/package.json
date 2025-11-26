@@ -48,7 +48,7 @@
     "@jsreport/studio-dev": "4.1.0",
     "cheerio-page-eval": "1.3.0",
     "handlebars": "4.7.7",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "puppeteer": "24.31.0",
     "should": "13.2.3",
     "standard": "16.0.4",

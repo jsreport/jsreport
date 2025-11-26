@@ -50,7 +50,7 @@
     "@jsreport/jsreport-scripts": "4.3.0",
     "@jsreport/studio-dev": "4.1.0",
     "handlebars": "4.7.7",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "pdfjs-dist": "2.16.105",
     "puppeteer": "24.31.0",
     "rimraf": "2.6.3",

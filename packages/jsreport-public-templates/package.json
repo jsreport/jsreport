@@ -35,7 +35,7 @@
     "@jsreport/jsreport-core": "4.8.0",
     "@jsreport/jsreport-express": "4.3.0",
     "@jsreport/studio-dev": "4.1.0",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4",
     "supertest": "3.4.2"

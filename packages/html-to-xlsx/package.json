@@ -37,7 +37,7 @@
     "@jsreport/office": "4.2.0",
     "@xmldom/xmldom": "0.8.6",
     "chrome-page-eval": "1.4.0",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "phantom-page-eval": "2.0.1",
     "phantomjs-prebuilt": "2.1.16",
     "puppeteer": "24.31.0",

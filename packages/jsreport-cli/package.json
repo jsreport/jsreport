@@ -79,7 +79,7 @@
     "execa": "1.0.0",
     "handlebars": "4.7.7",
     "mkdirp": "0.5.5",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "node.extend.without.arrays": "1.1.6",
     "rimraf": "2.6.3",
     "should": "13.2.3",
