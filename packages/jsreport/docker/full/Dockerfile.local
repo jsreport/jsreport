@@ -25,7 +25,11 @@ RUN apt-get update && \
     # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
-    apt install -y chromium=138.0.7204.157-1xtradeb1.2404.1 && \
+    # we use this condition for now because chromium arm build is currently broken in the ppa
+    # and since this is only used for Apple arm then we skip it for now
+    if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    apt install -y chromium=142.0.7444.175-1xtradeb1.2404.1; \
+    fi && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
@@ -68,7 +72,7 @@ RUN json-merger -p package.json ./build/workspaces-changes.json -o package.json
 
 RUN yarn install --production
 
-RUN yarn add --production --ignore-optional --ignore-workspace-root-check cheerio-page-eval@1.2.1
+RUN yarn add --production --ignore-optional --ignore-workspace-root-check cheerio-page-eval@1.3.0
 
 # this copy of jsreport.config.json is only needed on Dockerfile.local, because it is missing
 COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json

@@ -25,7 +25,11 @@ RUN apt-get update && \
     # https://github.com/puppeteer/puppeteer/issues/7740
     add-apt-repository ppa:xtradeb/apps && \
     apt-get update && \
-    apt install -y chromium=138.0.7204.157-1xtradeb1.2404.1 && \
+    # we use this condition for now because chromium arm build is currently broken in the ppa
+    # and since this is only used for Apple arm then we skip it for now
+    if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    apt install -y chromium=142.0.7444.175-1xtradeb1.2404.1; \
+    fi && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
@@ -73,28 +77,28 @@ RUN jsreport init
 # RUN npm install
 # =====================================================
 
-RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.0.1 \
-    @jsreport/jsreport-pug@5.0.1 \
-    @jsreport/jsreport-aws-s3-storage@4.1.0 \
-    @jsreport/jsreport-azure-storage@4.1.0 \
-    @jsreport/jsreport-docxtemplater@4.1.5 \
-    @jsreport/jsreport-mssql-store@4.1.0 \
-    @jsreport/jsreport-postgres-store@4.2.0 \
-    @jsreport/jsreport-mongodb-store@4.1.0 \
-    @jsreport/jsreport-office-password@4.1.0 \
-    @jsreport/jsreport-html-to-text@4.2.0 \
-    @jsreport/jsreport-html-embedded-in-docx@4.1.5 \
-    @jsreport/jsreport-fs-store-aws-s3-persistence@4.1.0 \
-    @jsreport/jsreport-fs-store-azure-storage-persistence@4.1.0 \
-    @jsreport/jsreport-unoconv@4.1.0 \
-    @jsreport/jsreport-libreoffice@1.0.0 \
-    cheerio-page-eval@1.2.1
+RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.1.0 \
+    @jsreport/jsreport-pug@5.1.0 \
+    @jsreport/jsreport-aws-s3-storage@4.2.0 \
+    @jsreport/jsreport-azure-storage@4.2.0 \
+    @jsreport/jsreport-docxtemplater@4.2.0 \
+    @jsreport/jsreport-mssql-store@4.2.0 \
+    @jsreport/jsreport-postgres-store@4.3.0 \
+    @jsreport/jsreport-mongodb-store@4.2.0 \
+    @jsreport/jsreport-office-password@4.2.0 \
+    @jsreport/jsreport-html-to-text@4.3.0 \
+    @jsreport/jsreport-html-embedded-in-docx@4.2.0 \
+    @jsreport/jsreport-fs-store-aws-s3-persistence@4.2.0 \
+    @jsreport/jsreport-fs-store-azure-storage-persistence@4.2.0 \
+    @jsreport/jsreport-unoconv@4.2.0 \
+    @jsreport/jsreport-libreoffice@1.1.0 \
+    cheerio-page-eval@1.3.0
 
 COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js install-or-build-oracledb-for-store.js
 COPY ./packages/jsreport/docker/full/build-oracledb-src.sh build-oracledb-src.sh
 # script created with steps recommend here from oracledb repository
 # https://github.com/oracle/node-oracledb/issues/1382#issuecomment-849157748
-RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --storeVersion=4.1.0
+RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --storeVersion=4.2.0
 
 RUN npm cache clean -f && rm -rf /tmp/*
 
