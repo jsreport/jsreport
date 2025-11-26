@@ -35,6 +35,9 @@ jsreport.use(require('jsreport-phantom-image')({ strategy: 'phantom-server' }))
 
 ## Changelogs
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

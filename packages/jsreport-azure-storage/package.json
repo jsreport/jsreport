@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-azure-storage",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "jsreport extension adding support for storing blobs in azure storage",
   "keywords": [
     "jsreport",

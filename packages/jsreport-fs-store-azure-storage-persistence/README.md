@@ -19,10 +19,10 @@ Create an azure storage account and copy account name and access key.  Then alte
     }
   },
   "fs-store-azure-storage-persistence": {
-    "accountName": "...",  
-    // omit in case of azure managed identity  
-    "accountKey": "...", 
-    // the rest is optional    
+    "accountName": "...",
+    // omit in case of azure managed identity
+    "accountKey": "...",
+    // the rest is optional
     "container": "jsreport",
     "lock": {
       "retry": 100,
@@ -34,6 +34,9 @@ Create an azure storage account and copy account name and access key.  Then alte
 ```
 
 ## Changelog
+
+### 4.2.0
+- minimum node.js version is now `22.18.0`
 
 ### 4.1.0
 

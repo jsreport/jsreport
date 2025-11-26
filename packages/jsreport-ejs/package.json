@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-ejs",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "jsreport ejs templating engine",
   "keywords": [
     "jsreport",

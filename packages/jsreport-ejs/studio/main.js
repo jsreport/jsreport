@@ -164,7 +164,6 @@ function registerEJSLanguage(monaco) {
         next: '@otherTag'
       }]], [/</, 'delimiter.html'], [/\{/, 'delimiter.html'], [/[^<{]+/] // text
       ],
-
       doctype: [[/<%[=\-_]?/, {
         token: '@rematch',
         switchTo: '@ejsInSimpleState.comment'

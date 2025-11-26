@@ -10,6 +10,9 @@ See https://jsreport.net/learn/libreoffice
 
 ## Changelog
 
+### 1.1.0
+- minimum node.js version is now `22.18.0`
+
 ### 1.0.0
 
 - initial release
