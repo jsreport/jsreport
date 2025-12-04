@@ -487,6 +487,7 @@ describe('with reports extension', () => {
     let asyncResponse
     const waitForAsyncFinishPromise = new Promise((resolve) => {
       reporter.afterRenderListeners.add('test', (req, res) => {
+        req.context.reportTimeoutCountAfterWorkerAllocated.should.be.true()
         asyncResponse = res
         resolve()
       })

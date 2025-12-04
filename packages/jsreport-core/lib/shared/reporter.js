@@ -61,7 +61,9 @@ class Reporter extends EventEmitter {
    * @public Ensures that we get the proper report timeout in case when custom timeout per request was enabled
    */
   getReportTimeout (req) {
-    const elapsedTime = req.context.startTimestamp ? (new Date().getTime() - req.context.startTimestamp) : 0
+    const startTimestamp = req.context.reportTimeoutCountAfterWorkerAllocated ? req.context.workerAllocatedTimestamp : req.context.startTimestamp
+
+    const elapsedTime = startTimestamp ? (new Date().getTime() - startTimestamp) : 0
     if (
       this.options.enableRequestReportTimeout &&
       req.options != null &&

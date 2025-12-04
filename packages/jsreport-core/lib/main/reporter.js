@@ -396,8 +396,10 @@ class MainReporter extends Reporter {
       }
 
       worker = await this._workersManager.allocate(req, {
-        timeout: this.getReportTimeout(req)
+        timeout: req.context.reportTimeoutCountAfterWorkerAllocated ? 0 : this.getReportTimeout(req)
       })
+
+      req.context.workerAllocatedTimestamp = new Date().getTime()
 
       if (options.abortEmitter) {
         options.abortEmitter.once('abort', () => {
