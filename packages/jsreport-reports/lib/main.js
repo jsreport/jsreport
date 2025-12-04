@@ -309,6 +309,7 @@ class Reports {
       } else {
         clientNotification.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
       }
+
       await clientNotification.output.update(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${clientNotification.meta.headers.Location}'>here</a>`))
     } else {
       await clientNotification.output.update(Buffer.from('Async rendering in progress.'))
@@ -363,6 +364,7 @@ class Reports {
 
     // start a fresh context so we don't inherit logs, etc
     asyncRequest.context = extend(true, {}, _omit(asyncRequest.context, 'logs', 'clientNotification', 'profiling'))
+    asyncRequest.context.reportTimeoutCountAfterWorkerAllocated = true
     asyncRequest.context.reports = {
       async: false,
       save: true,

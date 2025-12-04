@@ -61,6 +61,7 @@ class WorkerReporter extends Reporter {
     this.addRequestContextMetaConfig('id', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('reportCounter', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('startTimestamp', { sandboxReadOnly: true })
+    this.addRequestContextMetaConfig('workerAllocatedTimestamp', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('logs', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('isChildRequest', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('originalInputDataIsEmpty', { sandboxReadOnly: true })
