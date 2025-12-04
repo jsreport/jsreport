@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/serializator",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Serialize javascript objects to JSON with support for rich data structures",
   "main": "index.js",
   "homepage": "https://github.com/jsreport/jsreport",
@@ -20,7 +20,7 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "env": {
@@ -32,7 +32,7 @@
     "test": "mocha --timeout 5000 test/test.js && standard"
   },
   "devDependencies": {
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4"
   }

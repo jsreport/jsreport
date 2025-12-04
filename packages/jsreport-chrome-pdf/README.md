@@ -29,6 +29,10 @@ chrome-image
 
 ## Changelog
 
+### 4.4.0
+- update Chrome to `142.0.7444.175`
+- minimum node.js version is now `22.18.0`
+
 ### 4.3.0
 
 - allow to use default docker image without extra flags

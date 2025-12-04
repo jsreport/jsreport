@@ -18,6 +18,9 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.1.1
 
 - update @jsreport/serializator

@@ -9,6 +9,10 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+- add concurrency limit to tasks that work with multiple items to avoid hitting max database connections
+
 ### 4.1.1
 
 - update deps

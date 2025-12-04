@@ -50,6 +50,9 @@ jsreport.use(require('@jsreport/jsreport-aws-s3-storage')({...}))
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.1.0
 
 - update aws client

@@ -7,6 +7,9 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.1.5
 
 - fix logging

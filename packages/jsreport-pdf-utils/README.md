@@ -7,6 +7,14 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.5.1
+- update deps to fix audit
+
+### 4.5.0
+- minimum node.js version is now `22.18.0`
+- pdfjs: use native js implementation for images compression to support aws lambda
+- adapt pdfjs and pdf/UA for the latest shape of pdfs in chrome
+
 ### 4.4.1
 
 - reflect and add guided autofix for the chromium 138 flexbox change

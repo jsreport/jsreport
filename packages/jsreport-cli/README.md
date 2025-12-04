@@ -7,6 +7,9 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.1.2
 
 - update deps to fix audit

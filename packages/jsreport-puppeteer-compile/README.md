@@ -4,6 +4,10 @@ You should not need this extension, only in case you try to compile your own jsr
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+- update puppeteer
+
 ### 4.1.0
 
 - allow customizing chrome binary path

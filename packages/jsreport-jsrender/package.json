@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-jsrender",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "jsreport engine using jsrender",
   "keywords": [
     "jsreport",
@@ -25,13 +25,13 @@
     "jsrender": "1.0.11"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.7.1",
-    "mocha": "10.1.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "mocha": "11.7.5",
     "should": "13.2.1",
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "env": {

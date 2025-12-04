@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/advanced-workers",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "",
   "license": "MIT",
   "author": "",
@@ -16,17 +16,17 @@
     "test": "set DEBUG=advanced-workers&&mocha --timeout 8000 test&&standard"
   },
   "dependencies": {
-    "@jsreport/serializator": "1.0.1",
+    "@jsreport/serializator": "1.1.0",
     "debug": "4.3.1",
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "env": {

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/studio-dev",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Utils for developing jsreport studio extensions",
   "keywords": [
     "jsreport"
@@ -59,6 +59,6 @@
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   }
 }

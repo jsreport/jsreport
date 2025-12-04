@@ -7,6 +7,10 @@ See https://jsreport.net/learn/components
 
 ## Changelog
 
+### 4.1.0
+- studio: highlight components in template source and allow ctrl+click to open them
+- minimum node.js version is now `22.18.0`
+
 ### 4.0.2
 
 - fix component rendering in loop with async helpers

@@ -5,6 +5,9 @@
 
 ## Changelog
 
+### 1.4.0
+- update minimum nodejs to 22.18
+
 ### 1.3.0
 
 - fix audit by updating to ses@1.14.0

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-phantom-pdf",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "jsreport recipe which is rendering pdf from html using phantomjs",
   "scripts": {
     "start": "jsreport-studio-start --httpPort 5488",
@@ -24,15 +24,15 @@
   },
   "author": "Jan Blaha",
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/studio-dev": "4.0.1",
-    "mocha": "10.1.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/studio-dev": "4.1.0",
+    "mocha": "11.7.5",
     "phantomjs-exact-2-1-1": "0.1.0",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

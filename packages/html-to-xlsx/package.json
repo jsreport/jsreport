@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/html-to-xlsx",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Convert html to xlsx",
   "keywords": [
     "html",
@@ -25,7 +25,7 @@
     "test": "mocha --timeout 99999999 test/test.js && standard"
   },
   "dependencies": {
-    "@jsreport/exceljs": "1.0.1",
+    "@jsreport/exceljs": "1.1.0",
     "escape-string-regexp": "4.0.0",
     "excel-formula-tokenizer": "3.0.0",
     "moment": "2.29.4",
@@ -34,13 +34,13 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "@jsreport/office": "4.1.5",
+    "@jsreport/office": "4.2.0",
     "@xmldom/xmldom": "0.8.6",
-    "chrome-page-eval": "1.3.2",
-    "mocha": "10.1.0",
+    "chrome-page-eval": "1.4.0",
+    "mocha": "11.7.5",
     "phantom-page-eval": "2.0.1",
     "phantomjs-prebuilt": "2.1.16",
-    "puppeteer": "24.30.0",
+    "puppeteer": "24.31.0",
     "sax": "1.4.1",
     "should": "13.2.3",
     "standard": "16.0.4",
@@ -48,7 +48,7 @@
     "xlsx-coordinates": "1.0.1"
   },
   "engines": {
-    "node": ">=18.15.0"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

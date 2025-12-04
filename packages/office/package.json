@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/office",
-  "version": "4.1.5",
+  "version": "4.2.0",
   "description": "Some helpers for office based jsreport recipes",
   "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/office#readme",
   "repository": {
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "archiver": "7.0.1",
-    "axios": "1.9.0",
+    "axios": "1.13.2",
     "form-data": "4.0.4",
     "get-stream": "5.1.0",
     "node.extend.without.arrays": "1.1.6",
@@ -31,9 +31,12 @@
     "zip": "1.2.0"
   },
   "devDependencies": {
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4"
+  },
+  "engines": {
+    "node": ">=22.18"
   },
   "standard": {
     "env": {

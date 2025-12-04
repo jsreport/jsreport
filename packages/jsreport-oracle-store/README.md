@@ -44,6 +44,9 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.1.0
 
 - create store indexes during schema creation

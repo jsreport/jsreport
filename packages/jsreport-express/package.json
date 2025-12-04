@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-express",
-  "version": "4.2.3",
+  "version": "4.3.0",
   "description": "jsreport extension adding API",
   "keywords": [
     "jsreport"
@@ -40,19 +40,19 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-jsrender": "4.0.0",
-    "@jsreport/jsreport-scripts": "4.2.0",
-    "@jsreport/studio-dev": "4.0.1",
-    "axios": "1.9.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-jsrender": "4.1.0",
+    "@jsreport/jsreport-scripts": "4.3.0",
+    "@jsreport/studio-dev": "4.1.0",
+    "axios": "1.13.2",
     "cross-env": "7.0.3",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4",
     "supertest": "3.3.0"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "env": {

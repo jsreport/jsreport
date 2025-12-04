@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-fs-store",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "File system based templates store",
   "keywords": [
     "jsreport",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@jsreport/mingo": "2.4.1",
-    "@jsreport/serializator": "1.0.1",
+    "@jsreport/serializator": "1.1.0",
     "chokidar": "3.5.3",
     "lockfile": "1.0.4",
     "lodash.debounce": "4.0.8",
@@ -42,19 +42,19 @@
     "socket.io": "4.8.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-express": "4.2.3",
-    "@jsreport/studio-dev": "4.0.1",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-express": "4.3.0",
+    "@jsreport/studio-dev": "4.1.0",
     "del": "6.0.0",
     "lodash.once": "4.1.1",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "sinon": "9.2.2",
     "socket.io-client": "4.8.1",
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

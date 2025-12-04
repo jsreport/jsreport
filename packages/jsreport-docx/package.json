@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-docx",
-  "version": "4.9.0",
+  "version": "4.10.0",
   "description": "jsreport recipe rendering docx files",
   "keywords": [
     "jsreport",
@@ -33,9 +33,9 @@
     "test": "mocha test --timeout 20000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "4.1.5",
+    "@jsreport/office": "4.2.0",
     "@xmldom/xmldom": "0.8.6",
-    "axios": "1.9.0",
+    "axios": "1.13.2",
     "cheerio": "1.0.0-rc.12",
     "escape-string-regexp": "4.0.0",
     "exifreader": "4.31.2",
@@ -51,12 +51,12 @@
     "tinycolor2": "1.4.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.2.3",
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-handlebars": "4.0.1",
-    "@jsreport/studio-dev": "4.0.1",
+    "@jsreport/jsreport-assets": "4.3.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-handlebars": "4.1.0",
+    "@jsreport/studio-dev": "4.1.0",
     "handlebars": "4.7.7",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "nock": "11.7.2",
     "sax": "1.4.1",
     "should": "13.2.3",
@@ -64,7 +64,7 @@
     "word-extractor": "1.0.4"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

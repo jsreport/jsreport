@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.8.0
+- update minimum nodejs to 22.18
+- expose `version` to the jsreport-proxy
+
 ### 4.7.1
 
 - update @jsreport/ses to 1.4.0 to fix audit

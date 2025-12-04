@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-electron-pdf",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "description": "jsreport recipe which renders pdf from html using electron",
   "keywords": [
     "jsreport",
@@ -31,10 +31,10 @@
     "lodash.pickby": "4.6.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/studio-dev": "4.0.1",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/studio-dev": "4.1.0",
     "in-publish": "2.0.1",
-    "mocha": "10.1.0",
+    "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
@@ -42,7 +42,7 @@
     "electron": "1.6.6"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "ignore": [

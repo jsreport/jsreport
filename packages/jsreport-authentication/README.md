@@ -7,6 +7,9 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.3.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.2.3
 
 - fix login of non admin user in sql based stores

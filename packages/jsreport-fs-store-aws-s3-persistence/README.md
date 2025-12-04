@@ -46,6 +46,9 @@ This persistence implementation also guarantees consistency for parallel access 
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.1.0
 
 - update aws client

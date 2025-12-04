@@ -19,6 +19,10 @@
 
 ## Changelog
 
+### 4.1.0
+
+- minimum node.js version is now `22.18.0`
+
 ### 4.0.1
 
 - update deps to fix audit

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-npm",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "jsreport extension allowing to install modules from npm during runtime",
   "keywords": [
     "jsreport",
@@ -27,15 +27,15 @@
     "enhanced-resolve": "5.8.3"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.7.1",
-    "@jsreport/jsreport-handlebars": "4.0.1",
-    "mocha": "10.1.0",
+    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-handlebars": "4.1.0",
+    "mocha": "11.7.5",
     "moment": "2.29.4",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22.18"
   },
   "standard": {
     "env": {

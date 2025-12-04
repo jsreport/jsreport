@@ -7,6 +7,15 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.10.0
+- minimum node.js version is now `22.18.0`
+- add support for `docxChild` to merge images
+- modify shapes properties with `docxStyle`
+- fix TOC processing on specific template
+- read exif orientation metadata of images used in `docxImage` for default display
+- fix generating broken document when same image is used in different footers
+- add new helper `docxRemove` to allow removing content
+
 ### 4.9.0
 
 - update deps to fix audit

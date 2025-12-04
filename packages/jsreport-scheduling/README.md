@@ -7,6 +7,9 @@ See https://jsreport.net/learn/scheduling
 
 ## Changelog
 
+### 4.2.0
+- minimum node.js version is now `22.18.0`
+
 ### 4.1.0
 
 - update cron-parser dep to support nth weekday of month like 0 0 * * 1#1

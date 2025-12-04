@@ -21,7 +21,7 @@
   },
   "resolutions": {},
   "dependencies": {
-    "@jsreport/studio-dev": "4.0.1",
+    "@jsreport/studio-dev": "4.1.0",
     "extract-zip": "2.0.1",
     "ignore": "5.2.0",
     "snyk": "1.1228.0",
