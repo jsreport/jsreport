@@ -5418,7 +5418,7 @@ describe('html to xlsx conversion with strategy', () => {
       should(parsedXlsx.Styles.Fonts).matchAny((font) => should(font.name).be.eql('Verdana'))
     })
 
-    it.only('should be able to insert text with new lines', async () => {
+    it('should be able to insert text with new lines', async () => {
       const stream = await conversion(`
         <table>
           <tr>
