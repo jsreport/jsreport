@@ -341,6 +341,21 @@ describe('html extraction', () => {
       table.rows[1][0].value.should.be.eql('1')
       table.rows[1][1].value.should.be.eql('2')
     })
+
+    it('should parse text with new lines if style that makes white space meaningful is set', async () => {
+      const table = await pageEval(`
+        <table>
+          <tr>
+            <td>\n        This is some text. This is some text. This is some text.\n        This is some text. This is some text. This is some text.\n    </td>
+            <td style="white-space: pre;">\n        This is some text. This is some text. This is some text.\n        This is some text. This is some text. This is some text.\n    </td>
+          </tr>
+        </table>
+      `)
+
+      table.rows.should.have.length(1)
+      table.rows[0][0].valueText.should.be.eql('This is some text. This is some text. This is some text. This is some text. This is some text. This is some text.')
+      table.rows[0][1].valueText.should.be.eql('\n        This is some text. This is some text. This is some text.\n        This is some text. This is some text. This is some text.\n    ')
+    })
   }
 })
 
@@ -5403,6 +5418,43 @@ describe('html to xlsx conversion with strategy', () => {
       should(parsedXlsx.Styles.Fonts).matchAny((font) => should(font.name).be.eql('Verdana'))
     })
 
+    it('should be able to insert text with new lines', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td style="white-space: pre;">
+                This is some text. This is some text. This is some text.
+                This is some text. This is some text. This is some text.
+            </td>
+            <td>foo</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      const parsedXlsx = xlsx.read(resultBuf)
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('\n                This is some text. This is some text. This is some text.\n                This is some text. This is some text. This is some text.\n            ')
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.v).be.eql('foo')
+
+      should(getCell(sheetDoc, 'A1', 'is')).be.eql('\n                This is some text. This is some text. This is some text.\n                This is some text. This is some text. This is some text.\n            ')
+      should(getCell(sheetDoc, 'B1', 'v')).be.eql('foo')
+      should(getStyle(sheetDoc, stylesDoc, 'A1', 'wrap')).be.eql('1')
+    })
+
     it('should wait for JS trigger', async () => {
       const stream = await conversion(`
         <table id="main">
@@ -5900,7 +5952,7 @@ function getStyle (sheetDoc, styleDoc, cellAddress, property) {
   const styleId = cell.getAttribute('s')
   const style = styleDoc.getElementsByTagName('cellXfs')[0].getElementsByTagName('xf')[styleId]
 
-  const validProperties = ['b', 'tr']
+  const validProperties = ['b', 'tr', 'wrap']
 
   if (!validProperties.includes(property)) {
     throw new Error(`Not supported property: ${property}`)
@@ -5971,6 +6023,18 @@ function getStyle (sheetDoc, styleDoc, cellAddress, property) {
       break
     }
 
+    case 'wrap': {
+      const alignment = style.getElementsByTagName('alignment')[0]
+
+      if (alignment == null) {
+        break
+      }
+
+      result = alignment.getAttribute('wrapText')
+
+      break
+    }
+
     default:
       throw new Error(`Property not implemented: ${property}`)
   }
@@ -5992,7 +6056,7 @@ function getCell (sheetDoc, cellAddress, property) {
     return cell
   }
 
-  const validProperties = ['v']
+  const validProperties = ['v', 'is']
 
   if (!validProperties.includes(property)) {
     throw new Error(`Not supported property: ${property}`)
@@ -6001,6 +6065,9 @@ function getCell (sheetDoc, cellAddress, property) {
   let result
 
   switch (property) {
+    case 'is':
+      result = cell.getElementsByTagName('is')?.[0]?.textContent
+      break
     case 'v':
       result = cell.getElementsByTagName('v')?.[0]?.textContent
       break

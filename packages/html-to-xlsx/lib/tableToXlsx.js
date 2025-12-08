@@ -291,7 +291,28 @@ function addRow (sheet, row, context) {
         formula: prefixIfFutureFunction(cellInfo.valueText)
       }
     } else {
-      cell.value = cellInfo.valueText !== '' ? cellInfo.valueText : null
+      if (cellInfo.valueText !== '') {
+        // if text contains new lines or tab then we set the cell as rich text for the excel
+        // to render the new lines, tabs correctly.
+        // cellInfo.valueText will contain the text with the new lines as it is when the html
+        // contains style (like: white-space:pre;) that indicates that white space should be preserved
+        if (cellInfo.valueText.includes('\n') || cellInfo.valueText.includes('\t')) {
+          cell.value = {
+            richText: [{ text: cellInfo.valueText }]
+          }
+
+          if (!cell.alignment) {
+            cell.alignment = {}
+          }
+
+          // this is needed for excel to render new lines in rich text
+          cell.alignment.wrapText = true
+        } else {
+          cell.value = cellInfo.valueText
+        }
+      } else {
+        cell.value = null
+      }
     }
 
     const styleValues = {}
@@ -308,7 +329,7 @@ function addRow (sheet, row, context) {
       // eslint-disable-next-line no-undef
       styles = structuredClone(context.parsedStyles.get(styleKey))
     } else {
-      const parsedStyles = getXlsxStyles(cellInfo)
+      const parsedStyles = getXlsxStyles(cellInfo, cell)
       context.parsedStyles.set(styleKey, parsedStyles)
       // eslint-disable-next-line no-undef
       styles = structuredClone(parsedStyles)
@@ -657,11 +678,11 @@ function normalizeBorderForRow (pendingCellStylesByRow, rowId, patchedCellBorder
   }
 }
 
-function getXlsxStyles (cellInfo) {
+function getXlsxStyles (cellInfo, cell) {
   const styles = {}
 
   styleNames.forEach(([styleName, getStyle]) => {
-    const result = getStyle(cellInfo)
+    const result = getStyle(cellInfo, cell)
 
     if (result !== undefined) {
       styles[styleName] = result

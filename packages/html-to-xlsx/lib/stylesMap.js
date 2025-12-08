@@ -1,14 +1,16 @@
 const utils = require('./utils')
 
 module.exports = {
-  numFmt: (cellInfo) => {
+  numFmt: (cellInfo, cell) => {
     if (cellInfo.formatStr != null) {
       return cellInfo.formatStr
     } else if (cellInfo.formatEnum != null && utils.numFmtMap[cellInfo.formatEnum] != null) {
       return utils.numFmtMap[cellInfo.formatEnum]
     }
+
+    return cell.numFmt
   },
-  alignment: (cellInfo) => {
+  alignment: (cellInfo, cell) => {
     const hMap = {
       left: 'left',
       right: 'right',
@@ -155,18 +157,25 @@ module.exports = {
       })
     }
 
+    const base = cell.alignment
+
     if (props.length === 0) {
-      return
+      return base
     }
 
-    return props.reduce((acu, prop) => {
-      acu[prop.key] = prop.value
-      return acu
-    }, {})
+    return {
+      ...base,
+      ...props.reduce((acu, prop) => {
+        acu[prop.key] = prop.value
+        return acu
+      }, {})
+    }
   },
-  fill: (cellInfo) => {
+  fill: (cellInfo, cell) => {
+    const base = cell.fill
+
     if (!utils.isColorDefined(cellInfo.backgroundColor)) {
-      return
+      return base
     }
 
     return {
@@ -180,7 +189,7 @@ module.exports = {
       }
     }
   },
-  font: (cellInfo) => {
+  font: (cellInfo, cell) => {
     const props = []
 
     if (utils.isColorDefined(cellInfo.foregroundColor)) {
@@ -226,16 +235,21 @@ module.exports = {
       })
     }
 
+    const base = cell.font
+
     if (props.length === 0) {
-      return
+      return base
     }
 
-    return props.reduce((acu, prop) => {
-      acu[prop.key] = prop.value
-      return acu
-    }, {})
+    return {
+      ...base,
+      ...props.reduce((acu, prop) => {
+        acu[prop.key] = prop.value
+        return acu
+      }, {})
+    }
   },
-  border: (cellInfo) => {
+  border: (cellInfo, cell) => {
     const props = []
     const borders = ['left', 'right', 'top', 'bottom']
 
@@ -255,13 +269,18 @@ module.exports = {
       }
     })
 
+    const base = cell.border
+
     if (props.length === 0) {
-      return
+      return base
     }
 
-    return props.reduce((acu, prop) => {
-      acu[prop.key] = prop.value
-      return acu
-    }, {})
+    return {
+      ...base,
+      ...props.reduce((acu, prop) => {
+        acu[prop.key] = prop.value
+        return acu
+      }, {})
+    }
   }
 }
