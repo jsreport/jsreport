@@ -100,43 +100,51 @@ function browserBasedEval (tmpDir, extractImplementation) {
 
     const tablesLastIndex = tables.length - 1
 
-    return tables.map((table, tableIdx) => ({
-      name: table.name,
-      getRows: async (rowCb) => {
-        // eslint-disable-next-line no-async-promise-executor
-        return new Promise(async (resolve, reject) => {
-          try {
-            for (const row of table.rows) {
-              const isRowsPlaceholder = !Array.isArray(row)
+    return tables.map((table, tableIdx) => {
+      const output = {
+        name: table.name,
+        getRows: async (rowCb) => {
+          // eslint-disable-next-line no-async-promise-executor
+          return new Promise(async (resolve, reject) => {
+            try {
+              for (const row of table.rows) {
+                const isRowsPlaceholder = !Array.isArray(row)
 
-              if (!isRowsPlaceholder) {
-                rowCb(row)
-              } else {
-                await extractRowsFromPlaceholder(row, rowCb, {
-                  tmpDir,
-                  instance,
-                  extractImplementation,
-                  extractOptions: restOptions
-                })
+                if (!isRowsPlaceholder) {
+                  rowCb(row)
+                } else {
+                  await extractRowsFromPlaceholder(row, rowCb, {
+                    tmpDir,
+                    instance,
+                    extractImplementation,
+                    extractOptions: restOptions
+                  })
+                }
               }
-            }
 
-            if (tableIdx === tablesLastIndex && instance != null) {
-              await instance.destroy()
-            }
+              if (tableIdx === tablesLastIndex && instance != null) {
+                await instance.destroy()
+              }
 
-            resolve()
-          } catch (e) {
-            if (instance != null) {
-              await instance.destroy()
-            }
+              resolve()
+            } catch (e) {
+              if (instance != null) {
+                await instance.destroy()
+              }
 
-            reject(e)
-          }
-        })
-      },
-      rowsCount: table.rows.length
-    }))
+              reject(e)
+            }
+          })
+        },
+        rowsCount: table.rows.length
+      }
+
+      if (table.pageSetup != null) {
+        output.pageSetup = table.pageSetup
+      }
+
+      return output
+    })
   }
 }
 

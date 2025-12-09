@@ -70,6 +70,60 @@ module.exports = (tmpDir, defaultFont) => {
 
       tableOut.rowsCount = rowsCount
 
+      // collect page setup properties
+      const pageSetupProps = [
+        { name: 'sheet-page-paper-size', prop: 'paperSize' },
+        { name: 'sheet-page-orientation', prop: 'orientation' },
+        { name: 'sheet-page-print-area', prop: 'printArea' },
+        { name: 'sheet-page-print-titles-row', prop: 'printTitlesRow' },
+        { name: 'sheet-page-print-titles-column', prop: 'printTitlesColumn' },
+        { name: 'sheet-page-margin-left', prop: 'margins.left' },
+        { name: 'sheet-page-margin-right', prop: 'margins.right' },
+        { name: 'sheet-page-margin-top', prop: 'margins.top' },
+        { name: 'sheet-page-margin-bottom', prop: 'margins.bottom' },
+        { name: 'sheet-page-margin-header', prop: 'margins.header' },
+        { name: 'sheet-page-margin-footer', prop: 'margins.footer' },
+        { name: 'sheet-page-scale', prop: 'scale' },
+        { name: 'sheet-page-fit-to-width', prop: 'fitToWidth' },
+        { name: 'sheet-page-fit-to-height', prop: 'fitToHeight' },
+        { name: 'sheet-page-order', prop: 'pageOrder' },
+        { name: 'sheet-page-black-and-white', prop: 'blackAndWhite' },
+        { name: 'sheet-page-draft', prop: 'draft' },
+        { name: 'sheet-page-cell-comments', prop: 'cellComments' },
+        { name: 'sheet-page-errors', prop: 'errors' },
+        { name: 'sheet-page-show-row-col-headers', prop: 'showRowColHeaders' },
+        { name: 'sheet-page-show-grid-lines', prop: 'showGridLines' },
+        { name: 'sheet-page-first-page-number', prop: 'firstPageNumber' },
+        { name: 'sheet-page-horizontal-centered', prop: 'horizontalCentered' },
+        { name: 'sheet-page-vertical-centered', prop: 'verticalCentered' }
+      ]
+
+      for (let j = 0; j < pageSetupProps.length; j++) {
+        const pageSettingName = pageSetupProps[j].name
+        const pagePropName = pageSetupProps[j].prop
+        const dataValue = $table.data(pageSettingName)
+
+        if (dataValue != null) {
+          tableOut.pageSetup = tableOut.pageSetup || {}
+
+          if (pagePropName.indexOf('.') !== -1) {
+            const propParts = pagePropName.split('.')
+            let parent = tableOut.pageSetup
+
+            for (let k = 0; k < propParts.length; k++) {
+              if (k === propParts.length - 1) {
+                parent[propParts[k]] = dataValue
+              } else {
+                parent[propParts[k]] = parent[propParts[k]] || {}
+                parent = parent[propParts[k]]
+              }
+            }
+          } else {
+            tableOut.pageSetup[pagePropName] = dataValue
+          }
+        }
+      }
+
       tablesOutput.push(tableOut)
     })
 
@@ -88,38 +142,46 @@ module.exports = (tmpDir, defaultFont) => {
     let completed = 0
     const tablesCount = tablesOutput.length
 
-    return tablesOutput.map((tableOut) => ({
-      name: tableOut.name,
-      getRows: async (rowCb) => {
-        for (const row of tableOut.rows) {
-          const isRowsPlaceholder = !Array.isArray(row)
+    return tablesOutput.map((tableOut) => {
+      const output = {
+        name: tableOut.name,
+        getRows: async (rowCb) => {
+          for (const row of tableOut.rows) {
+            const isRowsPlaceholder = !Array.isArray(row)
 
-          if (!isRowsPlaceholder) {
-            rowCb(row)
-          } else {
-            await extractRowsFromPlaceholder(
-              row,
-              rowCb,
-              {
-                tmpDir,
-                defaultFont,
-                styleCache,
-                textDimensionsCache,
-                defaults
-              }
-            )
+            if (!isRowsPlaceholder) {
+              rowCb(row)
+            } else {
+              await extractRowsFromPlaceholder(
+                row,
+                rowCb,
+                {
+                  tmpDir,
+                  defaultFont,
+                  styleCache,
+                  textDimensionsCache,
+                  defaults
+                }
+              )
+            }
           }
-        }
 
-        completed++
+          completed++
 
-        if (tablesCount === completed) {
-          styleCache.clear()
-          textDimensionsCache.clear()
-        }
-      },
-      rowsCount: tableOut.rowsCount
-    }))
+          if (tablesCount === completed) {
+            styleCache.clear()
+            textDimensionsCache.clear()
+          }
+        },
+        rowsCount: tableOut.rowsCount
+      }
+
+      if (tableOut.pageSetup != null) {
+        output.pageSetup = tableOut.pageSetup
+      }
+
+      return output
+    })
   }
 }
 

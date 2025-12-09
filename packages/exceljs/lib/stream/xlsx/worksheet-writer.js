@@ -27,6 +27,7 @@ const RowXform = require('../../xlsx/xform/sheet/row-xform');
 const HyperlinkXform = require('../../xlsx/xform/sheet/hyperlink-xform');
 const SheetViewXform = require('../../xlsx/xform/sheet/sheet-view-xform');
 const SheetProtectionXform = require('../../xlsx/xform/sheet/sheet-protection-xform');
+const PrintOptionsXform = require('../../xlsx/xform/sheet/print-options-xform');
 const PageMarginsXform = require('../../xlsx/xform/sheet/page-margins-xform');
 const PageSetupXform = require('../../xlsx/xform/sheet/page-setup-xform');
 const AutoFilterXform = require('../../xlsx/xform/sheet/auto-filter-xform');
@@ -45,8 +46,9 @@ const xform = {
   hyperlinks: new ListXform({tag: 'hyperlinks', length: false, childXform: new HyperlinkXform()}),
   sheetViews: new ListXform({tag: 'sheetViews', length: false, childXform: new SheetViewXform()}),
   sheetProtection: new SheetProtectionXform(),
+  printOptions: new PrintOptionsXform(),
   pageMargins: new PageMarginsXform(),
-  pageSeteup: new PageSetupXform(),
+  pageSetup: new PageSetupXform(),
   autoFilter: new AutoFilterXform(),
   picture: new PictureXform(),
   conditionalFormattings: new ConditionalFormattingsXform(),
@@ -252,6 +254,7 @@ class WorksheetWriter {
     this._writeConditionalFormatting();
     this._writeDataValidations();
     this._writeSheetProtection();
+    this._writePrintOptions();
     this._writePageMargins();
     this._writePageSetup();
     this._writeBackground();
@@ -704,12 +707,23 @@ class WorksheetWriter {
     this.stream.write(xform.sheetProtection.toXml(this.sheetProtection));
   }
 
+  _writePrintOptions() {
+    const printOptionsModel = {
+      showRowColHeaders: this.pageSetup && this.pageSetup.showRowColHeaders,
+      showGridLines: this.pageSetup && this.pageSetup.showGridLines,
+      horizontalCentered: this.pageSetup && this.pageSetup.horizontalCentered,
+      verticalCentered: this.pageSetup && this.pageSetup.verticalCentered,
+    };
+
+    this.stream.write(xform.printOptions.toXml(printOptionsModel));
+  }
+
   _writePageMargins() {
     this.stream.write(xform.pageMargins.toXml(this.pageSetup.margins));
   }
 
   _writePageSetup() {
-    this.stream.write(xform.pageSeteup.toXml(this.pageSetup));
+    this.stream.write(xform.pageSetup.toXml(this.pageSetup));
   }
 
   _writeHeaderFooter() {

@@ -143,6 +143,59 @@ function conversion () {
       table.evaluateRow = evaluateRow
     }
 
+    // collect page setup properties
+    var pageSetupProps = [
+      { name: 'sheetPagePaperSize', prop: 'paperSize' },
+      { name: 'sheetPageOrientation', prop: 'orientation' },
+      { name: 'sheetPagePrintArea', prop: 'printArea' },
+      { name: 'sheetPagePrintTitlesRow', prop: 'printTitlesRow' },
+      { name: 'sheetPagePrintTitlesColumn', prop: 'printTitlesColumn' },
+      { name: 'sheetPageMarginLeft', prop: 'margins.left' },
+      { name: 'sheetPageMarginRight', prop: 'margins.right' },
+      { name: 'sheetPageMarginTop', prop: 'margins.top' },
+      { name: 'sheetPageMarginBottom', prop: 'margins.bottom' },
+      { name: 'sheetPageMarginHeader', prop: 'margins.header' },
+      { name: 'sheetPageMarginFooter', prop: 'margins.footer' },
+      { name: 'sheetPageScale', prop: 'scale' },
+      { name: 'sheetPageFitToWidth', prop: 'fitToWidth' },
+      { name: 'sheetPageFitToHeight', prop: 'fitToHeight' },
+      { name: 'sheetPageOrder', prop: 'pageOrder' },
+      { name: 'sheetPageBlackAndWhite', prop: 'blackAndWhite' },
+      { name: 'sheetPageDraft', prop: 'draft' },
+      { name: 'sheetPageCellComments', prop: 'cellComments' },
+      { name: 'sheetPageErrors', prop: 'errors' },
+      { name: 'sheetPageShowRowColHeaders', prop: 'showRowColHeaders' },
+      { name: 'sheetPageShowGridLines', prop: 'showGridLines' },
+      { name: 'sheetPageFirstPageNumber', prop: 'firstPageNumber' },
+      { name: 'sheetPageHorizontalCentered', prop: 'horizontalCentered' },
+      { name: 'sheetPageVerticalCentered', prop: 'verticalCentered' }
+    ]
+
+    for (var j = 0; j < pageSetupProps.length; j++) {
+      var pageSettingName = pageSetupProps[j].name
+      var pagePropName = pageSetupProps[j].prop
+
+      if (table.dataset[pageSettingName] != null) {
+        tableOut.pageSetup = tableOut.pageSetup || {}
+
+        if (pagePropName.indexOf('.') !== -1) {
+          var propParts = pagePropName.split('.')
+          var parent = tableOut.pageSetup
+
+          for (var k = 0; k < propParts.length; k++) {
+            if (k === propParts.length - 1) {
+              parent[propParts[k]] = table.dataset[pageSettingName]
+            } else {
+              parent[propParts[k]] = parent[propParts[k]] || {}
+              parent = parent[propParts[k]]
+            }
+          }
+        } else {
+          tableOut.pageSetup[pagePropName] = table.dataset[pageSettingName]
+        }
+      }
+    }
+
     tablesOutput.push(tableOut)
   }
 

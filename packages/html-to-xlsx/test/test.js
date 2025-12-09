@@ -356,6 +356,69 @@ describe('html extraction', () => {
       table.rows[0][0].valueText.should.be.eql('This is some text. This is some text. This is some text. This is some text. This is some text. This is some text.')
       table.rows[0][1].valueText.should.be.eql('\n        This is some text. This is some text. This is some text.\n        This is some text. This is some text. This is some text.\n    ')
     })
+
+    it('should parse page and print related options', async () => {
+      const table = await pageEval(`
+        <table
+          data-sheet-page-paper-size="Legal"
+          data-sheet-page-orientation="landscape"
+          data-sheet-page-print-area="A1:G20"
+          data-sheet-page-print-titles-row="1:3"
+          data-sheet-page-print-titles-column="A:C"
+          data-sheet-page-margin-left="0.4"
+          data-sheet-page-margin-right="0.4"
+          data-sheet-page-margin-top="0.4"
+          data-sheet-page-margin-bottom="0.4"
+          data-sheet-page-margin-header="0.4"
+          data-sheet-page-margin-footer="0.4"
+          data-sheet-page-scale="70"
+          data-sheet-page-order="overThenDown"
+          data-sheet-page-black-and-white="1"
+          data-sheet-page-draft="1"
+          data-sheet-page-cell-comments="atEnd"
+          data-sheet-page-errors="dash"
+          data-sheet-page-show-row-col-headers="1"
+          data-sheet-page-show-grid-lines="1"
+          data-sheet-page-first-page-number="2"
+          data-sheet-page-horizontal-centered="1"
+          data-sheet-page-vertical-centered="1"
+        >
+          <tr>
+            <th>col1</th>
+            <th>col2</th>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>2</td>
+          </tr>
+        </table>
+      `)
+
+      should(table.pageSetup).be.ok()
+      should(table.pageSetup.paperSize).be.eql('Legal')
+      should(table.pageSetup.orientation).be.eql('landscape')
+      should(table.pageSetup.printArea).be.eql('A1:G20')
+      should(table.pageSetup.printTitlesRow).be.eql('1:3')
+      should(table.pageSetup.printTitlesColumn).be.eql('A:C')
+      should(table.pageSetup.margins).be.ok()
+      should(table.pageSetup.margins.left).be.eql('0.4')
+      should(table.pageSetup.margins.right).be.eql('0.4')
+      should(table.pageSetup.margins.top).be.eql('0.4')
+      should(table.pageSetup.margins.bottom).be.eql('0.4')
+      should(table.pageSetup.margins.header).be.eql('0.4')
+      should(table.pageSetup.margins.footer).be.eql('0.4')
+      should(table.pageSetup.scale).be.eql('70')
+      should(table.pageSetup.pageOrder).be.eql('overThenDown')
+      should(table.pageSetup.blackAndWhite).be.eql('1')
+      should(table.pageSetup.draft).be.eql('1')
+      should(table.pageSetup.cellComments).be.eql('atEnd')
+      should(table.pageSetup.errors).be.eql('dash')
+      should(table.pageSetup.showRowColHeaders).be.eql('1')
+      should(table.pageSetup.showGridLines).be.eql('1')
+      should(table.pageSetup.firstPageNumber).be.eql('2')
+      should(table.pageSetup.horizontalCentered).be.eql('1')
+      should(table.pageSetup.verticalCentered).be.eql('1')
+    })
   }
 })
 
