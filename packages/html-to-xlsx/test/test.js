@@ -70,9 +70,9 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows.should.have.length(1)
-      table.rows[0].should.have.length(1)
-      table.rows[0][0].value.should.be.eql('1')
+      should(table.rows).have.length(1)
+      should(table.rows[0]).have.length(1)
+      should(table.rows[0][0].value).be.eql('1')
     })
 
     it('should parse value', async () => {
@@ -84,9 +84,9 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows.should.have.length(1)
-      table.rows[0].should.have.length(1)
-      table.rows[0][0].value.should.be.eql('node.js &amp; javascript')
+      should(table.rows).have.length(1)
+      should(table.rows[0]).have.length(1)
+      should(table.rows[0][0].value).be.eql('node.js &amp; javascript')
     })
 
     it('should parse un-escaped value', async () => {
@@ -98,9 +98,9 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows.should.have.length(1)
-      table.rows[0].should.have.length(1)
-      table.rows[0][0].valueText.should.be.eql('node.js & javascript')
+      should(table.rows).have.length(1)
+      should(table.rows[0]).have.length(1)
+      should(table.rows[0][0].valueText).be.eql('node.js & javascript')
     })
 
     it('should parse cell data type', async () => {
@@ -116,13 +116,13 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows.should.have.length(1)
-      table.rows[0].should.have.length(5)
-      table.rows[0][0].type = 'number'
-      table.rows[0][1].type = 'boolean'
-      table.rows[0][2].type = 'date'
-      table.rows[0][3].type = 'datetime'
-      table.rows[0][4].type = 'formula'
+      should(table.rows).have.length(1)
+      should(table.rows[0]).have.length(5)
+      should(table.rows[0][0].type).be.eql('number')
+      should(table.rows[0][1].type).be.eql('boolean')
+      should(table.rows[0][2].type).be.eql('date')
+      should(table.rows[0][3].type).be.eql('datetime')
+      should(table.rows[0][4].type).be.eql('formula')
     })
 
     it('should parse format str and enum', async () => {
@@ -135,21 +135,23 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows.should.have.length(1)
-      table.rows[0][0].formatStr = '0.00'
-      table.rows[0][1].formatEnum = 3
+      should(table.rows).have.length(1)
+      should(table.rows[0][0].formatStr).be.eql('0.00')
+      should(table.rows[0][1].formatEnum).be.eql(3)
+    })
+
     })
 
     it('should parse background color', async () => {
       const table = await pageEval('<table><tr><td style="background-color:red">1</td></tr></table>')
 
-      table.rows[0][0].backgroundColor[0].should.be.eql('255')
+      should(table.rows[0][0].backgroundColor[0]).be.eql('255')
     })
 
     it('should parse foregorund color', async () => {
       const table = await pageEval('<table><tr><td style="color:red">1</td></tr></table>')
 
-      table.rows[0][0].foregroundColor[0].should.be.eql('255')
+      should(table.rows[0][0].foregroundColor[0]).be.eql('255')
     })
 
     it('should parse fontFamily', async () => {
@@ -162,56 +164,56 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows[0][0].fontFamily.should.be.eql('Calibri')
-      table.rows[0][1].fontFamily.should.be.eql('Times New Roman')
+      should(table.rows[0][0].fontFamily).be.eql('Calibri')
+      should(table.rows[0][1].fontFamily).be.eql('Times New Roman')
     })
 
     it('should parse fontsize', async () => {
       const table = await pageEval('<table><tr><td style="font-size:19px">1</td></tr></table>')
 
-      table.rows[0][0].fontSize.should.be.eql('19px')
+      should(table.rows[0][0].fontSize).be.eql('19px')
     })
 
     it('should parse transform', async () => {
       const table = await pageEval('<table><tr><td style="transform: rotate(45deg)">1</td></tr></table>')
 
-      table.rows[0][0].transform.should.be.eql('rotate(45deg)')
+      should(table.rows[0][0].transform).be.eql('rotate(45deg)')
     })
 
     it('should parse writingMode', async () => {
       const table = await pageEval('<table><tr><td style="writing-mode: vertical-lr">1</td></tr></table>')
 
-      table.rows[0][0].writingMode.should.be.eql('vertical-lr')
+      should(table.rows[0][0].writingMode).be.eql('vertical-lr')
     })
 
     it('should parse textOrientation', async () => {
       const table = await pageEval('<table><tr><td style="text-orientation: upright">1</td></tr></table>')
 
-      table.rows[0][0].textOrientation.should.be.eql('upright')
+      should(table.rows[0][0].textOrientation).be.eql('upright')
     })
 
     it('should parse verticalAlign', async () => {
       const table = await pageEval('<table><tr><td style="vertical-align:bottom">1</td></tr></table>')
 
-      table.rows[0][0].verticalAlign.should.be.eql('bottom')
+      should(table.rows[0][0].verticalAlign).be.eql('bottom')
     })
 
     it('should parse horizontal align', async () => {
       const table = await pageEval('<table><tr><td style="text-align:left">1</td></tr></table>')
 
-      table.rows[0][0].horizontalAlign.should.be.eql('left')
+      should(table.rows[0][0].horizontalAlign).be.eql('left')
     })
 
     it('should parse width', async () => {
       const table = await pageEval('<table><tr><td style="width:19px">1</td></tr></table>')
 
-      table.rows[0][0].width.should.be.ok()
+      should(table.rows[0][0].width).be.ok()
     })
 
     it('should parse height', async () => {
       const table = await pageEval('<table><tr><td style="height:19px">1</td></tr></table>')
 
-      table.rows[0][0].height.should.be.ok()
+      should(table.rows[0][0].height).be.ok()
     })
 
     it('should parse border', async () => {
@@ -223,10 +225,10 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows[0][0].border.left.should.be.eql('solid')
-      table.rows[0][0].border.right.should.be.eql('solid')
-      table.rows[0][0].border.bottom.should.be.eql('solid')
-      table.rows[0][0].border.top.should.be.eql('solid')
+      should(table.rows[0][0].border.left).be.eql('solid')
+      should(table.rows[0][0].border.right).be.eql('solid')
+      should(table.rows[0][0].border.bottom).be.eql('solid')
+      should(table.rows[0][0].border.top).be.eql('solid')
     })
 
     it('should parse complex border', async () => {
@@ -238,15 +240,15 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows[0][0].border.leftColor.should.be.eql(['255', '0', '0'])
-      table.rows[0][0].border.leftWidth.should.be.eql('1px')
-      table.rows[0][0].border.leftStyle.should.be.eql('solid')
+      should(table.rows[0][0].border.leftColor).be.eql(['255', '0', '0'])
+      should(table.rows[0][0].border.leftWidth).be.eql('1px')
+      should(table.rows[0][0].border.leftStyle).be.eql('solid')
     })
 
     it('should parse overflow', async () => {
       const table = await pageEval('<table><tr><td style="overflow:scroll;">1234567789012345678912457890</td></tr></table>')
 
-      table.rows[0][0].wrapText.should.be.eql('scroll')
+      should(table.rows[0][0].wrapText).be.eql('scroll')
     })
 
     it('should parse textDecoration', async () => {
@@ -260,13 +262,13 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows[0][0].textDecoration.line.should.be.eql('underline')
+      should(table.rows[0][0].textDecoration.line).be.eql('underline')
     })
 
     it('should parse background color from styles with line endings', async () => {
       const table = await pageEval('<style> td { \n background-color: red \n } </style><table><tr><td>1</td></tr></table>')
 
-      table.rows[0][0].backgroundColor[0].should.be.eql('255')
+      should(table.rows[0][0].backgroundColor[0]).be.eql('255')
     })
 
     it('should work for long tables', async function () {
@@ -278,22 +280,22 @@ describe('html extraction', () => {
 
       const table = await pageEval(`<table>${rows}</table>`)
 
-      table.rows.should.have.length(10000)
+      should(table.rows).have.length(10000)
     })
 
     it('should parse colspan', async () => {
       const table = await pageEval('<table><tr><td colspan="6"></td><td>Column 7</td></tr></table>')
 
-      table.rows[0][0].colspan.should.be.eql(6)
-      table.rows[0][1].value.should.be.eql('Column 7')
+      should(table.rows[0][0].colspan).be.eql(6)
+      should(table.rows[0][1].value).be.eql('Column 7')
     })
 
     it('should parse rowspan', async () => {
       const table = await pageEval('<table><tr><td rowspan="2">Col 1</td><td>Col 2</td></tr></table>')
 
-      table.rows[0][0].rowspan.should.be.eql(2)
-      table.rows[0][0].value.should.be.eql('Col 1')
-      table.rows[0][1].value.should.be.eql('Col 2')
+      should(table.rows[0][0].rowspan).be.eql(2)
+      should(table.rows[0][0].value).be.eql('Col 1')
+      should(table.rows[0][1].value).be.eql('Col 2')
     })
 
     it('should parse complex rowspan', async () => {
@@ -316,9 +318,9 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows[0][0].rowspan.should.be.eql(3)
-      table.rows[0][0].value.should.be.eql('Row 1 Col 1')
-      table.rows[1][1].value.should.be.eql('Row 2 Col 2')
+      should(table.rows[0][0].rowspan).be.eql(3)
+      should(table.rows[0][0].value).be.eql('Row 1 Col 1')
+      should(table.rows[1][1].value).be.eql('Row 2 Col 2')
     })
 
     it('should parse th elements', async () => {
@@ -335,11 +337,11 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows.should.have.length(2)
-      table.rows[0][0].value.should.be.eql('col1')
-      table.rows[0][1].value.should.be.eql('col2')
-      table.rows[1][0].value.should.be.eql('1')
-      table.rows[1][1].value.should.be.eql('2')
+      should(table.rows).have.length(2)
+      should(table.rows[0][0].value).be.eql('col1')
+      should(table.rows[0][1].value).be.eql('col2')
+      should(table.rows[1][0].value).be.eql('1')
+      should(table.rows[1][1].value).be.eql('2')
     })
 
     it('should parse text with new lines if style that makes white space meaningful is set', async () => {
@@ -352,9 +354,9 @@ describe('html extraction', () => {
         </table>
       `)
 
-      table.rows.should.have.length(1)
-      table.rows[0][0].valueText.should.be.eql('This is some text. This is some text. This is some text. This is some text. This is some text. This is some text.')
-      table.rows[0][1].valueText.should.be.eql('\n        This is some text. This is some text. This is some text.\n        This is some text. This is some text. This is some text.\n    ')
+      should(table.rows).have.length(1)
+      should(table.rows[0][0].valueText).be.eql('This is some text. This is some text. This is some text. This is some text. This is some text. This is some text.')
+      should(table.rows[0][1].valueText).be.eql('\n        This is some text. This is some text. This is some text.\n        This is some text. This is some text. This is some text.\n    ')
     })
 
     it('should parse page and print related options', async () => {
@@ -442,7 +444,8 @@ describe('html to xlsx conversion with strategy', () => {
             rowCb(row)
           })
         },
-        rowsCount: table.rows.length
+        rowsCount: table.rows.length,
+        pageSetup: table.pageSetup
       }))
     }
   }
@@ -476,7 +479,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table
       `)
 
-      stream.should.have.property('readable')
+      should(stream).have.property('readable')
     })
 
     it('default sheet name should be Sheet1', async () => {
@@ -6001,6 +6004,98 @@ describe('html to xlsx conversion with strategy', () => {
 
       const cellB1El = cellEls.find((c) => c.getAttribute('r') === 'B1')
       should(cellB1El.getElementsByTagName('f')[0].textContent).be.eql('=_xlfn.ifs("test"="not", 1, "test"="test", 2)')
+    })
+
+    it('should apply page and print related options', async function () {
+      const stream = await conversion(`
+        <table
+          data-sheet-page-paper-size="Legal"
+          data-sheet-page-orientation="landscape"
+          data-sheet-page-print-area="A1:G20"
+          data-sheet-page-print-titles-row="1:3"
+          data-sheet-page-print-titles-column="A:C"
+          data-sheet-page-margin-left="0.4"
+          data-sheet-page-margin-right="0.4"
+          data-sheet-page-margin-top="0.4"
+          data-sheet-page-margin-bottom="0.4"
+          data-sheet-page-margin-header="0.4"
+          data-sheet-page-margin-footer="0.4"
+          data-sheet-page-scale="70"
+          data-sheet-page-order="overThenDown"
+          data-sheet-page-black-and-white="1"
+          data-sheet-page-draft="1"
+          data-sheet-page-cell-comments="atEnd"
+          data-sheet-page-errors="dash"
+          data-sheet-page-show-row-col-headers="1"
+          data-sheet-page-show-grid-lines="1"
+          data-sheet-page-first-page-number="2"
+          data-sheet-page-horizontal-centered="1"
+          data-sheet-page-vertical-centered="1"
+        >
+          <tr>
+            <th>col1</th>
+            <th>col2</th>
+          </tr>
+          <tr>
+            <td>1</td>
+            <td>2</td>
+          </tr>
+        </table>
+      `)
+
+      const outputBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      const [workbookDoc, sheetDoc] = await getDocumentsFromXlsxBuf(outputBuf, ['xl/workbook.xml', 'xl/worksheets/sheet1.xml'], { strict: true })
+
+      const definedNamesEl = workbookDoc.getElementsByTagName('definedNames')[0]
+      const printAreaEl = nodeListToArray(definedNamesEl.getElementsByTagName('definedName')).find((dn) => dn.getAttribute('name') === '_xlnm.Print_Area' && dn.getAttribute('localSheetId') === '0')
+
+      should(printAreaEl.textContent).be.eql('\'Sheet1\'!$A1:$G20')
+
+      const printTitlesEl = nodeListToArray(definedNamesEl.getElementsByTagName('definedName')).find((dn) => dn.getAttribute('name') === '_xlnm.Print_Titles' && dn.getAttribute('localSheetId') === '0')
+
+      should(printTitlesEl.textContent).be.eql('\'Sheet1\'!$A:$C,\'Sheet1\'!$1:$3')
+
+      const printOptionsEl = sheetDoc.getElementsByTagName('printOptions')[0]
+
+      should(printOptionsEl.getAttribute('headings')).be.eql('1')
+      should(printOptionsEl.getAttribute('gridLines')).be.eql('1')
+      should(printOptionsEl.getAttribute('horizontalCentered')).be.eql('1')
+      should(printOptionsEl.getAttribute('verticalCentered')).be.eql('1')
+
+      const pageMarginsEl = sheetDoc.getElementsByTagName('pageMargins')[0]
+
+      should(pageMarginsEl.getAttribute('left')).be.eql('0.4')
+      should(pageMarginsEl.getAttribute('right')).be.eql('0.4')
+      should(pageMarginsEl.getAttribute('top')).be.eql('0.4')
+      should(pageMarginsEl.getAttribute('bottom')).be.eql('0.4')
+      should(pageMarginsEl.getAttribute('header')).be.eql('0.4')
+      should(pageMarginsEl.getAttribute('footer')).be.eql('0.4')
+
+      const pageSetupEl = sheetDoc.getElementsByTagName('pageSetup')[0]
+
+      should(pageSetupEl.getAttribute('paperSize')).be.eql('5')
+      should(pageSetupEl.getAttribute('orientation')).be.eql('landscape')
+      should(pageSetupEl.getAttribute('pageOrder')).be.eql('overThenDown')
+      should(pageSetupEl.getAttribute('blackAndWhite')).be.eql('1')
+      should(pageSetupEl.getAttribute('draft')).be.eql('1')
+      should(pageSetupEl.getAttribute('cellComments')).be.eql('atEnd')
+      should(pageSetupEl.getAttribute('errors')).be.eql('dash')
+      should(pageSetupEl.getAttribute('scale')).be.eql('70')
+      should(pageSetupEl.getAttribute('fitToWidth')).be.eql('1')
+      should(pageSetupEl.getAttribute('fitToHeight')).be.eql('1')
+      should(pageSetupEl.getAttribute('firstPageNumber')).be.eql('2')
+      should(pageSetupEl.getAttribute('useFirstPageNumber')).be.eql('1')
     })
   }
 })
