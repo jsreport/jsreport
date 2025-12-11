@@ -233,6 +233,7 @@ function extractRowInformation (rowEl, { $, defaultFont, styleCache, textDimensi
     const type = $cell.data('cell-type') != null && $cell.data('cell-type') !== '' ? $cell.data('cell-type').toLowerCase() : undefined
     const formatStr = $cell.data('cell-format-str') != null ? $cell.data('cell-format-str') : undefined
     const formatEnum = $cell.data('cell-format-enum') != null && !isNaN(parseInt($cell.data('cell-format-enum'), 10)) ? parseInt($cell.data('cell-format-enum'), 10) : undefined
+    const indent = $cell.data('cell-indent') != null && !isNaN(parseInt($cell.data('cell-indent'), 10)) ? parseInt($cell.data('cell-indent'), 10) : undefined
     const cellText = $cell.text()
 
     const styleAttr = $cell.attr('style')
@@ -398,7 +399,8 @@ function extractRowInformation (rowEl, { $, defaultFont, styleCache, textDimensi
       height: style.height,
       rowspan: $cell.attr('rowspan') != null ? parseInt($cell.attr('rowspan'), 10) : 1,
       colspan: $cell.attr('colspan') != null ? parseInt($cell.attr('colspan'), 10) : 1,
-      border: style.border
+      border: style.border,
+      indent
     })
   })
 

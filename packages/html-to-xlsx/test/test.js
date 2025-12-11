@@ -140,6 +140,17 @@ describe('html extraction', () => {
       should(table.rows[0][1].formatEnum).be.eql(3)
     })
 
+    it('should parse indent', async () => {
+      const table = await pageEval(`
+        <table>
+          <tr>
+            <td data-cell-indent="1">10</td>
+          </tr>
+        </table>
+      `)
+
+      should(table.rows).have.length(1)
+      should(table.rows[0][0].indent).be.eql(1)
     })
 
     it('should parse background color', async () => {
@@ -668,6 +679,33 @@ describe('html to xlsx conversion with strategy', () => {
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.w).be.eql('10.00')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.v).be.eql(100000)
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.w).be.eql('100,000')
+    })
+
+    it('should be able to set indent', async () => {
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td data-cell-indent="2">10</td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          const buf = Buffer.concat(bufs)
+          resolve(buf)
+        })
+      })
+
+      const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
+
+      should(getCell(sheetDoc, 'A1', 'v')).be.eql('10')
+      should(getStyle(sheetDoc, stylesDoc, 'A1', 'indent')).be.eql('2')
     })
 
     it('should work with th elements', async () => {
@@ -6110,7 +6148,7 @@ function getStyle (sheetDoc, styleDoc, cellAddress, property) {
   const styleId = cell.getAttribute('s')
   const style = styleDoc.getElementsByTagName('cellXfs')[0].getElementsByTagName('xf')[styleId]
 
-  const validProperties = ['b', 'tr', 'wrap']
+  const validProperties = ['b', 'tr', 'wrap', 'indent']
 
   if (!validProperties.includes(property)) {
     throw new Error(`Not supported property: ${property}`)
@@ -6189,6 +6227,18 @@ function getStyle (sheetDoc, styleDoc, cellAddress, property) {
       }
 
       result = alignment.getAttribute('wrapText')
+
+      break
+    }
+
+    case 'indent': {
+      const alignment = style.getElementsByTagName('alignment')[0]
+
+      if (alignment == null) {
+        break
+      }
+
+      result = alignment.getAttribute('indent')
 
       break
     }

@@ -25,6 +25,7 @@ function conversion () {
       var type = cell.dataset.cellType != null && cell.dataset.cellType !== '' ? cell.dataset.cellType.toLowerCase() : undefined
       var formatStr = cell.dataset.cellFormatStr != null ? cell.dataset.cellFormatStr : undefined
       var formatEnum = cell.dataset.cellFormatEnum != null && !isNaN(parseInt(cell.dataset.cellFormatEnum, 10)) ? parseInt(cell.dataset.cellFormatEnum, 10) : undefined
+      var indent = cell.dataset.cellIndent != null && !isNaN(parseInt(cell.dataset.cellIndent, 10)) ? parseInt(cell.dataset.cellIndent, 10) : undefined
       var inlineStyles = parseStyle(cell.getAttribute('style'))
 
       rowResult.push({
@@ -80,7 +81,8 @@ function conversion () {
           leftColor: cs.getPropertyValue('border-left-color').match(/\d+/g),
           leftStyle: cs.getPropertyValue('border-left-style'),
           leftWidth: cs.getPropertyValue('border-left-width')
-        }
+        },
+        indent: indent
       })
     }
 
