@@ -80,8 +80,9 @@ function xlsxContext (options) {
   let data
 
   if (options.hash.type === 'global') {
+    const jsreport = require('jsreport-proxy')
     data = Handlebars.createFrame(options.data)
-    data.evalId = options.hash.evalId
+    data.evalId = jsreport.req.context.__xlsxSharedData.evalId
     data.calcChainUpdatesMap = new Map()
     data.styleInfo = null
     data.styleFontSizeMap = new Map()

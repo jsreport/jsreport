@@ -31,6 +31,7 @@ module.exports = async (reporter, inputs, req) => {
     }
 
     const sharedData = {
+      evalId: generateRandomId(),
       idManagers: createCollectionManager(),
       localIdManagers: createCollectionManager(false),
       imageLoaderLock: new Semaphore(options.imageFetchParallelLimit),
@@ -129,7 +130,7 @@ module.exports = async (reporter, inputs, req) => {
     // add the global context in new lines to prevent any error in there modifying the
     // lines mapping of files
     lineToXmlFileMap.set(previousEndLine + 1, '<docxContext global end>')
-    contentToRender = `{{#docxContext type='global' evalId='${generateRandomId()}'}}\n${contentToRender}\n{{docxSData type='newFiles'}}{{/docxContext}}`
+    contentToRender = `{{#docxContext type='global'}}\n${contentToRender}\n{{docxSData type='newFiles'}}{{/docxContext}}`
 
     reporter.logger.debug('Starting child request to render docx dynamic parts', req)
 

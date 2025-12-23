@@ -14,9 +14,7 @@ function docxContext (options) {
 
     jsreport.req.context.__docxSharedData.htmlCalls = new Map()
 
-    const { evalId } = options.hash
-
-    data.evalId = evalId
+    data.evalId = jsreport.req.context.__docxSharedData.evalId
     data.childCache = new Map()
     data.newDefaultContentTypes = new Map()
     data.newDocumentRels = new Set()

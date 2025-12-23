@@ -4,7 +4,7 @@ const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getSheetInfo, get
 const { parseCellRef, getPixelWidthOfValue, getFontSizeFromStyle, evaluateCellRefsFromExpression } = require('../../cellUtils')
 const startLoopRegexp = /{{#each\s+([^{|}]{0,500})(?:\s*(as\s+\|\w+\|))?\s*}}/
 
-module.exports = (files, ctx) => {
+module.exports = (files, sharedData) => {
   const workbookDoc = files.find((file) => file.path === 'xl/workbook.xml')?.doc
   const workbookRelsDoc = files.find((file) => file.path === 'xl/_rels/workbook.xml.rels')?.doc
   const sharedStringsDoc = files.find((f) => f.path === 'xl/sharedStrings.xml')?.doc
@@ -83,8 +83,8 @@ module.exports = (files, ctx) => {
         sheetDataEl.parentNode.insertBefore(colsEl, sheetDataEl)
       }
 
-      if (ctx.autofitConfigured !== true) {
-        ctx.autofitConfigured = true
+      if (sharedData.autofitConfigured !== true) {
+        sharedData.autofitConfigured = true
       }
     }
 
