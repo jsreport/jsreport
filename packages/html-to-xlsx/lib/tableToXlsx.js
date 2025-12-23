@@ -1,13 +1,15 @@
 const path = require('path')
 const fs = require('fs')
+const { v4: uuidv4 } = require('uuid')
 const moment = require('moment')
 const ExcelJS = require('@jsreport/exceljs')
 const { tokenize } = require('excel-formula-tokenizer')
 const escapeStringRegexp = require('escape-string-regexp')
 const futureFunctionsMap = require('./futureFunctions')
+const resolveImageSrc = require('./resolveImageSrc')
+const utils = require('./utils')
 const stylesMap = require('./stylesMap')
 const styleNames = Object.entries(stylesMap)
-const utils = require('./utils')
 
 const styleProperties = [
   'formatStr', 'formatEnum', 'backgroundColor', 'foregroundColor',
@@ -19,6 +21,29 @@ const styleProperties = [
 
 async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
   const outputFilePath = path.join(options.tmpDir, `${id}.xlsx`)
+
+  const writeTempFileStream = async (filenameOrFn) => {
+    const filenameResult = typeof filenameOrFn === 'function' ? filenameOrFn(uuidv4()) : filenameOrFn
+
+    if (filenameResult == null || filenameResult === '') {
+      throw new Error('No valid filename')
+    }
+
+    if (path.isAbsolute(filenameResult)) {
+      throw new Error('Absolute paths are not allowed in writeTempFileStream')
+    }
+
+    const pathToFile = path.join(options.tmpDir, filenameResult)
+    const filename = path.basename(pathToFile)
+
+    const stream = fs.createWriteStream(pathToFile)
+
+    return {
+      pathToFile,
+      filename,
+      stream
+    }
+  }
 
   const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
     template: xlsxTemplateBuf,
@@ -111,11 +136,11 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
     const patchedCellBorders = new Set()
     let lastCurrentRowInFile
 
-    await table.getRows((row) => {
+    await table.getRows(async (row) => {
       const currentRowInFile = context.currentRowInFile
       lastCurrentRowInFile = currentRowInFile
 
-      addRow(sheet, row, context)
+      await addRow(workbook, sheet, row, context, writeTempFileStream)
 
       const pendingCellStylesByRow = context.pendingCellStylesByRow
       const rowId = currentRowInFile + 1
@@ -199,7 +224,7 @@ function processPendingCellStyle (
   pendingCellStylesByRow.delete(rowIdToCommit)
 }
 
-function addRow (sheet, row, context) {
+async function addRow (workbook, sheet, row, context, writeTempFileStream) {
   const pendingCellStylesByRow = context.pendingCellStylesByRow
   const currentCellOffsetsPerRow = context.currentCellOffsetsPerRow
   const usedCells = context.usedCells
@@ -286,7 +311,33 @@ function addRow (sheet, row, context) {
 
     usedCells.set(cell.row, cell.col)
 
-    if (cellInfo.type === 'number') {
+    if (cellInfo.elements.length > 0) {
+      const images = cellInfo.elements.filter(e => e.name === 'image')
+
+      for (const image of images) {
+        const { imageContent, imageExtension } = await resolveImageSrc(image.src, writeTempFileStream)
+
+        const addImageOpts = {
+          extension: imageExtension
+        }
+
+        if (imageContent.type === 'buffer') {
+          addImageOpts.buffer = imageContent.data
+        } else {
+          addImageOpts.filename = imageContent.data
+        }
+
+        const imageId = workbook.addImage(addImageOpts)
+
+        sheet.addImage(imageId, {
+          // expected 0 based indexes here
+          tl: { col: startCell - 1, row: startRow - 1 },
+          br: { col: startCell, row: startRow }
+        })
+      }
+
+      cell.value = null
+    } else if (cellInfo.type === 'number') {
       cell.value = parseFloat(cellInfo.valueText)
     } else if (cellInfo.type === 'bool' || cellInfo.type === 'boolean') {
       cell.value = cellInfo.valueText === 'true' || cellInfo.valueText === '1'

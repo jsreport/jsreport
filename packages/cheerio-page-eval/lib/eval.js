@@ -150,7 +150,7 @@ module.exports = (tmpDir, defaultFont) => {
             const isRowsPlaceholder = !Array.isArray(row)
 
             if (!isRowsPlaceholder) {
-              rowCb(row)
+              await rowCb(row)
             } else {
               await extractRowsFromPlaceholder(
                 row,
@@ -191,13 +191,17 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, default
     const $ = cheerio.load('')
     const cornet = new Cornet()
 
-    await new Promise((resolve, reject) => {
+    const rows = await new Promise((resolve, reject) => {
       const parser = new WritableStream(cornet)
       const fileStream = fs.createReadStream(filePath)
+      const rows = []
 
       fileStream.on('error', reject)
       parser.on('error', reject)
-      cornet.on('dom', resolve)
+
+      cornet.on('dom', () => {
+        resolve(rows)
+      })
 
       cornet.select('tr', (rowEl) => {
         try {
@@ -207,7 +211,7 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, default
             return
           }
 
-          onRow(row)
+          rows.push(row)
         } catch (e) {
           reject(e)
         }
@@ -215,6 +219,10 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, default
 
       fileStream.pipe(parser)
     })
+
+    for (const row of rows) {
+      await onRow(row)
+    }
   }
 }
 
@@ -352,6 +360,35 @@ function extractRowInformation (rowEl, { $, defaultFont, styleCache, textDimensi
       style.height = parsePx(style.height)
     }
 
+    const elements = []
+
+    const $imageEls = $cell.find('img')
+
+    $imageEls.each((_imageIndex, imgEl) => {
+      const $img = $(imgEl)
+      const imageStyle = $img.css(['width', 'height'])
+
+      let width = imageStyle.width ?? $img.attr('width')
+      let height = imageStyle.height ?? $img.attr('height')
+
+      if (width != null) {
+        width = parsePx(width)
+        style.width = Math.max(style.width, width)
+      }
+
+      if (height != null) {
+        height = parsePx(height)
+        style.height = Math.max(style.height, height)
+      }
+
+      elements.push({
+        name: 'image',
+        src: $img.attr('src'),
+        width,
+        height
+      })
+    })
+
     style.width += parsePx(style.padding['padding-left']) + parsePx(style.padding['padding-right'])
 
     if (style.border.leftWidth) {
@@ -378,6 +415,7 @@ function extractRowInformation (rowEl, { $, defaultFont, styleCache, textDimensi
       value: $cell.html(),
       // returns just the real text inside the td element with special html characters like "&" left as it is
       valueText: cellText,
+      elements,
       formatStr,
       formatEnum,
       backgroundColor: style['background-color'],

@@ -27,6 +27,20 @@ function conversion () {
       var formatEnum = cell.dataset.cellFormatEnum != null && !isNaN(parseInt(cell.dataset.cellFormatEnum, 10)) ? parseInt(cell.dataset.cellFormatEnum, 10) : undefined
       var indent = cell.dataset.cellIndent != null && !isNaN(parseInt(cell.dataset.cellIndent, 10)) ? parseInt(cell.dataset.cellIndent, 10) : undefined
       var inlineStyles = parseStyle(cell.getAttribute('style'))
+      var elements = []
+      var idx
+
+      var imageEls = cell.getElementsByTagName('img')
+
+      for (idx = 0; idx < imageEls.length; idx++) {
+        var imgEl = imageEls[idx]
+        elements.push({
+          name: 'image',
+          src: imgEl.src,
+          width: imgEl.clientWidth,
+          height: imgEl.clientHeight
+        })
+      }
 
       rowResult.push({
         type: type,
@@ -34,6 +48,7 @@ function conversion () {
         value: cell.innerHTML,
         // returns just the real text inside the td element with special html characters like "&" left as it is
         valueText: cell.innerText,
+        elements: elements,
         formatStr: formatStr,
         formatEnum: formatEnum,
         backgroundColor: cs.getPropertyValue('background-color').match(/\d+/g),

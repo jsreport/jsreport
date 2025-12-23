@@ -104,37 +104,32 @@ function browserBasedEval (tmpDir, extractImplementation) {
       const output = {
         name: table.name,
         getRows: async (rowCb) => {
-          // eslint-disable-next-line no-async-promise-executor
-          return new Promise(async (resolve, reject) => {
-            try {
-              for (const row of table.rows) {
-                const isRowsPlaceholder = !Array.isArray(row)
+          try {
+            for (const row of table.rows) {
+              const isRowsPlaceholder = !Array.isArray(row)
 
-                if (!isRowsPlaceholder) {
-                  rowCb(row)
-                } else {
-                  await extractRowsFromPlaceholder(row, rowCb, {
-                    tmpDir,
-                    instance,
-                    extractImplementation,
-                    extractOptions: restOptions
-                  })
-                }
+              if (!isRowsPlaceholder) {
+                await rowCb(row)
+              } else {
+                await extractRowsFromPlaceholder(row, rowCb, {
+                  tmpDir,
+                  instance,
+                  extractImplementation,
+                  extractOptions: restOptions
+                })
               }
-
-              if (tableIdx === tablesLastIndex && instance != null) {
-                await instance.destroy()
-              }
-
-              resolve()
-            } catch (e) {
-              if (instance != null) {
-                await instance.destroy()
-              }
-
-              reject(e)
             }
-          })
+
+            if (tableIdx === tablesLastIndex && instance != null) {
+              await instance.destroy()
+            }
+          } catch (e) {
+            if (instance != null) {
+              await instance.destroy()
+            }
+
+            throw e
+          }
         },
         rowsCount: table.rows.length
       }
@@ -162,7 +157,7 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, instanc
     })
 
     for (const row of extractInfo.result) {
-      onRow(row)
+      await onRow(row)
     }
   }
 }

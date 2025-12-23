@@ -19,6 +19,7 @@ const ContentTypesXform = require('../../xlsx/xform/core/content-types-xform');
 const AppXform = require('../../xlsx/xform/core/app-xform');
 const WorkbookXform = require('../../xlsx/xform/book/workbook-xform');
 const SharedStringsXform = require('../../xlsx/xform/strings/shared-strings-xform');
+const DrawingXform = require('../../xlsx/xform/drawing/drawing-xform');
 
 const WorksheetWriter = require('./worksheet-writer');
 
@@ -56,6 +57,7 @@ class WorkbookWriter {
     this.zipOptions = options.zip;
 
     this.media = [];
+    this.drawings = [];
     this.commentRefs = [];
 
     if (options.template) {
@@ -434,6 +436,7 @@ class WorkbookWriter {
         this.addApp(),
         this.addCore(),
         this.addSharedStrings(),
+        this.addDrawings(),
         this.addStyles(),
         this.addWorkbookRels(),
       ]);
@@ -543,7 +546,7 @@ class WorkbookWriter {
 
   addImage(image) {
     const id = this.media.length;
-    const medium = Object.assign({}, image, {type: 'image', name: `image${id}.${image.extension}`});
+    const medium = Object.assign({}, image, {type: 'image', name: `image${id + 1}`});
     this.media.push(medium);
     return id;
   }
@@ -670,7 +673,9 @@ class WorkbookWriter {
         sharedStrings: this.sharedStrings,
         commentRefs: this.commentRefs,
         media: this.media,
+        drawings: this.drawings,
       };
+
       const xform = new ContentTypesXform();
       const xml = xform.toXml(model);
       this.zip.append(xml, {name: '[Content_Types].xml'});
@@ -682,7 +687,7 @@ class WorkbookWriter {
     return Promise.all(
       this.media.map(medium => {
         if (medium.type === 'image') {
-          const filename = `xl/media/${medium.name}`;
+          const filename = `xl/media/${medium.name}.${medium.extension}`;
           if (medium.filename) {
             return this.zip.file(medium.filename, {name: filename});
           }
@@ -698,6 +703,25 @@ class WorkbookWriter {
         throw new Error('Unsupported media');
       })
     );
+  }
+
+  addDrawings() {
+    const drawingXform = new DrawingXform();
+    const relsXform = new RelationshipsXform();
+
+    const worksheets = this._worksheets.filter(Boolean);
+
+    worksheets.forEach(worksheet => {
+      const {drawing} = worksheet;
+      if (drawing) {
+        drawingXform.prepare(drawing, {});
+        let xml = drawingXform.toXml(drawing);
+        this.zip.append(xml, {name: `xl/drawings/${drawing.name}.xml`});
+
+        xml = relsXform.toXml(drawing.rels);
+        this.zip.append(xml, {name: `xl/drawings/_rels/${drawing.name}.xml.rels`});
+      }
+    });
   }
 
   addApp() {

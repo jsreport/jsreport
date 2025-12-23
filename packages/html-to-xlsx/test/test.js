@@ -432,6 +432,28 @@ describe('html extraction', () => {
       should(table.pageSetup.horizontalCentered).be.eql('1')
       should(table.pageSetup.verticalCentered).be.eql('1')
     })
+
+    it('should parse image', async () => {
+      const imageBuf = fs.readFileSync(path.join(__dirname, 'cuzco.jpeg'))
+      const imageDataSrc = 'data:image/jpeg;base64,' + imageBuf.toString('base64')
+
+      const table = await pageEval(`
+        <table>
+          <tr>
+            <td><img src="${imageDataSrc}" /></td>
+          </tr>
+        </table>
+      `)
+
+      should(table.rows).have.length(1)
+      should(table.rows[0]).have.length(1)
+      should(table.rows[0][0].valueText).be.eql('')
+      should(table.rows[0][0].elements.length).be.eql(1)
+      should(table.rows[0][0].elements[0].name).be.eql('image')
+      should(table.rows[0][0].elements[0].src).startWith('data:image/jpeg;base64,')
+      should(table.rows[0][0].elements[0].width).be.eql(612)
+      should(table.rows[0][0].elements[0].height).be.eql(408)
+    })
   }
 })
 
@@ -451,9 +473,9 @@ describe('html to xlsx conversion with strategy', () => {
       return tables.map((table) => ({
         name: table.name,
         getRows: async (rowCb) => {
-          table.rows.forEach((row) => {
-            rowCb(row)
-          })
+          for (const row of table.rows) {
+            await rowCb(row)
+          }
         },
         rowsCount: table.rows.length,
         pageSetup: table.pageSetup
@@ -6134,6 +6156,82 @@ describe('html to xlsx conversion with strategy', () => {
       should(pageSetupEl.getAttribute('fitToHeight')).be.eql('1')
       should(pageSetupEl.getAttribute('firstPageNumber')).be.eql('2')
       should(pageSetupEl.getAttribute('useFirstPageNumber')).be.eql('1')
+    })
+
+    it('should work with image', async () => {
+      const imageBuf = fs.readFileSync(path.join(__dirname, 'cuzco.jpeg'))
+      const imageDataSrc = 'data:image/jpeg;base64,' + imageBuf.toString('base64')
+
+      const stream = await conversion(`
+        <table>
+          <tr>
+            <td>A</td>
+            <td><img src="${imageDataSrc}" /></td>
+          </tr>
+        </table>
+      `)
+
+      const resultBuf = await new Promise((resolve, reject) => {
+        const bufs = []
+
+        stream.on('error', reject)
+        stream.on('data', (d) => { bufs.push(d) })
+
+        stream.on('end', () => {
+          resolve(Buffer.concat(bufs))
+        })
+      })
+
+      const parsedXlsx = xlsx.read(resultBuf)
+
+      should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('A')
+
+      const [sheetDoc, sheetRelsDoc, drawingDoc, drawingRelsDoc] = await getDocumentsFromXlsxBuf(resultBuf, [
+        'xl/worksheets/sheet1.xml', 'xl/worksheets/_rels/sheet1.xml.rels', 'xl/drawings/drawing1.xml', 'xl/drawings/_rels/drawing1.xml.rels'
+      ], { strict: true })
+
+      const drawingEl = sheetDoc.getElementsByTagName('drawing')[0]
+
+      should(drawingEl).be.ok()
+
+      const drawingRid = drawingEl.getAttribute('r:id')
+      const matchedDrawingRel = nodeListToArray(sheetRelsDoc.getElementsByTagName('Relationship')).find((rel) => rel.getAttribute('Id') === drawingRid)
+
+      should(matchedDrawingRel).be.ok()
+      should(matchedDrawingRel.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing')
+
+      should(path.join('xl/worksheets', matchedDrawingRel.getAttribute('Target'))).be.eql('xl/drawings/drawing1.xml')
+
+      const cellAnchorEls = nodeListToArray(drawingDoc.documentElement.childNodes)
+
+      should(cellAnchorEls.length).be.eql(1)
+      should(cellAnchorEls[0].getAttribute('editAs')).be.eql('oneCell')
+
+      const fromEl = cellAnchorEls[0].getElementsByTagName('xdr:from')[0]
+
+      should(fromEl.getElementsByTagName('xdr:col')[0].textContent).be.eql('1')
+      should(fromEl.getElementsByTagName('xdr:colOff')[0].textContent).be.eql('0')
+      should(fromEl.getElementsByTagName('xdr:row')[0].textContent).be.eql('0')
+      should(fromEl.getElementsByTagName('xdr:rowOff')[0].textContent).be.eql('0')
+
+      const toEl = cellAnchorEls[0].getElementsByTagName('xdr:to')[0]
+
+      should(toEl.getElementsByTagName('xdr:col')[0].textContent).be.eql('2')
+      should(toEl.getElementsByTagName('xdr:colOff')[0].textContent).be.eql('0')
+      should(toEl.getElementsByTagName('xdr:row')[0].textContent).be.eql('1')
+      should(toEl.getElementsByTagName('xdr:rowOff')[0].textContent).be.eql('0')
+
+      const picEl = cellAnchorEls[0].getElementsByTagName('xdr:pic')[0]
+      const relEmbedId = picEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      should(relEmbedId).be.ok()
+
+      const matchedImageRel = nodeListToArray(drawingRelsDoc.getElementsByTagName('Relationship')).find((rel) => rel.getAttribute('Id') === relEmbedId)
+
+      should(matchedImageRel).be.ok()
+      should(matchedImageRel.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      should(path.join('xl/worksheets', matchedImageRel.getAttribute('Target'))).be.eql('xl/media/image1.jpeg')
     })
   }
 })
