@@ -32,7 +32,9 @@ module.exports = async (reporter, definition, req, res) => {
     launchOptions: {
       ...(chromeOptions.eval.launchOptions || {}),
       args: [
-        '--window-size=12800000000000,1024',
+        // this is to avoid getting the browser to add space for scrollbars either
+        // in headless or not headless mode
+        '--hide-scrollbars',
         ...(
           chromeOptions.eval.launchOptions && chromeOptions.eval.launchOptions.args ? chromeOptions.eval.launchOptions.args : []
         )
