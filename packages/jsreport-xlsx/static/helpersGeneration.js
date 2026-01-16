@@ -1266,8 +1266,9 @@ const __xlsxD = (function () {
 
     for (const lazyFormulaId of targetLazyFormulaIds) {
       const lazyTask = lazyFormulas.pending.tasks.get(lazyFormulaId)
+      const pendingCellRefs = [...lazyTask.pendingCellRefs]
 
-      for (const cellRef of lazyTask.pendingCellRefs) {
+      for (const cellRef of pendingCellRefs) {
         // resolve all the lazy pending formulas, the reason we got until this point is likely
         // that a formula is referencing a cell that does not have a definition in the sheet
         tryToResolvePendingLazyFormula(lazyFormulaId, cellRef, lazyFormulas, trackedCells, options.data.loopItems)

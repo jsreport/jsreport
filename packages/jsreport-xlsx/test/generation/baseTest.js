@@ -899,6 +899,43 @@ describe('xlsx generation - base', () => {
     should(sheet.B2.f).be.eql('B3 & " " & B4')
   })
 
+  it('last processing of lazy formulas should be handled', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'last-lazy-formulas.xlsx')
+            )
+          }
+        }
+      },
+      data: { val: 1 }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    // if this call pass with strict parsing it means the document is well formed,
+    // contains invalid characters in xml correctly escaped
+    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.A1.v).be.eql('col1')
+    should(sheet.B1.v).be.eql('col2')
+    should(sheet.C1.v).be.eql('col3')
+    should(sheet.D1.v).be.eql('col4')
+    should(sheet.A2.v).be.eql(1)
+    should(sheet.B2.f).be.eql('A2')
+    should(sheet.C2.f).be.eql('B2+1')
+    should(sheet.D2.f).be.eql('B2+2')
+    should(sheet.A3.f).be.eql('C2+B2')
+    should(sheet.B3.f).be.eql('C2+D2')
+  })
+
   it('folder scoped shared assets should be evaluated in generation', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'folderA',
