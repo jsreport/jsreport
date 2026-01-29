@@ -155,7 +155,7 @@ describe('pdf utils', () => {
 
   it('merge with renderForEveryPage should be able to group multiple pages using single pdfCreatePagesGroup helper', async () => {
     await jsreport.documentStore.collection('templates').insert({
-      content: '{{#with (lookup $pdf.pages $pdf.pageIndex)}}{{group}}{{/with}}',
+      content: '<br/>{{#with (lookup $pdf.pages $pdf.pageIndex)}}{{group}}{{/with}}',
       shortid: 'header',
       name: 'header',
       engine: 'handlebars',
@@ -178,8 +178,10 @@ describe('pdf utils', () => {
       includeText: true
     })
 
+    parsedPdf.pages[0].text.should.containEql('a')
     parsedPdf.pages[0].text.should.containEql('1')
-    parsedPdf.pages[1].text.should.containEql('b1')
+    parsedPdf.pages[1].text.should.containEql('b')
+    parsedPdf.pages[1].text.should.containEql('1')
   })
 
   it('merge with renderForEveryPage should be able to use pdfCreatePagesGroup helper with hash params', async () => {
