@@ -33,9 +33,9 @@ const conversion = conversionFactory({
     return tables.map((table) => ({
       name: table.name,
       getRows: async (rowCb) => {
-        table.rows.forEach((row) => {
-          rowCb(row)
-        })
+        for (const row of table.rows) {
+          await rowCb(row)
+        }
       },
       rowsCount: table.rows.length
     }))
@@ -109,9 +109,9 @@ const conversion = conversionFactory({
     return tables.map((table) => ({
       name: table.name,
       getRows: async (rowCb) => {
-        table.rows.forEach((row) => {
-          rowCb(row)
-        })
+        for (const row of table.rows) {
+          await rowCb(row)
+        }
       },
       rowsCount: table.rows.length
     }))

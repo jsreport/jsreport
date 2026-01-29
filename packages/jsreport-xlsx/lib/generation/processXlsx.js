@@ -27,9 +27,16 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }
 
-    const ctx = { options }
+    const sharedData = {
+      evalId: generateRandomId(),
+      // expose options as a getter fn because we dont want user to be able to alter
+      // these values
+      options: (configName) => {
+        return options[configName]
+      }
+    }
 
-    await preprocess(files, ctx)
+    await preprocess(files, sharedData)
 
     const [filesToRender, styleFile] = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)))
 
@@ -92,16 +99,18 @@ module.exports = (reporter) => async (inputs, req) => {
 
       xmlStr = xmlStr.replace(/<xlsxRemove>/g, '').replace(/<\/xlsxRemove>/g, '')
 
-      if (ctx.autofitConfigured && styleFile?.path === f.path) {
+      if (sharedData.autofitConfigured && styleFile?.path === f.path) {
         xmlStr = `{{#_D t='style'}}${xmlStr}{{/_D}}`
       }
 
       return xmlStr
     }).join('$$$xlsxFile$$$')
 
-    contentToRender = `{{#xlsxContext type="global" evalId="${generateRandomId()}"}}${contentToRender}{{/xlsxContext}}`
+    contentToRender = `{{#xlsxContext type="global"}}${contentToRender}{{/xlsxContext}}`
 
     reporter.logger.debug('Starting child request to render xlsx dynamic parts for generation step', req)
+
+    req.context.__xlsxSharedData = sharedData
 
     const newContent = await reporter.templatingEngines.evaluate({
       engine: req.template.engine,
@@ -133,7 +142,10 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }
 
-    await postprocess(files, ctx)
+    await postprocess(files, sharedData)
+
+    // we dont want the shared data live longer on the request
+    delete req.context.__xlsxSharedData
 
     for (const f of files) {
       let shouldSerializeFromDoc = contentIsXML(f.data) && !isWorksheetFile(f.path)

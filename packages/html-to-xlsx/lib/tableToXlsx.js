@@ -1,13 +1,15 @@
 const path = require('path')
 const fs = require('fs')
+const { v4: uuidv4 } = require('uuid')
 const moment = require('moment')
 const ExcelJS = require('@jsreport/exceljs')
 const { tokenize } = require('excel-formula-tokenizer')
 const escapeStringRegexp = require('escape-string-regexp')
 const futureFunctionsMap = require('./futureFunctions')
+const resolveImageSrc = require('./resolveImageSrc')
+const utils = require('./utils')
 const stylesMap = require('./stylesMap')
 const styleNames = Object.entries(stylesMap)
-const utils = require('./utils')
 
 const styleProperties = [
   'formatStr', 'formatEnum', 'backgroundColor', 'foregroundColor',
@@ -19,6 +21,29 @@ const styleProperties = [
 
 async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
   const outputFilePath = path.join(options.tmpDir, `${id}.xlsx`)
+
+  const writeTempFileStream = async (filenameOrFn) => {
+    const filenameResult = typeof filenameOrFn === 'function' ? filenameOrFn(uuidv4()) : filenameOrFn
+
+    if (filenameResult == null || filenameResult === '') {
+      throw new Error('No valid filename')
+    }
+
+    if (path.isAbsolute(filenameResult)) {
+      throw new Error('Absolute paths are not allowed in writeTempFileStream')
+    }
+
+    const pathToFile = path.join(options.tmpDir, filenameResult)
+    const filename = path.basename(pathToFile)
+
+    const stream = fs.createWriteStream(pathToFile)
+
+    return {
+      pathToFile,
+      filename,
+      stream
+    }
+  }
 
   const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
     template: xlsxTemplateBuf,
@@ -34,7 +59,17 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
   const tablesToProcess = tables
 
   for (const table of tablesToProcess) {
-    const sheet = await workbook.addWorksheetAsync(table.name)
+    const sheetOpts = {}
+    // NOTE: it is important to get the pageSetup props before creating the sheet
+    // because some properties are serialized early just when the sheet is created
+    const pageSetupProps = normalizePageSetupProperties(table)
+
+    if (pageSetupProps != null) {
+      sheetOpts.pageSetup = pageSetupProps
+    }
+
+    const sheet = await workbook.addWorksheetAsync(table.name, sheetOpts)
+
     const usedCells = new Map()
 
     const context = {
@@ -101,11 +136,11 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
     const patchedCellBorders = new Set()
     let lastCurrentRowInFile
 
-    await table.getRows((row) => {
+    await table.getRows(async (row) => {
       const currentRowInFile = context.currentRowInFile
       lastCurrentRowInFile = currentRowInFile
 
-      addRow(sheet, row, context)
+      await addRow(workbook, sheet, row, context, writeTempFileStream)
 
       const pendingCellStylesByRow = context.pendingCellStylesByRow
       const rowId = currentRowInFile + 1
@@ -189,7 +224,7 @@ function processPendingCellStyle (
   pendingCellStylesByRow.delete(rowIdToCommit)
 }
 
-function addRow (sheet, row, context) {
+async function addRow (workbook, sheet, row, context, writeTempFileStream) {
   const pendingCellStylesByRow = context.pendingCellStylesByRow
   const currentCellOffsetsPerRow = context.currentCellOffsetsPerRow
   const usedCells = context.usedCells
@@ -276,7 +311,33 @@ function addRow (sheet, row, context) {
 
     usedCells.set(cell.row, cell.col)
 
-    if (cellInfo.type === 'number') {
+    if (cellInfo.elements.length > 0) {
+      const images = cellInfo.elements.filter(e => e.name === 'image')
+
+      for (const image of images) {
+        const { imageContent, imageExtension } = await resolveImageSrc(image.src, writeTempFileStream)
+
+        const addImageOpts = {
+          extension: imageExtension
+        }
+
+        if (imageContent.type === 'buffer') {
+          addImageOpts.buffer = imageContent.data
+        } else {
+          addImageOpts.filename = imageContent.data
+        }
+
+        const imageId = workbook.addImage(addImageOpts)
+
+        sheet.addImage(imageId, {
+          // expected 0 based indexes here
+          tl: { col: startCell - 1, row: startRow - 1 },
+          br: { col: startCell, row: startRow }
+        })
+      }
+
+      cell.value = null
+    } else if (cellInfo.type === 'number') {
       cell.value = parseFloat(cellInfo.valueText)
     } else if (cellInfo.type === 'bool' || cellInfo.type === 'boolean') {
       cell.value = cellInfo.valueText === 'true' || cellInfo.valueText === '1'
@@ -759,6 +820,245 @@ function prefixIfFutureFunction (formulaStr) {
   }
 
   return newFormulaStr
+}
+
+function normalizePageSetupProperties (table) {
+  if (!table.pageSetup) {
+    return
+  }
+
+  const pageSetup = {}
+
+  if (table.pageSetup.orientation != null) {
+    const validValues = ['landscape', 'portrait']
+
+    if (!validValues.includes(table.pageSetup.orientation)) {
+      throw new Error(`The page orientation property should be one of these values "landscape", "portrait", received: ${table.pageSetup.orientation}`)
+    }
+
+    pageSetup.orientation = table.pageSetup.orientation
+  }
+
+  if (table.pageSetup.paperSize != null) {
+    const valuesMap = new Map([
+      ['Letter', undefined],
+      ['Legal', 5],
+      ['Executive', 7],
+      ['A3', 8],
+      ['A4', 9],
+      ['A5', 11],
+      ['B5-JIS', 13],
+      ['Envelope-10', 20],
+      ['Envelope-DL', 27],
+      ['Envelope-C5', 28],
+      ['Envelope-B5', 34],
+      ['Envelope-Monarch', 37],
+      ['Double-Japan-Postcard-Rotated', 82],
+      ['16K-197x273', 119]
+    ])
+
+    const validValues = Array.from(valuesMap.keys())
+
+    if (!validValues.includes(table.pageSetup.paperSize)) {
+      throw new Error(`The page orientation property should be one of these values "landscape", "portrait", received: ${table.pageSetup.orientation}`)
+    }
+
+    pageSetup.paperSize = valuesMap.get(table.pageSetup.paperSize)
+  }
+
+  if (table.pageSetup.printArea != null) {
+    pageSetup.printArea = table.pageSetup.printArea
+  }
+
+  if (table.pageSetup.printTitlesRow != null) {
+    pageSetup.printTitlesRow = table.pageSetup.printTitlesRow
+  }
+
+  if (table.pageSetup.printTitlesColumn != null) {
+    pageSetup.printTitlesColumn = table.pageSetup.printTitlesColumn
+  }
+
+  if (table.pageSetup.margins != null) {
+    const sides = ['left', 'right', 'top', 'bottom', 'header', 'footer']
+
+    for (const side of sides) {
+      if (table.pageSetup.margins[side] == null) {
+        continue
+      }
+
+      const parsedValue = parseFloat(table.pageSetup.margins[side])
+
+      if (isNaN(parsedValue)) {
+        throw new Error(`The page margin ${side} property should be a number, received: ${table.pageSetup.margins[side]}`)
+      }
+
+      pageSetup.margins = pageSetup.margins || {}
+      pageSetup.margins[side] = parsedValue
+    }
+  }
+
+  if (table.pageSetup.scale != null) {
+    const parsedValue = parseFloat(table.pageSetup.scale)
+
+    if (isNaN(parsedValue)) {
+      throw new Error(`The page scale property should be a number, received: ${table.pageSetup.scale}`)
+    }
+
+    pageSetup.scale = parsedValue
+    pageSetup.fitToPage = false
+  } else if (table.pageSetup.fitToWidth != null || table.pageSetup.fitToHeight != null) {
+    if (table.pageSetup.fitToWidth != null) {
+      const parsedValue = parseInt(table.pageSetup.fitToWidth, 10)
+
+      if (isNaN(parsedValue)) {
+        throw new Error(`The page fit to width property should be an integer, received: ${table.pageSetup.fitToWidth}`)
+      }
+
+      pageSetup.fitToWidth = parsedValue
+    }
+
+    if (table.pageSetup.fitToHeight != null) {
+      const parsedValue = parseInt(table.pageSetup.fitToHeight, 10)
+
+      if (isNaN(parsedValue)) {
+        throw new Error(`The page fit to height property should be an integer, received: ${table.pageSetup.fitToHeight}`)
+      }
+
+      pageSetup.fitToHeight = parsedValue
+    }
+
+    pageSetup.fitToPage = true
+  }
+
+  if (table.pageSetup.pageOrder != null) {
+    const validValues = ['downThenOver', 'overThenDown']
+
+    if (!validValues.includes(table.pageSetup.pageOrder)) {
+      throw new Error(`The page order property should be one of these values "downThenOver", "overThenDown", received: ${table.pageSetup.pageOrder}`)
+    }
+
+    pageSetup.pageOrder = table.pageSetup.pageOrder
+  }
+
+  if (table.pageSetup.blackAndWhite != null) {
+    const parsedValue = parseInt(table.pageSetup.blackAndWhite, 10)
+
+    if (isNaN(parsedValue)) {
+      throw new Error(`The page blackAndWhite property should be an integer, received: ${table.pageSetup.blackAndWhite}`)
+    }
+
+    if (parsedValue !== 0 && parsedValue !== 1) {
+      throw new Error(`The page blackAndWhite property should be 0 or 1, received: ${table.pageSetup.blackAndWhite}`)
+    }
+
+    pageSetup.blackAndWhite = parsedValue === 1
+  }
+
+  if (table.pageSetup.draft != null) {
+    const parsedValue = parseInt(table.pageSetup.draft, 10)
+
+    if (isNaN(parsedValue)) {
+      throw new Error(`The page draft property should be an integer, received: ${table.pageSetup.draft}`)
+    }
+
+    if (parsedValue !== 0 && parsedValue !== 1) {
+      throw new Error(`The page draft property should be 0 or 1, received: ${table.pageSetup.draft}`)
+    }
+
+    pageSetup.draft = parsedValue === 1
+  }
+
+  if (table.pageSetup.cellComments != null) {
+    const validValues = ['None', 'atEnd', 'asDisplayed']
+
+    if (!validValues.includes(table.pageSetup.cellComments)) {
+      throw new Error(`The page cell comments property should be one of these values "None", "AtEnd", "InPlace", received: ${table.pageSetup.cellComments}`)
+    }
+
+    pageSetup.cellComments = table.pageSetup.cellComments
+  }
+
+  if (table.pageSetup.errors != null) {
+    const validValues = ['dash', 'blank', 'NA', 'displayed']
+
+    if (!validValues.includes(table.pageSetup.errors)) {
+      throw new Error(`The page errors property should be one of these values "dash", "blank", "NA", "displayed", received: ${table.pageSetup.errors}`)
+    }
+
+    pageSetup.errors = table.pageSetup.errors
+  }
+
+  if (table.pageSetup.showRowColHeaders != null) {
+    const parsedValue = parseInt(table.pageSetup.showRowColHeaders, 10)
+
+    if (isNaN(parsedValue)) {
+      throw new Error(`The page showRowColHeaders property should be an integer, received: ${table.pageSetup.showRowColHeaders}`)
+    }
+
+    if (parsedValue !== 0 && parsedValue !== 1) {
+      throw new Error(`The page showRowColHeaders property should be 0 or 1, received: ${table.pageSetup.showRowColHeaders}`)
+    }
+
+    pageSetup.showRowColHeaders = parsedValue === 1
+  }
+
+  if (table.pageSetup.showGridLines != null) {
+    const parsedValue = parseInt(table.pageSetup.showGridLines, 10)
+
+    if (isNaN(parsedValue)) {
+      throw new Error(`The page showGridLines property should be an integer, received: ${table.pageSetup.showGridLines}`)
+    }
+
+    if (parsedValue !== 0 && parsedValue !== 1) {
+      throw new Error(`The page showGridLines property should be 0 or 1, received: ${table.pageSetup.showGridLines}`)
+    }
+
+    pageSetup.showGridLines = parsedValue === 1
+  }
+
+  if (table.pageSetup.firstPageNumber != null) {
+    const parsedValue = parseInt(table.pageSetup.firstPageNumber, 10)
+
+    if (isNaN(parsedValue)) {
+      throw new Error(`The page firstPageNumber property should be an integer, received: ${table.pageSetup.firstPageNumber}`)
+    }
+
+    pageSetup.firstPageNumber = parsedValue
+  }
+
+  if (table.pageSetup.horizontalCentered != null) {
+    const parsedValue = parseInt(table.pageSetup.horizontalCentered, 10)
+
+    if (isNaN(parsedValue)) {
+      throw new Error(`The page horizontalCentered property should be an integer, received: ${table.pageSetup.horizontalCentered}`)
+    }
+
+    if (parsedValue !== 0 && parsedValue !== 1) {
+      throw new Error(`The page horizontalCentered property should be 0 or 1, received: ${table.pageSetup.horizontalCentered}`)
+    }
+
+    pageSetup.horizontalCentered = parsedValue === 1
+  }
+
+  if (table.pageSetup.verticalCentered != null) {
+    const parsedValue = parseInt(table.pageSetup.verticalCentered, 10)
+
+    if (isNaN(parsedValue)) {
+      throw new Error(`The page verticalCentered property should be an integer, received: ${table.pageSetup.verticalCentered}`)
+    }
+
+    if (parsedValue !== 0 && parsedValue !== 1) {
+      throw new Error(`The page verticalCentered property should be 0 or 1, received: ${table.pageSetup.verticalCentered}`)
+    }
+
+    pageSetup.verticalCentered = parsedValue === 1
+  }
+
+  if (Object.keys(pageSetup).length === 0) {
+    return
+  }
+
+  return pageSetup
 }
 
 module.exports = tableToXlsx

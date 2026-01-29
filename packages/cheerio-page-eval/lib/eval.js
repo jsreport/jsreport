@@ -70,6 +70,60 @@ module.exports = (tmpDir, defaultFont) => {
 
       tableOut.rowsCount = rowsCount
 
+      // collect page setup properties
+      const pageSetupProps = [
+        { name: 'sheet-page-paper-size', prop: 'paperSize' },
+        { name: 'sheet-page-orientation', prop: 'orientation' },
+        { name: 'sheet-page-print-area', prop: 'printArea' },
+        { name: 'sheet-page-print-titles-row', prop: 'printTitlesRow' },
+        { name: 'sheet-page-print-titles-column', prop: 'printTitlesColumn' },
+        { name: 'sheet-page-margin-left', prop: 'margins.left' },
+        { name: 'sheet-page-margin-right', prop: 'margins.right' },
+        { name: 'sheet-page-margin-top', prop: 'margins.top' },
+        { name: 'sheet-page-margin-bottom', prop: 'margins.bottom' },
+        { name: 'sheet-page-margin-header', prop: 'margins.header' },
+        { name: 'sheet-page-margin-footer', prop: 'margins.footer' },
+        { name: 'sheet-page-scale', prop: 'scale' },
+        { name: 'sheet-page-fit-to-width', prop: 'fitToWidth' },
+        { name: 'sheet-page-fit-to-height', prop: 'fitToHeight' },
+        { name: 'sheet-page-order', prop: 'pageOrder' },
+        { name: 'sheet-page-black-and-white', prop: 'blackAndWhite' },
+        { name: 'sheet-page-draft', prop: 'draft' },
+        { name: 'sheet-page-cell-comments', prop: 'cellComments' },
+        { name: 'sheet-page-errors', prop: 'errors' },
+        { name: 'sheet-page-show-row-col-headers', prop: 'showRowColHeaders' },
+        { name: 'sheet-page-show-grid-lines', prop: 'showGridLines' },
+        { name: 'sheet-page-first-page-number', prop: 'firstPageNumber' },
+        { name: 'sheet-page-horizontal-centered', prop: 'horizontalCentered' },
+        { name: 'sheet-page-vertical-centered', prop: 'verticalCentered' }
+      ]
+
+      for (let j = 0; j < pageSetupProps.length; j++) {
+        const pageSettingName = pageSetupProps[j].name
+        const pagePropName = pageSetupProps[j].prop
+        const dataValue = $table.data(pageSettingName)
+
+        if (dataValue != null) {
+          tableOut.pageSetup = tableOut.pageSetup || {}
+
+          if (pagePropName.indexOf('.') !== -1) {
+            const propParts = pagePropName.split('.')
+            let parent = tableOut.pageSetup
+
+            for (let k = 0; k < propParts.length; k++) {
+              if (k === propParts.length - 1) {
+                parent[propParts[k]] = dataValue
+              } else {
+                parent[propParts[k]] = parent[propParts[k]] || {}
+                parent = parent[propParts[k]]
+              }
+            }
+          } else {
+            tableOut.pageSetup[pagePropName] = dataValue
+          }
+        }
+      }
+
       tablesOutput.push(tableOut)
     })
 
@@ -88,38 +142,46 @@ module.exports = (tmpDir, defaultFont) => {
     let completed = 0
     const tablesCount = tablesOutput.length
 
-    return tablesOutput.map((tableOut) => ({
-      name: tableOut.name,
-      getRows: async (rowCb) => {
-        for (const row of tableOut.rows) {
-          const isRowsPlaceholder = !Array.isArray(row)
+    return tablesOutput.map((tableOut) => {
+      const output = {
+        name: tableOut.name,
+        getRows: async (rowCb) => {
+          for (const row of tableOut.rows) {
+            const isRowsPlaceholder = !Array.isArray(row)
 
-          if (!isRowsPlaceholder) {
-            rowCb(row)
-          } else {
-            await extractRowsFromPlaceholder(
-              row,
-              rowCb,
-              {
-                tmpDir,
-                defaultFont,
-                styleCache,
-                textDimensionsCache,
-                defaults
-              }
-            )
+            if (!isRowsPlaceholder) {
+              await rowCb(row)
+            } else {
+              await extractRowsFromPlaceholder(
+                row,
+                rowCb,
+                {
+                  tmpDir,
+                  defaultFont,
+                  styleCache,
+                  textDimensionsCache,
+                  defaults
+                }
+              )
+            }
           }
-        }
 
-        completed++
+          completed++
 
-        if (tablesCount === completed) {
-          styleCache.clear()
-          textDimensionsCache.clear()
-        }
-      },
-      rowsCount: tableOut.rowsCount
-    }))
+          if (tablesCount === completed) {
+            styleCache.clear()
+            textDimensionsCache.clear()
+          }
+        },
+        rowsCount: tableOut.rowsCount
+      }
+
+      if (tableOut.pageSetup != null) {
+        output.pageSetup = tableOut.pageSetup
+      }
+
+      return output
+    })
   }
 }
 
@@ -129,13 +191,17 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, default
     const $ = cheerio.load('')
     const cornet = new Cornet()
 
-    await new Promise((resolve, reject) => {
+    const rows = await new Promise((resolve, reject) => {
       const parser = new WritableStream(cornet)
       const fileStream = fs.createReadStream(filePath)
+      const rows = []
 
       fileStream.on('error', reject)
       parser.on('error', reject)
-      cornet.on('dom', resolve)
+
+      cornet.on('dom', () => {
+        resolve(rows)
+      })
 
       cornet.select('tr', (rowEl) => {
         try {
@@ -145,7 +211,7 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, default
             return
           }
 
-          onRow(row)
+          rows.push(row)
         } catch (e) {
           reject(e)
         }
@@ -153,6 +219,10 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, default
 
       fileStream.pipe(parser)
     })
+
+    for (const row of rows) {
+      await onRow(row)
+    }
   }
 }
 
@@ -171,6 +241,7 @@ function extractRowInformation (rowEl, { $, defaultFont, styleCache, textDimensi
     const type = $cell.data('cell-type') != null && $cell.data('cell-type') !== '' ? $cell.data('cell-type').toLowerCase() : undefined
     const formatStr = $cell.data('cell-format-str') != null ? $cell.data('cell-format-str') : undefined
     const formatEnum = $cell.data('cell-format-enum') != null && !isNaN(parseInt($cell.data('cell-format-enum'), 10)) ? parseInt($cell.data('cell-format-enum'), 10) : undefined
+    const indent = $cell.data('cell-indent') != null && !isNaN(parseInt($cell.data('cell-indent'), 10)) ? parseInt($cell.data('cell-indent'), 10) : undefined
     const cellText = $cell.text()
 
     const styleAttr = $cell.attr('style')
@@ -289,6 +360,35 @@ function extractRowInformation (rowEl, { $, defaultFont, styleCache, textDimensi
       style.height = parsePx(style.height)
     }
 
+    const elements = []
+
+    const $imageEls = $cell.find('img')
+
+    $imageEls.each((_imageIndex, imgEl) => {
+      const $img = $(imgEl)
+      const imageStyle = $img.css(['width', 'height'])
+
+      let width = imageStyle.width ?? $img.attr('width')
+      let height = imageStyle.height ?? $img.attr('height')
+
+      if (width != null) {
+        width = parsePx(width)
+        style.width = Math.max(style.width, width)
+      }
+
+      if (height != null) {
+        height = parsePx(height)
+        style.height = Math.max(style.height, height)
+      }
+
+      elements.push({
+        name: 'image',
+        src: $img.attr('src'),
+        width,
+        height
+      })
+    })
+
     style.width += parsePx(style.padding['padding-left']) + parsePx(style.padding['padding-right'])
 
     if (style.border.leftWidth) {
@@ -315,6 +415,7 @@ function extractRowInformation (rowEl, { $, defaultFont, styleCache, textDimensi
       value: $cell.html(),
       // returns just the real text inside the td element with special html characters like "&" left as it is
       valueText: cellText,
+      elements,
       formatStr,
       formatEnum,
       backgroundColor: style['background-color'],
@@ -336,7 +437,8 @@ function extractRowInformation (rowEl, { $, defaultFont, styleCache, textDimensi
       height: style.height,
       rowspan: $cell.attr('rowspan') != null ? parseInt($cell.attr('rowspan'), 10) : 1,
       colspan: $cell.attr('colspan') != null ? parseInt($cell.attr('colspan'), 10) : 1,
-      border: style.border
+      border: style.border,
+      indent
     })
   })
 

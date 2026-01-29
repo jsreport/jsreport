@@ -100,17 +100,16 @@ function browserBasedEval (tmpDir, extractImplementation) {
 
     const tablesLastIndex = tables.length - 1
 
-    return tables.map((table, tableIdx) => ({
-      name: table.name,
-      getRows: async (rowCb) => {
-        // eslint-disable-next-line no-async-promise-executor
-        return new Promise(async (resolve, reject) => {
+    return tables.map((table, tableIdx) => {
+      const output = {
+        name: table.name,
+        getRows: async (rowCb) => {
           try {
             for (const row of table.rows) {
               const isRowsPlaceholder = !Array.isArray(row)
 
               if (!isRowsPlaceholder) {
-                rowCb(row)
+                await rowCb(row)
               } else {
                 await extractRowsFromPlaceholder(row, rowCb, {
                   tmpDir,
@@ -124,19 +123,23 @@ function browserBasedEval (tmpDir, extractImplementation) {
             if (tableIdx === tablesLastIndex && instance != null) {
               await instance.destroy()
             }
-
-            resolve()
           } catch (e) {
             if (instance != null) {
               await instance.destroy()
             }
 
-            reject(e)
+            throw e
           }
-        })
-      },
-      rowsCount: table.rows.length
-    }))
+        },
+        rowsCount: table.rows.length
+      }
+
+      if (table.pageSetup != null) {
+        output.pageSetup = table.pageSetup
+      }
+
+      return output
+    })
   }
 }
 
@@ -154,7 +157,7 @@ async function extractRowsFromPlaceholder (placeholder, onRow, { tmpDir, instanc
     })
 
     for (const row of extractInfo.result) {
-      onRow(row)
+      await onRow(row)
     }
   }
 }

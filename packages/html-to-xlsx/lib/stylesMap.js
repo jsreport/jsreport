@@ -157,6 +157,13 @@ module.exports = {
       })
     }
 
+    if (cellInfo.indent != null && cellInfo.indent >= 0) {
+      props.push({
+        key: 'indent',
+        value: cellInfo.indent
+      })
+    }
+
     const base = cell.alignment
 
     if (props.length === 0) {

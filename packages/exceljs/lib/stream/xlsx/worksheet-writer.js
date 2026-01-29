@@ -9,6 +9,7 @@ const StringBuf = require('../../utils/string-buf');
 
 const Row = require('../../doc/row');
 const Column = require('../../doc/column');
+const Image = require('../../doc/image');
 
 const SheetRelsWriter = require('./sheet-rels-writer');
 const SheetCommentsWriter = require('./sheet-comments-writer');
@@ -27,6 +28,7 @@ const RowXform = require('../../xlsx/xform/sheet/row-xform');
 const HyperlinkXform = require('../../xlsx/xform/sheet/hyperlink-xform');
 const SheetViewXform = require('../../xlsx/xform/sheet/sheet-view-xform');
 const SheetProtectionXform = require('../../xlsx/xform/sheet/sheet-protection-xform');
+const PrintOptionsXform = require('../../xlsx/xform/sheet/print-options-xform');
 const PageMarginsXform = require('../../xlsx/xform/sheet/page-margins-xform');
 const PageSetupXform = require('../../xlsx/xform/sheet/page-setup-xform');
 const AutoFilterXform = require('../../xlsx/xform/sheet/auto-filter-xform');
@@ -34,6 +36,7 @@ const PictureXform = require('../../xlsx/xform/sheet/picture-xform');
 const ConditionalFormattingsXform = require('../../xlsx/xform/sheet/cf/conditional-formattings-xform');
 const HeaderFooterXform = require('../../xlsx/xform/sheet/header-footer-xform');
 const RowBreaksXform = require('../../xlsx/xform/sheet/row-breaks-xform');
+const DrawingXform = require('../../xlsx/xform/sheet/drawing-xform');
 
 // since prepare and render are functional, we can use singletons
 const xform = {
@@ -45,13 +48,15 @@ const xform = {
   hyperlinks: new ListXform({tag: 'hyperlinks', length: false, childXform: new HyperlinkXform()}),
   sheetViews: new ListXform({tag: 'sheetViews', length: false, childXform: new SheetViewXform()}),
   sheetProtection: new SheetProtectionXform(),
+  printOptions: new PrintOptionsXform(),
   pageMargins: new PageMarginsXform(),
-  pageSeteup: new PageSetupXform(),
+  pageSetup: new PageSetupXform(),
   autoFilter: new AutoFilterXform(),
   picture: new PictureXform(),
   conditionalFormattings: new ConditionalFormattingsXform(),
   headerFooter: new HeaderFooterXform(),
   rowBreaks: new RowBreaksXform(),
+  drawing: new DrawingXform(),
 };
 
 // ============================================================================================
@@ -192,6 +197,11 @@ class WorksheetWriter {
     // worksheet protection
     this.sheetProtection = null;
 
+    // drawing information
+    this.drawing = null;
+    this.preImageId = null;
+    this.drawingRelsHash = [];
+
     // start writing to stream now
     this._writeOpenWorksheet();
 
@@ -252,11 +262,13 @@ class WorksheetWriter {
     this._writeConditionalFormatting();
     this._writeDataValidations();
     this._writeSheetProtection();
+    this._writePrintOptions();
     this._writePageMargins();
     this._writePageSetup();
     this._writeBackground();
     this._writeHeaderFooter();
     this._writeRowBreaks();
+    this._writeDrawing();
 
     // Legacy Data tag for comments
     this._writeLegacyData();
@@ -489,15 +501,81 @@ class WorksheetWriter {
   }
 
   // =========================================================================
+  // Images
+  addImage(imageId, range) {
+    const model = {
+      type: 'image',
+      imageId,
+      range,
+    };
+
+    const medium = new Image(this, model);
+    this._media.push(medium);
+
+    if (!this.drawing) {
+      this.drawing = {
+        name: `drawing${this._workbook.drawings.length + 1}`,
+        anchors: [],
+        rels: [],
+      };
+
+      this._workbook.drawings.push(this.drawing);
+    }
+
+    const {drawing, drawingRelsHash} = this;
+    const bookImage = this._workbook.getImage(medium.imageId);
+
+    let rIdImage =
+      this.preImageId === medium.imageId ? drawingRelsHash[medium.imageId] : drawingRelsHash[drawing.rels.length];
+    if (!rIdImage) {
+      rIdImage = `rId${drawing.rels.length + 1}`;
+      drawingRelsHash[drawing.rels.length] = rIdImage;
+      drawing.rels.push({
+        Id: rIdImage,
+        Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+        Target: `../media/${bookImage.name}.${bookImage.extension}`,
+      });
+    }
+
+    const anchor = {
+      picture: {
+        rId: rIdImage,
+      },
+      range: medium.range,
+    };
+    if (medium.hyperlinks && medium.hyperlinks.hyperlink) {
+      const rIdHyperLink = `rId${drawing.rels.length + 1}`;
+      drawingRelsHash[drawing.rels.length] = rIdHyperLink;
+      anchor.picture.hyperlinks = {
+        tooltip: medium.hyperlinks.tooltip,
+        rId: rIdHyperLink,
+      };
+      drawing.rels.push({
+        Id: rIdHyperLink,
+        Type: RelType.Hyperlink,
+        Target: medium.hyperlinks.hyperlink,
+        TargetMode: 'External',
+      });
+    }
+    this.preImageId = medium.imageId;
+    drawing.anchors.push(anchor);
+  }
+
+  getImages() {
+    return this._media.filter(m => m.type === 'image');
+  }
 
   addBackgroundImage(imageId) {
-    this._background = {
+    const model = {
+      type: 'background',
       imageId,
     };
+    this._media.push(new Image(this, model));
   }
 
   getBackgroundImageId() {
-    return this._background && this._background.imageId;
+    const image = this._media.find(m => m.type === 'background');
+    return image && image.imageId;
   }
 
   // =========================================================================
@@ -684,6 +762,21 @@ class WorksheetWriter {
     this.stream.write(xform.hyperlinks.toXml(this._sheetRelsWriter._hyperlinks));
   }
 
+  _writeDrawing() {
+    if (!this.drawing) {
+      return;
+    }
+
+    const drawingRId = this._sheetRelsWriter.addRelationship({
+      Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing',
+      Target: `../drawings/${this.drawing.name}.xml`,
+    });
+
+    this.drawing.rId = drawingRId;
+
+    this.stream.write(xform.drawing.toXml(this.drawing));
+  }
+
   _writeConditionalFormatting() {
     const options = {
       styles: this._workbook.styles,
@@ -704,12 +797,23 @@ class WorksheetWriter {
     this.stream.write(xform.sheetProtection.toXml(this.sheetProtection));
   }
 
+  _writePrintOptions() {
+    const printOptionsModel = {
+      showRowColHeaders: this.pageSetup && this.pageSetup.showRowColHeaders,
+      showGridLines: this.pageSetup && this.pageSetup.showGridLines,
+      horizontalCentered: this.pageSetup && this.pageSetup.horizontalCentered,
+      verticalCentered: this.pageSetup && this.pageSetup.verticalCentered,
+    };
+
+    this.stream.write(xform.printOptions.toXml(printOptionsModel));
+  }
+
   _writePageMargins() {
     this.stream.write(xform.pageMargins.toXml(this.pageSetup.margins));
   }
 
   _writePageSetup() {
-    this.stream.write(xform.pageSeteup.toXml(this.pageSetup));
+    this.stream.write(xform.pageSetup.toXml(this.pageSetup));
   }
 
   _writeHeaderFooter() {
@@ -721,20 +825,22 @@ class WorksheetWriter {
   }
 
   _writeBackground() {
-    if (this._background) {
-      if (this._background.imageId !== undefined) {
-        const image = this._workbook.getImage(this._background.imageId);
+    let background = this.getBackgroundImageId();
+
+    if (background) {
+      if (background.imageId !== undefined) {
+        const image = this._workbook.getImage(background.imageId);
         const pictureId = this._sheetRelsWriter.addMedia({
           Target: `../media/${image.name}`,
           Type: RelType.Image,
         });
 
-        this._background = {
-          ...this._background,
+        background = {
+          ...background,
           rId: pictureId,
         };
       }
-      this.stream.write(xform.picture.toXml({rId: this._background.rId}));
+      this.stream.write(xform.picture.toXml({rId: background.rId}));
     }
   }
 
