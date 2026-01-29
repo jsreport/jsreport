@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-pdf-utils",
-  "version": "4.5.1",
+  "version": "4.5.2",
   "description": "jsreport extension providing pdf operations like merge or concatenation",
   "keywords": [
     "jsreport",

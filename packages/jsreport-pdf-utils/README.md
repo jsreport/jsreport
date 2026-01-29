@@ -7,6 +7,9 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.5.2
+- fix propagating mergeToFront
+
 ### 4.5.1
 - update deps to fix audit
 
