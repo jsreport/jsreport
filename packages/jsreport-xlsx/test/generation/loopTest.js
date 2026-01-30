@@ -7,7 +7,7 @@ const { decompress } = require('@jsreport/office')
 const xlsx = require('xlsx')
 const { getDocumentsFromXlsxBuf, mergeCellExists } = require('../utils')
 const { nodeListToArray } = require('../../lib/utils')
-const { getNewCellLetter } = require('../../lib/cellUtils')
+const { getColumnFor } = require('../../lib/cellUtils')
 
 const dataDirPath = path.join(__dirname, '../data')
 const xlsxDirPath = path.join(__dirname, '../xlsx')
@@ -64,8 +64,11 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    const { sheet: templateSheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(templateSheet['!ref']).be.ok()
+    should(templateSheet['!ref']).be.eql(sheet['!ref'])
 
     should(sheet.C2.v).be.eql('Names')
     should(sheet.C3.v).be.eql(`${items[0].name}${items[1].name}${items[2].name}`)
@@ -75,13 +78,15 @@ describe('xlsx generation - loops', () => {
     it(`${mode} loop should keep the row empty if array have 0 items`, async () => {
       const items = []
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode))
+              content: templateBuf
             }
           }
         },
@@ -91,8 +96,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet: templateSheet } = parseSheetFromXlsxBuf(templateBuf)
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+      should(templateSheet['!ref']).be.ok()
+      should(templateSheet['!ref']).be.eql(sheet['!ref'])
 
       if (mode === 'row') {
         should(sheet.C2.v).be.eql('Name')
@@ -149,13 +158,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode))
+              content: templateBuf
             }
           }
         },
@@ -165,10 +176,16 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet: templateSheet } = parseSheetFromXlsxBuf(templateBuf)
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+      should(templateSheet['!ref']).be.ok()
+      should(templateSheet['!ref']).be.not.eql(sheet['!ref'])
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -182,6 +199,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -206,6 +225,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F4')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -219,6 +240,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E4.v).be.eql(items[1].age)
         should(sheet.F4.v).be.eql(items[2].age)
       } else {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -259,13 +282,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-styled'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-styled'))
+              content: templateBuf
             }
           }
         },
@@ -279,10 +304,11 @@ describe('xlsx generation - loops', () => {
       const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
       const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
 
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -312,6 +338,8 @@ describe('xlsx generation - loops', () => {
           should(bEl).be.ok()
         }
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -352,6 +380,8 @@ describe('xlsx generation - loops', () => {
           should(bEl).be.ok()
         }
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F4')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -381,6 +411,8 @@ describe('xlsx generation - loops', () => {
           should(bEl).be.ok()
         }
       } else {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name - L')
         should(sheet.D2.v).be.eql('Lastname - L')
         should(sheet.E2.v).be.eql('Age - L')
@@ -430,13 +462,15 @@ describe('xlsx generation - loops', () => {
 
         items.unshift(['Name', 'Lastname', 'Age'])
 
+        const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-with-conditional-content'))
+
         const result = await reporter.render({
           template: {
             engine: 'handlebars',
             recipe: 'xlsx',
             xlsx: {
               templateAsset: {
-                content: fs.readFileSync(getTargetXlsxFilename(mode, '-with-conditional-content'))
+                content: templateBuf
               }
             }
           },
@@ -446,8 +480,9 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const workbook = xlsx.read(result.content)
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+        const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+        should(sheet['!ref']).be.eql('C2:E5')
 
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
@@ -484,13 +519,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode))
+              content: templateBuf
             }
           }
         },
@@ -500,10 +537,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E3')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -511,6 +549,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E6')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -521,6 +561,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D4')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.C3.v).be.eql('Lastname')
@@ -528,6 +570,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C4.v).be.eql('Age')
         should(sheet.D4.v).be.eql(items[0].age)
       } else {
+        should(sheet['!ref']).be.eql('C2:E3')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -562,13 +606,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-and-existing-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-existing-cells'))
+              content: templateBuf
             }
           }
         },
@@ -578,10 +624,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B2:D7')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -598,6 +645,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C7.v).be.eql('content')
         should(sheet.D7.v).be.eql('here')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:D18')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -628,6 +677,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C18.v).be.eql('content')
         should(sheet.D18.v).be.eql('here')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:F4')
+
         should(sheet.F1.v).be.eql('another')
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
@@ -644,6 +695,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E4.v).be.eql(items[1].age)
         should(sheet.F4.v).be.eql(items[2].age)
       } else {
+        should(sheet['!ref']).be.eql('B2:D7')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -665,13 +718,15 @@ describe('xlsx generation - loops', () => {
     it(`${mode} loop should not generate new row and keep existing rows/cells if array have 0 items`, async () => {
       const items = []
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-and-existing-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-existing-cells'))
+              content: templateBuf
             }
           }
         },
@@ -681,10 +736,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -695,6 +751,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C5.v).be.eql('content')
         should(sheet.D5.v).be.eql('here')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E8')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -709,6 +767,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C8.v).be.eql('content')
         should(sheet.D8.v).be.eql('here')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:F4')
+
         should(sheet.F1.v).be.eql('another')
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('')
@@ -723,6 +783,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E4).be.not.ok()
         should(sheet.F4).be.not.ok()
       } else {
+        should(sheet['!ref']).be.eql('B2:D4')
+
         should(sheet.C2.v).be.eql('')
         should(sheet.D2).be.not.ok()
         should(sheet.E2).be.not.ok()
@@ -752,13 +814,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-and-existing-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-existing-cells'))
+              content: templateBuf
             }
           }
         },
@@ -768,10 +832,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -782,6 +847,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C5.v).be.eql('content')
         should(sheet.D5.v).be.eql('here')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E8')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -796,6 +863,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C8.v).be.eql('content')
         should(sheet.D8.v).be.eql('here')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:F4')
+
         should(sheet.F1.v).be.eql('another')
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
@@ -810,6 +879,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E4).be.not.ok()
         should(sheet.F4).be.not.ok()
       } else {
+        should(sheet['!ref']).be.eql('B2:D5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -847,13 +918,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-block-parameters'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-block-parameters'))
+              content: templateBuf
             }
           }
         },
@@ -863,10 +936,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -880,6 +954,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -904,6 +980,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F4')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -917,6 +995,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E4.v).be.eql(items[1].age)
         should(sheet.F4.v).be.eql(items[2].age)
       } else {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -960,6 +1040,8 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Colors', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-and-inner-loop'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
@@ -969,7 +1051,7 @@ describe('xlsx generation - loops', () => {
           `,
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-inner-loop'))
+              content: templateBuf
             }
           }
         },
@@ -979,10 +1061,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Colors')
@@ -1000,6 +1083,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].colors.map((item) => item.name).join(''))
         should(sheet.F5.v).be.eql(items[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1030,6 +1115,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].colors.map((item) => item.name).join(''))
         should(sheet.F14.v).be.eql(items[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -1047,6 +1134,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[1].age)
         should(sheet.F5.v).be.eql(items[2].age)
       } else {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Colors')
@@ -1091,6 +1180,8 @@ describe('xlsx generation - loops', () => {
 
         items.unshift(['Name', 'Lastname', 'Colors', 'Age'])
 
+        const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-and-inner-loop-explicit-type'))
+
         const result = await reporter.render({
           template: {
             engine: 'handlebars',
@@ -1102,7 +1193,7 @@ describe('xlsx generation - loops', () => {
             `,
             xlsx: {
               templateAsset: {
-                content: fs.readFileSync(getTargetXlsxFilename(mode, '-and-inner-loop-explicit-type'))
+                content: templateBuf
               }
             }
           },
@@ -1112,8 +1203,9 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const workbook = xlsx.read(result.content)
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+        const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+        should(sheet['!ref']).be.eql('C2:F5')
 
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
@@ -1193,13 +1285,15 @@ describe('xlsx generation - loops', () => {
         items3 = transformItems(originalItems3)
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-siblings'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-siblings'))
+              content: templateBuf
             }
           }
         },
@@ -1211,10 +1305,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E14')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1251,6 +1346,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items3[2].lastname)
         should(sheet.E14.v).be.eql(items3[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E43')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1310,6 +1407,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D41.v).be.eql(items3[2].lastname)
         should(sheet.E41.v).be.eql(items3[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:O4')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -1352,6 +1451,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.N4.v).be.eql(items3[1].age)
         should(sheet.O4.v).be.eql(items3[2].age)
       } else {
+        should(sheet['!ref']).be.eql('C2:E16')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1447,13 +1548,15 @@ describe('xlsx generation - loops', () => {
         items = transformItems(originalItems)
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-mixed-siblings'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-mixed-siblings'))
+              content: templateBuf
             }
           }
         },
@@ -1465,10 +1568,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E19')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1508,6 +1612,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D19.v).be.eql(items3[2].lastname)
         should(sheet.E19.v).be.eql(items3[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E36')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -1563,6 +1669,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D34.v).be.eql(items3[2].lastname)
         should(sheet.E34.v).be.eql(items3[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B2:E25')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1647,6 +1755,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D23.v).be.eql(items3[2].lastname)
         should(sheet.E23.v).be.eql(items3[2].age)
       } else {
+        should(sheet['!ref']).be.eql('C2:E19')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1716,13 +1826,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-left-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -1732,10 +1844,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -1757,6 +1870,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A2:B16')
+
         should(sheet.A2.v).be.eql('preserve')
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
@@ -1784,6 +1899,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:F5')
+
         // preserving the cells on the left of the loop
         should(sheet.D1.v).be.eql('preserve')
         should(sheet.E1).be.not.ok()
@@ -1805,6 +1922,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[1].age)
         should(sheet.F5.v).be.eql(items[2].age)
       } else {
+        should(sheet['!ref']).be.eql('A2:E5')
+
         should(sheet.A2.v).be.eql('preserve')
         should(sheet.B2.v).be.eql('preserve2')
         should(sheet.C2.v).be.eql('Name')
@@ -1855,13 +1974,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-left-preserve-without-context'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-preserve-without-context'))
+              content: templateBuf
             }
           }
         },
@@ -1872,10 +1993,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:F5')
+
         should(sheet.D2.v).be.eql('Name')
         should(sheet.E2.v).be.eql('Lastname')
         should(sheet.F2.v).be.eql('Age')
@@ -1900,6 +2022,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].lastname)
         should(sheet.F5.v).be.eql(items[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A2:D16')
+
         should(sheet.A2.v).be.eql('')
         should(sheet.B2.v).be.eql('test')
         should(sheet.C2.v).be.eql('')
@@ -1929,6 +2053,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].lastname)
         should(sheet.G14.v).be.eql(items[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:F6')
+
         // preserving the cells on the left of the loop
         should(sheet.D1.v).be.eql('')
         should(sheet.E1).be.not.ok()
@@ -1953,6 +2079,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E6.v).be.eql(items[1].age)
         should(sheet.F6.v).be.eql(items[2].age)
       } else {
+        should(sheet['!ref']).be.eql('A2:F5')
+
         should(sheet.A2.v).be.eql('')
         should(sheet.B2.v).be.eql('test')
         should(sheet.C2.v).be.eql('')
@@ -2007,13 +2135,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-right-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -2023,10 +2153,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         // preserving the cells on the right of the loop
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
@@ -2047,6 +2178,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:D16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2076,6 +2209,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C16.v).be.eql('preserve')
         should(sheet.D16.v).be.eql('preserve2')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D6')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -2097,6 +2232,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E6).be.not.ok()
         should(sheet.F6).be.not.ok()
       } else {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -2145,13 +2282,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-right-preserve-without-context'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-preserve-without-context'))
+              content: templateBuf
             }
           }
         },
@@ -2162,10 +2301,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         // preserving the cells on the right of the loop
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
@@ -2189,6 +2329,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5).be.not.ok()
         should(sheet.H5).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2219,6 +2361,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D16.v).be.eql('test')
         should(sheet.E16.v).be.eql('')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D7')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -2243,6 +2387,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7).be.not.ok()
         should(sheet.F7).be.not.ok()
       } else {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -2295,13 +2441,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -2311,10 +2459,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:E5')
+
         // preserving the cells on the left and right of the loop
         should(sheet.A3.v).be.eql('preserve')
         should(sheet.B3.v).be.eql('preserve2')
@@ -2341,6 +2490,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A2:D16')
+
         should(sheet.A2.v).be.eql('preserve')
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
@@ -2371,6 +2522,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C16.v).be.eql('preserve2')
         should(sheet.D16.v).be.eql('preserve3')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:D7')
+
         // preserving the cells on the left of the loop
         should(sheet.D1.v).be.eql('preserve')
         should(sheet.E1).be.not.ok()
@@ -2400,6 +2553,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7).be.not.ok()
         should(sheet.F7).be.not.ok()
       } else {
+        should(sheet['!ref']).be.eql('A2:E5')
+
         should(sheet.A2.v).be.eql('preserve')
         should(sheet.B2.v).be.eql('preserve2')
         should(sheet.C2.v).be.eql('Name')
@@ -2452,13 +2607,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-preserve-without-context'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-preserve-without-context'))
+              content: templateBuf
             }
           }
         },
@@ -2469,10 +2626,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:F5')
+
         should(sheet.D2.v).be.eql('Name')
         should(sheet.E2.v).be.eql('Lastname')
         should(sheet.F2.v).be.eql('Age')
@@ -2506,6 +2664,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.H5).be.not.ok()
         should(sheet.I5).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A2:G16')
+
         should(sheet.A2.v).be.eql('')
         should(sheet.B2.v).be.eql('test')
         should(sheet.C2.v).be.eql('')
@@ -2539,6 +2699,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F16.v).be.eql('test')
         should(sheet.G16.v).be.eql('')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:D9')
+
         // preserving the cells on the left of the loop
         should(sheet.D1.v).be.eql('')
         should(sheet.E1).be.not.ok()
@@ -2574,6 +2736,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E9).be.not.ok()
         should(sheet.F9).be.not.ok()
       } else {
+        should(sheet['!ref']).be.eql('A2:F5')
+
         should(sheet.A2.v).be.eql('')
         should(sheet.B2.v).be.eql('test')
         should(sheet.C2.v).be.eql('')
@@ -2678,13 +2842,15 @@ describe('xlsx generation - loops', () => {
         items3 = transformItems(originalItems3)
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-multiple'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-multiple'))
+              content: templateBuf
             }
           }
         },
@@ -2696,10 +2862,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B2:E19')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -2741,6 +2908,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D19.v).be.eql(items3[2].lastname)
         should(sheet.E19.v).be.eql(items3[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B52')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -2822,6 +2991,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D50.v).be.eql(items3[2].lastname)
         should(sheet.E50.v).be.eql(items3[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:T4')
+
         should(sheet.F1.v).be.eql('another')
         should(sheet.K1.v).be.eql('another2')
 
@@ -2870,6 +3041,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.S4.v).be.eql(items3[1].age)
         should(sheet.T4.v).be.eql(items3[2].age)
       } else {
+        should(sheet['!ref']).be.eql('B2:E19')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -2938,13 +3111,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode))
+              content: templateBuf
             }
           }
         },
@@ -2954,15 +3129,15 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql(`C2:E${3 + (items.length - 1)}`)
       } else if (mode === 'block') {
-        should(sheet['!ref']).be.eql(`B2:E${6 + (5 * (items.length - 1))}`)
+        should(sheet['!ref']).be.eql(`B2:B${6 + (5 * (items.length - 1))}`)
       } else if (mode === 'vertical') {
-        should(sheet['!ref']).be.eql(`C2:${getNewCellLetter('D', items.length - 1)}4`)
+        const [newCellLetter] = getColumnFor('D', items.length - 1)
+        should(sheet['!ref']).be.eql(`C2:${newCellLetter}4`)
       } else {
         should(sheet['!ref']).be.eql(`C2:E${3 + (originalItems.length - 1)}`)
       }
@@ -2993,13 +3168,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
+              content: templateBuf
             }
           }
         },
@@ -3009,10 +3186,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B1:G7')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B7.v).be.eql('merged2')
@@ -3020,6 +3198,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E7:G7')).be.True()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B1:G18')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B18.v).be.eql('merged2')
@@ -3027,6 +3207,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E18.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E18:G18')).be.True()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B1:F6')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.H2.v).be.eql('merged2')
@@ -3034,6 +3216,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'F5:F6')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('B1:G7')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B7.v).be.eql('merged2')
@@ -3046,13 +3230,15 @@ describe('xlsx generation - loops', () => {
     it(`${mode} loop not update existing merged cells after loop if array have 0 items`, async () => {
       const items = []
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
+              content: templateBuf
             }
           }
         },
@@ -3062,10 +3248,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B1:G5')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B5.v).be.eql('merged2')
@@ -3073,6 +3260,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B1:G8')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B8.v).be.eql('merged2')
@@ -3080,6 +3269,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B1:F6')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.F2.v).be.eql('merged2')
@@ -3087,6 +3278,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'F5:F6')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('B1:G4')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B4.v).be.eql('merged2')
@@ -3113,13 +3306,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-merged-cells'))
+              content: templateBuf
             }
           }
         },
@@ -3129,10 +3324,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B1:G5')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B5.v).be.eql('merged2')
@@ -3140,6 +3336,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B1:G8')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B8.v).be.eql('merged2')
@@ -3147,6 +3345,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B1:F6')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.F2.v).be.eql('merged2')
@@ -3154,6 +3354,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'F5:F6')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('B1:G5')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B5.v).be.eql('merged2')
@@ -3190,13 +3392,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-merged-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-merged-cells'))
+              content: templateBuf
             }
           }
         },
@@ -3206,10 +3410,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.F2.v).be.eql('Age')
@@ -3226,6 +3431,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D5:E5')).be.True()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -3253,6 +3460,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].age)
         should(mergeCellExists(sheet, 'D14:E14')).be.True()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -3293,13 +3502,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-merged-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-merged-cells'))
+              content: templateBuf
             }
           }
         },
@@ -3309,10 +3520,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:H5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.F2.v).be.eql('Job')
@@ -3336,6 +3548,8 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'D5:E5')).be.True()
         should(mergeCellExists(sheet, 'F5:G5')).be.True()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -3372,6 +3586,8 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'D14:E14')).be.True()
         should(mergeCellExists(sheet, 'F14:G14')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('C2:F7')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -3416,13 +3632,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
+              content: templateBuf
             }
           }
         },
@@ -3432,10 +3650,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B1:G7')
+
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B1.v).be.eql('merged')
 
@@ -3461,6 +3680,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E7:G7')).be.True()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B1:G18')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -3496,6 +3717,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E18.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E18:G18')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('B1:F8')
+
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.B1.v).be.eql('merged')
 
@@ -3529,13 +3752,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
+              content: templateBuf
             }
           }
         },
@@ -3545,10 +3770,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B1:G5')
+
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B1.v).be.eql('merged')
 
@@ -3566,6 +3792,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B1:G8')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -3585,6 +3813,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('B1:F8')
+
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.B1.v).be.eql('merged')
 
@@ -3614,13 +3844,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-merged-cells'))
+              content: templateBuf
             }
           }
         },
@@ -3630,10 +3862,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('B1:G5')
+
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
         should(sheet.B1.v).be.eql('merged')
 
@@ -3651,6 +3884,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E5:G5')).be.True()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B1:G8')
+
         should(sheet.B1.v).be.eql('merged')
         should(mergeCellExists(sheet, 'B1:C1')).be.True()
 
@@ -3670,6 +3905,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E8.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E8:G8')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('B1:F8')
+
         should(mergeCellExists(sheet, 'B1:B2')).be.True()
         should(sheet.B1.v).be.eql('merged')
 
@@ -3713,13 +3950,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-left-merge-cell-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-merge-cell-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -3729,10 +3968,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:H5')
+
         should(sheet.F2.v).be.eql('Name')
         should(sheet.G2.v).be.eql('Lastname')
         should(sheet.H2.v).be.eql('Age')
@@ -3761,6 +4001,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.H5.v).be.eql(items[2].age)
         should(sheet['!merges']).have.length(2)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A2:F16')
+
         should(sheet.F2.v).be.eql('')
         should(sheet.F6.v).be.eql('')
 
@@ -3799,6 +4041,8 @@ describe('xlsx generation - loops', () => {
 
         should(sheet['!merges']).have.length(2)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:F8')
+
         should(sheet.D1.v).be.eql('preserve')
         should(mergeCellExists(sheet, 'D1:D2')).be.True()
         should(sheet.D4.v).be.eql('preserve2')
@@ -3817,6 +4061,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E8.v).be.eql(items[1].age)
         should(sheet.F8.v).be.eql(items[2].age)
       } else {
+        should(sheet['!ref']).be.eql('A2:H5')
+
         // preserving the cells on the left of the loop
         should(mergeCellExists(sheet, 'A2:B2')).be.True()
         should(sheet.A2.v).be.eql('preserve')
@@ -3876,13 +4122,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-right-merge-cell-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-merge-cell-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -3892,10 +4140,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -3924,6 +4173,8 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'I5:J5')).be.False()
         should(sheet['!merges']).have.length(2)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:H16')
+
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
 
@@ -3962,6 +4213,8 @@ describe('xlsx generation - loops', () => {
 
         should(sheet['!merges']).have.length(2)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D9')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
@@ -3980,6 +4233,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D8.v).be.eql('preserve2')
         should(mergeCellExists(sheet, 'D8:D9')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('C2:E5')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -4039,13 +4294,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-merge-cell-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-merge-cell-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -4055,10 +4312,11 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:H5')
+
         should(sheet.F2.v).be.eql('Name')
         should(sheet.G2.v).be.eql('Lastname')
         should(sheet.H2.v).be.eql('Age')
@@ -4100,6 +4358,8 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'K5:L5')).be.False()
         should(sheet['!merges']).have.length(4)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A2:L16')
+
         should(sheet.F2.v).be.eql('')
         should(sheet.F6.v).be.eql('')
 
@@ -4152,6 +4412,8 @@ describe('xlsx generation - loops', () => {
 
         should(sheet['!merges']).have.length(4)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C1:D12')
+
         should(sheet.D1.v).be.eql('preserve')
         should(mergeCellExists(sheet, 'D1:D2')).be.True()
         should(sheet.D4.v).be.eql('preserve2')
@@ -4175,6 +4437,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D11.v).be.eql('preserve4')
         should(mergeCellExists(sheet, 'D11:D12')).be.True()
       } else {
+        should(sheet['!ref']).be.eql('A2:H5')
+
         // preserving the cells on the left of the loop
         should(sheet.A2.v).be.eql('preserve')
         should(mergeCellExists(sheet, 'A2:B2')).be.True()
@@ -4312,15 +4576,17 @@ describe('xlsx generation - loops', () => {
           return this.skip()
         }
 
+        const templateBuf = fs.readFileSync(
+          path.join(xlsxDirPath, 'new-vertical-merged-cells-loop-multiple-rows.xlsx')
+        )
+
         const result = await reporter.render({
           template: {
             engine: 'handlebars',
             recipe: 'xlsx',
             xlsx: {
               templateAsset: {
-                content: fs.readFileSync(
-                  path.join(xlsxDirPath, 'new-vertical-merged-cells-loop-multiple-rows.xlsx')
-                )
+                content: templateBuf
               }
             }
           },
@@ -4330,8 +4596,9 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const workbook = xlsx.read(result.content)
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+        const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+        should(sheet['!ref']).be.eql('B2:B16')
 
         should(sheet.B2.v).be.eql('')
         should(sheet.B6.v).be.eql('')
@@ -4387,13 +4654,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -4403,12 +4672,13 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { workbook, sheet } = parseSheetFromXlsxBuf(result.content)
 
       should(workbook.Workbook.CalcPr.fullCalcOnLoad).be.eql('1')
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:D13')
+
         should(sheet.E5?.f).be.not.ok()
         should(sheet.E6?.f).be.not.ok()
         should(sheet.E7?.f).be.not.ok()
@@ -4417,6 +4687,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
         should(sheet.E11?.f).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E21')
+
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -4425,11 +4697,15 @@ describe('xlsx generation - loops', () => {
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:I9')
+
         should(sheet.H4?.f).be.not.ok()
         should(sheet.I4?.f).be.not.ok()
         should(sheet.J4.f).be.eql('SUM(H4:I4)')
         should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
       } else {
+        should(sheet['!ref']).be.eql('C2:E10')
+
         should(sheet.E5?.f).be.not.ok()
         should(sheet.E6?.f).be.not.ok()
         should(sheet.E7?.f).be.not.ok()
@@ -4465,13 +4741,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -4481,10 +4759,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:D13')
+
         should(sheet.E5?.f).be.not.ok()
         should(sheet.E6?.f).be.not.ok()
         should(sheet.E7?.f).be.not.ok()
@@ -4493,6 +4773,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
         should(sheet.E11?.f).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E21')
+
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -4501,11 +4783,15 @@ describe('xlsx generation - loops', () => {
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:I9')
+
         should(sheet.H4?.f).be.not.ok()
         should(sheet.I4?.f).be.not.ok()
         should(sheet.J4.f).be.eql('SUM(H4:I4)')
         should(sheet.K4.f).be.eql('AVERAGE(H4:I4)')
       } else {
+        should(sheet['!ref']).be.eql('C2:E10')
+
         should(sheet.E5?.f).be.not.ok()
         should(sheet.E6?.f).be.not.ok()
         should(sheet.E7?.f).be.not.ok()
@@ -4519,13 +4805,15 @@ describe('xlsx generation - loops', () => {
     it(`${mode} loop not update existing formulas after loop if array have 0 items`, async () => {
       const items = []
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -4535,25 +4823,32 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E11')
+
         should(sheet.E5.v).be.ok()
         should(sheet.E6.v).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E11')
+
         should(sheet.E8.v).be.ok()
         should(sheet.E9.v).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:I9')
+
         should(sheet.H4.f).be.ok()
         should(sheet.I4.f).be.ok()
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
         should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
       } else {
+        should(sheet['!ref']).be.eql('C2:E7')
+
         should(sheet.E4.v).be.ok()
         should(sheet.E5.v).be.ok()
         should(sheet.E6.f).be.eql('SUM(E4:E5)')
@@ -4578,13 +4873,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -4594,25 +4891,32 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E11')
+
         should(sheet.E5.v).be.ok()
         should(sheet.E6.v).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E11')
+
         should(sheet.E8.v).be.ok()
         should(sheet.E9.v).be.ok()
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:I9')
+
         should(sheet.H4.f).be.ok()
         should(sheet.I4.f).be.ok()
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
         should(sheet.I4.f).be.eql('AVERAGE(F4:G4)')
       } else {
+        should(sheet['!ref']).be.eql('C2:E8')
+
         should(sheet.E5.v).be.ok()
         should(sheet.E6.v).be.ok()
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
@@ -4645,13 +4949,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -4661,7 +4967,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -4736,13 +5042,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
+              content: templateBuf
             }
           }
         },
@@ -4752,10 +5060,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E11')
+
         should(sheet.E5?.f).be.not.ok()
         should(sheet.E6?.f).be.not.ok()
         should(sheet.E7.f).be.eql('SUM(E3:E6)')
@@ -4764,6 +5074,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('MAX(E3:E6)')
         should(sheet.E11.f).be.eql('SUM(E9,E10)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E22')
+
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -4775,6 +5087,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E21.f).be.eql('MAX(E4:E17)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:J9')
+
         should(sheet.F4?.f).be.not.ok()
         should(sheet.G4?.f).be.not.ok()
         should(sheet.H4.f).be.eql('SUM(D4:G4)')
@@ -4792,13 +5106,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
+              content: templateBuf
             }
           }
         },
@@ -4808,22 +5124,28 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E9')
+
         should(sheet.E5.f).be.eql('SUM(E3:E4)')
         should(sheet.E6.f).be.eql('AVERAGE(E3:E4)')
         should(sheet.E7.f).be.eql('MIN(E3:E4)')
         should(sheet.E8.f).be.eql('MAX(E3:E4)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E12')
+
         should(sheet.E8.f).be.eql('SUM(E4:E7)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E7)')
         should(sheet.E10.f).be.eql('MIN(E4:E7)')
         should(sheet.E11.f).be.eql('MAX(E4:E7)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:J9')
+
         should(sheet.F4.f).be.eql('SUM(D4:E4)')
         should(sheet.G4.f).be.eql('AVERAGE(D4:E4)')
         should(sheet.H4.f).be.eql('MIN(D4:E4)')
@@ -4843,13 +5165,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
+              content: templateBuf
             }
           }
         },
@@ -4859,22 +5183,28 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E9')
+
         should(sheet.E5.f).be.eql('SUM(E3:E4)')
         should(sheet.E6.f).be.eql('AVERAGE(E3:E4)')
         should(sheet.E7.f).be.eql('MIN(E3:E4)')
         should(sheet.E8.f).be.eql('MAX(E3:E4)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E12')
+
         should(sheet.E8.f).be.eql('SUM(E4:E7)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E7)')
         should(sheet.E10.f).be.eql('MIN(E4:E7)')
         should(sheet.E11.f).be.eql('MAX(E4:E7)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:J9')
+
         should(sheet.F4.f).be.eql('SUM(D4:E4)')
         should(sheet.G4.f).be.eql('AVERAGE(D4:E4)')
         should(sheet.H4.f).be.eql('MIN(D4:E4)')
@@ -4902,13 +5232,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(end-bellow)'))
+              content: templateBuf
             }
           }
         },
@@ -4918,7 +5250,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -4992,13 +5324,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
+              content: templateBuf
             }
           }
         },
@@ -5008,10 +5342,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E11')
+
         should(sheet.E5?.f).be.not.ok()
         should(sheet.E6?.f).be.not.ok()
         should(sheet.E7.f).be.eql('SUM(E3:E5)')
@@ -5020,6 +5356,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('MAX(E3:E5)')
         should(sheet.E11.f).be.eql('SUM(E9,E10)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E22')
+
         should(sheet.E8?.f).be.not.ok()
         should(sheet.E9?.f).be.not.ok()
         should(sheet.E10?.f).be.not.ok()
@@ -5031,6 +5369,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E21.f).be.eql('MAX(E4:E14)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:J9')
+
         should(sheet.F4?.f).be.not.ok()
         should(sheet.G4?.f).be.not.ok()
         should(sheet.H4.f).be.eql('SUM(D4:F4)')
@@ -5048,13 +5388,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
+              content: templateBuf
             }
           }
         },
@@ -5064,22 +5406,28 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E9')
+
         should(sheet.E5.f).be.eql('SUM(E3:E3)')
         should(sheet.E6.f).be.eql('AVERAGE(E3:E3)')
         should(sheet.E7.f).be.eql('MIN(E3:E3)')
         should(sheet.E8.f).be.eql('MAX(E3:E3)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E12')
+
         should(sheet.E8.f).be.eql('SUM(E4:E4)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E5)')
         should(sheet.E10.f).be.eql('MIN(E4:E4)')
         should(sheet.E11.f).be.eql('MAX(E4:E4)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:J9')
+
         should(sheet.F4.f).be.eql('SUM(D4:D4)')
         should(sheet.G4.f).be.eql('AVERAGE(D4:D4)')
         should(sheet.H4.f).be.eql('MIN(D4:D4)')
@@ -5099,13 +5447,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
+              content: templateBuf
             }
           }
         },
@@ -5115,22 +5465,28 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E9')
+
         should(sheet.E5.f).be.eql('SUM(E3:E3)')
         should(sheet.E6.f).be.eql('AVERAGE(E3:E3)')
         should(sheet.E7.f).be.eql('MIN(E3:E3)')
         should(sheet.E8.f).be.eql('MAX(E3:E3)')
         should(sheet.E9.f).be.eql('SUM(E7,E8)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E12')
+
         should(sheet.E8.f).be.eql('SUM(E4:E4)')
         should(sheet.E9.f).be.eql('AVERAGE(E4:E5)')
         should(sheet.E10.f).be.eql('MIN(E4:E4)')
         should(sheet.E11.f).be.eql('MAX(E4:E4)')
         should(sheet.E12.f).be.eql('SUM(E10,E11)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:J9')
+
         should(sheet.F4.f).be.eql('SUM(D4:D4)')
         should(sheet.G4.f).be.eql('AVERAGE(D4:D4)')
         should(sheet.H4.f).be.eql('MIN(D4:D4)')
@@ -5158,13 +5514,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-(inside)'))
+              content: templateBuf
             }
           }
         },
@@ -5174,7 +5532,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -5254,13 +5612,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-row'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-row'))
+              content: templateBuf
             }
           }
         },
@@ -5270,11 +5630,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
+
+      const { sheet, sheet2 } = parseSheetFromXlsxBuf(result.content, [0, 1])
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I5')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -5293,6 +5654,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql(items[2].rate)
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('F5*G$3')
+
+        should(sheet2['!ref']).be.eql('A1:I10')
 
         should(sheet2.C3.v).be.eql(items[0].name)
         should(sheet2.D3.v).be.eql(items[0].lastname)
@@ -5319,6 +5682,8 @@ describe('xlsx generation - loops', () => {
         should(sheet2.G10.v).be.eql(items[2].hours)
         should(sheet2.H10.f).be.eql('F10*G$8')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -5337,6 +5702,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('F14*G$4')
+
+        should(sheet2['!ref']).be.eql('B2:B21')
 
         should(sheet2.B3.v).be.eql(items[0].name)
         should(sheet2.C3.v).be.eql(items[0].lastname)
@@ -5363,6 +5730,8 @@ describe('xlsx generation - loops', () => {
         should(sheet2.G19.v).be.eql(items[2].hours)
         should(sheet2.H19.f).be.eql('F19*G$9')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -5381,6 +5750,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D7.f).be.eql('D5*D$6')
         should(sheet.E7.f).be.eql('E5*E$6')
         should(sheet.F7.f).be.eql('F5*F$6')
+
+        should(sheet2['!ref']).be.eql('C2:F13')
 
         should(sheet2.C3.v).be.eql(items[0].name)
         should(sheet2.D3.v).be.eql(items[0].lastname)
@@ -5435,13 +5806,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
+              content: templateBuf
             }
           }
         },
@@ -5451,10 +5824,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:I5')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -5474,6 +5849,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('A$1*F5*G5')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:B16')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -5493,6 +5870,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('A$1*F14*G14')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A1:F8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -5521,13 +5900,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
+              content: templateBuf
             }
           }
         },
@@ -5537,10 +5918,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:I3')
+
         should(sheet.C3.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.E3.v).be.eql('')
@@ -5554,6 +5937,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:H6')
+
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
@@ -5561,6 +5946,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('A$1*F4*G4')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A1:D8')
+
         should(sheet.D2.v).be.eql('')
         should(sheet.E2).be.not.ok()
         should(sheet.D3.v).be.eql('')
@@ -5589,13 +5976,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
+              content: templateBuf
             }
           }
         },
@@ -5605,10 +5994,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:I3')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -5622,6 +6013,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:H6')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -5629,6 +6022,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('A$1*F4*G4')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A1:D8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2).be.not.ok()
         should(sheet.D3.v).be.eql(items[0].lastname)
@@ -5669,13 +6064,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-row'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-row'))
+              content: templateBuf
             }
           }
         },
@@ -5685,7 +6082,8 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -5762,13 +6160,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(row-absolute-reference)'))
+              content: templateBuf
             }
           }
         },
@@ -5778,7 +6178,8 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -5843,13 +6244,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-column'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-column'))
+              content: templateBuf
             }
           }
         },
@@ -5859,11 +6262,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
+
+      const { sheet, sheet2 } = parseSheetFromXlsxBuf(result.content, [0, 1])
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I5')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -5882,6 +6286,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.v).be.eql(items[2].rate)
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('F5*$G5')
+
+        should(sheet2['!ref']).be.eql('A1:I10')
 
         should(sheet2.C3.v).be.eql(items[0].name)
         should(sheet2.D3.v).be.eql(items[0].lastname)
@@ -5908,6 +6314,8 @@ describe('xlsx generation - loops', () => {
         should(sheet2.G10.v).be.eql(items[2].hours)
         should(sheet2.H10.f).be.eql('F10*$G10')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -5926,6 +6334,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('F14*$G14')
+
+        should(sheet2['!ref']).be.eql('B2:B21')
 
         should(sheet2.B3.v).be.eql(items[0].name)
         should(sheet2.C3.v).be.eql(items[0].lastname)
@@ -5952,6 +6362,8 @@ describe('xlsx generation - loops', () => {
         should(sheet2.G19.v).be.eql(items[2].hours)
         should(sheet2.H19.f).be.eql('F19*$G19')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -5970,6 +6382,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D7.f).be.eql('D5*$D6')
         should(sheet.E7.f).be.eql('E5*$D6')
         should(sheet.F7.f).be.eql('F5*$D6')
+
+        should(sheet2['!ref']).be.eql('C2:F13')
 
         should(sheet2.C3.v).be.eql(items[0].name)
         should(sheet2.D3.v).be.eql(items[0].lastname)
@@ -6024,13 +6438,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+              content: templateBuf
             }
           }
         },
@@ -6040,10 +6456,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:I5')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -6063,6 +6481,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('$A1*F5*G5')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:B16')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -6082,6 +6502,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('$A1*F14*G14')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A1:F8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -6110,13 +6532,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+              content: templateBuf
             }
           }
         },
@@ -6126,10 +6550,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:I3')
+
         should(sheet.C3.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.E3.v).be.eql('')
@@ -6143,6 +6569,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:H6')
+
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
@@ -6150,6 +6578,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('$A1*F4*G4')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A1:D8')
+
         should(sheet.D2.v).be.eql('')
         should(sheet.E2).be.not.ok()
         should(sheet.D3.v).be.eql('')
@@ -6178,13 +6608,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+              content: templateBuf
             }
           }
         },
@@ -6194,10 +6626,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:I3')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -6211,6 +6645,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:H6')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -6218,6 +6654,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('$A1*F4*G4')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A1:D8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2).be.not.ok()
         should(sheet.D3.v).be.eql(items[0].lastname)
@@ -6258,13 +6696,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-column'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-locked-column'))
+              content: templateBuf
             }
           }
         },
@@ -6274,7 +6714,8 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -6351,13 +6792,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(column-absolute-reference)'))
+              content: templateBuf
             }
           }
         },
@@ -6367,7 +6810,8 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -6432,13 +6876,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -6448,10 +6894,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I5')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -6471,6 +6919,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('F5*G5')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -6490,6 +6940,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('F14*G14')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -6536,13 +6988,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-ref-after-origin'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-ref-after-origin'))
+              content: templateBuf
             }
           }
         },
@@ -6552,10 +7006,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I5')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -6575,6 +7031,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5.v).be.eql(items[2].rate)
         should(sheet.H5.v).be.eql(items[2].hours)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -6594,6 +7052,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G14.v).be.eql(items[2].rate)
         should(sheet.H14.v).be.eql(items[2].hours)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -6622,13 +7082,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -6638,10 +7100,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I3')
+
         should(sheet.C3.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.E3.v).be.eql('')
@@ -6655,6 +7119,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).be.not.ok()
         should(sheet.H4).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:H6')
+
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
@@ -6662,6 +7128,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('F4*G4')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D8')
+
         should(sheet.D2.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.D4.v).be.eql('')
@@ -6697,13 +7165,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -6713,10 +7183,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I3')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -6730,6 +7202,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).be.not.ok()
         should(sheet.H4).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:H6')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -6737,6 +7211,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('F4*G4')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.D4.v).be.eql(items[0].age)
@@ -6784,13 +7260,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -6800,7 +7278,8 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -6866,15 +7345,17 @@ describe('xlsx generation - loops', () => {
           return this.skip()
         }
 
+        const templateBuf = fs.readFileSync(
+          path.join(xlsxDirPath, 'new-vertical-formula-cells-loop-multiple-rows.xlsx')
+        )
+
         const result = await reporter.render({
           template: {
             engine: 'handlebars',
             recipe: 'xlsx',
             xlsx: {
               templateAsset: {
-                content: fs.readFileSync(
-                  path.join(xlsxDirPath, 'new-vertical-formula-cells-loop-multiple-rows.xlsx')
-                )
+                content: templateBuf
               }
             }
           },
@@ -6884,8 +7365,10 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const workbook = xlsx.read(result.content)
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+        should(sheet['!ref']).be.eql('B2:B28')
 
         should(sheet.D3.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
@@ -6932,15 +7415,17 @@ describe('xlsx generation - loops', () => {
           return this.skip()
         }
 
+        const templateBuf = fs.readFileSync(
+          path.join(xlsxDirPath, 'new-vertical-formula-cells-loop-multiple-rows.xlsx')
+        )
+
         const result = await reporter.render({
           template: {
             engine: 'handlebars',
             recipe: 'xlsx',
             xlsx: {
               templateAsset: {
-                content: fs.readFileSync(
-                  path.join(xlsxDirPath, 'new-vertical-formula-cells-loop-multiple-rows.xlsx')
-                )
+                content: templateBuf
               }
             }
           },
@@ -6950,7 +7435,8 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const workbook = xlsx.read(result.content)
+
+        const { workbook } = parseSheetFromXlsxBuf(result.content)
         const files = await decompress()(result.content)
 
         const normalizePath = (filePath) => {
@@ -7003,13 +7489,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -7019,10 +7507,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:J5')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -7045,6 +7535,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.H5.f).be.eql('F5*G5')
         should(sheet.I5.f).be.eql('H5*100')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -7067,6 +7559,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.H14.f).be.eql('F14*G14')
         should(sheet.I14.f).be.eql('H14*100')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F9')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -7098,13 +7592,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -7114,10 +7610,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:J3')
+
         should(sheet.C3.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.E3.v).be.eql('')
@@ -7133,6 +7631,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.H4).be.not.ok()
         should(sheet.I4).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:I6')
+
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
@@ -7141,6 +7641,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.H4.f).be.eql('F4*G4')
         should(sheet.I4.f).be.eql('H4*100')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D9')
+
         should(sheet.D2.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.D4.v).be.eql('')
@@ -7164,13 +7666,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -7180,10 +7684,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:J3')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -7199,6 +7705,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.H4).be.not.ok()
         should(sheet.I4).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:I6')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -7207,6 +7715,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.H4.f).be.eql('F4*G4')
         should(sheet.I4.f).be.eql('H4*100')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D9')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.D4.v).be.eql(items[0].age)
@@ -7242,13 +7752,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-multiple-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -7258,7 +7770,8 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -7332,13 +7845,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
+              content: templateBuf
             }
           }
         },
@@ -7348,10 +7863,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I5')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -7371,6 +7888,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G5.v).be.eql(items[2].hours)
         should(sheet.H5.f).be.eql('SUM(F5:G5)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -7390,6 +7909,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('SUM(F14:G14)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -7418,13 +7939,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
+              content: templateBuf
             }
           }
         },
@@ -7434,10 +7957,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I3')
+
         should(sheet.C3.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.E3.v).be.eql('')
@@ -7451,6 +7976,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:H6')
+
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
@@ -7458,6 +7985,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql('')
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:E8')
+
         should(sheet.D2.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.D4.v).be.eql('')
@@ -7480,13 +8009,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
+              content: templateBuf
             }
           }
         },
@@ -7496,10 +8027,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I3')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -7513,6 +8046,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4).not.be.ok()
         should(sheet.H4).not.be.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:H6')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -7520,6 +8055,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql(items[0].hours)
         should(sheet.H4.f).be.eql('SUM(F4:G4)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:E8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.D4.v).be.eql(items[0].age)
@@ -7554,13 +8091,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-new-formula-cells-(range)'))
+              content: templateBuf
             }
           }
         },
@@ -7570,7 +8109,8 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -7635,13 +8175,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -7651,10 +8193,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:D13')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -7682,6 +8226,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('AVERAGE(E7:E8)')
         should(sheet.E11?.f).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:E21')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -7709,6 +8255,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:I8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -7741,13 +8289,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -7757,10 +8307,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I11')
+
         should(sheet.C3.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.E3.v).be.eql('')
@@ -7779,6 +8331,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:H11')
+
         should(sheet.C4.v).be.eql('')
         should(sheet.D4.v).be.eql('')
         should(sheet.E4.v).be.eql('')
@@ -7791,6 +8345,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:I8')
+
         should(sheet.D2.v).be.eql('')
         should(sheet.D3.v).be.eql('')
         should(sheet.D4.v).be.eql('')
@@ -7827,13 +8383,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -7843,10 +8401,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:I11')
+
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.E3.v).be.eql(items[0].age)
@@ -7865,6 +8425,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.f).be.eql('SUM(E5:E6)')
         should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:H11')
+
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
         should(sheet.E4.v).be.eql(items[0].age)
@@ -7877,6 +8439,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E10.f).be.eql('SUM(E8:E9)')
         should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:I8')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
         should(sheet.D4.v).be.eql(items[0].age)
@@ -7925,13 +8489,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-formula-cells'))
+              content: templateBuf
             }
           }
         },
@@ -7941,7 +8507,8 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+
+      const { workbook } = parseSheetFromXlsxBuf(result.content)
 
       const files = await decompress()(result.content)
 
@@ -8012,13 +8579,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-left-formula-cell-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-formula-cell-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -8028,10 +8597,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:E5')
+
         // preserving the cells on the left of the loop
         should(sheet.A3.f).be.eql('A1*2')
         should(sheet.B3.f).be.eql('A1*3')
@@ -8049,6 +8620,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(items[2].lastname)
         should(sheet.E5.v).be.eql(items[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:C17')
+
         // preserving the cells on the left of the loop
         should(sheet.A3.f).be.eql('A1*2')
         should(sheet.B3.f).be.eql('A1*3')
@@ -8066,6 +8639,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E15.v).be.eql(items[2].lastname)
         should(sheet.F15.v).be.eql(items[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B1:D7')
+
         should(sheet.B1.v).be.eql(10)
         should(sheet.D1.v).be.eql(20)
         should(sheet.D2.v).be.eql(30)
@@ -8079,6 +8654,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[1].age)
         should(sheet.F5.v).be.eql(items[2].age)
       } else {
+        should(sheet['!ref']).be.eql('A1:E5')
+
         // preserving the cells on the left of the loop
         should(sheet.A2.f).be.eql('A1*2')
         should(sheet.B2.f).be.eql('A1*3')
@@ -8123,13 +8700,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-right-formula-cell-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-right-formula-cell-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -8139,10 +8718,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:E5')
+
         // preserving the cells on the right of the loop
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
@@ -8160,6 +8741,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:D16')
+
         // preserving the cells on the right of the loop
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
@@ -8177,6 +8760,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C16.f).be.eql('A1*2')
         should(sheet.D16.f).be.eql('A1*3')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:D6')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -8189,6 +8774,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D5.v).be.eql(20)
         should(sheet.D6.v).be.eql(30)
       } else {
+        should(sheet['!ref']).be.eql('A1:E5')
+
         // preserving the cells on the right of the loop
         should(sheet.F2.f).be.eql('A1*2')
         should(sheet.G2.f).be.eql('A1*3')
@@ -8235,13 +8822,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-formula-cell-preserve'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-left-right-formula-cell-preserve'))
+              content: templateBuf
             }
           }
         },
@@ -8251,10 +8840,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:E5')
+
         // preserving the cells on the left of the loop
         should(sheet.A3.f).be.eql('A1*2')
         should(sheet.B3.f).be.eql('A1*3')
@@ -8279,6 +8870,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5).be.not.ok()
         should(sheet.G5).be.not.ok()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('A1:E17')
+
         // preserving the cells on the left of the loop
         should(sheet.A3.f).be.eql('A1*2')
         should(sheet.B3.f).be.eql('A1*3')
@@ -8303,6 +8896,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D17.f).be.eql('A1*4')
         should(sheet.E17.f).be.eql('A1*5')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B1:D7')
+
         should(sheet.B1.v).be.eql(10)
         should(sheet.D1.v).be.eql(20)
         should(sheet.D2.v).be.eql(30)
@@ -8318,6 +8913,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D6.v).be.eql(40)
         should(sheet.D7.v).be.eql(50)
       } else {
+        should(sheet['!ref']).be.eql('A1:E5')
+
         // preserving the cells on the left of the loop
         should(sheet.A2.f).be.eql('A1*2')
         should(sheet.B2.f).be.eql('A1*3')
@@ -8367,13 +8964,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-after-reference-inside'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-after-reference-inside'))
+              content: templateBuf
             }
           }
         },
@@ -8383,10 +8982,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:D13')
+
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
         should(sheet.E2.v).be.eql('Age')
@@ -8401,6 +9002,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E5.v).be.eql(items[2].age)
         should(sheet.E7.f).be.eql('10+E5')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:D21')
+
         should(sheet.C3.v).be.eql('Name')
         should(sheet.D3.v).be.eql('Lastname')
         should(sheet.E3.v).be.eql('Age')
@@ -8421,6 +9024,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E14.v).be.eql(items[2].age)
         should(sheet.E18.f).be.eql('10+E14')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:H4')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -8453,13 +9058,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-inside'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-inside'))
+              content: templateBuf
             }
           }
         },
@@ -8469,10 +9076,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:D14')
+
         should(sheet.E2.f).be.eql('10+E7')
         should(sheet.C4.v).be.eql('Name')
         should(sheet.D4.v).be.eql('Lastname')
@@ -8487,6 +9096,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D7.v).be.eql(items[2].lastname)
         should(sheet.E7.v).be.eql(items[2].age)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:D22')
+
         should(sheet.E2.f).be.eql('10+E16')
         should(sheet.C5.v).be.eql('Name')
         should(sheet.D5.v).be.eql('Lastname')
@@ -8507,6 +9118,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D16.v).be.eql(items[2].lastname)
         should(sheet.E16.v).be.eql(items[2].age)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B2:G4')
+
         should(sheet.E2.v).be.eql(items[0].name)
         should(sheet.F2.v).be.eql(items[1].name)
         should(sheet.G2.v).be.eql(items[2].name)
@@ -8539,13 +9152,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-after'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-after'))
+              content: templateBuf
             }
           }
         },
@@ -8555,10 +9170,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:D14')
+
         should(sheet.E2.f).be.eql('10+E9')
         should(sheet.C4.v).be.eql('Name')
         should(sheet.D4.v).be.eql('Lastname')
@@ -8574,6 +9191,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.v).be.eql(items[2].age)
         should(sheet.E9.v).be.eql(30)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:D22')
+
         should(sheet.E2.f).be.eql('10+E20')
         should(sheet.C5.v).be.eql('Name')
         should(sheet.D5.v).be.eql('Lastname')
@@ -8595,6 +9214,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.v).be.eql(30)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B2:I4')
+
         should(sheet.E2.v).be.eql(items[0].name)
         should(sheet.F2.v).be.eql(items[1].name)
         should(sheet.G2.v).be.eql(items[2].name)
@@ -8633,15 +9254,17 @@ describe('xlsx generation - loops', () => {
         age: 23
       }]
 
+      const templateBuf = fs.readFileSync(
+        path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-after-non-existing-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+      )
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-after-non-existing-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
+              content: templateBuf
             }
           }
         },
@@ -8718,13 +9341,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-before-and-after'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-before-reference-before-and-after'))
+              content: templateBuf
             }
           }
         },
@@ -8734,10 +9359,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C1:D14')
+
         should(sheet.E2.f).be.eql('10+E1+E9')
         should(sheet.C4.v).be.eql('Name')
         should(sheet.D4.v).be.eql('Lastname')
@@ -8753,6 +9380,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.v).be.eql(items[2].age)
         should(sheet.E9.v).be.eql(30)
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B1:D22')
+
         should(sheet.E2.f).be.eql('10+E1+E20')
         should(sheet.C5.v).be.eql('Name')
         should(sheet.D5.v).be.eql('Lastname')
@@ -8774,6 +9403,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.v).be.eql(30)
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A2:I4')
+
         should(sheet.E2.v).be.eql(items[0].name)
         should(sheet.F2.v).be.eql(items[1].name)
         should(sheet.G2.v).be.eql(items[2].name)
@@ -8787,6 +9418,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql(items[2].age)
         should(sheet.I4.v).be.eql(30)
       } else {
+        should(sheet['!ref']).be.eql('C1:E9')
+
         should(sheet.E2.f).be.eql('10+E1+E9')
         should(sheet.C4.v).be.eql('Name')
         should(sheet.D4.v).be.eql('Lastname')
@@ -8829,13 +9462,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-after-reference-not-inside-and-previous'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-update-formula-cells-origin-after-reference-not-inside-and-previous'))
+              content: templateBuf
             }
           }
         },
@@ -8845,10 +9480,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:D15')
+
         should(sheet.E2.v).be.eql(10)
         should(sheet.C4.v).be.eql('Name')
         should(sheet.D4.v).be.eql('Lastname')
@@ -8864,6 +9501,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E7.v).be.eql(items[2].age)
         should(sheet.E9.f).be.eql('10+E2')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:D23')
+
         should(sheet.E2.v).be.eql(10)
         should(sheet.C5.v).be.eql('Name')
         should(sheet.D5.v).be.eql('Lastname')
@@ -8885,6 +9524,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E16.v).be.eql(items[2].age)
         should(sheet.E20.f).be.eql('10+E2')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('B2:I4')
+
         should(sheet.E2.v).be.eql(items[0].name)
         should(sheet.F2.v).be.eql(items[1].name)
         should(sheet.G2.v).be.eql(items[2].name)
@@ -8897,6 +9538,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.G4.v).be.eql(items[2].age)
         should(sheet.I4.f).be.eql('10+B4')
       } else {
+        should(sheet['!ref']).be.eql('C2:E9')
+
         should(sheet.E2.v).be.eql(10)
         should(sheet.C4.v).be.eql('Name')
         should(sheet.D4.v).be.eql('Lastname')
@@ -8930,15 +9573,17 @@ describe('xlsx generation - loops', () => {
           age: 23
         }]
 
+        const templateBuf = fs.readFileSync(
+          path.join(xlsxDirPath, 'update-formula-cells-origin-inside-reference-inside-loop-multiple-rows.xlsx')
+        )
+
         const result = await reporter.render({
           template: {
             engine: 'handlebars',
             recipe: 'xlsx',
             xlsx: {
               templateAsset: {
-                content: fs.readFileSync(
-                  path.join(xlsxDirPath, 'update-formula-cells-origin-inside-reference-inside-loop-multiple-rows.xlsx')
-                )
+                content: templateBuf
               }
             }
           },
@@ -8948,8 +9593,10 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const workbook = xlsx.read(result.content)
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+        should(sheet['!ref']).be.eql('B2:D25')
 
         should(sheet.C3.v).be.eql('Name')
         should(sheet.D3.v).be.eql('Lastname')
@@ -8991,13 +9638,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference'))
+              content: templateBuf
             }
           }
         },
@@ -9007,19 +9656,20 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
-      const sheet3 = workbook.Sheets[workbook.SheetNames[2]]
-      const sheet4 = workbook.Sheets[workbook.SheetNames[3]]
+
+      const { sheet, sheet2, sheet3, sheet4 } = parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:C4')
+
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.f).be.eql('A2+DATA!A1')
         should(sheet.A3.v).be.eql(items[1].value)
         should(sheet.B3.f).be.eql('A3+DATA!A2')
         should(sheet.A4.v).be.eql(items[2].value)
         should(sheet.B4.f).be.eql('A4+DATA!A3')
+
+        should(sheet2['!ref']).be.eql('A2:C4')
 
         should(sheet2.A2.v).be.eql(items[0].value)
         should(sheet2.B2.f).be.eql('A2+DATA!B2')
@@ -9028,12 +9678,16 @@ describe('xlsx generation - loops', () => {
         should(sheet2.A4.v).be.eql(items[2].value)
         should(sheet2.B4.f).be.eql('A4+DATA!B4')
 
+        should(sheet3['!ref']).be.eql('A2:C4')
+
         should(sheet3.A2.v).be.eql(items[0].value)
         should(sheet3.B2.f).be.eql('A2+DATA!C3')
         should(sheet3.A3.v).be.eql(items[1].value)
         should(sheet3.B3.f).be.eql('A3+DATA!C4')
         should(sheet3.A4.v).be.eql(items[2].value)
         should(sheet3.B4.f).be.eql('A4+DATA!C5')
+
+        should(sheet4['!ref']).be.eql('A2:E8')
 
         should(sheet4.A2.v).be.eql(items[0].value)
         should(sheet4.A3.v).be.eql(items[1].value)
@@ -9051,6 +9705,8 @@ describe('xlsx generation - loops', () => {
         should(sheet4.C8.f).be.eql('A8+DATA!B4')
         should(sheet4.D8.f).be.eql('A8+DATA!C5')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C3.v).be.eql('Value')
         should(sheet.D3.v).be.eql('Calculated')
         should(sheet.C4.v).be.eql(items[0].value)
@@ -9063,6 +9719,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D13.v).be.eql('Calculated')
         should(sheet.C14.v).be.eql(items[2].value)
         should(sheet.D14.f).be.eql('C14+DATA!A11')
+
+        should(sheet2['!ref']).be.eql('A1:D16')
 
         should(sheet2.C3.v).be.eql('Value')
         should(sheet2.D3.v).be.eql('Calculated')
@@ -9077,6 +9735,8 @@ describe('xlsx generation - loops', () => {
         should(sheet2.C14.v).be.eql(items[2].value)
         should(sheet2.D14.f).be.eql('C14+DATA!B14')
 
+        should(sheet3['!ref']).be.eql('A1:D16')
+
         should(sheet3.C3.v).be.eql('Value')
         should(sheet3.D3.v).be.eql('Calculated')
         should(sheet3.C4.v).be.eql(items[0].value)
@@ -9089,6 +9749,8 @@ describe('xlsx generation - loops', () => {
         should(sheet3.D13.v).be.eql('Calculated')
         should(sheet3.C14.v).be.eql(items[2].value)
         should(sheet3.D14.f).be.eql('C14+DATA!C17')
+
+        should(sheet4['!ref']).be.eql('A2:B20')
 
         should(sheet4.C7.v).be.eql('Value')
         should(sheet4.D7.v).be.eql('Calculated')
@@ -9115,12 +9777,16 @@ describe('xlsx generation - loops', () => {
         should(sheet4.E18.f).be.eql('C18+DATA!B14')
         should(sheet4.F18.f).be.eql('C18+DATA!C17')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A2:C4')
+
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.v).be.eql(items[1].value)
         should(sheet.C2.v).be.eql(items[2].value)
         should(sheet.A3.f).be.eql('A2+DATA!A1')
         should(sheet.B3.f).be.eql('B2+DATA!B1')
         should(sheet.C3.f).be.eql('C2+DATA!C1')
+
+        should(sheet2['!ref']).be.eql('A2:C4')
 
         should(sheet2.A2.v).be.eql(items[0].value)
         should(sheet2.B2.v).be.eql(items[1].value)
@@ -9129,12 +9795,16 @@ describe('xlsx generation - loops', () => {
         should(sheet2.B3.f).be.eql('B2+DATA!C2')
         should(sheet2.C3.f).be.eql('C2+DATA!D2')
 
+        should(sheet3['!ref']).be.eql('A2:C4')
+
         should(sheet3.A2.v).be.eql(items[0].value)
         should(sheet3.B2.v).be.eql(items[1].value)
         should(sheet3.C2.v).be.eql(items[2].value)
         should(sheet3.A3.f).be.eql('A2+DATA!C3')
         should(sheet3.B3.f).be.eql('B2+DATA!D3')
         should(sheet3.C3.f).be.eql('C2+DATA!E3')
+
+        should(sheet4['!ref']).be.eql('A2:E6')
 
         should(sheet4.A2.v).be.eql(items[0].value)
         should(sheet4.B2.v).be.eql(items[1].value)
@@ -9167,13 +9837,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference-locked-row'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference-locked-row'))
+              content: templateBuf
             }
           }
         },
@@ -9183,19 +9855,20 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
-      const sheet3 = workbook.Sheets[workbook.SheetNames[2]]
-      const sheet4 = workbook.Sheets[workbook.SheetNames[3]]
+
+      const { sheet, sheet2, sheet3, sheet4 } = parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:C4')
+
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.f).be.eql('A2+DATA!A$1')
         should(sheet.A3.v).be.eql(items[1].value)
         should(sheet.B3.f).be.eql('A3+DATA!A$1')
         should(sheet.A4.v).be.eql(items[2].value)
         should(sheet.B4.f).be.eql('A4+DATA!A$1')
+
+        should(sheet2['!ref']).be.eql('A2:C4')
 
         should(sheet2.A2.v).be.eql(items[0].value)
         should(sheet2.B2.f).be.eql('A2+DATA!B$2')
@@ -9204,12 +9877,16 @@ describe('xlsx generation - loops', () => {
         should(sheet2.A4.v).be.eql(items[2].value)
         should(sheet2.B4.f).be.eql('A4+DATA!B$2')
 
+        should(sheet3['!ref']).be.eql('A2:C4')
+
         should(sheet3.A2.v).be.eql(items[0].value)
         should(sheet3.B2.f).be.eql('A2+DATA!C$3')
         should(sheet3.A3.v).be.eql(items[1].value)
         should(sheet3.B3.f).be.eql('A3+DATA!C$3')
         should(sheet3.A4.v).be.eql(items[2].value)
         should(sheet3.B4.f).be.eql('A4+DATA!C$3')
+
+        should(sheet4['!ref']).be.eql('A2:E8')
 
         should(sheet4.A2.v).be.eql(items[0].value)
         should(sheet4.A3.v).be.eql(items[1].value)
@@ -9227,6 +9904,8 @@ describe('xlsx generation - loops', () => {
         should(sheet4.C8.f).be.eql('A8+DATA!B$2')
         should(sheet4.D8.f).be.eql('A8+DATA!C$3')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C3.v).be.eql('Value')
         should(sheet.D3.v).be.eql('Calculated')
         should(sheet.C4.v).be.eql(items[0].value)
@@ -9239,6 +9918,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D13.v).be.eql('Calculated')
         should(sheet.C14.v).be.eql(items[2].value)
         should(sheet.D14.f).be.eql('C14+DATA!A$1')
+
+        should(sheet2['!ref']).be.eql('A1:D16')
 
         should(sheet2.C3.v).be.eql('Value')
         should(sheet2.D3.v).be.eql('Calculated')
@@ -9253,6 +9934,8 @@ describe('xlsx generation - loops', () => {
         should(sheet2.C14.v).be.eql(items[2].value)
         should(sheet2.D14.f).be.eql('C14+DATA!B$4')
 
+        should(sheet3['!ref']).be.eql('A1:D16')
+
         should(sheet3.C3.v).be.eql('Value')
         should(sheet3.D3.v).be.eql('Calculated')
         should(sheet3.C4.v).be.eql(items[0].value)
@@ -9265,6 +9948,8 @@ describe('xlsx generation - loops', () => {
         should(sheet3.D13.v).be.eql('Calculated')
         should(sheet3.C14.v).be.eql(items[2].value)
         should(sheet3.D14.f).be.eql('C14+DATA!C$7')
+
+        should(sheet4['!ref']).be.eql('A2:D20')
 
         should(sheet4.A2.v).be.eql(items[0].value)
         should(sheet4.A3.v).be.eql(items[1].value)
@@ -9294,12 +9979,16 @@ describe('xlsx generation - loops', () => {
         should(sheet4.E18.f).be.eql('C18+DATA!B$4')
         should(sheet4.F18.f).be.eql('C18+DATA!C$7')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A2:C4')
+
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.v).be.eql(items[1].value)
         should(sheet.C2.v).be.eql(items[2].value)
         should(sheet.A3.f).be.eql('A2+DATA!A$1')
         should(sheet.B3.f).be.eql('B2+DATA!B$1')
         should(sheet.C3.f).be.eql('C2+DATA!C$1')
+
+        should(sheet2['!ref']).be.eql('A2:C4')
 
         should(sheet2.A2.v).be.eql(items[0].value)
         should(sheet2.B2.v).be.eql(items[1].value)
@@ -9308,12 +9997,16 @@ describe('xlsx generation - loops', () => {
         should(sheet2.B3.f).be.eql('B2+DATA!C$2')
         should(sheet2.C3.f).be.eql('C2+DATA!D$2')
 
+        should(sheet3['!ref']).be.eql('A2:C4')
+
         should(sheet3.A2.v).be.eql(items[0].value)
         should(sheet3.B2.v).be.eql(items[1].value)
         should(sheet3.C2.v).be.eql(items[2].value)
         should(sheet3.A3.f).be.eql('A2+DATA!C$3')
         should(sheet3.B3.f).be.eql('B2+DATA!D$3')
         should(sheet3.C3.f).be.eql('C2+DATA!E$3')
+
+        should(sheet4['!ref']).be.eql('A2:E6')
 
         should(sheet4.A2.v).be.eql(items[0].value)
         should(sheet4.B2.v).be.eql(items[1].value)
@@ -9346,13 +10039,15 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference-locked-column'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-existing-formula-cross-sheet-reference-locked-column'))
+              content: templateBuf
             }
           }
         },
@@ -9362,19 +10057,20 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-      const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
-      const sheet3 = workbook.Sheets[workbook.SheetNames[2]]
-      const sheet4 = workbook.Sheets[workbook.SheetNames[3]]
+
+      const { sheet, sheet2, sheet3, sheet4 } = parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A2:C4')
+
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.f).be.eql('A2+DATA!$A1')
         should(sheet.A3.v).be.eql(items[1].value)
         should(sheet.B3.f).be.eql('A3+DATA!$A2')
         should(sheet.A4.v).be.eql(items[2].value)
         should(sheet.B4.f).be.eql('A4+DATA!$A3')
+
+        should(sheet2['!ref']).be.eql('A2:C4')
 
         should(sheet2.A2.v).be.eql(items[0].value)
         should(sheet2.B2.f).be.eql('A2+DATA!$B2')
@@ -9383,12 +10079,16 @@ describe('xlsx generation - loops', () => {
         should(sheet2.A4.v).be.eql(items[2].value)
         should(sheet2.B4.f).be.eql('A4+DATA!$B4')
 
+        should(sheet3['!ref']).be.eql('A2:C4')
+
         should(sheet3.A2.v).be.eql(items[0].value)
         should(sheet3.B2.f).be.eql('A2+DATA!$C3')
         should(sheet3.A3.v).be.eql(items[1].value)
         should(sheet3.B3.f).be.eql('A3+DATA!$C4')
         should(sheet3.A4.v).be.eql(items[2].value)
         should(sheet3.B4.f).be.eql('A4+DATA!$C5')
+
+        should(sheet4['!ref']).be.eql('A2:E8')
 
         should(sheet4.A2.v).be.eql(items[0].value)
         should(sheet4.A3.v).be.eql(items[1].value)
@@ -9406,6 +10106,8 @@ describe('xlsx generation - loops', () => {
         should(sheet4.C8.f).be.eql('A8+DATA!$B4')
         should(sheet4.D8.f).be.eql('A8+DATA!$C5')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C3.v).be.eql('Value')
         should(sheet.D3.v).be.eql('Calculated')
         should(sheet.C4.v).be.eql(items[0].value)
@@ -9418,6 +10120,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.D13.v).be.eql('Calculated')
         should(sheet.C14.v).be.eql(items[2].value)
         should(sheet.D14.f).be.eql('C14+DATA!$A11')
+
+        should(sheet2['!ref']).be.eql('A1:D16')
 
         should(sheet2.C3.v).be.eql('Value')
         should(sheet2.D3.v).be.eql('Calculated')
@@ -9432,6 +10136,8 @@ describe('xlsx generation - loops', () => {
         should(sheet2.C14.v).be.eql(items[2].value)
         should(sheet2.D14.f).be.eql('C14+DATA!$B14')
 
+        should(sheet3['!ref']).be.eql('A1:D16')
+
         should(sheet3.C3.v).be.eql('Value')
         should(sheet3.D3.v).be.eql('Calculated')
         should(sheet3.C4.v).be.eql(items[0].value)
@@ -9444,6 +10150,8 @@ describe('xlsx generation - loops', () => {
         should(sheet3.D13.v).be.eql('Calculated')
         should(sheet3.C14.v).be.eql(items[2].value)
         should(sheet3.D14.f).be.eql('C14+DATA!$C17')
+
+        should(sheet4['!ref']).be.eql('A2:B20')
 
         should(sheet4.C7.v).be.eql('Value')
         should(sheet4.D7.v).be.eql('Calculated')
@@ -9470,12 +10178,16 @@ describe('xlsx generation - loops', () => {
         should(sheet4.E18.f).be.eql('C18+DATA!$B14')
         should(sheet4.F18.f).be.eql('C18+DATA!$C17')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A2:C4')
+
         should(sheet.A2.v).be.eql(items[0].value)
         should(sheet.B2.v).be.eql(items[1].value)
         should(sheet.C2.v).be.eql(items[2].value)
         should(sheet.A3.f).be.eql('A2+DATA!$A1')
         should(sheet.B3.f).be.eql('B2+DATA!$A1')
         should(sheet.C3.f).be.eql('C2+DATA!$A1')
+
+        should(sheet2['!ref']).be.eql('A2:C4')
 
         should(sheet2.A2.v).be.eql(items[0].value)
         should(sheet2.B2.v).be.eql(items[1].value)
@@ -9484,12 +10196,16 @@ describe('xlsx generation - loops', () => {
         should(sheet2.B3.f).be.eql('B2+DATA!$B2')
         should(sheet2.C3.f).be.eql('C2+DATA!$B2')
 
+        should(sheet3['!ref']).be.eql('A2:C4')
+
         should(sheet3.A2.v).be.eql(items[0].value)
         should(sheet3.B2.v).be.eql(items[1].value)
         should(sheet3.C2.v).be.eql(items[2].value)
         should(sheet3.A3.f).be.eql('A2+DATA!$C3')
         should(sheet3.B3.f).be.eql('B2+DATA!$C3')
         should(sheet3.C3.f).be.eql('C2+DATA!$C3')
+
+        should(sheet4['!ref']).be.eql('A2:E6')
 
         should(sheet4.A2.v).be.eql(items[0].value)
         should(sheet4.B2.v).be.eql(items[1].value)
@@ -9565,6 +10281,8 @@ describe('xlsx generation - loops', () => {
         return this.skip()
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-shared-formulas'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
@@ -9572,7 +10290,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-shared-formulas'))
+              content: templateBuf
             }
           }
         },
@@ -9582,10 +10300,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:V5')
+
         should(sheet.A1.v).be.eql('ID')
         should(sheet.B1.v).be.eql('Name')
         should(sheet.C1.v).be.eql('Value1')
@@ -9743,6 +10463,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.U5.f).be.eql('SUBTOTAL(109,U2:U4)')
         should(sheet.V5.f).be.eql('SUBTOTAL(109,V2:V4)')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:X13')
+
         should(sheet.C3.v).be.eql('ID')
         should(sheet.D3.v).be.eql('Name')
         should(sheet.E3.v).be.eql('Value1')
@@ -9902,6 +10624,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.W13.f).be.eql('SUBTOTAL(109,W4:W12)')
         should(sheet.X13.f).be.eql('SUBTOTAL(109,X4:X12)')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A1:E22')
+
         should(sheet.A1.v).be.eql('ID')
         should(sheet.B1.v).be.eql(items[0].ID)
         should(sheet.B1.t).be.eql('n')
@@ -10064,13 +10788,15 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age', 'Working'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-with-content-type'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-with-content-type'))
+              content: templateBuf
             }
           }
         },
@@ -10080,10 +10806,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         // test boolean, number and standard string types
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
@@ -10104,6 +10832,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.t).be.eql('b')
         should(sheet.F5.v).be.False()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         // test boolean, number and standard string types
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
@@ -10124,6 +10854,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.t).be.eql('b')
         should(sheet.F14.v).be.False()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -10143,6 +10875,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.t).be.eql('b')
         should(sheet.F5.v).be.False()
       } else {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         // test boolean, number and standard string types
         should(sheet.C3.v).be.eql(originalItems[0].name)
         should(sheet.D3.v).be.eql(originalItems[0].lastname)
@@ -10193,6 +10927,8 @@ describe('xlsx generation - loops', () => {
         items.unshift(['Name', 'Lastname', 'Age', 'Working'])
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-with-content-explicit-type'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
@@ -10203,7 +10939,7 @@ describe('xlsx generation - loops', () => {
           `,
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-with-content-explicit-type'))
+              content: templateBuf
             }
           }
         },
@@ -10213,10 +10949,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         // test boolean, number and standard string types
         should(sheet.C3.v).be.eql(items[0].name)
         should(sheet.D3.v).be.eql(items[0].lastname)
@@ -10237,6 +10975,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.t).be.eql('b')
         should(sheet.F5.v).be.False()
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         // test boolean, number and standard string types
         should(sheet.C4.v).be.eql(items[0].name)
         should(sheet.D4.v).be.eql(items[0].lastname)
@@ -10257,6 +10997,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.t).be.eql('b')
         should(sheet.F14.v).be.False()
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         should(sheet.D2.v).be.eql(items[0].name)
         should(sheet.E2.v).be.eql(items[1].name)
         should(sheet.F2.v).be.eql(items[2].name)
@@ -10276,6 +11018,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.F5.t).be.eql('b')
         should(sheet.F5.v).be.False()
       } else {
+        should(sheet['!ref']).be.eql('C2:F5')
+
         should(sheet.C3.v).be.eql(originalItems[0].name)
         should(sheet.D3.v).be.eql(originalItems[0].lastname)
         should(sheet.E3.t).be.eql('n')
@@ -10308,13 +11052,15 @@ describe('xlsx generation - loops', () => {
         })
       }
 
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-numbers-and-this'))
+
       const result = await reporter.render({
         template: {
           engine: 'handlebars',
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(getTargetXlsxFilename(mode, '-numbers-and-this'))
+              content: templateBuf
             }
           }
         },
@@ -10324,10 +11070,12 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
+        should(sheet['!ref']).be.eql('A1:F6')
+
         should(sheet.A1.v).be.eql(numbers[0])
         should(sheet.A1.t).be.eql('n')
         should(sheet.A2.v).be.eql(numbers[1])
@@ -10339,6 +11087,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.A5.v).be.eql(numbers[4])
         should(sheet.A5.t).be.eql('n')
       } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
         should(sheet.C3.v).be.eql(numbers[0])
         should(sheet.C3.t).be.eql('n')
         should(sheet.C6.v).be.eql(numbers[1])
@@ -10350,6 +11100,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.C15.v).be.eql(numbers[4])
         should(sheet.C15.t).be.eql('n')
       } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('A1:E2')
+
         should(sheet.A1.v).be.eql(numbers[0])
         should(sheet.A1.t).be.eql('n')
         should(sheet.B1.v).be.eql(numbers[1])
@@ -10361,6 +11113,8 @@ describe('xlsx generation - loops', () => {
         should(sheet.E1.v).be.eql(numbers[4])
         should(sheet.E1.t).be.eql('n')
       } else {
+        should(sheet['!ref']).be.eql('A1:A5')
+
         should(sheet.A1.v).be.eql(originalNumbers[0])
         should(sheet.A1.t).be.eql('n')
         should(sheet.A2.v).be.eql(originalNumbers[1])
@@ -10400,6 +11154,8 @@ describe('xlsx generation - loops', () => {
           items.unshift(['Name', 'Lastname', 'Age'])
         }
 
+        const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-header-cells-style-different-than-content-cells'))
+
         const result = await reporter.render({
           template: {
             engine: 'handlebars',
@@ -10409,7 +11165,7 @@ describe('xlsx generation - loops', () => {
             `,
             xlsx: {
               templateAsset: {
-                content: fs.readFileSync(getTargetXlsxFilename(mode, '-header-cells-style-different-than-content-cells'))
+                content: templateBuf
               }
             }
           },
@@ -10423,8 +11179,9 @@ describe('xlsx generation - loops', () => {
         const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
         const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
 
-        const workbook = xlsx.read(result.content)
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+        const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+        should(sheet['!ref']).be.eql('C2:E5')
 
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
@@ -10474,13 +11231,15 @@ describe('xlsx generation - loops', () => {
           items.unshift(['Name', 'Lastname', 'Age'])
         }
 
+        const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode))
+
         const result = await reporter.render({
           template: {
             engine: 'handlebars',
             recipe: 'xlsx',
             xlsx: {
               templateAsset: {
-                content: fs.readFileSync(getTargetXlsxFilename(mode))
+                content: templateBuf
               }
             }
           },
@@ -10490,8 +11249,10 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const workbook = xlsx.read(result.content)
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+        should(sheet['!ref']).be.eql('C2:E5')
 
         should(sheet.C2.v).be.eql('Name')
         should(sheet.D2.v).be.eql('Lastname')
@@ -10563,15 +11324,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -10581,8 +11344,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B14')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -10666,15 +11431,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -10684,8 +11451,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B42')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.C4.v).be.eql(categories[0].posts[0].name)
@@ -10769,15 +11538,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-vertical-loop.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-vertical-loop.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -10787,8 +11558,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B16')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.C3.v).be.eql(categories[0].posts[0].name)
@@ -10880,15 +11653,17 @@ describe('xlsx generation - loops', () => {
       return { ...item, posts }
     })
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-dynamic-loop.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-dynamic-loop.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -10898,8 +11673,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B14')
 
     should(sheet.B2.v).be.eql(originalCategories[0].name)
     should(sheet.B3.v).be.eql(originalCategories[0].posts[0].name)
@@ -10983,15 +11760,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-single-row-and-nested-single-row-loop.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-single-row-and-nested-single-row-loop.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -11001,8 +11780,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B3:F9')
 
     should(sheet.B3.v).be.eql(categories[0].name)
     should(sheet.C3.v).be.eql(categories[0].posts[0].name)
@@ -11097,6 +11878,10 @@ describe('xlsx generation - loops', () => {
       return { ...item, posts }
     })
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-single-row-and-nested-single-dynamic-loop.xlsx')
+    )
+
     return should(
       reporter.render({
         template: {
@@ -11104,9 +11889,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, 'loop-single-row-and-nested-single-dynamic-loop.xlsx')
-              )
+              content: templateBuf
             }
           }
         },
@@ -11171,6 +11954,10 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-vertical-loop.xlsx')
+    )
+
     return should(
       reporter.render({
         template: {
@@ -11178,9 +11965,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-vertical-loop.xlsx')
-              )
+              content: templateBuf
             }
           }
         },
@@ -11206,6 +11991,10 @@ describe('xlsx generation - loops', () => {
       age: 23
     }]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-row-loop.xlsx')
+    )
+
     return should(
       reporter.render({
         template: {
@@ -11213,9 +12002,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-row-loop.xlsx')
-              )
+              content: templateBuf
             }
           }
         },
@@ -11245,6 +12032,10 @@ describe('xlsx generation - loops', () => {
       return [item.name, item.lastname, item.age]
     })
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-dynamic-loop.xlsx')
+    )
+
     return should(
       reporter.render({
         template: {
@@ -11252,9 +12043,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-dynamic-loop.xlsx')
-              )
+              content: templateBuf
             }
           }
         },
@@ -11280,6 +12069,10 @@ describe('xlsx generation - loops', () => {
       age: 23
     }]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-multiple-rows-loop.xlsx')
+    )
+
     return should(
       reporter.render({
         template: {
@@ -11287,9 +12080,7 @@ describe('xlsx generation - loops', () => {
           recipe: 'xlsx',
           xlsx: {
             templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, 'loop-single-vertical-and-nested-single-multiple-rows-loop.xlsx')
-              )
+              content: templateBuf
             }
           }
         },
@@ -11357,15 +12148,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-row-and-multiple-rows-loop.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-row-and-multiple-rows-loop.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -11375,8 +12168,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B57')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql('Tags')
@@ -11502,15 +12297,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-vertical-and-multiple-rows-loop.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-vertical-and-multiple-rows-loop.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -11520,8 +12317,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B51')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql('Tags')
@@ -11655,15 +12454,17 @@ describe('xlsx generation - loops', () => {
       return { ...item, tags }
     })
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-dynamic-and-multiple-rows-loop.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-dynamic-and-multiple-rows-loop.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -11673,8 +12474,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B57')
 
     should(sheet.B2.v).be.eql(originalCategories[0].name)
     should(sheet.B3.v).be.eql('Tags')
@@ -11840,15 +12643,17 @@ describe('xlsx generation - loops', () => {
       return { ...item, collaborators }
     })
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-loops.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-loops.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -11858,8 +12663,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B150')
 
     should(sheet.B2.v).be.eql(originalCategories[0].name)
     should(sheet.B3.v).be.eql('Tags:')
@@ -12139,15 +12946,17 @@ describe('xlsx generation - loops', () => {
       return { ...item, collaborators }
     })
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-loops-and-end-of-loops-on-single-line.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-loops-and-end-of-loops-on-single-line.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -12157,8 +12966,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('A2:A110')
 
     should(sheet.A2.v).be.eql(originalCategories[0].name)
     should(sheet.B3.v).be.eql('Tags:')
@@ -12400,15 +13211,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-and-nested-loops.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-and-nested-loops.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -12418,8 +13231,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B3:L13')
 
     should(sheet.B3.v).be.eql(categories[0].name)
     should(sheet.C3.v).be.eql(categories[0].posts[0].name)
@@ -12575,15 +13390,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-merged-cells.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-merged-cells.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -12593,8 +13410,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B1:G16')
 
     should(sheet.B1.v).be.eql('merged')
     should(mergeCellExists(sheet, 'B1:C1')).be.True()
@@ -12658,15 +13477,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-merged-cells.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-merged-cells.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -12676,8 +13497,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B14')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -12768,15 +13591,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop-vertical-merged-cells.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop-vertical-merged-cells.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -12786,8 +13611,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B49')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B4.v).be.eql('Name:')
@@ -12899,15 +13726,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -12917,8 +13746,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:D19')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -13005,15 +13836,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-row-and-nested-single-row-loop-update-formula-cells-origin-before-reference-inside.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-row-and-nested-single-row-loop-update-formula-cells-origin-before-reference-inside.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13023,8 +13856,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:D22')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql('Plus10:')
@@ -13114,15 +13949,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-row-and-nested-single-row-loop-update-formula-cells-origin-before-reference-after.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-row-and-nested-single-row-loop-update-formula-cells-origin-before-reference-after.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13132,8 +13969,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:D28')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql('Plus10:')
@@ -13226,15 +14065,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-row-and-nested-single-row-loop-update-formula-cells-origin-before-reference-after-with-external.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-row-and-nested-single-row-loop-update-formula-cells-origin-before-reference-after-with-external.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13244,8 +14085,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B1:D28')
 
     should(sheet.C1.f).be.eql('10+C22')
 
@@ -13340,15 +14183,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-row-and-nested-single-row-loop-update-formula-cells-origin-before-reference-before-and-after.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-row-and-nested-single-row-loop-update-formula-cells-origin-before-reference-before-and-after.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13358,8 +14203,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:D31')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.C3.v).be.eql(20)
@@ -13455,15 +14302,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells-(end-bellow).xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells-(end-bellow).xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13473,8 +14322,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:C20')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -13564,15 +14415,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells-(inside).xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells-(inside).xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13582,8 +14435,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:C20')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -13680,15 +14535,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13698,8 +14555,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B14')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -13804,15 +14663,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop-new-vertical-formula-cells.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop-new-vertical-formula-cells.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13822,8 +14683,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B56')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B4.v).be.eql('Name:')
@@ -13963,15 +14826,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-multiple-formula-cells.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-multiple-formula-cells.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -13981,8 +14846,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B14')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -14094,15 +14961,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells-(range).xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells-(range).xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -14112,8 +14981,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B14')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -14218,15 +15089,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells-(row-absolute-reference).xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells-(row-absolute-reference).xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -14236,8 +15109,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('A1:B14')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -14342,15 +15217,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-formula-cells.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-formula-cells.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -14360,8 +15237,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:D19')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -14469,15 +15348,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-cross-sheet-reference.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-cross-sheet-reference.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -14487,8 +15368,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B14')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -14600,15 +15483,17 @@ describe('xlsx generation - loops', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-cross-sheet-reference-locked-row.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-cross-sheet-reference-locked-row.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -14618,8 +15503,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('B2:B14')
 
     should(sheet.B2.v).be.eql(categories[0].name)
     should(sheet.B3.v).be.eql(categories[0].posts[0].name)
@@ -14685,15 +15572,17 @@ describe('xlsx generation - loops', () => {
       age: 23
     }]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'table.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'table.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -14703,10 +15592,12 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
 
     const files = await decompress()(result.content)
+
+    should(sheet['!ref']).be.eql('C2:E5')
 
     should(sheet.C3.v).be.eql(items[0].name)
     should(sheet.D3.v).be.eql(items[0].lastname)
@@ -14730,13 +15621,15 @@ describe('xlsx generation - loops', () => {
   })
 
   it('invoice', async () => {
+    const templateBuf = fs.readFileSync(path.join(xlsxDirPath, 'invoice.xlsx'))
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'invoice.xlsx'))
+            content: templateBuf
           }
         }
       },
@@ -14765,8 +15658,10 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    should(sheet['!ref']).be.eql('A1:H26')
 
     // should have updated cells as expected
     should(sheet.A9.v).be.eql('Product 1')
@@ -14815,15 +15710,17 @@ describe('xlsx generation - loops', () => {
       lastname: 'Montana'
     }]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'cols-autofit.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'cols-autofit.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -14844,11 +15741,11 @@ describe('xlsx generation - loops', () => {
       files.find(f => f.path === 'xl/comments1.xml').data.toString()
     )
 
-    const workbook = xlsx.read(result.content, {
+    const { sheet } = parseSheetFromXlsxBuf(result.content, 0, {
       cellStyles: true
     })
 
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet['!ref']).be.eql('A1:B7')
 
     should(sheet.A5.v).be.eql(items[0].name)
     should(sheet.B5.v).be.eql(items[0].lastname)
@@ -14908,15 +15805,17 @@ describe('xlsx generation - loops', () => {
       lastname: 'Montana'
     }]
 
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'cols-autofit-all.xlsx')
+    )
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'xlsx',
         xlsx: {
           templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'cols-autofit-all.xlsx')
-            )
+            content: templateBuf
           }
         }
       },
@@ -14937,11 +15836,11 @@ describe('xlsx generation - loops', () => {
       files.find(f => f.path === 'xl/comments1.xml').data.toString()
     )
 
-    const workbook = xlsx.read(result.content, {
+    const { sheet } = parseSheetFromXlsxBuf(result.content, 0, {
       cellStyles: true
     })
 
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet['!ref']).be.eql('A1:B7')
 
     should(sheet.A5.v).be.eql(items[0].name)
     should(sheet.B5.v).be.eql(items[0].lastname)
@@ -15004,6 +15903,48 @@ describe('xlsx generation - loops', () => {
     should(sheet['!ref']).be.eql('A1:V4228')
   })
 })
+
+function parseSheetFromXlsxBuf (xlsxBuf, _sheetNameOrIdx, parseOpts) {
+  const workbook = xlsx.read(xlsxBuf, parseOpts)
+  let sheet
+  let refType
+  const sheetNameOrIdx = _sheetNameOrIdx ?? 0
+
+  const output = { workbook }
+  const target = []
+
+  if (!Array.isArray(sheetNameOrIdx)) {
+    target.push(sheetNameOrIdx)
+  } else {
+    target.push(...sheetNameOrIdx)
+  }
+
+  for (let idx = 0; idx < target.length; idx++) {
+    const nameOrIdx = target[idx]
+
+    if (typeof nameOrIdx === 'number') {
+      refType = 'index'
+      sheet = workbook.Sheets[workbook.SheetNames[nameOrIdx]]
+    } else {
+      refType = 'name'
+      sheet = workbook.Sheets[nameOrIdx]
+    }
+
+    if (sheet == null) {
+      throw new Error(`Sheet not found for ${refType} "${nameOrIdx}"`)
+    }
+
+    let targetName = 'sheet'
+
+    if (idx > 0) {
+      targetName += idx + 1
+    }
+
+    output[targetName] = sheet
+  }
+
+  return output
+}
 
 function getTargetXlsxFilename (_mode, name) {
   let filename

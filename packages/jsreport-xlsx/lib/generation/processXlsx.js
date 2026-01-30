@@ -4,14 +4,16 @@ const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const preprocess = require('./preprocess/preprocess')
 const postprocess = require('./postprocess/postprocess')
-const { contentIsXML, isWorksheetFile, getStyleFile } = require('../utils')
-const { decodeXML } = require('../cellUtils')
+const { parseXML, contentIsXML, isWorksheetFile, getStyleFile, serializeXmlAsHandlebarsSafeOutput } = require('../utils')
+const generationUtils = require('../generationUtils')
+const cellUtils = require('../cellUtils')
 
 module.exports = (reporter) => async (inputs, req) => {
   const { xlsxTemplateContent, options, outputPath } = inputs
 
   try {
     let files
+
     try {
       files = await decompress()(xlsxTemplateContent)
     } catch (parseTemplateError) {
@@ -27,8 +29,20 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }
 
+    const evalId = generateRandomId()
+
     const sharedData = {
-      evalId: generateRandomId(),
+      get evalId () {
+        return evalId
+      },
+      calcChainFilePath: null,
+      fileDataMap: new Map(),
+      helpers: {
+        parseXML,
+        generationUtils,
+        cellUtils
+      },
+      DOMParser,
       // expose options as a getter fn because we dont want user to be able to alter
       // these values
       options: (configName) => {
@@ -38,85 +52,81 @@ module.exports = (reporter) => async (inputs, req) => {
 
     await preprocess(files, sharedData)
 
-    const [filesToRender, styleFile] = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)))
+    const filesToEvaluate = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)))
 
-    const normalizeAttributeAndTextNode = (node) => {
-      if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
-        // we need to decode the xml entities for the attributes for handlebars to work ok
-        const str = new XMLSerializer().serializeToString(node)
-        return decodeXML(str)
-      } else if (
-        // we need to decode the xml entities in text nodes for handlebars to work ok with partials
-        node.nodeType === 3 && node.nodeValue &&
-        (node.nodeValue.includes('{{>') || node.nodeValue.includes('{{#>'))
-      ) {
-        const str = new XMLSerializer().serializeToString(node)
+    const dataTemplateParts = []
+    const xmlTemplateParts = []
+    const filesToRender = []
 
-        return str.replace(/{{#?&gt;/g, (m) => {
-          return decodeXML(m)
-        })
+    for (const f of filesToEvaluate) {
+      // we dont include the sharedStrings.xml file for handlebars processing because
+      // it contains handlebars tags that we dont care to process, because we extract the tags
+      // from its text during preprocess
+      if (f.path === 'xl/sharedStrings.xml') {
+        continue
       }
 
-      return node
-    }
+      const fileMeta = sharedData.fileDataMap.get(f.path)
 
-    let contentToRender = filesToRender.map(f => {
-      let xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
-        if (node.nodeType === 1 && node.localName === 'c' && node.hasAttribute('__CT_t__')) {
-          let callType = node.getAttribute('__CT_t__')
-          const calcChainUpdate = node.getAttribute('__CT_cCU__') === '1'
+      if (fileMeta?.dataTemplate) {
+        dataTemplateParts.push(`{{#xlsxContext type="file" path="${f.path}"}}\n${fileMeta.dataTemplate}\n{{/xlsxContext}}`)
+        delete fileMeta.dataTemplate
+      }
 
-          if (calcChainUpdate) {
-            callType = callType.toLowerCase()
-          }
-
-          node.removeAttribute('__CT_t__')
-          node.removeAttribute('__CT_cCU__')
-
-          // only remove the xmlns attribute if it comes from the spreadsheetml namespace
-          const str = new XMLSerializer().serializeToString(
-            node,
-            undefined,
-            normalizeAttributeAndTextNode
-          ).replace(/ xmlns="http:\/\/schemas\.openxmlformats\.org\/spreadsheetml\/2006\/main"/g, '')
-
-          const isSelfClosing = node.childNodes.length === 0
-          let attrs
-
-          if (isSelfClosing) {
-            const closeTagStartIdx = str.lastIndexOf('/>')
-            attrs = str.slice(2, closeTagStartIdx)
-          } else {
-            const openTagEndIdx = str.indexOf('>')
-            attrs = str.slice(2, openTagEndIdx)
-          }
-
-          return `{{${callType} ${attrs}}}`
-        }
-
-        return normalizeAttributeAndTextNode(node)
-      })
+      let xmlStr = serializeXmlAsHandlebarsSafeOutput(f.doc)
 
       xmlStr = xmlStr.replace(/<xlsxRemove>/g, '').replace(/<\/xlsxRemove>/g, '')
 
-      if (sharedData.autofitConfigured && styleFile?.path === f.path) {
-        xmlStr = `{{#_D t='style'}}${xmlStr}{{/_D}}`
+      // NOTE: we should evaluate depending on the kind of features we work on if this
+      // check still makes sense, of if we should find a better way to decide
+      // what file should be skipped from handlebars processing.
+      // skip file from handlebars processing
+      if (!xmlStr.includes('{{')) {
+        continue
       }
 
-      return xmlStr
-    }).join('$$$xlsxFile$$$')
+      xmlStr = `{{#xlsxContext type="file" path="${f.path}"}}${xmlStr}{{/xlsxContext}}`
 
-    contentToRender = `{{#xlsxContext type="global"}}${contentToRender}{{/xlsxContext}}`
+      filesToRender.push(f)
+      xmlTemplateParts.push(xmlStr)
+    }
+
+    let dataTemplateToRender = ''
+
+    if (dataTemplateParts.length > 0) {
+      dataTemplateToRender = `{{#xlsxContext type="global"}}\n${dataTemplateParts.join('\n')}\n{{/xlsxContext}}`
+    }
+
+    let xmlTemplateToRender = ''
+
+    if (xmlTemplateParts.length > 0) {
+      xmlTemplateToRender = xmlTemplateParts.join('$$$xlsxFile$$$')
+      xmlTemplateToRender = `{{#xlsxContext type="global"}}${xmlTemplateToRender}{{/xlsxContext}}`
+    }
 
     reporter.logger.debug('Starting child request to render xlsx dynamic parts for generation step', req)
 
     req.context.__xlsxSharedData = sharedData
 
-    const newContent = await reporter.templatingEngines.evaluate({
+    // execute the data template phase, in this phase we expect to render any dynamic tags of the user,
+    // the values produces from it are store in variables that are going to be used in the xml template phase
+    await reporter.templatingEngines.evaluate({
       engine: req.template.engine,
-      content: contentToRender,
+      content: dataTemplateToRender,
       helpers: req.template.helpers,
       data: req.data
+    }, {
+      entity: req.template,
+      entitySet: 'templates'
+    }, req)
+
+    // execute the xml template phase, in this phase we expect to produce the final content of the
+    // xml files
+    const newContent = await reporter.templatingEngines.evaluate({
+      engine: req.template.engine,
+      content: xmlTemplateToRender,
+      helpers: req.template.helpers,
+      data: {}
     }, {
       entity: req.template,
       entitySet: 'templates'
@@ -129,6 +139,7 @@ module.exports = (reporter) => async (inputs, req) => {
 
     for (let i = 0; i < filesToRender.length; i++) {
       filesToRender[i].data = contents[i]
+
       // don't parse the sheets file, because after the templating engine execution
       // those documents can be a lot more bigger and parsing such big document is a performance
       // kill for the process
@@ -219,5 +230,5 @@ function ensureOrderOfFiles (files) {
     filesSorted.push(files[calcChainIdx])
   }
 
-  return [filesSorted, styleFile]
+  return filesSorted
 }

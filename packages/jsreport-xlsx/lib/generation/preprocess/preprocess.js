@@ -1,9 +1,25 @@
 const concatTags = require('./concatTags')
-const loop = require('./loop')
-const drawingObject = require('./drawingObject')
+const loop = require('./loop/loop')
+const drawingObject = require('./drawingObject/drawingObject')
 
 module.exports = (files, sharedData) => {
-  concatTags(files)
-  loop(files, sharedData)
-  drawingObject(files)
+  const endCallbacks = []
+
+  const addEndCallback = (cb) => {
+    endCallbacks.push(cb)
+  }
+
+  const parameters = {
+    files,
+    sharedData,
+    addEndCallback
+  }
+
+  concatTags(parameters)
+  loop(parameters)
+  drawingObject(parameters)
+
+  for (const endCallback of endCallbacks) {
+    endCallback()
+  }
 }

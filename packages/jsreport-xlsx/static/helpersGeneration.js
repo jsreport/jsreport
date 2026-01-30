@@ -1,35 +1,40 @@
+/* global structuredClone */
 /* eslint no-unused-vars: 0 */
 
-function xlsxColAutofit (options) {
-  if (
-    options?.data?.meta?.autofit?.enabledFor?.length > 0 &&
-    options.hash.all === true
-  ) {
-    options.data.meta.autofit.enabledFor = [true]
-  }
+function xlsxContext (options) {
+  const Handlebars = require('handlebars')
+  const { type: contextType, path: xlsxFilePath } = options.hash
+  let data
 
-  const enabledFor = options?.data?.meta?.autofit?.enabledFor ?? []
-  const allColsEnabled = enabledFor[0] === true
+  if (contextType === 'global') {
+    const jsreport = require('jsreport-proxy')
+    data = Handlebars.createFrame(options.data)
+    data.evalId = jsreport.req.context.__xlsxSharedData.evalId
+  } else if (contextType === 'file') {
+    const jsreport = require('jsreport-proxy')
+    const fileData = jsreport.req.context.__xlsxSharedData.fileDataMap.get(xlsxFilePath)
 
-  if (!allColsEnabled) {
-    const cols = options?.data?.meta?.autofit?.cols ?? {}
+    data = Handlebars.createFrame(options.data)
 
-    for (const colLetter of Object.keys(cols)) {
-      // remove cells that are not enabled for autofit
-      if (!enabledFor.includes(colLetter)) {
-        delete cols[colLetter]
-      }
+    if (fileData?.dataVariables != null) {
+      Object.assign(data, fileData.dataVariables)
     }
+
+    data.xlsxFilePath = xlsxFilePath
   }
 
-  return ''
+  const context = {}
+
+  if (data) {
+    context.data = data
+  }
+
+  const result = options.fn(this, context)
+
+  return result
 }
 
 function xlsxCType (options) {
-  if (!Object.hasOwn(options.data, 'cellType')) {
-    return ''
-  }
-
   const type = options.hash.t
 
   if (type == null) {
@@ -47,8 +52,34 @@ function xlsxCType (options) {
   return ''
 }
 
+function xlsxColAutofit (options) {
+  const jsreport = require('jsreport-proxy')
+  const { runtime } = jsreport.req.context.__xlsxSharedData.fileDataMap.get(options.data.xlsxFilePath)
+
+  if (
+    runtime.autoFit.enabledFor.length > 0 &&
+    options.hash.all === true
+  ) {
+    runtime.autoFit.enabledFor = [true]
+  }
+
+  const allColsEnabled = runtime.autoFit.enabledFor[0] === true
+
+  if (!allColsEnabled) {
+    for (const [colLetter] of runtime.autoFit.cols) {
+      // remove cells that are not enabled for autofit
+      if (!runtime.autoFit.enabledFor.includes(colLetter)) {
+        runtime.autoFit.cols.delete(colLetter)
+      }
+    }
+  }
+
+  return ''
+}
+
 function xlsxChart (options) {
-  const Handlebars = require('handlebars')
+  const jsreport = require('jsreport-proxy')
+  const { runtime } = jsreport.req.context.__xlsxSharedData.fileDataMap.get(options.data.xlsxFilePath)
 
   if (options.hash.data == null) {
     throw new Error('xlsxChart helper requires data parameter to be set')
@@ -72,220 +103,84 @@ function xlsxChart (options) {
     throw new Error('xlsxChart helper when options parameter is set, it should be an object')
   }
 
-  return new Handlebars.SafeString(`$xlsxChart${Buffer.from(JSON.stringify(options.hash)).toString('base64')}$`)
-}
+  runtime.configuration.data = options.hash.data
+  runtime.configuration.options = options.hash.options
 
-function xlsxContext (options) {
-  const Handlebars = require('handlebars')
-  let data
-
-  if (options.hash.type === 'global') {
-    const jsreport = require('jsreport-proxy')
-    data = Handlebars.createFrame(options.data)
-    data.evalId = jsreport.req.context.__xlsxSharedData.evalId
-    data.calcChainUpdatesMap = new Map()
-    data.styleInfo = null
-    data.styleFontSizeMap = new Map()
-  }
-
-  const context = {}
-
-  if (data) {
-    context.data = data
-  }
-
-  const result = options.fn(this, context)
-
-  return result
+  return ''
 }
 
 const __xlsxD = (function () {
-  function ws (options) {
-    const Handlebars = require('handlebars')
-    const newData = Handlebars.createFrame(options.data)
-    const sheetId = options.hash.sheetId
+  let __assetOkHelper
 
-    assertOk(sheetId != null, 'sheetId arg is required')
+  function assertOk (...args) {
+    let fn
 
-    newData.sheetId = sheetId
+    if (__assetOkHelper == null) {
+      const { helpers: { generationUtils } } = getSharedData()
+      __assetOkHelper = generationUtils.assertOk
+      fn = generationUtils.assertOk
+    } else {
+      fn = __assetOkHelper
+    }
 
-    const tasks = new Map()
+    return fn(...args)
+  }
 
-    newData.tasks = {
-      wait (key) {
-        return tasks.get(key)?.promise
-      },
-      add (key) {
-        let taskExecution = tasks.get(key)
+  function getSharedData () {
+    const jsreport = require('jsreport-proxy')
 
-        if (taskExecution != null) {
-          return [taskExecution.resolve, taskExecution.reject]
-        }
+    if (jsreport.req.context.__xlsxSharedData == null) {
+      throw new Error('__xlsxSharedData needs to exists on request context')
+    }
 
-        taskExecution = {}
+    return jsreport.req.context.__xlsxSharedData
+  }
 
-        taskExecution.promise = new Promise((resolve, reject) => {
-          taskExecution.resolve = resolve
-          taskExecution.reject = reject
+  function getFileData (xlsxFilePath) {
+    assertOk(xlsxFilePath != null, 'xlsxFilePath needs to exists on internal data')
+
+    const { fileDataMap } = getSharedData()
+
+    assertOk(fileDataMap != null, 'fileDataMap needs to exists on internal data')
+
+    return fileDataMap.get(xlsxFilePath)
+  }
+
+  // helper to allow ignoring handlebars tags in specific cases
+  function raw (options) {
+    return options.fn()
+  }
+
+  function staticRange (options) {
+    const startElementIdx = options.hash.start
+    const endElementIdx = options.hash.end
+
+    assertOk(startElementIdx != null, 'start arg is required')
+    assertOk(endElementIdx != null, 'end arg is required')
+
+    const { templateItems } = getFileData(options.data.xlsxFilePath)
+
+    for (let elementIdx = startElementIdx; elementIdx <= endElementIdx; elementIdx++) {
+      const elementItem = templateItems.data[elementIdx]
+      const elementItemType = elementItem.type ?? 'row'
+
+      if (elementItemType === 'row') {
+        const elementItemMeta = templateItems.elementMetaMap.get(elementItem)
+
+        options.fn({
+          rowNumber: elementItem.id,
+          cells: [...elementItemMeta.columnLetterChildrenMap.keys()]
         })
-
-        tasks.set(key, taskExecution)
-
-        return [taskExecution.resolve, taskExecution.reject]
+      } else {
+        throw new Error(`staticRange helper does not support element item type "${elementItemType}"`)
       }
     }
 
-    // init tasks
-    newData.tasks.add('sd')
-
-    newData.meta = {
-      calcChainCellRefsSet: null,
-      autofit: {
-        cols: {},
-        enabledFor: null
-      },
-      mergeCells: [],
-      trackedCells: null,
-      nonExistingCellsByLoopHierarchyMap: null,
-      updatedOriginalCells: {},
-      lazyFormulas: {
-        pending: {
-          notCompletedLoops: new Map(),
-          cellsToFormulaRefs: new Map(),
-          tasks: new Map()
-        },
-        data: new Map()
-      },
-      lastCellRef: null
-    }
-
-    newData.loopItems = []
-    newData.evaluatedLoopsIds = []
-    newData.outOfLoopTemplates = Object.create(null)
-    newData.cellTemplatesMap = new Map()
-
-    return options.fn(this, { data: newData })
+    return ''
   }
 
-  function sd (options) {
-    const [resolveTask, rejectTask] = options.data.tasks.add('sd')
-
-    try {
-      const Handlebars = require('handlebars')
-
-      options.data.meta.calcChainCellRefsSet = new Set(options.hash.calcChainCellRefs != null ? options.hash.calcChainCellRefs.split(',') : [])
-
-      const nonExistingCellRefs = options.hash.nonExistingCellRefs != null ? options.hash.nonExistingCellRefs.split(',') : []
-      const autofitEnabledFor = options.hash.autofit != null ? options.hash.autofit.split(',') : []
-
-      const autofitBaseCols = options.hash.autofitBCols != null
-        ? options.hash.autofitBCols.split(',').map((entry) => {
-            const [colLetter, size] = entry.split(':')
-            return [colLetter, parseFloat(size)]
-          })
-        : []
-
-      for (const [colLetter, size] of autofitBaseCols) {
-        options.data.meta.autofit.cols[colLetter] = {
-          size
-        }
-      }
-
-      const trackedCells = {}
-      const nonExistingCellsByLoopHierarchyMap = new Map()
-
-      if (nonExistingCellRefs.length > 0) {
-        for (const data of nonExistingCellRefs) {
-          const parts = data.split('|')
-          const ref = parts[0]
-          let fromNonExistingLoopHierarchyId
-
-          if (parts.length === 2) {
-            fromNonExistingLoopHierarchyId = parts[1]
-          }
-
-          trackedCells[ref] = {
-            first: ref,
-            last: ref,
-            count: 0
-          }
-
-          if (fromNonExistingLoopHierarchyId == null) {
-            continue
-          }
-
-          let collection
-
-          if (nonExistingCellsByLoopHierarchyMap.has(fromNonExistingLoopHierarchyId)) {
-            collection = nonExistingCellsByLoopHierarchyMap.get(fromNonExistingLoopHierarchyId)
-          } else {
-            collection = []
-            nonExistingCellsByLoopHierarchyMap.set(fromNonExistingLoopHierarchyId, collection)
-          }
-
-          const item = {
-            ref,
-            trackedCell: trackedCells[ref]
-          }
-
-          collection.push(item)
-
-          // we set empty string here, just as a signal that this is going to be set
-          // at runtime
-          trackedCells[ref].currentLoopId = ''
-          trackedCells[ref].fromNonExistingLoopHierarchyId = fromNonExistingLoopHierarchyId
-        }
-      }
-
-      options.data.meta.autofit.enabledFor = autofitEnabledFor
-      options.data.meta.trackedCells = trackedCells
-      options.data.meta.nonExistingCellsByLoopHierarchyMap = nonExistingCellsByLoopHierarchyMap
-
-      const result = options.fn(this, { data: options.data })
-      resolveTask()
-      return result
-    } catch (e) {
-      rejectTask(e)
-      throw e
-    }
-  }
-
-  // this helper is async on purpose so it can wait for the sd helper to finish.
-  // this is needed because the dimension tag appears before the sheetData tag and
-  // we want to keep to logic for updating this node in handlebars
-  async function dimension (options) {
-    const originalCellRefRange = options.hash.o
-
-    assertOk(originalCellRefRange != null, 'originalCellRefRange arg is required')
-
-    await options.data.tasks.wait('sd')
-
-    const refsParts = originalCellRefRange.split(':')
-
-    if (refsParts.length === 1) {
-      return refsParts[0]
-    }
-
-    const { parseCellRef } = require('cellUtils')
-    const lastCellRef = options.data.meta.lastCellRef
-    const parsedEndCellRef = parseCellRef(refsParts[1])
-    const parsedLastCellRef = parseCellRef(lastCellRef)
-
-    let dimensionLetter = parsedEndCellRef.letter
-
-    if (parsedLastCellRef.columnNumber > parsedEndCellRef.columnNumber) {
-      dimensionLetter = parsedLastCellRef.letter
-    }
-
-    let dimensionRowNumber = parsedEndCellRef.rowNumber
-
-    if (parsedLastCellRef.rowNumber > parsedEndCellRef.rowNumber) {
-      dimensionRowNumber = parsedLastCellRef.rowNumber
-    }
-
-    return `${refsParts[0]}:${dimensionLetter}${dimensionRowNumber}`
-  }
-
+  // executes a different types of loops over data and tracks the loop information in the internal data
+  // to update row, cell indexes
   function loop (...args) {
     let data
     let options
@@ -305,9 +200,11 @@ const __xlsxD = (function () {
     const end = options.hash.end
     const columnEnd = options.hash.columnEnd
     const hierarchyId = options.hash.hierarchyId
-    const nonExistingCellsByLoopHierarchyMap = options.data.meta.nonExistingCellsByLoopHierarchyMap
     const newData = Handlebars.createFrame(options.data)
     const isVertical = Object.hasOwn(options.hash, 'vertical')
+
+    const { helpers: { generationUtils: { getParentLoopItemByHierarchy } } } = getSharedData()
+    const { runtime } = getFileData(options.data.xlsxFilePath)
 
     assertOk(start != null, 'start arg is required')
     assertOk(columnStart != null, 'columnStart arg is required')
@@ -364,14 +261,14 @@ const __xlsxD = (function () {
       loopItem.trackedCells = new Map()
     }
 
-    const parentLoopItem = getParentLoopItemByHierarchy(loopItem, newData.loopItems)
+    const parentLoopItem = getParentLoopItemByHierarchy(loopItem, runtime.loops.data)
 
     let container
 
     if (parentLoopItem) {
       container = parentLoopItem.children
     } else {
-      container = newData.loopItems
+      container = runtime.loops.data
     }
 
     loopItem.id = `${parentLoopItem != null ? `${parentLoopItem.id}#` : ''}${container.length}`
@@ -379,13 +276,15 @@ const __xlsxD = (function () {
     container.push(loopItem)
 
     newData.currentLoopId = loopItem.id
-    newData.evaluatedLoopsIds.push(loopItem.id)
 
-    const nonExistingCellsInCurrentLoop = nonExistingCellsByLoopHierarchyMap.get(hierarchyId) ?? []
+    runtime.loops.evaluated.push(loopItem.id)
+
+    const nonExistingCellsInCurrentLoop = runtime.loops.nonExistingCellRefsByLoopHierarchy.get(hierarchyId) ?? []
 
     // updating the currentLoopId for the non existing cells that are part of this loop
-    for (const item of nonExistingCellsInCurrentLoop) {
-      item.trackedCell.currentLoopId = loopItem.id
+    for (const nonExistingCellRef of nonExistingCellsInCurrentLoop) {
+      const trackedCell = runtime.trackedCells.get(nonExistingCellRef)
+      trackedCell.currentLoopId = loopItem.id
     }
 
     const dynamicCells = customCells || customCellsForColumns
@@ -393,8 +292,6 @@ const __xlsxD = (function () {
     if (dynamicCells && !Array.isArray(targetData)) {
       throw new Error(`Invalid data to generate dynamic cells. data for ${customCells ? 'rows' : 'columns'} is not an array`)
     }
-
-    const chunks = []
 
     for (let i = 0; i < targetData.length; i++) {
       newData.index = i
@@ -420,80 +317,51 @@ const __xlsxD = (function () {
         dataForItem = dataForItem.value ?? ''
       }
 
-      const addBlockParams = options.fn.blockParams != null && options.fn.blockParams > 0
-
       const newOptions = {
         ...options,
         data: newData
       }
 
+      const addBlockParams = options.fn.blockParams != null && options.fn.blockParams > 0
+
       if (addBlockParams) {
-        // propagate the expected block params from the loop, this is going to be
-        // used in cell templates
-        newData.blockParams = [dataForItem, newData.key].slice(0, options.fn.blockParams)
+        // since we use our custom loop helper (not the built-in each)
+        // we need propagate the expected block params from the loop in order
+        // for the body of the loop helper to render the values appropriately.
+        // we detect if the user is expecting block params by checking options.fn.blockParams
+        newOptions.blockParams = [dataForItem, newData.key].slice(0, options.fn.blockParams)
       }
 
-      chunks.push(options.fn(dataForItem, newOptions))
+      options.fn(dataForItem, newOptions)
     }
-
-    const result = new Handlebars.SafeString(chunks.join(''))
 
     loopItem.completed = true
 
-    return result
+    return ''
   }
 
   loop.dynamicParameters = true
 
-  function outOfLoop (options) {
+  // stores values generated when rendering data template
+  function r (originalRowNumber, options) {
     const Handlebars = require('handlebars')
-    const item = options.hash.item
-
-    assertOk(item != null, 'item arg is required')
-
-    options.data.outOfLoopTemplates[item] = (currentLoopId, currentIdx) => {
-      const newData = Handlebars.createFrame(options.data)
-
-      newData.currentLoopId = currentLoopId
-
-      if (currentIdx != null) {
-        newData.index = currentIdx
-      }
-
-      return options.fn(this, { data: newData })
-    }
-
-    return new Handlebars.SafeString('')
-  }
-
-  function outOfLoopPlaceholder (options) {
-    const Handlebars = require('handlebars')
-    const item = options.hash.item
-
-    assertOk(item != null, 'item arg is required')
-
-    const outOfLoopTemplate = options.data.outOfLoopTemplates[item]
-
-    assertOk(outOfLoopTemplate != null, 'outOfLoopItem was not found')
-
-    const currentLoopId = options.data.currentLoopId
-
-    assertOk(currentLoopId != null, 'currentLoopId not found')
-
-    const currentIdx = options.data.index
-
-    const output = outOfLoopTemplate(currentLoopId, currentIdx)
-
-    return new Handlebars.SafeString(output)
-  }
-
-  function r (options) {
-    const Handlebars = require('handlebars')
-    const originalRowNumber = options.hash.o
+    const { helpers: { generationUtils: { getIncrementWithLoop, updateMergeCells } } } = getSharedData()
+    const { runtime, templateItems, mergeCellItems, dataItems } = getFileData(options.data.xlsxFilePath)
 
     assertOk(originalRowNumber != null, 'originalRowNumber arg is required')
 
-    const newData = Handlebars.createFrame(options.data)
+    const rowElementIdx = templateItems.rowNumberElementIdxMap.get(originalRowNumber)
+    const rowElementItem = templateItems.data[rowElementIdx]
+
+    if (rowElementItem == null) {
+      throw new Error(`No element row found at index ${rowElementIdx}`)
+    }
+
+    const elementType = rowElementItem.type ?? 'row'
+
+    if (elementType !== 'row') {
+      throw new Error(`Element at index ${rowElementIdx} is not a row`)
+    }
 
     const {
       increment: rowIncrement,
@@ -503,71 +371,115 @@ const __xlsxD = (function () {
     } = getIncrementWithLoop(
       'row',
       {
-        loopId: newData.currentLoopId,
+        loopId: options.data.currentLoopId,
         loopIndex: options.data.index,
-        evaluatedLoopsIds: newData.evaluatedLoopsIds,
-        loopItems: newData.loopItems
+        evaluatedLoopsIds: runtime.loops.evaluated,
+        loopItems: runtime.loops.data
       }
     )
 
+    const newRowNumber = originalRowNumber + rowIncrement
+
+    const newRowItem = { idx: rowElementIdx, r: newRowNumber, cells: [] }
+
+    dataItems.push(newRowItem)
+
+    const newData = Handlebars.createFrame(options.data)
+
     newData.originalRowNumber = originalRowNumber
-    newData.r = originalRowNumber + rowIncrement
+    newData.r = newRowNumber
     // only a value that represents the increment of previous loops defined before the cell
     newData.rowPreviousLoopIncrement = rowPreviousRootLoopIncrement
     // this is a value that represents all the executions of the current loop (considering nested loops too)
     newData.rowCurrentLoopIncrement = rowCurrentLoopIncrement + (rowPreviousLoopIncrement - rowPreviousRootLoopIncrement)
 
-    newData.originalColumnLetter = null
-    newData.originalCellRef = null
-    newData.l = null
-    newData.currentCellRef = null
-    newData.columnPreviousLoopIncrement = null
-    newData.columnCurrentLoopIncrement = null
+    newData.cellOutputsMap = new Map()
 
-    const result = options.fn(this, { data: newData })
+    options.fn(this, { ...options, data: newData })
 
-    return result
-  }
+    const mergeStartLetterMap = templateItems.elementMetaMap.get(rowElementItem).mergeStartLetterMap ?? new Map()
 
-  function c (info, options) {
-    const Handlebars = require('handlebars')
-    const originalRowNumber = options.data.originalRowNumber
-    const rowNumber = options.data.r
-    const trackedCells = options.data.meta.trackedCells
-    const lazyFormulas = options.data.meta.lazyFormulas
-    const { type, originalCellLetter, calcChainUpdate } = info
-
-    const generateCellTag = type === 'autodetect'
-    assertOk(originalRowNumber != null, 'originalRowNumber needs to exists on internal data')
-    assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
-    assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
-    assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
-
-    const { parseCellRef, getNewCellLetter } = require('cellUtils')
-    const originalCellRef = `${originalCellLetter}${originalRowNumber}`
-
-    // check if the pending not completed loops are done, if so,
-    // resolve pending lazy formulas
-    if (lazyFormulas.pending.notCompletedLoops.size > 0) {
-      const targetLoopIds = [...lazyFormulas.pending.notCompletedLoops.keys()]
-
-      for (const loopId of targetLoopIds) {
-        const lazyCellRefs = lazyFormulas.pending.notCompletedLoops.get(loopId)
-        const loopItem = getCurrentLoopItem(loopId, options.data.loopItems)
-
-        if (!loopItem.completed) {
-          continue
+    // we resolve merge cells on the row level, because there can be merge cells definitions
+    // that reference cells that does not exists
+    // (cell tag not present only empty row tag in xml)
+    if (newData.cellOutputsMap.size === 0) {
+      for (const [cellLetter, mergeCellRef] of mergeStartLetterMap) {
+        updateMergeCells(mergeCellItems, mergeCellRef, {
+          letter: cellLetter,
+          rowNumber: newRowNumber
+        })
+      }
+    } else {
+      for (const [cellLetter, { originalCellLetter, output }] of newData.cellOutputsMap) {
+        const newCellInfo = {
+          r: cellLetter,
+          output
         }
 
-        for (const [lazyCellRef, lazyFormulaIds] of lazyCellRefs) {
-          for (const lazyFormulaId of lazyFormulaIds) {
-            tryToResolvePendingLazyFormula(lazyFormulaId, lazyCellRef, lazyFormulas, trackedCells, options.data.loopItems)
-          }
+        // check if there were merge cells affecting the original cell, if yes,
+        // add new merge cell
+        const mergeCellRef = mergeStartLetterMap.get(originalCellLetter)
+
+        if (mergeCellRef) {
+          updateMergeCells(mergeCellItems, mergeCellRef, {
+            letter: cellLetter,
+            rowNumber: newRowNumber
+          })
         }
 
-        lazyFormulas.pending.notCompletedLoops.delete(loopId)
+        // to minimize the amount of values we store
+        // (considering that there can be a lot of cells in a xlsx)
+        // we only put .oldR if it is different than the generated r
+        if (cellLetter !== originalCellLetter) {
+          newCellInfo.oldR = originalCellLetter
+        }
+
+        newRowItem.cells.push(newCellInfo)
       }
     }
+
+    return ''
+  }
+
+  // stores values generated when rendering data template
+  function c (originalCellLetter, options) {
+    const Handlebars = require('handlebars')
+
+    const {
+      originalRowNumber,
+      r: rowNumber,
+      cellOutputsMap
+    } = options.data
+
+    assertOk(originalRowNumber != null, 'originalRowNumber needs to exists on internal data')
+    assertOk(rowNumber != null, 'r needs to exists on internal data')
+    assertOk(cellOutputsMap != null, 'cellOutputsMap needs to exists on internal data')
+
+    assertOk(originalCellLetter != null, 'originalCellLetter arg is required')
+
+    const {
+      calcChainFilePath,
+      helpers: {
+        parseXML,
+        generationUtils: {
+          getIncrementWithLoop, getCurrentLoopItem, updateDimension,
+          getNewFormula, tryToResolvePendingLazyFormula
+        },
+        cellUtils: {
+          parseCellRef, getColumnFor, generateNewCellRefFrom, evaluateCellRefsFromExpression,
+          getFontSizeFromStyle, getPixelWidthOfValue
+        }
+      }
+    } = getSharedData()
+
+    const { templateItems, runtime } = getFileData(options.data.xlsxFilePath)
+
+    const rowElementItem = templateItems.data[templateItems.rowNumberElementIdxMap.get(originalRowNumber)]
+    const rowElementItemMetadata = templateItems.elementMetaMap.get(rowElementItem)
+
+    const cellElementMetadata = templateItems.elementMetaMap.get(
+      rowElementItem.children[rowElementItemMetadata.columnLetterChildrenMap.get(originalCellLetter)]
+    )
 
     const {
       increment: columnIncrement,
@@ -579,62 +491,63 @@ const __xlsxD = (function () {
       {
         loopId: options.data.currentLoopId,
         loopIndex: options.data.index,
-        rowNumber: options.data.r,
-        evaluatedLoopsIds: options.data.evaluatedLoopsIds,
-        loopItems: options.data.loopItems
+        rowNumber,
+        evaluatedLoopsIds: runtime.loops.evaluated,
+        loopItems: runtime.loops.data
       }
     )
 
-    const cellLetter = getNewCellLetter(
+    const [columnLetter, columnNumber] = getColumnFor(
       originalCellLetter,
       columnIncrement
     )
 
-    const updatedCellRef = `${cellLetter}${rowNumber}`
+    const updatedCellRef = `${columnLetter}${rowNumber}`
 
-    // keeping the lastCellRef updated
-    if (options.data.meta.lastCellRef == null) {
-      options.data.meta.lastCellRef = updatedCellRef
-    } else {
-      const parsedLastCellRef = parseCellRef(options.data.meta.lastCellRef)
-      const parsedUpdatedCellRef = parseCellRef(updatedCellRef)
+    updateDimension(runtime, { rowNumber, columnNumber })
 
-      if (
-        (parsedUpdatedCellRef.rowNumber === parsedLastCellRef.rowNumber &&
-        parsedUpdatedCellRef.columnNumber > parsedLastCellRef.columnNumber) ||
-        (parsedUpdatedCellRef.rowNumber > parsedLastCellRef.rowNumber)
-      ) {
-        options.data.meta.lastCellRef = updatedCellRef
+    const originalCellRef = originalCellLetter + originalRowNumber
+
+    // check if the pending not completed loops are done, if so,
+    // resolve pending lazy formulas
+    if (runtime.lazyFormulas.pending.notCompletedLoops.size > 0) {
+      const targetLoopIds = [...runtime.lazyFormulas.pending.notCompletedLoops.keys()]
+
+      for (const loopId of targetLoopIds) {
+        const lazyCellRefToFormulas = runtime.lazyFormulas.pending.notCompletedLoops.get(loopId)
+        const loopItem = getCurrentLoopItem(loopId, runtime.loops.data)
+
+        if (!loopItem.completed) {
+          continue
+        }
+
+        for (const [lazyCellRef, lazyFormulaIds] of lazyCellRefToFormulas) {
+          for (const lazyFormulaId of lazyFormulaIds) {
+            tryToResolvePendingLazyFormula(lazyFormulaId, lazyCellRef, runtime.lazyFormulas, runtime.trackedCells, runtime.loops.data)
+          }
+        }
+
+        runtime.lazyFormulas.pending.notCompletedLoops.delete(loopId)
       }
     }
 
-    let shouldUpdateOriginalCell
+    let trackedCell = runtime.trackedCells.get(originalCellRef)
 
-    // if we are in loop then don't add item to updatedOriginalCells
-    if (options.data.currentLoopId != null) {
-      shouldUpdateOriginalCell = false
-    } else {
-      shouldUpdateOriginalCell = originalCellRef !== updatedCellRef && options.data.meta.updatedOriginalCells[originalCellRef] == null
+    if (!trackedCell) {
+      trackedCell = { first: null, last: null, count: 0 }
+      runtime.trackedCells.set(originalCellRef, trackedCell)
     }
 
-    if (shouldUpdateOriginalCell) {
-      // keeping a registry of the original cells that were updated
-      options.data.meta.updatedOriginalCells[originalCellRef] = updatedCellRef
-    }
-
-    trackedCells[originalCellRef] = trackedCells[originalCellRef] || { first: null, last: null, count: 0 }
-
-    const lazyFormulaIds = lazyFormulas.pending.cellsToFormulaRefs.get(originalCellRef) || []
+    const lazyFormulaIdsForCell = runtime.lazyFormulas.pending.cellsToFormulaIds.get(originalCellRef) || []
     let targetLazyFormulas = []
-    const isPartOfLazyFormula = lazyFormulaIds.length > 0
+    const isPartOfLazyFormula = lazyFormulaIdsForCell.length > 0
 
     let loopItem
 
     if (options.data.currentLoopId != null) {
-      loopItem = getCurrentLoopItem(options.data.currentLoopId, options.data.loopItems)
+      loopItem = getCurrentLoopItem(options.data.currentLoopId, runtime.loops.data)
 
       if (loopItem?.type === 'vertical') {
-        const parsedUpdatedCellRef = parseCellRef(updatedCellRef)
         let item
 
         if (loopItem.trackedCells.has(originalCellRef)) {
@@ -644,17 +557,17 @@ const __xlsxD = (function () {
           loopItem.trackedCells.set(originalCellRef, item)
         }
 
-        item.set(parsedUpdatedCellRef.letter, updatedCellRef)
+        item.set(columnLetter, updatedCellRef)
       }
 
-      trackedCells[originalCellRef].currentLoopId = options.data.currentLoopId
+      trackedCell.currentLoopId = options.data.currentLoopId
     }
 
     if (isPartOfLazyFormula) {
-      targetLazyFormulas = lazyFormulaIds.map((lazyFormulaId) => {
-        const lazyFormula = lazyFormulas.data.get(lazyFormulaId)
+      targetLazyFormulas = lazyFormulaIdsForCell.map((lazyFormulaId) => {
+        const lazyFormula = runtime.lazyFormulas.data.get(lazyFormulaId)
 
-        const originCellLoopId = trackedCells[lazyFormula.originCellRef]?.currentLoopId
+        const originCellLoopId = runtime.trackedCells.get(lazyFormula.originCellRef)?.currentLoopId
         let inSameLoopLevel
 
         // check if the referenced cell is at same level than the origin formula cell
@@ -678,47 +591,54 @@ const __xlsxD = (function () {
       })
     }
 
-    if (trackedCells[originalCellRef].first == null) {
-      trackedCells[originalCellRef].first = updatedCellRef
+    if (trackedCell.first == null) {
+      trackedCell.first = updatedCellRef
     }
 
-    trackedCells[originalCellRef].last = updatedCellRef
-    trackedCells[originalCellRef].count += 1
+    trackedCell.last = updatedCellRef
+    trackedCell.count += 1
 
-    if (calcChainUpdate) {
-      const sheetId = options.data.sheetId
+    // update calChain if the cell was referenced
+    if (calcChainFilePath != null && cellElementMetadata?.calcChainElementIdx != null) {
+      const { dataItems: calcChainDataItems } = getFileData(calcChainFilePath)
 
-      const cellRefKey = `${sheetId}-${originalCellRef}`
+      calcChainDataItems.push({
+        idx: cellElementMetadata.calcChainElementIdx,
+        r: updatedCellRef
+      })
+    }
 
-      let calcChainUpdatesForCellRef = options.data.calcChainUpdatesMap.get(cellRefKey)
+    // update table ref if the cell is part of a table ref
+    if (cellElementMetadata?.tableRef != null) {
+      const tableRef = cellElementMetadata.tableRef
+      const tableRefParts = cellElementMetadata.tableRef.split(':')
+      const type = originalCellRef === tableRefParts[0] ? 'start' : 'end'
 
-      if (calcChainUpdatesForCellRef == null) {
-        calcChainUpdatesForCellRef = []
-        options.data.calcChainUpdatesMap.set(cellRefKey, calcChainUpdatesForCellRef)
+      const tableRefMeta = runtime.tables.refsMeta.get(tableRef)
+      const tableFilePath = runtime.tables.filePaths[tableRefMeta.tableFilePathIdx]
+
+      const { dataVariables: tableDataVariables } = getFileData(tableFilePath)
+      let newTableRef
+
+      if (type === 'start') {
+        newTableRef = `${trackedCell.last}:${tableRefParts[1]}`
+      } else {
+        newTableRef = `${tableRefParts[0]}:${trackedCell.last}`
       }
 
-      calcChainUpdatesForCellRef.push(updatedCellRef)
+      tableDataVariables[tableRefMeta.dataVariableName] = newTableRef
     }
 
-    options.data.originalColumnLetter = originalCellLetter
-    options.data.originalCellRef = originalCellRef
-    options.data.l = cellLetter
-    options.data.currentCellRef = updatedCellRef
-    // only a value that represents the increment of previous loops defined before the cell
-    options.data.columnPreviousLoopIncrement = columnPreviousRootLoopIncrement
-    // this is a value that represents all the executions of the current loop (considering nested loops too)
-    options.data.columnCurrentLoopIncrement = columnCurrentLoopIncrement + (columnPreviousLoopIncrement - columnPreviousRootLoopIncrement)
-
-    // we try to resolve lazy formulas here
+    // we try to resolve lazy formulas here if any
     for (const targetLazyFormula of targetLazyFormulas) {
       if (targetLazyFormula.resolve) {
-        tryToResolvePendingLazyFormula(targetLazyFormula.id, originalCellRef, lazyFormulas, trackedCells, options.data.loopItems)
+        tryToResolvePendingLazyFormula(targetLazyFormula.id, originalCellRef, runtime.lazyFormulas, runtime.trackedCells, runtime.loops.data)
       } else if (targetLazyFormula.loopItem != null) {
-        let cellsForLoopMap = lazyFormulas.pending.notCompletedLoops.get(targetLazyFormula.loopItem.id)
+        let cellsForLoopMap = runtime.lazyFormulas.pending.notCompletedLoops.get(targetLazyFormula.loopItem.id)
 
         if (!cellsForLoopMap) {
           cellsForLoopMap = new Map()
-          lazyFormulas.pending.notCompletedLoops.set(targetLazyFormula.loopItem.id, cellsForLoopMap)
+          runtime.lazyFormulas.pending.notCompletedLoops.set(targetLazyFormula.loopItem.id, cellsForLoopMap)
         }
 
         let formulasInCell = cellsForLoopMap.get(originalCellRef)
@@ -734,115 +654,170 @@ const __xlsxD = (function () {
       }
     }
 
-    if (!generateCellTag) {
-      return updatedCellRef
-    }
-
-    const { getTextContent } = require('cellUtils')
-    const cellTemplateFn = options.data.cellTemplatesMap.get(originalCellRef)
-
-    assertOk(cellTemplateFn != null, `template for cell "${originalCellRef}" not found`)
-
-    const templateOptions = { ...options }
-
-    if (options.data.blockParams) {
-      templateOptions.blockParams = options.data.blockParams
-    }
-
-    options.data.cellValue = null
-    options.data.cellType = null
-
-    const cellRawValue = cellTemplateFn(this, templateOptions)
-
     let cellValue
     let cellType
 
-    if (options.data.cellValue != null) {
-      // there will be cellValue set if there was a cell to auto detect
-      cellValue = options.data.cellValue
-    } else {
-      // otherwise we use the text content from the raw value
-      cellValue = getTextContent(cellRawValue)
-    }
+    if (cellElementMetadata?.formula != null) {
+      cellType = 'str'
 
-    if (options.data.cellType != null) {
-      cellType = options.data.cellType
+      const {
+        rowPreviousLoopIncrement,
+        rowCurrentLoopIncrement
+      } = options.data
 
-      // if we got explicit cellType, try to parse the cell value
-      // to the type specified
-      if (cellType === 'inlineStr' && typeof cellValue !== 'string') {
-        if (cellValue == null) {
-          cellValue = ''
-        } else {
-          cellValue = cellValue.toString()
-        }
-      } else if (cellType === 'b' && typeof cellValue !== 'boolean') {
-        if (cellValue == null) {
-          cellValue = false
-        } else if (cellValue === 'true' || cellValue === 'false') {
-          cellValue = cellValue === 'true'
-        } else {
-          const asNumber = parseInt(cellValue, 10)
+      assertOk(rowPreviousLoopIncrement != null, 'row previousLoopIncrement needs to exists on internal data')
+      assertOk(rowCurrentLoopIncrement != null, 'row currentLoopIncrement needs to exists on internal data')
 
-          if (isNaN(asNumber)) {
-            cellValue = false
-          } else {
-            cellValue = cellValue !== 0
+      const originalFormula = cellElementMetadata.formula.value
+      const originCellIsFromLoop = options.data.currentLoopId != null
+
+      const parsedOriginCellRef = parseCellRef(originalCellRef)
+
+      cellValue = {}
+
+      if (cellElementMetadata.formula.attributes) {
+        cellValue.attributes = structuredClone(cellElementMetadata.formula.attributes)
+      }
+
+      if (cellElementMetadata.formula.shared?.type === 'reference') {
+        // originalFormula is just empty string in this case so it is going to
+        // be empty "f"
+        cellValue.formula = originalFormula
+      } else {
+        // update the formula ref with the values of updated cell ref or
+        // queue lazy formulas to resolve them later
+        const { lazyUsedCells = {}, formula: newFormula } = getNewFormula(originalFormula, parsedOriginCellRef, {
+          type: 'normal',
+          originCellIsFromLoop,
+          rowPreviousLoopIncrement,
+          rowCurrentLoopIncrement,
+          columnPreviousLoopIncrement,
+          columnCurrentLoopIncrement,
+          trackedCells: runtime.trackedCells,
+          getCurrentLoopItem: (currentLoopId) => {
+            return getCurrentLoopItem(currentLoopId, runtime.loops.data)
+          },
+          includeLoopIncrementResolver: (cellRefIsFromLoop, cellRefInfo) => {
+            const trackedCell = runtime.trackedCells.get(cellRefInfo.localRef)
+
+            // this is used when referencing a cell that it is not defined in the sheet
+            return (
+              cellRefIsFromLoop &&
+              trackedCell?.fromNonExistingLoopHierarchyId === getCurrentLoopItem(options.data.currentLoopId, runtime.loops.data)?.hierarchyId
+            )
+          },
+          lazyFormulas: runtime.lazyFormulas,
+          currentCellRef: updatedCellRef
+        })
+
+        if (Object.keys(lazyUsedCells).length > 0) {
+          cellValue.lazy = {
+            id: newFormula,
+            usedCells: lazyUsedCells
           }
-        }
-      } else if (cellType === 'n' && typeof cellValue !== 'number') {
-        if (cellValue == null) {
-          cellValue = 0
         } else {
-          const asNumber = parseFloat(cellValue)
+          cellValue.formula = newFormula
+        }
 
-          if (isNaN(asNumber)) {
+        if (cellElementMetadata.formula.shared?.type === 'source') {
+          const { newValue: newRef } = evaluateCellRefsFromExpression(cellElementMetadata.formula.shared.sourceRef, (cellRefInfo) => {
+            const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
+
+            assertOk(isRange, `cell ref expected to be a range. value: "${cellElementMetadata.formula.shared.sourceRef}`)
+
+            const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
+            const [newColumnLetter] = getColumnFor(columnNumber, columnIncrement)
+
+            const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+            const newRowNumber = rowNumber + rowIncrement
+
+            const newCellRef = generateNewCellRefFrom(cellRefInfo.parsed, {
+              columnLetter: newColumnLetter,
+              rowNumber: newRowNumber
+            })
+
+            return newCellRef
+          })
+
+          // we know there is going to always attributes if we get to here
+          cellValue.attributes.set('ref', newRef)
+        }
+      }
+    } else if (options.fn != null) {
+      const newData = Handlebars.createFrame(options.data)
+
+      newData.originalColumnLetter = originalCellLetter
+      newData.originalCellRef = originalCellRef
+      newData.l = columnLetter
+      newData.currentCellRef = updatedCellRef
+      // only a value that represents the increment of previous loops defined before the cell
+      newData.columnPreviousLoopIncrement = columnPreviousRootLoopIncrement
+      // this is a value that represents all the executions of the current loop (considering nested loops too)
+      newData.columnCurrentLoopIncrement = columnCurrentLoopIncrement + (columnPreviousLoopIncrement - columnPreviousRootLoopIncrement)
+
+      newData.cellValue = null
+      newData.cellType = null
+
+      const cellTemplateOptions = {
+        ...options,
+        data: newData
+      }
+
+      // if we get to this point the cell contains dynamic parts,
+      // we call the body of the cell helper to resolve those values
+      const cellRawValue = options.fn(this, cellTemplateOptions)
+
+      if (newData.cellValue != null) {
+        // there will be cellValue set if there was a cell possible to auto detect
+        cellValue = newData.cellValue
+      } else {
+        // otherwise we use the text content from the raw value
+        const tmpDoc = parseXML(cellRawValue)
+        cellValue = tmpDoc.documentElement.textContent || ''
+      }
+
+      if (newData.cellType != null) {
+        cellType = newData.cellType
+
+        // if we got explicit cellType, try to parse the cell value
+        // to the type specified
+        if (cellType === 'inlineStr' && typeof cellValue !== 'string') {
+          if (cellValue == null) {
+            cellValue = ''
+          } else {
+            cellValue = cellValue.toString()
+          }
+        } else if (cellType === 'b' && typeof cellValue !== 'boolean') {
+          if (cellValue == null) {
+            cellValue = false
+          } else if (cellValue === 'true' || cellValue === 'false') {
+            cellValue = cellValue === 'true'
+          } else {
+            const asNumber = parseInt(cellValue, 10)
+
+            if (isNaN(asNumber)) {
+              cellValue = false
+            } else {
+              cellValue = cellValue !== 0
+            }
+          }
+        } else if (cellType === 'n' && typeof cellValue !== 'number') {
+          if (cellValue == null) {
             cellValue = 0
           } else {
-            cellValue = asNumber
+            const asNumber = parseFloat(cellValue)
+
+            if (isNaN(asNumber)) {
+              cellValue = 0
+            } else {
+              cellValue = asNumber
+            }
           }
         }
       }
-    }
 
-    const enabledForCol = options.data.meta.autofit.enabledFor[0] === true ? true : options.data.meta.autofit.enabledFor.includes(originalCellLetter)
-
-    if (enabledForCol) {
-      const { getPixelWidthOfValue, getFontSizeFromStyle } = require('cellUtils')
-      const fontSize = getFontSizeFromStyle(options.hash.s, options.data.styleInfo, options.data.styleFontSizeMap)
-      const colInfo = options.data.meta.autofit.cols[originalCellLetter]
-
-      const size = getPixelWidthOfValue(cellValue, fontSize)
-
-      if (colInfo == null) {
-        options.data.meta.autofit.cols[originalCellLetter] = {
-          size
-        }
-      } else if (size > colInfo.size) {
-        options.data.meta.autofit.cols[originalCellLetter] = {
-          size
-        }
-      }
-    }
-
-    const serializedAttrs = []
-    const attrsKeys = Object.keys(options.hash)
-
-    if (!attrsKeys.includes('t')) {
-      attrsKeys.push('t')
-    }
-
-    for (let idx = 0; idx < attrsKeys.length; idx++) {
-      const key = attrsKeys[idx]
-      let value
-
-      if (key === 'r') {
-        // ensure updated cellRef is part of cell xml
-        value = updatedCellRef
-      } else if (key === 't') {
-        if (cellType != null) {
-          value = cellType
-        } else if (cellValue == null) {
+      if (cellType == null) {
+        if (cellValue == null) {
           cellType = 'inlineStr'
         } else if (
           typeof cellValue === 'boolean' ||
@@ -865,37 +840,124 @@ const __xlsxD = (function () {
         } else {
           cellType = 'inlineStr'
         }
-
-        value = cellType
-      } else {
-        // keep rest of attrs
-        value = options.hash[key]
       }
 
-      serializedAttrs.push(`${key}="${value}"`)
+      let isAutoFitEnabled = false
+
+      if (
+        (runtime.autoFit.enabledFor[0] === true) ||
+        runtime.autoFit.enabledFor.includes(originalCellLetter)
+      ) {
+        isAutoFitEnabled = true
+      }
+
+      if (isAutoFitEnabled) {
+        const fontSize = getFontSizeFromStyle(
+          cellElementMetadata.styleId,
+          runtime.style.info,
+          runtime.style.fontSizeCache
+        )
+
+        const colSize = runtime.autoFit.cols.get(originalCellLetter)
+
+        const size = getPixelWidthOfValue(cellValue, fontSize)
+
+        if (colSize == null || size > colSize) {
+          runtime.autoFit.cols.set(originalCellLetter, size)
+        }
+      }
+
+      // only consider the raw value if the value was not empty
+      if (cellType === 'inlineStr' && cellValue != null && cellValue !== '') {
+        cellValue = cellRawValue
+      }
     }
 
-    let cellContent
+    // start the cellOutput with empty value, which acts as a signal that the cell should
+    // take the template element information as it is (with no other modifications)
+    let cellOutput = null
 
-    if (cellType === 'inlineStr') {
-      cellContent = cellRawValue
-    } else if (cellType === 'b') {
-      cellContent = `<v>${cellValue ? '1' : '0'}</v>`
-    } else if (cellType === 'n') {
-      cellContent = `<v>${cellValue}</v>`
+    if (cellType) {
+      if (cellValue == null || cellValue === '') {
+        // when we mark cell as empty just use inlineStr type because the original cell
+        // was a string
+        cellOutput = { type: 'inlineStr', empty: true }
+      } else {
+        cellOutput = { type: cellType }
+
+        // construct the final xml values, we use the xmldom because it takes of
+        // xml encoding automatically
+        if (cellType === 'inlineStr') {
+          cellOutput.value = cellValue
+        } else if (cellType === 'b') {
+          const tmpDoc = parseXML('<fragment />')
+          const vEl = tmpDoc.createElement('v')
+          tmpDoc.documentElement.appendChild(vEl)
+          vEl.textContent = cellValue ? '1' : '0'
+          cellOutput.value = tmpDoc.documentElement.childNodes[0].toString()
+        } else if (cellType === 'n') {
+          const tmpDoc = parseXML('<fragment />')
+          const vEl = tmpDoc.createElement('v')
+          tmpDoc.documentElement.appendChild(vEl)
+          vEl.textContent = cellValue
+          cellOutput.value = tmpDoc.documentElement.childNodes[0].toString()
+        } else if (cellType === 'str') {
+          const getFormula = (newFormula, _attributesMap) => {
+            const tmpDoc = parseXML('<fragment />')
+            const fEl = tmpDoc.createElement('f')
+
+            tmpDoc.documentElement.appendChild(fEl)
+
+            const attributesMap = _attributesMap ?? new Map()
+
+            for (const [attrName, attrValue] of attributesMap) {
+              fEl.setAttribute(attrName, attrValue)
+            }
+
+            fEl.textContent = newFormula
+
+            return tmpDoc.documentElement.childNodes[0].toString()
+          }
+
+          if (cellValue.lazy) {
+            const { lazy, ...restOfCellValue } = cellValue
+
+            // we are going to resolve this to raw string later
+            cellOutput.value = {
+              lazy: true,
+              ...restOfCellValue,
+              getFormula
+            }
+
+            for (const lazyUsedCell of Object.values(lazy.usedCells)) {
+              let cellToFormulaRefItem = runtime.lazyFormulas.pending.cellsToFormulaIds.get(lazyUsedCell.cellRef)
+
+              if (!cellToFormulaRefItem) {
+                cellToFormulaRefItem = []
+                runtime.lazyFormulas.pending.cellsToFormulaIds.set(lazyUsedCell.cellRef, cellToFormulaRefItem)
+              }
+
+              if (!cellToFormulaRefItem.includes(lazy.id)) {
+                cellToFormulaRefItem.push(lazy.id)
+              }
+            }
+
+            runtime.lazyFormulas.data.get(lazy.id).cellOutput = cellOutput
+          } else {
+            cellOutput.value = getFormula(cellValue.formula, cellValue.attributes)
+          }
+        }
+
+        assertOk(cellOutput.value != null, `cell type "${cellType}" not supported`)
+      }
     }
 
-    assertOk(cellContent != null, `cell type "${cellType}" not supported`)
+    cellOutputsMap.set(columnLetter, {
+      originalCellLetter,
+      output: cellOutput
+    })
 
-    let cellOutput = `<c ${serializedAttrs.join(' ')}`
-
-    if (cellValue == null || cellValue === '') {
-      cellOutput += ' />'
-    } else {
-      cellOutput += `>${cellContent}</c>`
-    }
-
-    return new Handlebars.SafeString(cellOutput)
+    return ''
   }
 
   function cValue (...args) {
@@ -942,850 +1004,338 @@ const __xlsxD = (function () {
 
   cValue.dynamicParameters = true
 
-  // register cell templates
-  function cTmpl (options) {
-    const Handlebars = require('handlebars')
-    const cellRef = options.hash.cellRef
-
-    assertOk(cellRef != null, 'cellRef arg is required')
-
-    options.data.cellTemplatesMap.set(cellRef, options.fn)
-
-    return new Handlebars.SafeString('')
-  }
-
-  function mergeOrFormulaCell (type, options) {
-    const Handlebars = require('handlebars')
-    const columnLetter = options.data.l
-    const rowNumber = options.data.r
-
-    assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
-
-    let output = ''
-
-    if (type === 'mergeCell') {
-      const originalCellRefRange = options.hash.o
-
-      assertOk(originalCellRefRange != null, 'originalCellRefRange arg is required')
-
-      const { evaluateCellRefsFromExpression, generateNewCellRefFrom, getNewCellLetter } = require('cellUtils')
-
-      const { newValue } = evaluateCellRefsFromExpression(originalCellRefRange, (cellRefInfo) => {
-        const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
-
-        assertOk(isRange, `cell ref expected to be a range. value: "${originalCellRefRange}`)
-
-        const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
-        const newColumnLetter = getNewCellLetter(columnLetter, columnIncrement)
-
-        const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
-        const newRowNumber = rowNumber + rowIncrement
-
-        const newCellRef = generateNewCellRefFrom(cellRefInfo.parsed, {
-          columnLetter: newColumnLetter,
-          rowNumber: newRowNumber
-        })
-
-        return newCellRef
-      })
-
-      const mergeCell = {
-        original: originalCellRefRange,
-        value: newValue
-      }
-
-      options.data.meta.mergeCells.push(mergeCell)
-    } else {
-      const { parseCellRef, getNewFormula, decodeXML, encodeXML } = require('cellUtils')
-      const currentCellRef = options.data.currentCellRef
-      const trackedCells = options.data.meta.trackedCells
-      const lazyFormulas = options.data.meta.lazyFormulas
-      const originalCellRef = options.data.originalCellRef
-      // formulas can contain characters that are encoded as part of the xlsx processing,
-      // we ensure here that we decode the xml entities
-      const originalFormula = options.hash.o != null ? decodeXML(options.hash.o) : null
-      const rowPreviousLoopIncrement = options.data.rowPreviousLoopIncrement
-      const rowCurrentLoopIncrement = options.data.rowCurrentLoopIncrement
-      const columnPreviousLoopIncrement = options.data.columnPreviousLoopIncrement
-      const columnCurrentLoopIncrement = options.data.columnCurrentLoopIncrement
-
-      assertOk(currentCellRef != null, 'currentCellRef needs to exists on internal data')
-      assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
-      assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
-      assertOk(originalCellRef != null, 'originalCellRef needs to exists on internal data')
-      assertOk(originalFormula != null, 'originalFormula arg is required')
-      assertOk(rowCurrentLoopIncrement != null, 'currentLoopIncrement needs to exists on internal data')
-      assertOk(columnCurrentLoopIncrement != null, 'columnCurrentLoopIncrement needs to exists on internal data')
-
-      const parsedOriginCellRef = parseCellRef(originalCellRef)
-      const originCellIsFromLoop = options.data.currentLoopId != null
-
-      const { lazyCellRefs = {}, formula: newFormula } = getNewFormula(originalFormula, parsedOriginCellRef, {
-        type: 'normal',
-        originCellIsFromLoop,
-        rowPreviousLoopIncrement,
-        rowCurrentLoopIncrement,
-        columnPreviousLoopIncrement,
-        columnCurrentLoopIncrement,
-        trackedCells,
-        getCurrentLoopItem: (currentLoopId) => {
-          return getCurrentLoopItem(currentLoopId, options.data.loopItems)
-        },
-        includeLoopIncrementResolver: (cellRefIsFromLoop, cellRefInfo) => {
-          // this is used when referencing a cell that it is not defined in the sheet
-          return (
-            cellRefIsFromLoop &&
-            trackedCells[cellRefInfo.localRef] != null &&
-            trackedCells[cellRefInfo.localRef].fromNonExistingLoopHierarchyId === getCurrentLoopItem(options.data.currentLoopId, options.data.loopItems)?.hierarchyId
-          )
-        },
-        lazyFormulas,
-        currentCellRef
-      })
-
-      // ensure we encode just some basic xml entities, formula values does not need to
-      // have the full xml entities escaped
-      if (Object.keys(lazyCellRefs).length > 0) {
-        const [resolve, reject] = options.data.tasks.add(newFormula)
-
-        const pendingTaskForFormula = { resolve, reject, cellRefs: [], pendingCellRefs: [] }
-
-        lazyFormulas.pending.tasks.set(newFormula, pendingTaskForFormula)
-
-        for (const lazyCellRefItem of Object.values(lazyCellRefs)) {
-          let cellToFormulaRefItem = lazyFormulas.pending.cellsToFormulaRefs.get(lazyCellRefItem.cellRef)
-
-          if (!cellToFormulaRefItem) {
-            lazyFormulas.pending.cellsToFormulaRefs.set(lazyCellRefItem.cellRef, [])
-          }
-
-          cellToFormulaRefItem = lazyFormulas.pending.cellsToFormulaRefs.get(lazyCellRefItem.cellRef)
-
-          if (!cellToFormulaRefItem.includes(newFormula)) {
-            cellToFormulaRefItem.push(newFormula)
-          }
-
-          if (!pendingTaskForFormula.pendingCellRefs.includes(lazyCellRefItem.cellRef)) {
-            pendingTaskForFormula.cellRefs.push(lazyCellRefItem.cellRef)
-            pendingTaskForFormula.pendingCellRefs.push(lazyCellRefItem.cellRef)
-          }
-        }
-
-        return options.data.tasks.wait(newFormula).then(() => {
-          const finalFormula = lazyFormulas.data.get(newFormula).newFormula
-          return encodeXML(finalFormula, 'basic')
-        })
-      }
-
-      output = encodeXML(newFormula, 'basic')
-    }
-
-    return new Handlebars.SafeString(output)
-  }
-
-  function mergeCells (options) {
-    const Handlebars = require('handlebars')
-    const newData = Handlebars.createFrame(options.data)
-
-    const [resolveTask, rejectTask] = options.data.tasks.add('mergeCells')
-
-    newData.mergeCellsCount = 0
-    newData.mergeCellsTemplatesMap = new Map()
-
-    try {
-      const result = options.fn(this, { data: newData })
-      resolveTask()
-      return result
-    } catch (e) {
-      rejectTask(e)
-      throw e
-    }
-  }
-
-  async function mergeCellsCount (options) {
-    await options.data.tasks.wait('mergeCells')
-    return options.data.mergeCellsCount
-  }
-
-  function mergeCellsItems (options) {
-    const Handlebars = require('handlebars')
-    const targetItems = options.data.meta.mergeCells
-
-    // run the body to fulfill the merge cells templates
-    options.fn(this)
-
-    const mergeCellsTemplatesMap = options.data.mergeCellsTemplatesMap
-
-    let original = []
-    const generated = []
-
-    const originalOrderScore = new Map(
-      Array.from(mergeCellsTemplatesMap.keys()).map((key, idx) => [key, idx])
-    )
-
-    for (const targetItem of targetItems) {
-      const template = mergeCellsTemplatesMap.get(targetItem.original)
-      const output = template({ newRef: targetItem.value })
-
-      if (targetItem.original === targetItem.value) {
-        original.push({ score: originalOrderScore.get(targetItem.original), output })
-      } else {
-        generated.push(output)
-      }
-    }
-
-    // preserve the original order from xlsx file, so we avoid noise in diffs when
-    // comparing xlsx output
-    original.sort((a, b) => a.score - b.score)
-
-    original = original.map((item) => item.output)
-
-    options.data.mergeCellsCount = original.length + generated.length
-
-    const output = `${original.join('\n')}${generated.join('\n')}`
-
-    return new Handlebars.SafeString(output)
-  }
-
-  function mI (options) {
-    const originalCellRefRange = options.hash.o
-
-    assertOk(originalCellRefRange != null, 'originalCellRefRange arg is required')
-
-    options.data.mergeCellsTemplatesMap.set(originalCellRefRange, options.fn)
-
-    return ''
-  }
-
-  function formulaShared (options) {
-    const columnLetter = options.data.l
-    const rowNumber = options.data.r
-
-    assertOk(rowNumber != null, 'rowNumber needs to exists on internal data')
-
-    const originalSharedRefRange = options.hash.o
-
-    assertOk(originalSharedRefRange != null, 'originalSharedRefRange arg is required')
-
-    const { evaluateCellRefsFromExpression, generateNewCellRefFrom, getNewCellLetter } = require('cellUtils')
-
-    const { newValue } = evaluateCellRefsFromExpression(originalSharedRefRange, (cellRefInfo) => {
-      const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
-
-      assertOk(isRange, `cell ref expected to be a range. value: "${originalSharedRefRange}`)
-
-      const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
-      const newColumnLetter = getNewCellLetter(columnLetter, columnIncrement)
-
-      const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
-      const newRowNumber = rowNumber + rowIncrement
-
-      const newCellRef = generateNewCellRefFrom(cellRefInfo.parsed, {
-        columnLetter: newColumnLetter,
-        rowNumber: newRowNumber
-      })
-
-      return newCellRef
-    })
-
-    return newValue
-  }
-
-  // TODO: this should be refactored at some point to be more generic
-  // and support nested loops, maybe the logic will be similar to mergeCell or formula helpers
-  // when this is done we can remove all the methods that are only used here "getNewCellRef", "getCurrentAndPreviousLoopItemsByTarget"
-  function newCellRef (options) {
-    const Handlebars = require('handlebars')
-    const updatedOriginalCells = options.data.meta.updatedOriginalCells
-    const loopItems = options.data.loopItems
-    let targetItems = []
-    const updated = []
-    const type = 'newCellRef'
-
-    if (type === 'newCellRef') {
-      targetItems = [{ value: options.hash.originalCellRefRange }]
-    }
-
-    for (const targetItem of targetItems) {
-      const regexp = /(\$?[A-Z]+\$?\d+:)?(\$?[A-Z]+\$?\d+)/g
-
-      const newValue = targetItem.value.replace(regexp, (...args) => {
-        const [match, _startingCellRef, endingCellRef] = args
-        const isRange = _startingCellRef != null
-        let newCellRef
-
-        const ctx = {
-          updatedOriginalCells,
-          loopItems
-        }
-
-        if (isRange) {
-          const startingCellRef = _startingCellRef.slice(0, -1)
-          const newStartingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, startingCellRef] : startingCellRef, targetItem.loopMeta, 'rangeStart', ctx)
-          const newEndingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopMeta, 'rangeEnd', ctx)
-
-          return `${newStartingCellRef}:${newEndingCellRef}`
-        } else {
-          newCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopMeta, 'standalone', ctx)
-        }
-
-        return newCellRef
-      })
-
-      if (type === 'newCellRef') {
-        updated.push(newValue)
-      }
-    }
-
-    return new Handlebars.SafeString(updated.join('\n'))
-  }
-
-  async function autofit (options) {
-    const Handlebars = require('handlebars')
-    const processAutofitCols = require('xlsxProcessAutofitCols')
-
-    const existingColsXml = options.fn(this)
-
-    await options.data.tasks.wait('sd')
-
-    return new Handlebars.SafeString(processAutofitCols(options.data.meta.autofit, existingColsXml))
-  }
-
+  // solve any pending formulas that were waiting to complete
   function lazyFormulas (options) {
-    const trackedCells = options.data.meta.trackedCells
-    const lazyFormulas = options.data.meta.lazyFormulas
+    const { helpers: { generationUtils: { tryToResolvePendingLazyFormula } } } = getSharedData()
+    const { runtime } = getFileData(options.data.xlsxFilePath)
 
-    assertOk(trackedCells != null, 'trackedCells needs to exists on internal data')
-    assertOk(lazyFormulas != null, 'lazyFormulas needs to exists on internal data')
-
-    if (lazyFormulas.pending.tasks.size === 0) {
+    if (runtime.lazyFormulas.data.size === 0) {
       return ''
     }
 
-    const targetLazyFormulaIds = [...lazyFormulas.pending.tasks.keys()]
+    const targetLazyFormulaIds = [...runtime.lazyFormulas.data.keys()]
 
     for (const lazyFormulaId of targetLazyFormulaIds) {
-      const lazyTask = lazyFormulas.pending.tasks.get(lazyFormulaId)
-      const pendingCellRefs = [...lazyTask.pendingCellRefs]
+      const lazyFormulaInfo = runtime.lazyFormulas.data.get(lazyFormulaId)
+      const pendingCellRefs = [...lazyFormulaInfo.pendingCellRefs]
 
       for (const cellRef of pendingCellRefs) {
         // resolve all the lazy pending formulas, the reason we got until this point is likely
         // that a formula is referencing a cell that does not have a definition in the sheet
-        tryToResolvePendingLazyFormula(lazyFormulaId, cellRef, lazyFormulas, trackedCells, options.data.loopItems)
+        tryToResolvePendingLazyFormula(
+          lazyFormulaId, cellRef, runtime.lazyFormulas,
+          runtime.trackedCells, runtime.loops.data
+        )
       }
     }
   }
 
-  function style (options) {
+  // resolves the chart title content
+  function chartTitleText (options) {
     const Handlebars = require('handlebars')
-    const { parseStyle, getStyleInfo } = require('xlsxProcessStyle')
+    const { runtime } = getFileData(options.data.xlsxFilePath)
 
-    const styleXml = options.fn(this)
-    const styleDoc = parseStyle(styleXml)
-    const styleInfo = getStyleInfo(styleDoc)
+    const output = options.fn(this)
 
-    if (styleInfo != null) {
-      options.data.styleInfo = styleInfo
-    }
+    runtime.chartTitleTextXml = output
 
-    return new Handlebars.SafeString(styleXml)
+    return new Handlebars.SafeString(output)
   }
 
-  function calcChain (options) {
+  // produces the final dimension ref using the information of the latest
+  // column and row numbers
+  function dimension (options) {
+    const xlsxFilePath = options.data.xlsxFilePath
+    const { runtime } = getFileData(xlsxFilePath)
+    const { helpers: { cellUtils: { getColumnFor } } } = getSharedData()
+    const startCellRef = getColumnFor(runtime.dimension.start.columnNumber)[0] + runtime.dimension.start.rowNumber
+    const endCellRef = getColumnFor(runtime.dimension.end.columnNumber)[0] + runtime.dimension.end.rowNumber
+
+    if (startCellRef === endCellRef) {
+      return startCellRef
+    }
+
+    return `${startCellRef}:${endCellRef}`
+  }
+
+  // produces the final <sheetData> content when rendering xml template
+  function sd (options) {
     const Handlebars = require('handlebars')
-    const processCalcChain = require('xlsxProcessCalcChain')
-
-    const existingCalcChainXml = options.fn(this)
-
-    return new Handlebars.SafeString(processCalcChain(options.data.calcChainUpdatesMap, existingCalcChainXml))
-  }
-
-  function raw (options) {
-    return options.fn()
-  }
-
-  function getIncrementWithLoop (mode, { loopId, loopIndex, rowNumber, evaluatedLoopsIds, loopItems }) {
-    if (mode !== 'row' && mode !== 'column') {
-      throw new Error('mode must be "row" or "column"')
-    }
-
-    if (mode === 'column' && rowNumber == null) {
-      throw new Error('rowNumber must be specified when using column mode')
-    }
-
-    const currentLoopItem = getCurrentLoopItem(loopId, loopItems)
-    // this gets the previous loops (loops defined before a cell) and also on the case of nested loops
-    // all the previous executions of the current loop
-    const previousLoopItems = getPreviousLoopItems(loopId, evaluatedLoopsIds, loopItems)
-
-    const previousMeta = {
-      prev: {
-        total: 0,
-        loopLength: 0
-      },
-      rest: {
-        total: 0,
-        loopLength: 0
-      }
-    }
-
-    const currentRootLoopIdNum = loopId != null ? parseInt(loopId.split('#')[0], 10) : -1
-
-    let currentLoopIncrement = 0
-
-    const validForColumnMode = ['vertical']
-    const validForRowMode = ['row', 'block']
-
-    const isValid = (cLoop) => {
-      return mode === 'column' ? validForColumnMode.includes(cLoop.type) : validForRowMode.includes(cLoop.type)
-    }
-
-    const isValidPrevious = (cLoop, cRowNumber) => {
-      const valid = isValid(cLoop)
-
-      if (valid) {
-        return mode === 'column' ? cLoop.rowNumber === cRowNumber : true
-      }
-
-      return valid
-    }
-
-    const isBlock = (cLoop) => mode === 'column' ? false : cLoop.type === 'block'
-
-    for (const item of previousLoopItems) {
-      const previousRootLoopIdNum = parseInt(item.id.split('#')[0], 10)
-      const isPrev = currentRootLoopIdNum === -1 ? true : previousRootLoopIdNum < currentRootLoopIdNum
-      let loopItemsLength = 0
-      const target = isPrev ? previousMeta.prev : previousMeta.rest
-
-      if (isValidPrevious(item, rowNumber)) {
-        if (isBlock(item)) {
-          loopItemsLength += getLoopItemTemplateLength(item) * (item.length - 1)
-        } else {
-          loopItemsLength += item.length
-          target.loopLength += 1
-        }
-      }
-
-      target.total += loopItemsLength
-    }
-
-    const previousRootLoopIncrement = previousMeta.prev.total + (previousMeta.prev.loopLength > 0 ? previousMeta.prev.loopLength * -1 : 0)
-    const previousLoopIncrement = previousRootLoopIncrement + previousMeta.rest.total + (previousMeta.rest.loopLength > 0 ? previousMeta.rest.loopLength * -1 : 0)
-
-    if (currentLoopItem) {
-      assertOk(loopIndex != null, 'expected loop index to be defined')
-
-      const parents = getParentsLoopItems(currentLoopItem.id, loopItems)
-      let parentLoopIndex = currentLoopItem.parentLoopIndex
-
-      parents.reverse()
-
-      for (const parentLoopItem of parents) {
-        if (isValid(parentLoopItem)) {
-          currentLoopIncrement += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
-        }
-
-        parentLoopIndex = parentLoopItem.parentLoopIndex
-      }
-
-      if (isValid(currentLoopItem)) {
-        const templateLength = getLoopItemTemplateLength(currentLoopItem)
-        currentLoopIncrement = currentLoopIncrement + (templateLength * loopIndex)
-      }
-    }
-
-    const increment = previousLoopIncrement + currentLoopIncrement
-
-    return { increment, currentLoopIncrement, previousRootLoopIncrement, previousLoopIncrement }
-  }
-
-  function getParentLoopItemByHierarchy (childLoopItem, loopItems) {
-    assertOk(childLoopItem != null, 'getParentLoopItemByHierarchy childLoopItem arg is required')
-    assertOk(Array.isArray(loopItems), 'getParentLoopItemByHierarchy loopItems arg is invalid')
-
-    const parentHierarchyId = childLoopItem.hierarchyId.split('#').slice(0, -1).join('#')
-
-    if (parentHierarchyId === '') {
-      return
-    }
-
-    return getLoopItemById({ idName: 'hierarchyId', idValue: parentHierarchyId }, loopItems)
-  }
-
-  function getCurrentLoopItem (loopId, loopItems) {
-    assertOk(Array.isArray(loopItems), 'getCurrentLoopItem loopItems arg is invalid')
-
-    if (loopId == null) {
-      return
-    }
-
-    return getLoopItemById({ idName: 'id', idValue: loopId }, loopItems)
-  }
-
-  function getPreviousLoopItems (loopId, evaluatedLoopsIds, loopItems) {
-    assertOk(Array.isArray(evaluatedLoopsIds), 'getPreviousLoopItems evaluatedLoopsIds arg is invalid')
-    assertOk(Array.isArray(loopItems), 'getPreviousLoopItems loopItems arg is invalid')
-
-    const lastEvaluatedLoopId = evaluatedLoopsIds[evaluatedLoopsIds.length - 1]
-    const loopItemsToGet = loopId != null && loopId === lastEvaluatedLoopId ? evaluatedLoopsIds.slice(0, -1) : evaluatedLoopsIds
-    const result = []
-
-    for (const lId of loopItemsToGet) {
-      const loopItem = getLoopItemById({ idName: 'id', idValue: lId }, loopItems)
-
-      assertOk(loopItem != null, `Can not find loop item by id "${lId}"`)
-
-      if (!loopItem.completed) {
-        continue
-      }
-
-      result.push(loopItem)
-    }
-
-    return result
-  }
-
-  function getCurrentAndPreviousLoopItemsByTarget (byTarget, loopItems) {
-    assertOk(byTarget != null, 'getCurrentAndPreviousLoopItemsByTarget byTarget arg is invalid')
-    assertOk(byTarget.rowNumber != null, 'getCurrentAndPreviousLoopItemsByTarget byTarget.rowNumber arg is required')
-    assertOk(byTarget.columnNumber != null, 'getCurrentAndPreviousLoopItemsByTarget byTarget.columnNumber arg is required')
-    assertOk(Array.isArray(loopItems), 'getCurrentAndPreviousLoopItemsByTarget loopItems arg is invalid')
-
-    const { rowNumber, columnNumber } = byTarget
-
-    const matchedLoopItems = loopItems.filter((item) => {
-      assertOk(item.completed, 'getCurrentAndPreviousLoopItemsByTarget invalid usage, it should be called only after all loop items are completed evaluated')
-      return item.start <= rowNumber
-    })
-
-    let current
-    const previousAll = [...matchedLoopItems]
-    const targetLoopItem = previousAll[previousAll.length - 1]
-    const previous = previousAll.slice(0, -1)
-
-    if (targetLoopItem != null) {
-      let isInside = false
-      const limit = targetLoopItem.type === 'block' ? targetLoopItem.end : targetLoopItem.start
-
-      if (rowNumber === limit) {
-        // for row loops we assume the row is inside when the row just matches the limit
-        // (even if technically on the out of loop right case we should check columnEnd,
-        // we don't do that because in that case the cell will anyway keep on its original place)
-        isInside = targetLoopItem.type === 'block' ? targetLoopItem.columnEnd > columnNumber : true
-      } else {
-        isInside = limit > rowNumber
-      }
-
-      if (!isInside) {
-        previous.push(targetLoopItem)
-      } else {
-        current = targetLoopItem
-      }
-    }
-
-    return {
-      current,
-      previousAll,
-      previous
-    }
-  }
-
-  function getLoopItemTemplateLength (loopItem) {
-    assertOk(loopItem != null, 'getLoopItemTemplateLength loopItem arg is invalid')
-
-    let templateLength = 1
-
-    if (loopItem.type === 'block') {
-      templateLength = (loopItem.end - loopItem.start) + 1
-    }
-
-    return templateLength
-  }
-
-  function getParentsLoopItems (loopId, loopItems) {
-    assertOk(loopId != null, 'getParentsLoopItems loopId arg is invalid')
-    assertOk(Array.isArray(loopItems), 'getParentsLoopItems loopItems arg is invalid')
-
-    const results = []
-    const parentIdParts = loopId.split('#').slice(0, -1)
-
-    if (parentIdParts.length === 0) {
-      return results
-    }
-
-    let parentId = ''
-
-    for (let index = 0; index < parentIdParts.length; index++) {
-      parentId += parentId === '' ? parentIdParts[index] : `#${parentIdParts[index]}`
-
-      const result = getLoopItemById({ idName: 'id', idValue: parentId }, loopItems)
-
-      assertOk(result != null, `Can not find loop item by id "${parentId}"`)
-
-      results.push(result)
-    }
-
-    return results
-  }
-
-  function getLoopItemById (byTarget, loopItems) {
-    assertOk(byTarget != null, 'getLoopItemById byTarget arg is required')
-    assertOk(Array.isArray(loopItems), 'getLoopItemById loopItems arg is invalid')
-
-    const { idName, idValue } = byTarget
-
-    assertOk(idName != null, 'getLoopItemById byTarget.idName arg is required')
-    assertOk(typeof idName === 'string', 'getLoopItemById byTarget.idName arg is invalid')
-    assertOk(idName === 'hierarchyId' || idName === 'id', 'getLoopItemById byTarget.idName should be either "hierarchyId" or "id"')
-    assertOk(idValue != null, 'getLoopItemById byTarget.idValue arg is required')
-    assertOk(typeof idValue === 'string', 'getLoopItemById byTarget.idValue arg is invalid')
-
-    const idParts = idValue.split('#')
-    let ctx = { children: loopItems }
-    let targetIdValue = ''
-    let parent
-
-    while (idParts.length > 0) {
-      const idx = idParts.shift()
-
-      targetIdValue = targetIdValue !== '' ? `${targetIdValue}#${idx}` : `${idx}`
-
-      const matches = ctx.children.filter((c) => c[idName] === targetIdValue)
-      const result = matches[matches.length - 1]
-
-      if (result == null) {
-        break
-      }
-
-      ctx = result
-
-      if (idParts.length === 0) {
-        parent = ctx
-      }
-    }
-
-    return parent
-  }
-
-  function getNewCellRef (cellRefInput, originLoopMeta, mode = 'standalone', context) {
-    const type = 'newCellRef'
-    const { updatedOriginalCells, loopItems } = context
-    let cellRef
-    let originCellRef
-
-    if (Array.isArray(cellRefInput)) {
-      originCellRef = cellRefInput[0]
-      cellRef = cellRefInput[1]
-    } else {
-      cellRef = cellRefInput
-    }
-
-    const { parseCellRef } = require('cellUtils')
-    const parsedCellRef = parseCellRef(cellRef)
-    const parsedOriginCellRef = originCellRef != null ? parseCellRef(originCellRef) : undefined
-    const normalizedCellRef = cellRef.replace('$', '')
-    let newCellRef = updatedOriginalCells[normalizedCellRef]
-    let currentLoopItem
-
-    if (newCellRef == null) {
-      // if not found on original cells then do a check if we find
-      // matched loop items for the referenced row numbers
-      const {
-        current: currentLoopItemForTarget, previousAll: previousAllLoopItemsForTarget, previous: previousLoopItemsForTarget
-      } = getCurrentAndPreviousLoopItemsByTarget({
-        rowNumber: parsedCellRef.rowNumber,
-        columnNumber: parsedCellRef.columnNumber
-      }, loopItems)
-
-      currentLoopItem = currentLoopItemForTarget
-
-      if (currentLoopItemForTarget != null || previousLoopItemsForTarget.length > 0) {
-        const originIsLoopItem = parsedOriginCellRef == null
-          ? false
-          : getCurrentAndPreviousLoopItemsByTarget({
-            rowNumber: parsedOriginCellRef.rowNumber,
-            columnNumber: parsedOriginCellRef.columnNumber
-          }, loopItems).current != null
-
-        const getAfterIncrement = (parsedC, all = false) => {
-          const filteredLoopItems = all ? previousAllLoopItemsForTarget : previousLoopItemsForTarget
-
-          const rowMatchedLoopItems = []
-
-          let increment = filteredLoopItems.reduce((acu, item) => {
-            let totalAcu = acu
-
-            if (item.type === 'block') {
-              totalAcu += getLoopItemTemplateLength(item) * (item.length - 1)
-            } else {
-              rowMatchedLoopItems.push(item)
-              totalAcu += item.length
-            }
-
-            return totalAcu
-          }, 0)
-
-          increment += rowMatchedLoopItems.length > 0 ? (rowMatchedLoopItems.length * -1) : 0
-
-          return `${parsedC.lockedColumn ? '$' : ''}${parsedC.letter}${parsedC.lockedRow ? '$' : ''}${parsedC.rowNumber + increment}`
-        }
-
-        let includeAll = false
-
-        if (currentLoopItemForTarget != null &&
-          (
-            (type === 'newCellRef' && mode === 'rangeEnd') ||
-            (type === 'formulas' &&
-              originCellRef != null &&
-              !originIsLoopItem &&
-              mode === 'rangeEnd')
-          )) {
-          includeAll = true
-        }
-
-        newCellRef = getAfterIncrement(parsedCellRef, includeAll)
-      } else {
-        newCellRef = cellRef
-      }
-    }
-
-    if (originLoopMeta != null) {
-      const parsedNewCellRef = parseCellRef(newCellRef)
-      let newRowNumber = parsedNewCellRef.rowNumber
-
-      // when in loop don't increase the row number for locked row references
-      if (!parsedNewCellRef.lockedRow) {
-        if (currentLoopItem && currentLoopItem.type === 'block') {
-          newRowNumber += getLoopItemTemplateLength(currentLoopItem) * originLoopMeta.index
-        } else {
-          newRowNumber += originLoopMeta.index
-        }
-      }
-
-      newCellRef = `${parsedNewCellRef.lockedColumn ? '$' : ''}${parsedNewCellRef.letter}${parsedNewCellRef.lockedRow ? '$' : ''}${newRowNumber}`
-    }
-
-    return newCellRef
-  }
-
-  function tryToResolvePendingLazyFormula (lazyFormulaId, cellRef, lazyFormulas, trackedCells, loopItems) {
-    const { getNewFormula } = require('cellUtils')
-
-    const lazyTask = lazyFormulas.pending.tasks.get(lazyFormulaId)
-
-    const matchIdx = lazyTask.pendingCellRefs.indexOf(cellRef)
-
-    if (matchIdx === -1) {
-      return
-    }
-
-    lazyTask.pendingCellRefs.splice(matchIdx, 1)
-
-    if (lazyTask.pendingCellRefs.length > 0) {
-      return
-    }
-
-    const lazyFormulaInfo = lazyFormulas.data.get(lazyFormulaId)
 
     const {
-      formula,
-      formulaCellRef,
-      parsedOriginCellRef,
-      originCellIsFromLoop,
-      rowPreviousLoopIncrement,
-      rowCurrentLoopIncrement,
-      columnPreviousLoopIncrement,
-      columnCurrentLoopIncrement,
-      cellRefs
-    } = lazyFormulaInfo
+      helpers: {
+        parseXML,
+        generationUtils: { renderDataItems, getAttributeFromElementTypeAttributes }
+      }
+    } = getSharedData()
 
-    const { formula: newFormula } = getNewFormula(formula, parsedOriginCellRef, {
-      type: 'lazy',
-      originCellIsFromLoop,
-      rowPreviousLoopIncrement,
-      rowCurrentLoopIncrement,
-      columnPreviousLoopIncrement,
-      columnCurrentLoopIncrement,
-      trackedCells,
-      getCurrentLoopItem: (currentLoopId) => {
-        return getCurrentLoopItem(currentLoopId, loopItems)
+    const xlsxFilePath = options.data.xlsxFilePath
+    const { templateItems, dataItems } = getFileData(xlsxFilePath)
+
+    let rowNumber
+
+    const output = renderDataItems(parseXML('<sheetData/>'), dataItems, {
+      prepareItem: (dataItem) => {
+        const templateItem = templateItems.data[dataItem.idx]
+        const itemType = templateItem.type ?? 'row'
+        let newItem
+
+        if (itemType === 'row') {
+          const templateRowMeta = templateItems.elementMetaMap.get(templateItem)
+          const { children: templateRowChildren, ...templateRowItem } = templateItem
+
+          // clone without children, we are going to take care of them
+          // bellow
+          newItem = structuredClone(templateRowItem)
+
+          newItem.customAttributes = new Map([
+            ['r', dataItem.r]
+          ])
+
+          if (dataItem.cells.length > 0) {
+            const newChildren = []
+
+            for (const cellInfo of dataItem.cells) {
+              const childrenIdx = templateRowMeta.columnLetterChildrenMap.get(cellInfo.oldR ?? cellInfo.r)
+              const newCell = structuredClone(templateRowChildren[childrenIdx] ?? {})
+
+              newCell.type = 'c'
+
+              newCell.customAttributes = new Map([
+                ['r', cellInfo.r]
+              ])
+
+              // when output is different than null it means the cell generated value
+              // therefore we need to set the new children (custom content for cell),
+              // otherwise just leave the information of the element cell as it is
+              if (cellInfo.output != null) {
+                newCell.customAttributes.set('t', cellInfo.output.type)
+
+                if (cellInfo.output.empty !== true) {
+                  newCell.children = [{ type: '#raw', value: cellInfo.output.value }]
+                }
+              }
+
+              newChildren.push(newCell)
+            }
+
+            newItem.children = newChildren
+          }
+        } else {
+          newItem = structuredClone(templateItem)
+        }
+
+        return newItem
       },
-      lazyCellRefs: cellRefs,
-      currentCellRef: formulaCellRef
+      getDefaultItemType: (parentItem) => {
+        if (parentItem == null) {
+          return 'row'
+        }
+
+        if (parentItem.type === 'row') {
+          return 'c'
+        }
+      },
+      processAttribute: (origin, itemType, _attrName, _attrValue) => {
+        let attrName
+        let attrValue
+
+        if (origin === 'customAttributes') {
+          attrName = _attrName
+          attrValue = _attrValue
+
+          if (attrName === 'r') {
+            if (itemType === 'row') {
+              rowNumber = attrValue
+            } else if (itemType === 'c') {
+              if (rowNumber == null) {
+                throw new Error(`Cannot set cell "r" attribute when rowNumber is not defined in xlsxFilePath "${xlsxFilePath}"`)
+              }
+
+              // make the new cell ref
+              attrValue = attrValue + rowNumber
+            }
+          }
+        } else {
+          [attrName, attrValue] = getAttributeFromElementTypeAttributes(
+            templateItems.elementTypeAttributesMap,
+            itemType,
+            _attrName,
+            _attrValue
+          )
+        }
+
+        return [attrName, attrValue]
+      }
     })
 
-    // ensure we encode just some basic xml entities, formula values does not need to
-    // have the full xml entities escaped
-    lazyFormulaInfo.newFormula = newFormula
-
-    for (const cellRef of lazyTask.cellRefs) {
-      const originalLazyFormulaIds = lazyFormulas.pending.cellsToFormulaRefs.get(cellRef)
-      const matchIdx = originalLazyFormulaIds.indexOf(lazyFormulaId)
-
-      if (matchIdx !== -1) {
-        originalLazyFormulaIds.splice(matchIdx, 1)
-      }
-
-      if (originalLazyFormulaIds.length === 0) {
-        lazyFormulas.pending.cellsToFormulaRefs.delete(cellRef)
-      }
-    }
-
-    lazyFormulas.pending.tasks.delete(lazyFormulaId)
-
-    lazyTask.resolve()
+    return new Handlebars.SafeString(output)
   }
 
-  function assertOk (valid, message) {
-    if (!valid) {
-      throw new Error(message)
+  // produces the final <mergeCells> content when rendering xml template
+  function mergeCells (options) {
+    const Handlebars = require('handlebars')
+    const xlsxFilePath = options.data.xlsxFilePath
+    const { mergeCellItems } = getFileData(xlsxFilePath)
+    const parts = []
+
+    for (let idx = 0; idx < mergeCellItems.length; idx++) {
+      const mergeCellRef = mergeCellItems[idx]
+      const isFirst = idx === 0
+      const isLast = idx === mergeCellItems.length - 1
+
+      if (isFirst) {
+        parts.push(`<mergeCells count="${mergeCellItems.length}">`)
+      }
+
+      parts.push(`<mergeCell ref="${mergeCellRef}"/>`)
+
+      if (isLast) {
+        parts.push('</mergeCells>')
+      }
     }
+
+    return new Handlebars.SafeString(parts.join(''))
+  }
+
+  // produce the content of the <calcChain> doc content when rendering xml template
+  function calcChain (options) {
+    const Handlebars = require('handlebars')
+
+    const {
+      helpers: {
+        parseXML,
+        generationUtils: { renderDataItems, getAttributeFromElementTypeAttributes }
+      }
+    } = getSharedData()
+
+    const xlsxFilePath = options.data.xlsxFilePath
+    const { templateItems, dataItems } = getFileData(xlsxFilePath)
+
+    // sort the dataItems by idx ASC to preserve the order of the original calcChain elements
+    dataItems.sort((a, b) => a.idx - b.idx)
+
+    const output = renderDataItems(
+      parseXML('<fragment />'),
+      dataItems,
+      {
+        prepareItem: (dataItem) => {
+          const templateItem = templateItems.data[dataItem.idx]
+          const itemType = templateItem.type ?? 'c'
+          let newItem
+
+          if (itemType === 'c') {
+            newItem = structuredClone(templateItem)
+
+            newItem.customAttributes = new Map([
+              ['r', dataItem.r]
+            ])
+          } else {
+            newItem = structuredClone(templateItem)
+          }
+
+          return newItem
+        },
+        getDefaultItemType: (parentItem) => {
+          if (parentItem == null) {
+            return 'c'
+          }
+        },
+        processAttribute: (origin, itemType, _attrName, _attrValue) => {
+          if (origin !== 'attributes') {
+            return
+          }
+
+          return getAttributeFromElementTypeAttributes(
+            templateItems.elementTypeAttributesMap,
+            itemType,
+            _attrName,
+            _attrValue
+          )
+        }
+      },
+      false
+    )
+
+    return new Handlebars.SafeString(output)
+  }
+
+  // produce the final <cols> content when rendering xml template
+  function cols (options) {
+    const Handlebars = require('handlebars')
+    const xlsxFilePath = options.data.xlsxFilePath
+
+    const {
+      helpers: { parseXML, cellUtils: { getColumnFor } }
+    } = getSharedData()
+
+    const existingColsXml = options.fn(this)
+
+    const doc = parseXML(existingColsXml)
+    const colsEl = doc.documentElement
+
+    const { runtime } = getFileData(xlsxFilePath)
+
+    const existingBaseColEls = Array.from(colsEl.getElementsByTagName('col'))
+
+    for (const [colLetter, colSize] of runtime.autoFit.cols) {
+      const colSizeInNumberCharactersMDW = (colSize / 6.5) + 2 // 2 is for padding
+      const colNumber = getColumnFor(colLetter)[1]
+
+      const existingColEl = existingBaseColEls.find((el) => (
+        el.getAttribute('min') === colNumber.toString() &&
+        el.getAttribute('max') === colNumber.toString()
+      ))
+
+      if (existingColEl != null) {
+        existingColEl.setAttribute('width', colSizeInNumberCharactersMDW)
+        existingColEl.setAttribute('customWidth', '1')
+      } else {
+        const newCol = doc.createElement('col')
+        newCol.setAttribute('min', colNumber.toString())
+        newCol.setAttribute('max', colNumber.toString())
+        newCol.setAttribute('width', colSizeInNumberCharactersMDW)
+        newCol.setAttribute('customWidth', '1')
+        colsEl.appendChild(newCol)
+      }
+    }
+
+    let output
+
+    // return empty if there was no existing cols and also no new cols were generated
+    if (existingBaseColEls.length === 0 && colsEl.childNodes.length === 0) {
+      output = ''
+    } else {
+      output = colsEl.toString()
+    }
+
+    return new Handlebars.SafeString(output)
   }
 
   const helpers = {
-    ws,
-    sd,
-    dimension,
+    raw,
+    staticRange,
     loop,
-    outOfLoop,
-    outOfLoopPlaceholder,
     r,
+    c,
     cValue,
-    c: function (info, options) {
-      delete options.hash.t
-
-      // restoring original t attribute, needed when we render xml of cell
-      if (options.hash.__originalT__ != null) {
-        options.hash.t = options.hash.__originalT__
-        delete options.hash.__originalT__
-      }
-
-      return c.call(this, info, options)
-    },
-    cTmpl,
-    m: function (options) {
-      return mergeOrFormulaCell.call(this, 'mergeCell', options)
-    },
-    f: function (options) {
-      return mergeOrFormulaCell.call(this, 'formula', options)
-    },
-    fs: formulaShared,
-    mergeCells,
-    mergeCellsCount,
-    mergeCellsItems,
-    mI,
-    newCellRef,
-    autofit,
     lazyFormulas,
-    style,
+    chartTitleText,
+    dimension,
+    sd,
+    mergeCells,
     calcChain,
-    raw
+    cols
   }
 
   return {
     resolveHelper: (helperName, argumentsLength, context, values, options) => {
       const targetHelper = helpers[helperName]
+
+      if (!targetHelper) {
+        throw new Error(`Helper "${helperName}" not found`)
+      }
+
       let validCall
 
       if (targetHelper.dynamicParameters) {
@@ -1833,49 +1383,4 @@ function _D () {
   __xlsxD.assertDataArg(type != null, '_D helper t arg is required')
 
   return __xlsxD.resolveHelper(type, arguments.length, this, values, optionsToUse)
-}
-
-// alias for {{_D t='r'}} helper call, we do it this way to optimize size of the generated xml
-function _R (data, options) {
-  options.hash.t = 'r'
-  options.hash.o = data
-  return _D.call(this, options)
-}
-
-// alias for {{_D t='c'}} helper call, we do it this way to optimize size of the generated xml
-function _C (data, options) {
-  options.hash.t = 'c'
-  return _D.call(this, { type: 'normal', originalCellLetter: data, calcChainUpdate: false }, options)
-}
-
-// alias for {{_D t='c'}} helper call with calcChainUpdate: true
-function _c (data, options) {
-  options.hash.t = 'c'
-  return _D.call(this, { type: 'normal', originalCellLetter: data, calcChainUpdate: true }, options)
-}
-
-// alias for {{_D t='c'}} helper with autodetect call
-function _T (options) {
-  if (options.hash.t != null) {
-    options.hash.__originalT__ = options.hash.t
-  }
-
-  options.hash.t = 'c'
-
-  const data = { type: 'autodetect', originalCellLetter: options.hash.r, calcChainUpdate: false }
-
-  return _D.call(this, data, options)
-}
-
-// alias for {{_D t='c'}} helper with autodetect call with calcChainUpdate: true
-function _t (options) {
-  if (options.hash.t != null) {
-    options.hash.__originalT__ = options.hash.t
-  }
-
-  options.hash.t = 'c'
-
-  const data = { type: 'autodetect', originalCellLetter: options.hash.r, calcChainUpdate: true }
-
-  return _D.call(this, data, options)
 }

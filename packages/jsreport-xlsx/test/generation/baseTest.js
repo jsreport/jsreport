@@ -470,7 +470,7 @@ describe('xlsx generation - base', () => {
     should(colorEl.getAttribute('rgb')).be.eql('FFFF0000')
   })
 
-  it('variable replace styled (only part of handlebars styled)', async () => {
+  it('variable replace styled (only part of handlebars styled in template should produce no style)', async () => {
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
@@ -525,7 +525,7 @@ describe('xlsx generation - base', () => {
     return Promise.all([
       should(prom).be.rejectedWith(/Parse error/i),
       // this text that error contains proper location of syntax error
-      should(prom).be.rejectedWith(/<t>Hello world {{<\/t>/)
+      should(prom).be.rejectedWith(/Hello world {{/)
     ])
   })
 
@@ -617,7 +617,7 @@ describe('xlsx generation - base', () => {
     should(sheet.A1.v).be.eql('Hello world John')
   })
 
-  it('condition with helper call', async () => {
+  it('condition with helper call inside a cell', async () => {
     const result = await reporter.render({
       template: {
         engine: 'handlebars',

@@ -1,10 +1,10 @@
 const path = require('path')
 const { DOMParser } = require('@xmldom/xmldom')
-const processChart = require('./processChart')
-const stringReplaceAsync = require('../../stringReplaceAsync')
-const { isWorksheetFile, isWorksheetRelsFile } = require('../../utils')
+const chart = require('./chart')
+const stringReplaceAsync = require('../../../stringReplaceAsync')
+const { isWorksheetFile, isWorksheetRelsFile } = require('../../../utils')
 
-module.exports = async (files) => {
+module.exports = async (files, sharedData) => {
   for (const sheetFile of files.filter((f) => isWorksheetFile(f.path))) {
     const sheetFilepath = sheetFile.path
     const sheetFilename = path.posix.basename(sheetFilepath)
@@ -22,7 +22,7 @@ module.exports = async (files) => {
       async (val) => {
         const drawingEl = new DOMParser().parseFromString(val).documentElement
 
-        await processChart(files, {
+        await chart(files, sharedData, {
           sheetFilepath,
           sheetFilename,
           sheetDoc,

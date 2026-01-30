@@ -1,7 +1,5 @@
-const loop = require('./loop')
-const drawingObject = require('./drawingObject')
+const drawingObject = require('./drawingObject/drawingObject')
 
-module.exports = async (files) => {
-  await loop(files)
-  await drawingObject(files)
+module.exports = async (files, sharedData) => {
+  await drawingObject(files, sharedData)
 }

@@ -68,11 +68,13 @@ module.exports = async function createSandbox (_sandbox, options = {}) {
       // we need to expose Date, and Math to allow Date.now(), Math.random()
       // these objects are already hardened by lockdown()
       Date,
-      Math
+      Math,
+      structuredClone
     })
   } else {
     vmSandbox = vm.createContext(undefined)
     vmSandbox.Buffer = Buffer
+    vmSandbox.structuredClone = structuredClone
   }
 
   const doSandboxRequire = createSandboxRequire(safeExecution, isolateModules, modulesCache, {
