@@ -52,7 +52,7 @@
     "debug": "4.3.2",
     "decamelize": "2.0.0",
     "deepmerge": "2.1.0",
-    "diff": "3.5.0",
+    "diff": "4.0.4",
     "diff-match-patch": "1.0.5",
     "enhanced-resolve": "5.8.3",
     "has-own-deep": "1.1.0",

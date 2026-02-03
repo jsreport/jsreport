@@ -30,7 +30,7 @@
   "dependencies": {
     "@jsreport/serializator": "1.1.0",
     "bytes": "3.0.0",
-    "diff": "3.5.0",
+    "diff": "4.0.4",
     "diff-match-patch": "1.0.5",
     "isbinaryfile": "3.0.3",
     "lodash.omit": "4.5.0",
