@@ -33,10 +33,10 @@
     "moment": "2.29.4"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.3.0",
+    "@jsreport/jsreport-authentication": "4.3.1",
     "@jsreport/jsreport-authorization": "4.2.0",
-    "@jsreport/jsreport-core": "4.8.0",
-    "@jsreport/jsreport-reports": "4.2.0",
+    "@jsreport/jsreport-core": "4.9.0",
+    "@jsreport/jsreport-reports": "4.3.0",
     "@jsreport/studio-dev": "4.1.0",
     "cron-builder": "0.3.0",
     "cronstrue": "1.64.0",

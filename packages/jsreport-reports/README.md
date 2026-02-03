@@ -7,6 +7,9 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 4.3.0
+- reports now get proper `reportTimeout` not counting the time the worker takes to to be ready
+
 ### 4.2.0
 - minimum node.js version is now `22.18.0`
 

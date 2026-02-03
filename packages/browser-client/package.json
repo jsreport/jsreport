@@ -30,10 +30,10 @@
     "watch": "microbundle watch"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.3.0",
+    "@jsreport/jsreport-authentication": "4.3.1",
     "@jsreport/jsreport-chrome-pdf": "4.4.0",
-    "@jsreport/jsreport-core": "4.8.0",
-    "@jsreport/jsreport-express": "4.3.0",
+    "@jsreport/jsreport-core": "4.9.0",
+    "@jsreport/jsreport-express": "4.3.1",
     "@rollup/plugin-commonjs": "21.0.0",
     "@rollup/plugin-node-resolve": "13.0.5",
     "file-saver": "2.0.5",

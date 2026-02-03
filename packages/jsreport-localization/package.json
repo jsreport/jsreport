@@ -35,7 +35,7 @@
     "handlebars": "4.7.7",
     "lodash.get": "4.4.2",
     "@jsreport/jsreport-assets": "4.3.0",
-    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-core": "4.9.0",
     "@jsreport/jsreport-components": "4.1.0",
     "@jsreport/jsreport-child-templates": "4.2.0",
     "@jsreport/jsreport-handlebars": "4.1.0",

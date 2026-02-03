@@ -2681,28 +2681,10 @@
     serializator "1.0.2"
     uuid "8.3.2"
 
-"@jsreport/jsreport-pdf-utils@4.5.1":
-  version "4.5.1"
-  resolved "https://registry.yarnpkg.com/@jsreport/jsreport-pdf-utils/-/jsreport-pdf-utils-4.5.1.tgz#87dbc38b2c0730e043eb43c1d5d9afee9a58bcc9"
-  integrity sha512-0M9Z9zOpLrXwe6xWEJ7gf2F2lMCvrVnV4/vSBmnuA77kBlSLahVYVqmDGfWC8tE2K6EU+XpEKmTIp47NSH/KVw==
-  dependencies:
-    "@jsreport/node-signpdf" "1.4.2"
-    "@jsreport/pdfjs" "1.9.0"
-    cheerio "1.0.0-rc.12"
-    lodash.omit "4.5.0"
-    nanoid "3.3.8"
-    node-forge "1.3.2"
-    parse-color "1.0.0"
-
 "@jsreport/mingo@2.4.1":
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/@jsreport/mingo/-/mingo-2.4.1.tgz#019ff48079a3ffeff2a5d8f1380386b921a0fc81"
   integrity sha512-6ZXpnsXoLvXf8t1aGhJ3TamVdi3tHfDGlNs5qfaIQfIlUkga6x6juQD+9twO5NHn+PKKct/FQQBScOqC0SsrmA==
-
-"@jsreport/node-signpdf@1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@jsreport/node-signpdf/-/node-signpdf-1.4.2.tgz#982ba2cdb1571b5eb75c8ec473d9563a657f42b4"
-  integrity sha512-qk2IBd27OcrUc0JTNgzTwErZtOWO1BRzMEp153ShtZv9HGRF5KiyhAR0PqBx32LKdwlzcaCwHzSC9ciiuZJC/g==
 
 "@jsreport/node-signpdf@1.4.3":
   version "1.4.3"
@@ -14975,11 +14957,6 @@ node-fetch@^2.6.0, node-fetch@^2.6.6:
   integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
   dependencies:
     whatwg-url "^5.0.0"
-
-node-forge@1.3.2:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-1.3.2.tgz#d0d2659a26eef778bf84d73e7f55c08144ee7750"
-  integrity sha512-6xKiQ+cph9KImrRh0VsjH2d8/GXA4FIMlgU4B757iI1ApvcyA9VlouP0yZJha01V+huImO+kKMU7ih+2+E14fw==
 
 node-forge@1.3.3:
   version "1.3.3"

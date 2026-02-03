@@ -7,6 +7,13 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.4.0
+- fix rendering in aws lambda (by avoiding using window-size launch args because it makes the process to not work in that environment)
+- add support for images
+- add indentation support (using `data-cell-indent` on cells)
+- add support for page and print related properties (using `data-sheet-page-xxx` attributes on table)
+- add `white-space` support, and support for rendering cells with newlines
+
 ### 4.3.0
 - minimum node.js version is now `22.18.0`
 - fix support for more colspan/rowspan based layouts

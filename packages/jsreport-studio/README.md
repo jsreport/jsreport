@@ -18,6 +18,9 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.4.1
+- update lodash, diff2html to fix audit
+
 ### 4.4.0
 - update minimum nodejs to 22.18
 - fix error when switching profiler mode in studio

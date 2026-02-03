@@ -21,7 +21,7 @@
     "@jsreport/sql-store": "3.2.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-core": "4.9.0",
     "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4"

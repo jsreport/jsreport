@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/html-to-xlsx",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Convert html to xlsx",
   "keywords": [
     "html",
@@ -25,7 +25,7 @@
     "test": "mocha --timeout 99999999 test/test.js && standard"
   },
   "dependencies": {
-    "@jsreport/exceljs": "1.1.0",
+    "@jsreport/exceljs": "1.2.0",
     "escape-string-regexp": "4.0.0",
     "excel-formula-tokenizer": "3.0.0",
     "moment": "2.29.4",

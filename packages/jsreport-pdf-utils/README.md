@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.5.3
+- fix propagating mergeToFront
+- update node-forge to fix audit
+
 ### 4.5.2
 - fix propagating mergeToFront
 

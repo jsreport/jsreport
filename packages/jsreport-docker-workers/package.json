@@ -28,10 +28,10 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.3.0",
+    "@jsreport/jsreport-authentication": "4.3.1",
     "@jsreport/jsreport-chrome-pdf": "4.4.0",
-    "@jsreport/jsreport-core": "4.8.0",
-    "@jsreport/jsreport-express": "4.3.0",
+    "@jsreport/jsreport-core": "4.9.0",
+    "@jsreport/jsreport-express": "4.3.1",
     "@jsreport/jsreport-fs-store": "4.2.0",
     "@jsreport/jsreport-handlebars": "4.1.0",
     "@jsreport/jsreport-scripts": "4.3.0",

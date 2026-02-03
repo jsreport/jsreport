@@ -282,6 +282,9 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.9.0
+- changes to support async requests to get proper `reportTimeout` not counting the time the worker takes to to be ready
+
 ### 4.8.0
 - update minimum nodejs to 22.18
 - expose `version` to the jsreport-proxy
