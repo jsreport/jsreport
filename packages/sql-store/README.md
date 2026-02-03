@@ -4,6 +4,10 @@
 
 ## Changelog
 
+### 3.2.2
+
+- update `@jsreport/odata-to-sql` to fix audit
+
 ### 3.2.1
 
 - update `@jsreport/odata-to-sql` to fix issue with drop calls
