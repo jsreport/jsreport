@@ -40,7 +40,7 @@
     "@jsreport/studio-dev": "4.1.0",
     "cron-builder": "0.3.0",
     "cronstrue": "1.64.0",
-    "lodash": "4.17.15",
+    "lodash": "4.17.23",
     "mocha": "11.7.5",
     "ordinal-number-suffix": "0.1.2",
     "should": "13.2.3",
