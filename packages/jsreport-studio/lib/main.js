@@ -6,7 +6,7 @@ const fs = require('fs')
 const fsP = require('fs/promises')
 const serveStatic = require('serve-static')
 const favicon = require('serve-favicon')
-const { Diff2Html } = require('diff2html')
+const Diff2Html = require('diff2html')
 const compression = require('compression')
 const ThemeManager = require('./themeManager')
 const createTextSearch = require('./textSearch')
@@ -520,9 +520,14 @@ module.exports = (reporter, definition) => {
     })
 
     app.post('/studio/diff-html', (req, res, next) => {
-      const style = `<style>${diff2htmlStyle}</style>`
-      const diff = Diff2Html.getPrettyHtml(req.body.patch, { inputFormat: 'diff', showFiles: false, matching: 'lines' })
-      res.send(`<!DOCTYPE html><html><head>${style}</head><body>${diff}</body></html>`)
+      const styles = [
+        // since we force light mode for diff view, we add html, body styles to ensure
+        // the viewer always render the diff in light mode (without matter what is the theme of studio)
+        '<style>html, body { background-color: #fff; color: #000; }</style>',
+        `<style>${diff2htmlStyle}</style>`
+      ]
+      const diff = Diff2Html.html(req.body.patch, { drawFileList: false, matching: 'lines', colorScheme: 'light' })
+      res.send(`<!DOCTYPE html><html><head>${styles.join('')}</head><body>${diff}</body></html>`)
     })
 
     app.post('/studio/validate-entity-name', async (req, res) => {
