@@ -44,7 +44,7 @@
     "@jsreport/studio-dev": "4.1.0",
     "handlebars": "4.7.7",
     "mocha": "11.7.5",
-    "puppeteer": "24.31.0",
+    "puppeteer": "24.36.1",
     "rimraf": "^3.0.2",
     "should": "13.2.3",
     "standard": "16.0.4"
