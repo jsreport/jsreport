@@ -1,5 +1,5 @@
 const { pipeline } = require('stream')
-const omit = require('lodash.omit')
+const omit = require('lodash/omit')
 const serveStatic = require('serve-static')
 const { FormData } = require('@jsreport/multipart')
 const handleError = require('./handleError')

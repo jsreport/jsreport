@@ -18,7 +18,7 @@
     "@jsreport/multipart": "1.0.0",
     "@jsreport/serializator": "1.1.0",
     "axios": "1.13.2",
-    "express": "4.21.2",
+    "express": "4.22.1",
     "fs-extra": "9.1.0",
     "ip": "1.1.5",
     "listener-collection": "2.1.0",

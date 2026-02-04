@@ -1,5 +1,5 @@
 const ODataServer = require('simple-odata-server')
-const unset = require('lodash.unset')
+const unset = require('lodash/unset')
 
 function collectHiddenPropertiesInType (model, entityType, hiddenProps, baseName) {
   Object.keys(entityType).forEach((p) => {
