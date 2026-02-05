@@ -633,8 +633,8 @@ describe('profiler with fast cancelingCheck interval', () => {
   it('should support cancelling requests ', async () => {
     let profile
 
-    reporter.tests.beforeRenderEval(async (req) => {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+    reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
     })
 
     let cancelError
