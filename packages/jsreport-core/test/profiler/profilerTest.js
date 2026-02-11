@@ -634,7 +634,7 @@ describe('profiler with fast cancelingCheck interval', () => {
     let profile
 
     reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
     })
 
     let cancelError
@@ -650,10 +650,10 @@ describe('profiler with fast cancelingCheck interval', () => {
 
     while (true) {
       profile = await reporter.documentStore.collection('profiles').findOne({})
-      if (profile && profile.state === 'running') {
+      if (profile?.state === 'running') {
         break
       }
-      await new Promise((resolve) => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 100))
     }
 
     await reporter.documentStore.collection('profiles').update({
@@ -669,7 +669,7 @@ describe('profiler with fast cancelingCheck interval', () => {
         break
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 100))
     }
 
     cancelError.message.should.containEql('Report cancelled by the client')
