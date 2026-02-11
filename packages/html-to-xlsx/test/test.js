@@ -524,36 +524,12 @@ describe('html to xlsx conversion with strategy', () => {
         </table
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.SheetNames[0]).be.eql('Sheet1')
     })
 
     it('should be able to set custom sheet name', async () => {
-      const parseXlsx = (xlsxStream) => {
-        return new Promise((resolve, reject) => {
-          const bufs = []
-
-          xlsxStream.on('error', reject)
-          xlsxStream.on('data', (d) => { bufs.push(d) })
-
-          xlsxStream.on('end', () => {
-            const buf = Buffer.concat(bufs)
-            resolve(xlsx.read(buf))
-          })
-        })
-      }
-
       let stream = await conversion(`
         <table name="custom">
           <tr>
@@ -562,7 +538,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      let parsedXlsx = await parseXlsx(stream)
+      let parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.SheetNames[0]).be.eql('custom')
 
@@ -574,7 +550,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      parsedXlsx = await parseXlsx(stream)
+      parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.SheetNames[0]).be.eql('custom2')
     })
@@ -593,20 +569,9 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      let outputBuf
+      const outputBuf = await streamToBuffer(stream)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          outputBuf = buf
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read(outputBuf)
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql(10)
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.v).be.eql(10)
@@ -637,20 +602,9 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      let outputBuf
+      const outputBuf = await streamToBuffer(stream)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          outputBuf = buf
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read(outputBuf)
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('TESTABC123 CURR MONTH REPORT')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1).be.not.ok()
@@ -685,17 +639,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql(10)
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.w).be.eql('10.00')
@@ -712,17 +656,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
 
@@ -744,17 +678,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('col1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.v).be.eql('col2')
@@ -774,17 +698,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -809,18 +723,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
-
+      const resultBuf = await streamToBuffer(stream)
       fs.writeFileSync(outputPath, resultBuf)
 
       const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
@@ -853,17 +756,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -935,17 +828,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('ROWSPAN 3')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -981,17 +864,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('ROWSPAN 3')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -1027,17 +900,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('ROWSPAN 3')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -1073,17 +936,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('NRO1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -1135,17 +988,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('NRO1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -1195,17 +1038,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('NRO1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -1259,17 +1092,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('ROWSPAN 3')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -1342,17 +1165,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('corner')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1).be.undefined()
@@ -1469,17 +1282,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('Row 1 Col 1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -1600,17 +1403,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('PROJECT PORTFOLIO DATA')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.v).be.eql('PROJECT NAME')
@@ -1736,17 +1529,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('PROJECT PORTFOLIO DATA')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.v).be.eql('PROJECT NAME')
@@ -1885,17 +1668,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('PROJECT PORTFOLIO DATA')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.v).be.eql('PROJECT NAME')
@@ -1999,17 +1772,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('Date')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -2120,17 +1883,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('Date')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2).be.undefined()
@@ -2290,17 +2043,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf, { cellStyles: true }))
-        })
-      })
+      const parsedXlsx = xlsx.read(await streamToBuffer(stream), { cellStyles: true })
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('Date')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A2.v).be.not.ok()
@@ -2401,20 +2144,8 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const { parsedXlsx, outputBuf } = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve({
-            parsedXlsx: xlsx.read(buf),
-            outputBuf: buf
-          })
-        })
-      })
+      const outputBuf = await streamToBuffer(stream)
+      const parsedXlsx = xlsx.read(outputBuf)
 
       fs.writeFileSync(outputPath, outputBuf)
 
@@ -2658,17 +2389,7 @@ describe('html to xlsx conversion with strategy', () => {
         </html>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -2796,17 +2517,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -2906,17 +2617,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -3089,17 +2790,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -3260,18 +2951,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
-
+      const resultBuf = await streamToBuffer(stream)
       fs.writeFileSync(outputPath, resultBuf)
 
       const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
@@ -3464,17 +3144,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -3714,17 +3384,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -4559,17 +4219,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -5431,17 +5081,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       fs.writeFileSync(outputPath, resultBuf)
 
@@ -5529,17 +5169,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Styles.Fonts).matchAny((font) => should(font.name).be.eql('Verdana'))
     })
@@ -5557,17 +5187,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       const [sheetDoc, stylesDoc] = await getDocumentsFromXlsxBuf(resultBuf, ['xl/worksheets/sheet1.xml', 'xl/styles.xml'], { strict: true })
 
@@ -5603,17 +5223,7 @@ describe('html to xlsx conversion with strategy', () => {
         waitForJS: true
       })
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('Hello')
     })
@@ -5640,17 +5250,7 @@ describe('html to xlsx conversion with strategy', () => {
         waitForJSVarName: 'READY_TO_START'
       })
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('Hello')
     })
@@ -5675,17 +5275,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].A1.v).be.eql('1')
       should(parsedXlsx.Sheets[parsedXlsx.SheetNames[0]].B1.v).be.eql('2')
@@ -5700,28 +5290,15 @@ describe('html to xlsx conversion with strategy', () => {
 
     it('should be able to parse xlsx', async () => {
       const stream = await conversion('<table><tr><td>hello</td></tr>')
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
-      const bufs = []
-
-      stream.on('data', (d) => { bufs.push(d) })
-      stream.on('end', () => {
-        const buf = Buffer.concat(bufs)
-        const doc = xlsx.read(buf)
-        doc.Sheets.Sheet1.A1.v.should.be.eql('hello')
-      })
+      parsedXlsx.Sheets.Sheet1.A1.v.should.be.eql('hello')
     })
 
     it('should be able to process emoji xlsx', async () => {
       const stream = await conversion('<table><tr><td>hello 😃</td></tr>')
-
-      const bufs = []
-
-      stream.on('data', (d) => { bufs.push(d) })
-      stream.on('end', () => {
-        const buf = Buffer.concat(bufs)
-        const doc = xlsx.read(buf)
-        doc.Sheets.Sheet1.A1.v.should.be.eql('hello 😃')
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
+      parsedXlsx.Sheets.Sheet1.A1.v.should.be.eql('hello 😃')
     })
 
     it('should not error when input contains invalid characters', async () => {
@@ -5744,23 +5321,8 @@ describe('html to xlsx conversion with strategy', () => {
           </tr>
         </table>
       `)
-
-      const bufs = []
-
-      await new Promise((resolve, reject) => {
-        stream.on('data', (d) => { bufs.push(d) })
-        stream.on('error', reject)
-        stream.on('end', () => {
-          try {
-            const buf = Buffer.concat(bufs)
-            const doc = xlsx.read(buf)
-            doc.Sheets.Sheet1.A1.v.should.be.eql('& &')
-            resolve()
-          } catch (e) {
-            reject(e)
-          }
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
+      parsedXlsx.Sheets.Sheet1.A1.v.should.be.eql('& &')
     })
 
     it('should callback error when row doesn\'t contain cells', async () => {
@@ -5782,17 +5344,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `, {}, baseTemplateBuf)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       parsedXlsx.SheetNames.includes('Base').should.be.True()
 
@@ -5823,17 +5375,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `, {}, baseTemplateBuf)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       parsedXlsx.SheetNames.includes('Base').should.be.True()
       parsedXlsx.SheetNames.includes('Another').should.be.True()
@@ -5860,17 +5402,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `, {}, baseTemplateBuf)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       parsedXlsx.SheetNames.includes('Base').should.be.True()
 
@@ -5916,17 +5448,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `, {}, baseTemplateBuf)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       parsedXlsx.SheetNames.includes('Base').should.be.True()
       parsedXlsx.SheetNames.includes('Another').should.be.True()
@@ -6003,17 +5525,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `, {}, baseTemplateBuf)
 
-      const parsedXlsx = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(xlsx.read(buf))
-        })
-      })
+      const parsedXlsx = xlsx.read((await streamToBuffer(stream)))
 
       parsedXlsx.SheetNames.includes('Base').should.be.True()
 
@@ -6103,17 +5615,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const outputBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          const buf = Buffer.concat(bufs)
-          resolve(buf)
-        })
-      })
+      const outputBuf = await streamToBuffer(stream)
 
       const [workbookDoc, sheetDoc] = await getDocumentsFromXlsxBuf(outputBuf, ['xl/workbook.xml', 'xl/worksheets/sheet1.xml'], { strict: true })
 
@@ -6171,16 +5673,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      const resultBuf = await new Promise((resolve, reject) => {
-        const bufs = []
-
-        stream.on('error', reject)
-        stream.on('data', (d) => { bufs.push(d) })
-
-        stream.on('end', () => {
-          resolve(Buffer.concat(bufs))
-        })
-      })
+      const resultBuf = await streamToBuffer(stream)
 
       const parsedXlsx = xlsx.read(resultBuf)
 
@@ -6200,7 +5693,7 @@ describe('html to xlsx conversion with strategy', () => {
       should(matchedDrawingRel).be.ok()
       should(matchedDrawingRel.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing')
 
-      should(path.join('xl/worksheets', matchedDrawingRel.getAttribute('Target'))).be.eql('xl/drawings/drawing1.xml')
+      should(path.posix.join('xl/worksheets', matchedDrawingRel.getAttribute('Target'))).be.eql('xl/drawings/drawing1.xml')
 
       const cellAnchorEls = nodeListToArray(drawingDoc.documentElement.childNodes)
 
@@ -6231,7 +5724,7 @@ describe('html to xlsx conversion with strategy', () => {
       should(matchedImageRel).be.ok()
       should(matchedImageRel.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
 
-      should(path.join('xl/worksheets', matchedImageRel.getAttribute('Target'))).be.eql('xl/media/image1.jpeg')
+      should(path.posix.join('xl/worksheets', matchedImageRel.getAttribute('Target'))).be.eql('xl/media/image1.jpeg')
     })
   }
 })
