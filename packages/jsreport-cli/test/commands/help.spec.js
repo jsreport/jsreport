@@ -24,12 +24,10 @@ const { getTempDir, createTempDir, setup, exec } = require('../testUtils')({
 
 describe('help command', () => {
   const dirName = 'help-project'
-
-  // we likely somewhere modify process.argv... the help -h test fails in 1 from 100 cases undeterministically
   let originalArgv
-
   beforeEach(async () => {
     originalArgv = process.argv
+    process.argv = originalArgv.slice(2)
     const customExtensionPath = getTempDir(`${dirName}/custom-extension`)
     await setup(dirName, [customExtensionPath])
 
