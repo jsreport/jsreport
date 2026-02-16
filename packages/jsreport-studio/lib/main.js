@@ -1,5 +1,4 @@
 const path = require('path')
-const url = require('url')
 const _ = require('lodash')
 const crypto = require('crypto')
 const fs = require('fs')
