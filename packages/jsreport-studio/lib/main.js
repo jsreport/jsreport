@@ -774,10 +774,8 @@ module.exports = (reporter, definition) => {
   }
 
   function redirectOrSendIndex (req, res, next) {
-    // eslint-disable-next-line
-    const reqUrl = url.parse(req.originalUrl)
-    if (reqUrl.pathname[reqUrl.pathname.length - 1] !== '/') {
-      return res.redirect(reqUrl.pathname + '/' + (reqUrl.search || ''))
+    if (!req.path.endsWith('/')) {
+      return res.redirect(req.path + '/' + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''))
     }
 
     sendIndex(req, res, next)

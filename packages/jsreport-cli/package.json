@@ -57,7 +57,7 @@
     "ip-address": "5.8.9",
     "is-absolute-url": "2.1.0",
     "is-promise": "2.1.0",
-    "liftoff": "4.0.0",
+    "liftoff": "5.0.1",
     "lockfile": "1.0.4",
     "lodash.omit": "4.5.0",
     "nanoid": "3.3.8",
