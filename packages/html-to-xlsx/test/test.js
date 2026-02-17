@@ -512,7 +512,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table
       `)
 
-      should(stream).have.property('readable')
+      return streamToBuffer(stream).should.not.be.rejected()
     })
 
     it('default sheet name should be Sheet1', async () => {
@@ -808,7 +808,7 @@ describe('html to xlsx conversion with strategy', () => {
         </table>
       `)
 
-      stream.should.have.property('readable')
+      return streamToBuffer(stream).should.not.be.rejected()
     })
 
     it('should work when using special rowspan layout #1 (row with just one cell)', async () => {
