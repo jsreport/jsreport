@@ -19,7 +19,9 @@
     "start": "node server.js",
     "test": "node scripts/test.js"
   },
-  "resolutions": {},
+  "resolutions": {
+    "fast-xml-parser": "^5.3.4"
+  },
   "dependencies": {
     "@jsreport/studio-dev": "4.1.0",
     "extract-zip": "2.0.1",
