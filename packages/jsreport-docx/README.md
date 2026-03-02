@@ -7,6 +7,9 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.10.1
+- fix engine cache not being used because part of the handlebars template was containing a dynamic value
+
 ### 4.10.0
 - minimum node.js version is now `22.18.0`
 - add support for `docxChild` to merge images

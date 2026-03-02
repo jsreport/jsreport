@@ -24,8 +24,10 @@ const { getTempDir, createTempDir, setup, exec } = require('../testUtils')({
 
 describe('help command', () => {
   const dirName = 'help-project'
-
+  let originalArgv
   beforeEach(async () => {
+    originalArgv = process.argv
+    process.argv = originalArgv.slice(2)
     const customExtensionPath = getTempDir(`${dirName}/custom-extension`)
     await setup(dirName, [customExtensionPath])
 
@@ -62,6 +64,10 @@ describe('help command', () => {
         handler: () => {}
       }]
     `)
+  })
+
+  afterEach(() => {
+    process.argv = originalArgv
   })
 
   it('should return help usage (help -h)', async () => {

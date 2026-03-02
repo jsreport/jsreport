@@ -1,6 +1,6 @@
 {
   "name": "cheerio-page-eval",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Evaluate html table with cheerio - html engine of jsreport-html-to-xlsx",
   "main": "index.js",
   "homepage": "https://github.com/jsreport/cheerio-page-eval",

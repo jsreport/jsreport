@@ -25,9 +25,9 @@
     "mimic-response": "2.1.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.3.0",
-    "@jsreport/jsreport-core": "4.8.0",
-    "@jsreport/jsreport-express": "4.3.0",
+    "@jsreport/jsreport-authentication": "4.3.1",
+    "@jsreport/jsreport-core": "4.9.0",
+    "@jsreport/jsreport-express": "4.3.1",
     "@jsreport/jsreport-jsrender": "4.1.0",
     "mocha": "11.7.5",
     "should": "13.2.3",

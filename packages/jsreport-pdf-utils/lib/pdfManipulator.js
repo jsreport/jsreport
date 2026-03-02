@@ -42,15 +42,15 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
       currentBuffer = await document.asBuffer()
     },
 
-    async merge (pageBuffersOrDocBuffer, mergeToFront, options = {}) {
-      const copyAccessibilityTags = options?.pdfAccessibility?.enabled != null ? options?.pdfAccessibility?.enabled : pdfAccessibility?.enabled
+    async merge (pageBuffersOrDocBuffer, options = {}) {
+      const copyAccessibilityTags = options.pdfAccessibility?.enabled != null ? options.pdfAccessibility?.enabled : pdfAccessibility?.enabled
       const document = new Document()
       document.append(new External(currentBuffer), { copyAccessibilityTags })
       if (Buffer.isBuffer(pageBuffersOrDocBuffer)) {
-        document.merge(new External(pageBuffersOrDocBuffer), { mergeToFront, copyAccessibilityTags })
+        document.merge(new External(pageBuffersOrDocBuffer), { ...options, copyAccessibilityTags })
       } else {
         for (const i in pageBuffersOrDocBuffer) {
-          document.merge(new External(pageBuffersOrDocBuffer[i]), { mergeToFront, pageNum: i, copyAccessibilityTags })
+          document.merge(new External(pageBuffersOrDocBuffer[i]), { ...options, pageNum: i, copyAccessibilityTags })
         }
       }
       currentBuffer = await document.asBuffer()

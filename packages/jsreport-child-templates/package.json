@@ -31,7 +31,7 @@
     "semaphore-async-await": "1.5.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.8.0",
+    "@jsreport/jsreport-core": "4.9.0",
     "@jsreport/jsreport-handlebars": "4.1.0",
     "@jsreport/jsreport-jsrender": "4.1.0",
     "handlebars": "4.7.7",

@@ -344,7 +344,7 @@ async function compileExe (label, config, options) {
   filesToIgnore.push('**/node_modules/hdr-histogram-js/**/*.spec.js')
   filesToIgnore.push('**/node_modules/opentype.js/dist/**')
   filesToIgnore.push('!**/node_modules/opentype.js/dist/opentype.js')
-  filesToIgnore.push('**/node_modules/diff2html/dist/**')
+  filesToIgnore.push('**/node_modules/diff2html/bundles/css/**')
   filesToIgnore.push('**/node_modules/source-map/dist/**')
   filesToIgnore.push('**/node_modules/buble/dist/buble.es.js')
   filesToIgnore.push('**/node_modules/async/dist/async.min.js')

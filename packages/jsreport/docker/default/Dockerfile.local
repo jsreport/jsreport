@@ -5,7 +5,7 @@ ARG TARGETPLATFORM
 ARG UID=2500
 ARG GID=2500
 
-ENV GOSU_VERSION=1.17
+ENV GOSU_VERSION=1.19
 RUN set -eux; \
     \
     apk add --no-cache --virtual .gosu-deps \
@@ -38,9 +38,9 @@ RUN addgroup -g "${GID}" -S jsreport && adduser --shell /bin/bash -u "${UID}" -S
 # this condition is useful when the alpine registry contain different latest versions
 # per architecture, if the versions match then just use the same version number on both paths
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="142.0.7444.175-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="144.0.7559.109-r0"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="142.0.7444.175-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="144.0.7559.109-r0"; \
     fi && \
     echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
     apk update --no-cache && \
@@ -55,8 +55,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
-    libcurl@edge=8.17.0-r1 \
-    git@edge=2.52.0-r0 \
+    libcurl@edge=8.18.0-r0 \
+    git@edge=2.53.0-r0 \
     # so user can docker exec -it test /bin/bash
     bash
 

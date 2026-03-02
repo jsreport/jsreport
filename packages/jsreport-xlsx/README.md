@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.6.1
+- fix lazy formulas that are processed on the last part of rendering
+- fix engine cache not being used because part of the handlebars template was containing a dynamic value
+
 ### 4.6.0
 - minimum node.js version is now `22.18.0`
 - fix more cases with lazy formulas

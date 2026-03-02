@@ -130,6 +130,12 @@ main()
 
 ## Changelog
 
+### 1.2.0
+- add support for images
+- add indentation support (using `data-cell-indent` on cells)
+- add support for page and print related properties (using `data-sheet-page-xxx` attributes on table)
+- add `white-space` support, and support for rendering cells with newlines
+
 ### 1.1.0
 - update minimum nodejs to 22.18
 - better error for invalid base xlsx template
