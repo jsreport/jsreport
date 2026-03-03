@@ -36,7 +36,7 @@
     "etag": "1.8.1",
     "js-string-escape": "1.0.1",
     "mime": "2.4.4",
-    "minimatch": "5.1.0",
+    "minimatch": "5.1.8",
     "react-copy-to-clipboard": "5.0.2",
     "strip-bom-buf": "2.0.0"
   },
