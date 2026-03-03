@@ -32,7 +32,7 @@
     "cors": "2.8.5",
     "express": "4.22.1",
     "lodash": "4.17.23",
-    "multer": "2.0.2",
+    "multer": "2.1.0",
     "serve-static": "1.16.2",
     "simple-odata-server": "1.2.2",
     "stream-to-array": "2.3.0",
