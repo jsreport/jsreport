@@ -246,11 +246,11 @@ function updateDimension (runtime, cellNumbers) {
   }
 }
 
-function updateMergeCells (mergeCellItems, originalRefRange, updatedStartCell) {
-  const { newValue } = evaluateCellRefsFromExpression(originalRefRange, (cellRefInfo) => {
+function updateMergeCells (mergeCellItems, originalCellInfo, updatedStartCell) {
+  const { newValue } = evaluateCellRefsFromExpression(originalCellInfo.ref, (cellRefInfo) => {
     const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
 
-    assertOk(isRange, `cell ref expected to be a range. value: "${originalRefRange}`)
+    assertOk(isRange, `cell ref expected to be a range. value: "${originalCellInfo.ref}"`)
 
     const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
     const [newColumnLetter] = getColumnFor(updatedStartCell.letter, columnIncrement)
@@ -266,7 +266,7 @@ function updateMergeCells (mergeCellItems, originalRefRange, updatedStartCell) {
     return newCellRef
   })
 
-  mergeCellItems.push(newValue)
+  mergeCellItems.push({ idx: originalCellInfo.idx, ref: newValue })
 }
 
 function renderDataItems (doc, dataItems, meta, outputFullDocument = true) {

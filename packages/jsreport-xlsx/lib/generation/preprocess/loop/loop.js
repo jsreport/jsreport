@@ -108,7 +108,7 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
     // stores the merge cell ranges by the row number
     const mergeCellRangesByStartRowNumberMap = new Map()
 
-    for (const mergeCellEl of Array.from(mergeCellsEl?.getElementsByTagName('mergeCell') ?? [])) {
+    for (const [mergeCellIdx, mergeCellEl] of Array.from(mergeCellsEl?.getElementsByTagName('mergeCell') ?? []).entries()) {
       const ref = mergeCellEl.getAttribute('ref')
       const startCellRef = ref.split(':')[0]
       const parsedStartCellRef = parseCellRef(startCellRef)
@@ -120,7 +120,7 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
         mergeCellRangesByStartRowNumberMap.set(parsedStartCellRef.rowNumber, refsByStartLetterMap)
       }
 
-      refsByStartLetterMap.set(parsedStartCellRef.letter, ref)
+      refsByStartLetterMap.set(parsedStartCellRef.letter, { idx: mergeCellIdx, ref })
     }
 
     const dimensionEl = sheetDoc.getElementsByTagName('dimension')[0]

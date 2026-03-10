@@ -403,8 +403,8 @@ const __xlsxD = (function () {
     // that reference cells that does not exists
     // (cell tag not present only empty row tag in xml)
     if (newData.cellOutputsMap.size === 0) {
-      for (const [cellLetter, mergeCellRef] of mergeStartLetterMap) {
-        updateMergeCells(mergeCellItems, mergeCellRef, {
+      for (const [cellLetter, mergeCellInfo] of mergeStartLetterMap) {
+        updateMergeCells(mergeCellItems, mergeCellInfo, {
           letter: cellLetter,
           rowNumber: newRowNumber
         })
@@ -418,10 +418,10 @@ const __xlsxD = (function () {
 
         // check if there were merge cells affecting the original cell, if yes,
         // add new merge cell
-        const mergeCellRef = mergeStartLetterMap.get(originalCellLetter)
+        const mergeCellInfo = mergeStartLetterMap.get(originalCellLetter)
 
-        if (mergeCellRef) {
-          updateMergeCells(mergeCellItems, mergeCellRef, {
+        if (mergeCellInfo) {
+          updateMergeCells(mergeCellItems, mergeCellInfo, {
             letter: cellLetter,
             rowNumber: newRowNumber
           })
@@ -1179,8 +1179,11 @@ const __xlsxD = (function () {
     const { mergeCellItems } = getFileData(xlsxFilePath)
     const parts = []
 
+    // sort the merge cell items by idx ASC to preserve the order of the original calcChain elements
+    mergeCellItems.sort((a, b) => a.idx - b.idx)
+
     for (let idx = 0; idx < mergeCellItems.length; idx++) {
-      const mergeCellRef = mergeCellItems[idx]
+      const mergeCellInfo = mergeCellItems[idx]
       const isFirst = idx === 0
       const isLast = idx === mergeCellItems.length - 1
 
@@ -1188,7 +1191,7 @@ const __xlsxD = (function () {
         parts.push(`<mergeCells count="${mergeCellItems.length}">`)
       }
 
-      parts.push(`<mergeCell ref="${mergeCellRef}"/>`)
+      parts.push(`<mergeCell ref="${mergeCellInfo.ref}"/>`)
 
       if (isLast) {
         parts.push('</mergeCells>')
