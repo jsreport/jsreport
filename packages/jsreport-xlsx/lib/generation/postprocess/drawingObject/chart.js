@@ -127,11 +127,6 @@ module.exports = async function processChart (files, sharedData, sheetContent, d
 
     const { runtime } = sharedData.fileDataMap.get(chartPath)
 
-    if (runtime.configuration.data == null) {
-      continue
-    }
-
-    const chartConfig = runtime.configuration
     let chartMainTitleTextEl
 
     if (graphicDataChartEl.prefix === 'c') {
@@ -152,6 +147,12 @@ module.exports = async function processChart (files, sharedData, sheetContent, d
 
       chartMainTitleTextEl.parentNode.replaceChild(newTitleTxEl, chartMainTitleTextEl)
     }
+
+    if (runtime.configuration.data == null) {
+      continue
+    }
+
+    const chartConfig = runtime.configuration
 
     if (graphicDataChartEl.prefix === 'cx') {
       const chartSeriesEl = chartDoc.getElementsByTagName('cx:plotArea')[0].getElementsByTagName('cx:series')[0]

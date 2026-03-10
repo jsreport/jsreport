@@ -34,6 +34,68 @@ describe('xlsx generation - charts', () => {
     }
   })
 
+  it('existing chart should not be modified if xlsxChart helper is not used', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-no-dynamic.xlsx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
+    )
+
+    const chartTitleTextEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('c:tx')[0]
+
+    should(chartTitleTextEl.textContent).be.eql('Chart')
+
+    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+    const expected = [
+      {
+        text: 'Serie 1',
+        labels: ['Categoría 1', 'Categoría 2', 'Categoría 3', 'Categoría 4'],
+        values: [4, 2, 3, 4]
+      },
+      {
+        text: 'Serie 2',
+        labels: ['Categoría 1', 'Categoría 2', 'Categoría 3', 'Categoría 4'],
+        values: [2, 4, 1, 2]
+      },
+      {
+        text: 'Serie 3',
+        labels: ['Categoría 1', 'Categoría 2', 'Categoría 3', 'Categoría 4'],
+        values: [2, 2, 3, 5]
+      }
+    ]
+
+    should(dataElements.length).be.eql(3)
+
+    for (let idx = 0; idx < dataElements.length; idx++) {
+      const dataEl = dataElements[idx]
+
+      should(dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent).be.eql(expected[idx].text)
+
+      const existingLabels = nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent)
+
+      should(existingLabels).be.eql(expected[idx].labels)
+
+      const existingValues = nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10))
+      should(existingValues).be.eql(expected[idx].values)
+    }
+  })
+
   it('chart', async () => {
     const labels = ['Jan', 'Feb', 'March', 'Apr']
 
