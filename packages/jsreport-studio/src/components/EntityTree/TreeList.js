@@ -6,6 +6,7 @@ import TreeNode from './TreeNode'
 import { getNodeId, getSetsToRender } from './utils'
 import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 import { values as configuration } from '../../lib/configuration'
+import styles from './EntityTree.css'
 
 const TreeList = React.forwardRef(function TreeList ({ groupMode, entities }, ref) {
   const containerRef = useRef(null)
@@ -142,6 +143,9 @@ const TreeList = React.forwardRef(function TreeList ({ groupMode, entities }, re
 
   const renderTree = useCallback(function renderTree (nodeList, depth = 0, parentId, treeIsDraggable) {
     const listProps = {
+      itemsRenderer: (items, ref) => (
+        <div ref={ref} className={styles.boxContent}>{items}</div>
+      ),
       itemRenderer: (index) => renderTreeNode(
         nodeList[index],
         depth,
@@ -162,7 +166,7 @@ const TreeList = React.forwardRef(function TreeList ({ groupMode, entities }, re
   }, [renderTreeNode])
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className={styles.boxContent}>
       {renderTree(
         memoizedGroupEntities(configuration.entitySets, entities, groupHelpers)
       )}

@@ -77,7 +77,7 @@ const GroupNode = React.memo(({
       })
     : null
 
-  const containerClass = classNames(styles.link, {
+  const containerClass = classNames(styles.link, styles.nodeBoxItem, {
     [styles.active]: isNodeEditSelected ? !isDragging : isActive && !isDragging,
     [styles.dragging]: isDragging
   })

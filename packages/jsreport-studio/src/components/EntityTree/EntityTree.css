@@ -11,6 +11,11 @@
   height: 100%;
 }
 
+.boxContent {
+  display: flex;
+  flex-direction: column;
+}
+
 .toolbar {
   padding: 0.3rem;
 }
@@ -26,7 +31,7 @@
 }
 
 .nodeBoxItem {
-  margin-top: 0;
+  min-width: max-content;
 }
 
 .nodeBoxItemContent {
@@ -47,6 +52,9 @@
 }
 
 .nodesBox {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
   flex: 1;
   height: auto;
   overflow: auto;
