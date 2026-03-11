@@ -45,17 +45,18 @@ module.exports = async (reporter, definition, req, res) => {
     })
   }
 
+  const { pathToFile: templateFilePath } = await reporter.writeTempFile((uuid) => `template-${uuid}.xlsx`, templateAsset.content)
+
   if (req.template.engine !== 'handlebars') {
-    const { pathToFile: outputPath } = await reporter.writeTempFile((uuid) => `${uuid}.xlsx`, templateAsset.content)
     reporter.logger.debug('xlsx generation skipped. template engine is not handlebars')
-    return outputPath
+    return templateFilePath
   }
 
   reporter.logger.info('xlsx generation is starting', req)
 
   const { pathToFile: outputPath } = await reporter.writeTempFile((uuid) => `${uuid}.xlsx`, '')
 
-  const { xlsxFilePath } = await processXlsx(reporter)({
+  const result = await processXlsx(reporter)({
     xlsxTemplateContent: templateAsset.content,
     options: {
       imageFetchParallelLimit: definition.options.imageFetchParallelLimit
@@ -65,5 +66,9 @@ module.exports = async (reporter, definition, req, res) => {
 
   reporter.logger.info('xlsx generation was finished', req)
 
-  return xlsxFilePath
+  if (result == null) {
+    return templateFilePath
+  }
+
+  return result.xlsxFilePath
 }

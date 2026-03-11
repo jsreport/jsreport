@@ -22,11 +22,30 @@ module.exports = (reporter) => async (inputs, req) => {
       })
     }
 
+    const filesToXMLParse = []
+    let filesWithHandlebars = 0
+
     for (const f of files) {
-      if (contentIsXML(f.data)) {
-        f.doc = new DOMParser().parseFromString(f.data.toString())
-        f.data = f.data.toString()
+      if (!contentIsXML(f.data)) {
+        continue
       }
+
+      filesToXMLParse.push(f)
+
+      if (f.data.includes('{{')) {
+        filesWithHandlebars++
+      }
+    }
+
+    // this speeds up and avoid big memory consumption for legacy templates (templates with no handlebars tags)
+    if (filesWithHandlebars === 0) {
+      reporter.logger.info('xlsx generation skipped. no dynamic parts found', req)
+      return
+    }
+
+    for (const f of filesToXMLParse) {
+      f.doc = new DOMParser().parseFromString(f.data.toString())
+      f.data = f.data.toString()
     }
 
     const evalId = generateRandomId()
@@ -104,7 +123,7 @@ module.exports = (reporter) => async (inputs, req) => {
       xmlTemplateToRender = `{{#xlsxContext type="global"}}${xmlTemplateToRender}{{/xlsxContext}}`
     }
 
-    reporter.logger.debug('Starting child request to render xlsx dynamic parts for generation step', req)
+    reporter.logger.debug('Executing template evaluation for xlsx dynamic parts in the generation step', req)
 
     req.context.__xlsxSharedData = sharedData
 
