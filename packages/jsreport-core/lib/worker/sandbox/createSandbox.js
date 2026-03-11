@@ -1,3 +1,4 @@
+/* global structuredClone */
 const util = require('util')
 const vm = require('vm')
 const stackTrace = require('stack-trace')
