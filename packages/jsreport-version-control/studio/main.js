@@ -571,7 +571,7 @@ class LocalChangesEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
@@ -590,14 +590,17 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().initializeListeners.push(
   }
   jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEditorComponent('versionControlHistory', _HistoryEditor__WEBPACK_IMPORTED_MODULE_2__["default"]);
   jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEditorComponent('versionControlLocalChanges', _LocalChangesEditor__WEBPACK_IMPORTED_MODULE_3__["default"]);
-  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(() => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(props => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     title: "History",
     className: "toolbar-button",
-    onClick: () => jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openTab({
-      key: 'versionControlLocalChanges',
-      editorComponentKey: 'versionControlLocalChanges',
-      title: 'Uncommited changes'
-    })
+    onClick: () => {
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openTab({
+        key: 'versionControlLocalChanges',
+        editorComponentKey: 'versionControlLocalChanges',
+        title: 'Uncommited changes'
+      });
+      props.closeMenu();
+    }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
     className: "fa fa-history"
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, "Version control")), 'settings');

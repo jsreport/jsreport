@@ -11,11 +11,14 @@ Studio.initializeListeners.push(async () => {
   Studio.addEditorComponent('versionControlHistory', HistoryEditor)
   Studio.addEditorComponent('versionControlLocalChanges', LocalChangesEditor)
 
-  Studio.addToolbarComponent(() =>
+  Studio.addToolbarComponent((props) =>
     <div
       title='History'
       className='toolbar-button'
-      onClick={() => Studio.openTab({ key: 'versionControlLocalChanges', editorComponentKey: 'versionControlLocalChanges', title: 'Uncommited changes' })}
+      onClick={() => {
+        Studio.openTab({ key: 'versionControlLocalChanges', editorComponentKey: 'versionControlLocalChanges', title: 'Uncommited changes' })
+        props.closeMenu()
+      }}
     ><i className='fa fa-history' /><span>Version control</span>
     </div>, 'settings')
 })
