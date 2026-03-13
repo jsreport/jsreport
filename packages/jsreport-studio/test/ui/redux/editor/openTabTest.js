@@ -4,7 +4,7 @@ import resolveUrl from '../../../../src/helpers/resolveUrl'
 import { ActionTypes as EntitiesActionTypes } from '../../../../src/redux/entities'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('editor.actions.openTab', ({ store, api, history }) => {
+describeAsyncStore('editor.actions.openTab', ({ store, api, router }) => {
   itAsync('should add custom tabs collection and activate it', async () => {
     await store.dispatch(actions.openTab({ key: '1' }))
     store.getState().editor.tabs.should.have.length(1)
@@ -16,7 +16,7 @@ describeAsyncStore('editor.actions.openTab', ({ store, api, history }) => {
     api.get((p) => ({ value: [{ _id: '1' }] }))
 
     await store.dispatch(actions.openTab({ _id: '1' }))
-    history.should.have.key(EntitiesActionTypes.LOAD)
+    router.should.have.key(EntitiesActionTypes.LOAD)
   })
 
   itAsync('should be also able to add tab based on shortid', async () => {
@@ -30,6 +30,6 @@ describeAsyncStore('editor.actions.openTab', ({ store, api, history }) => {
   itAsync('should change route to / if the entity is not found by its shortid', async () => {
     await store.dispatch(actions.openTab({ shortid: 'foo' }))
 
-    history['@@router/CALL_HISTORY_METHOD'].payload.args.should.containEql(resolveUrl('/'))
+    router['@@router/CALL_HISTORY_METHOD'].payload.args.should.containEql(resolveUrl('/'))
   })
 })

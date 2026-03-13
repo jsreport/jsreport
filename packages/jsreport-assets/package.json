@@ -37,7 +37,7 @@
     "js-string-escape": "1.0.1",
     "mime": "2.4.4",
     "minimatch": "5.1.8",
-    "react-copy-to-clipboard": "5.0.2",
+    "react-copy-to-clipboard": "5.1.1",
     "strip-bom-buf": "2.0.0"
   },
   "devDependencies": {

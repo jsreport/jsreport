@@ -3,7 +3,7 @@ import { actions, ActionTypes } from '../../../../src/redux/editor'
 import * as entities from '../../../../src/redux/entities'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('editor.actions.saveAll', ({ store, api, history }) => {
+describeAsyncStore('editor.actions.saveAll', ({ store, api, router }) => {
   itAsync('should dispatch ENTITIES_SAVE for each tab, SAVE_STARTED and SAVE_SUCCESS', async () => {
     api.patch((p) => ({}))
 
@@ -14,9 +14,9 @@ describeAsyncStore('editor.actions.saveAll', ({ store, api, history }) => {
 
     await store.dispatch(actions.saveAll())
 
-    history.should.have.key(entities.ActionTypes.SAVE)
-    history[entities.ActionTypes.SAVE]._id.should.be.eql('1')
-    history.should.have.key(ActionTypes.SAVE_STARTED)
-    history.should.have.key(ActionTypes.SAVE_SUCCESS)
+    router.should.have.key(entities.ActionTypes.SAVE)
+    router[entities.ActionTypes.SAVE]._id.should.be.eql('1')
+    router.should.have.key(ActionTypes.SAVE_STARTED)
+    router.should.have.key(ActionTypes.SAVE_SUCCESS)
   })
 })

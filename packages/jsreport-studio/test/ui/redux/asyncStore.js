@@ -1,6 +1,7 @@
 import 'should'
 import { createStore, applyMiddleware } from 'redux'
 import createReducer from '../../../src/redux/reducer'
+import { onLocationChanged } from '../../../src/lib/connected-react-router'
 import thunk from 'redux-thunk'
 import _assign from 'lodash/assign'
 import { stub as api } from '../../../src/helpers/api'
@@ -13,22 +14,22 @@ export const itAsync = (name, fn) => {
   })
 }
 
-const actionHistoryMiddleware = (history) => ({ dispatch, getState }) => (next) => (action) => {
-  history[action.type] = action
+const actionHistoryMiddleware = (router) => ({ dispatch, getState }) => (next) => (action) => {
+  router[action.type] = action
   next(action)
 }
 
 export const describeAsyncStore = (name, nestedDescribe) => {
   const store = {}
-  const history = {}
+  const router = {}
 
   describe(name, () => {
     beforeEach(() => {
-      Object.keys(history).forEach((a) => delete history[a])
+      Object.keys(router).forEach((a) => delete router[a])
       // eslint-disable-next-line no-import-assign
       configuration.entitySets = { testEntity: { nameAttribute: 'name', referenceAttributes: ['name', 'shortid'] } }
 
-      const reducer = createReducer(history)
+      const reducer = createReducer()
 
       const rootReducer = (state, action) => {
         if (action.type === '@RESET') {
@@ -42,13 +43,14 @@ export const describeAsyncStore = (name, nestedDescribe) => {
         return reducer(state, action)
       }
 
-      const _store = createStore(rootReducer, applyMiddleware(thunk, Invariant(), actionHistoryMiddleware(history)))
+      const _store = createStore(rootReducer, applyMiddleware(thunk, Invariant(), actionHistoryMiddleware(router)))
       _store.dispatch({ type: '@RESET' })
+      _store.dispatch(onLocationChanged({ pathname: '/' }, 'POP', true))
       store.update = (val) => _store.dispatch({ type: '@UPDATE', value: val })
       store.getState = _store.getState
       store.dispatch = _store.dispatch
     })
 
-    nestedDescribe({ store: store, api: api, history: history })
+    nestedDescribe({ store: store, api: api, router })
   })
 }

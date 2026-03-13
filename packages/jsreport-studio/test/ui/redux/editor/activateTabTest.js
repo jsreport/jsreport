@@ -2,7 +2,7 @@ import 'should'
 import { actions } from '../../../../src/redux/editor'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('editor.actions.activateTab', ({ store, api, history }) => {
+describeAsyncStore('editor.actions.activateTab', ({ store }) => {
   itAsync('should update state to new tab key', async () => {
     store.update({ editor: { tabs: [{ key: '1' }] } })
 

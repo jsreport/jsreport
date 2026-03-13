@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-import { connectRouter } from 'connected-react-router'
+import { connectRouter } from '../lib/connected-react-router'
 
 import entities from './entities/reducer'
 import editor from './editor/reducer'
@@ -7,9 +7,9 @@ import progress from './progress/reducer'
 import settings from './settings/reducer'
 import modal from './modal/reducer'
 
-export default (history) => {
+export default () => {
   let reducersInput = {
-    router: connectRouter(history),
+    router: connectRouter(),
     entities,
     editor,
     progress,

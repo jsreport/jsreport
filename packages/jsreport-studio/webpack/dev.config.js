@@ -9,7 +9,7 @@ const { HotModuleReplacementPlugin, DefinePlugin, IgnorePlugin } = jsreportStudi
 const HtmlWebpackPlugin = jsreportStudioDev.deps['html-webpack-plugin']
 const MiniCssExtractPlugin = jsreportStudioDev.deps['mini-css-extract-plugin']
 
-const babelLoaderOptions = Object.assign(createBabelOptions({ withReact: true, withTransformRuntime: true }), {
+const babelLoaderOptions = Object.assign(createBabelOptions({ development: true, withReact: true, withTransformRuntime: true }), {
   // we don't want to take config from babelrc files
   babelrc: false
 })
@@ -17,6 +17,8 @@ const babelLoaderOptions = Object.assign(createBabelOptions({ withReact: true, w
 const projectSrcAbsolutePath = path.join(__dirname, '../src')
 const projectSrcThemeAbsolutePath = path.join(projectSrcAbsolutePath, 'theme')
 const assetsPath = path.resolve(__dirname, '../static/dist')
+
+const chromeThemeJsonPath = path.join(require.resolve('monaco-themes'), '../../themes/Chrome DevTools.json')
 
 module.exports = (extensions, extensionsInNormalMode) => {
   const { hasMatchWithExtension, getMatchedExtension } = getBuildHelpers(extensions)
@@ -164,6 +166,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
               options: {
                 importLoaders: 1,
                 modules: {
+                  namedExport: false,
                   getLocalIdent: (context, localIdentName, localName) => {
                     const modulePath = context.resource
                     let devExtension
@@ -271,7 +274,8 @@ module.exports = (extensions, extensionsInNormalMode) => {
       extensions: ['.json', '.js', '.jsx'],
       alias: {
         'eslint-browser': path.join(__dirname, '../static/dist/eslint-browser.js'),
-        'babel-eslint-browser': path.join(__dirname, '../static/dist/babel-eslint-browser.js')
+        'babel-eslint-browser': path.join(__dirname, '../static/dist/babel-eslint-browser.js'),
+        'monaco-editor-chrome-theme': chromeThemeJsonPath
       },
       modules: [
         'src',

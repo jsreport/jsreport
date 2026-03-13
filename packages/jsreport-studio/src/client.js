@@ -2,13 +2,12 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
-import { createBrowserHistory } from 'history'
-import { ConnectedRouter } from 'connected-react-router'
+import { ConnectedRouter, onLocationChanged } from './lib/connected-react-router'
 import ReactModal from 'react-modal'
 import zipObject from 'lodash/zipObject'
 import './theme/style.css'
 import createStore from './redux/create'
-import getRoutes from './routes'
+import { getRouter, getInitialRouterState } from './routes'
 import fetchExtensions from './lib/fetchExtensions'
 import * as entities from './redux/entities'
 import * as settings from './redux/settings'
@@ -32,8 +31,15 @@ const { createStudio } = require('./Studio')
 
 defaults()
 
-const browserHistory = createBrowserHistory()
-const store = createStore(browserHistory)
+const ctx = {
+  router: null
+}
+
+const store = createStore(ctx)
+const initialRouterState = getInitialRouterState()
+
+// update the initial router state in store
+store.dispatch(onLocationChanged(initialRouterState.location, initialRouterState.action, true))
 
 const Studio = window.Studio = createStudio(store)
 
@@ -107,12 +113,10 @@ const start = async () => {
     ]
   )
 
-  const routes = getRoutes(window.Studio.routes)
+  ctx.router = getRouter(window.Studio.routes)
 
   const component = (
-    <ConnectedRouter history={browserHistory}>
-      {routes}
-    </ConnectedRouter>
+    <ConnectedRouter router={ctx.router} />
   )
 
   ReactDOM.render(

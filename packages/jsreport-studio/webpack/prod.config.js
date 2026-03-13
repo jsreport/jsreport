@@ -19,6 +19,8 @@ const projectSrcThemeAbsolutePath = path.join(projectSrcAbsolutePath, 'theme')
 const projectRootPath = path.resolve(__dirname, '../')
 const assetsPath = path.resolve(projectRootPath, './static/dist')
 
+const chromeThemeJsonPath = path.join(require.resolve('monaco-themes'), '../../themes/Chrome DevTools.json')
+
 module.exports = {
   mode: 'production',
   devtool: 'hidden-source-map',
@@ -123,6 +125,7 @@ module.exports = {
               importLoaders: 1,
               sourceMap: true,
               modules: {
+                namedExport: false,
                 localIdentName: '[name]-[local]'
               }
             }
@@ -197,7 +200,8 @@ module.exports = {
     extensions: ['.json', '.js', '.jsx'],
     alias: {
       'eslint-browser': path.join(__dirname, '../static/dist/eslint-browser.js'),
-      'babel-eslint-browser': path.join(__dirname, '../static/dist/babel-eslint-browser.js')
+      'babel-eslint-browser': path.join(__dirname, '../static/dist/babel-eslint-browser.js'),
+      'monaco-editor-chrome-theme': chromeThemeJsonPath
     },
     modules: [
       'src',

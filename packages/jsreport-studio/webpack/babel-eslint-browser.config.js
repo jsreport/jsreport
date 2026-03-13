@@ -43,6 +43,25 @@ module.exports = {
           flags: 'g'
         }
       },
+      // Patch for `babel-eslint`
+      {
+        test: new RegExp(`node_modules${sepRe}babel-eslint${sepRe}lib${sepRe}analyze-scope\\.js$`),
+        loader: 'string-replace-loader',
+        options: {
+          multiple: [
+            {
+              search: 'const requireFromESLint = require\\("./require-from-eslint"\\);', // whole file.
+              replace: '',
+              flags: 'g'
+            },
+            {
+              search: 'requireFromESLint\\(',
+              replace: 'require(',
+              flags: 'g'
+            }
+          ]
+        }
+      },
       {
         test: /\.js$/,
         exclude: (modulePath) => {

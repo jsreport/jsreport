@@ -2,7 +2,7 @@ import 'should'
 import { actions } from '../../../../src/redux/entities'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('entities.actions.addExisting', async ({ store, api, history }) => {
+describeAsyncStore('entities.actions.addExisting', async ({ store }) => {
   itAsync('should include entity in state and set __name metadata', async () => {
     const entity = { __entitySet: 'testEntity', name: 'foo', _id: '1' }
     await store.dispatch(actions.addExisting(entity))

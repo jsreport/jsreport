@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import ChromeTheme from 'monaco-themes/themes/Chrome DevTools.json'
+import ChromeTheme from 'monaco-editor-chrome-theme'
 import MonacoEditor from 'react-monaco-editor'
 import throttle from 'lodash/throttle'
 import debounce from 'lodash/debounce'

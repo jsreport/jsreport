@@ -2,7 +2,7 @@ import should from 'should'
 import { actions } from '../../../../src/redux/entities'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('entities.actions.unload', async ({ store, api, history }) => {
+describeAsyncStore('entities.actions.unload', async ({ store }) => {
   itAsync('should false __isLoaded', async () => {
     store.update({ entities: { 1: { __entitySet: 'testEntity', __isLoaded: true } } })
     await store.dispatch(actions.unload('1'))

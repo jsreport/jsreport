@@ -2,7 +2,7 @@ import 'should'
 import { actions, ActionTypes } from '../../../../src/redux/entities'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
+describeAsyncStore('entities.actions.load', async ({ store, api, router }) => {
   itAsync('should request API and update state with entity', async () => {
     store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     api.get((p) => ({ value: [{ _id: '1', name: 'foo' }] }))
@@ -42,8 +42,8 @@ describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
     api.get((p) => ({ value: [{ _id: '1', name: 'foo' }] }))
 
     await store.dispatch(actions.load('1'))
-    history.should.have.key(ActionTypes.API_START)
-    history.should.have.key(ActionTypes.API_DONE)
+    router.should.have.key(ActionTypes.API_START)
+    router.should.have.key(ActionTypes.API_DONE)
   })
 
   itAsync('should trigger API_FAILED when remote call fails', async () => {
@@ -53,7 +53,7 @@ describeAsyncStore('entities.actions.load', async ({ store, api, history }) => {
     try {
       await store.dispatch(actions.load('1'))
     } catch (e) {
-      history.should.have.key(ActionTypes.API_FAILED)
+      router.should.have.key(ActionTypes.API_FAILED)
     }
   })
 })

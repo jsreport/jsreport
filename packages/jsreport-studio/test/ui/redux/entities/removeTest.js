@@ -2,7 +2,7 @@ import 'should'
 import { actions, ActionTypes } from '../../../../src/redux/entities'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('entities.actions.remove', async ({ store, api, history }) => {
+describeAsyncStore('entities.actions.remove', async ({ store, api, router }) => {
   itAsync('should delete to API and remove entity from state', async () => {
     store.update({ entities: { 1: { __entitySet: 'testEntity' } } })
     let called = false
@@ -18,8 +18,8 @@ describeAsyncStore('entities.actions.remove', async ({ store, api, history }) =>
     api.del((p) => { })
 
     await store.dispatch(actions.remove('1'))
-    history.should.have.key(ActionTypes.API_START)
-    history.should.have.key(ActionTypes.API_DONE)
+    router.should.have.key(ActionTypes.API_START)
+    router.should.have.key(ActionTypes.API_DONE)
   })
 
   itAsync('should trigger API_FAILED when api call throws', async () => {
@@ -29,7 +29,7 @@ describeAsyncStore('entities.actions.remove', async ({ store, api, history }) =>
     try {
       await store.dispatch(actions.remove('1'))
     } catch (e) {
-      history.should.have.key(ActionTypes.API_FAILED)
+      router.should.have.key(ActionTypes.API_FAILED)
     }
   })
 })

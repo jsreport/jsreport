@@ -1,7 +1,7 @@
 import { createStore as _createStore, applyMiddleware } from 'redux'
 import thunk from 'redux-thunk'
 import { createLogger } from 'redux-logger'
-import { routerMiddleware } from 'connected-react-router'
+import { routerMiddleware } from '../lib/connected-react-router'
 import { enableBatching } from 'redux-batched-actions'
 import { composeWithDevTools } from '@redux-devtools/extension'
 import groupUpdate from './middlewares/groupUpdate'
@@ -9,8 +9,8 @@ import { setStore as setStoreForMethods } from './methods'
 
 const logger = createLogger()
 
-export default function createStore (history) {
-  const reduxRouterMiddleware = routerMiddleware(history)
+export default function createStore (ctx) {
+  const reduxRouterMiddleware = routerMiddleware(ctx)
   const middleware = [thunk, reduxRouterMiddleware, groupUpdate]
 
   let finalCreateStore
@@ -26,13 +26,13 @@ export default function createStore (history) {
 
   finalCreateStore = finalCreateStore(_createStore)
 
-  const reducer = require('./reducer').default(history)
+  const reducer = require('./reducer').default()
   const store = finalCreateStore(enableBatching(reducer))
 
   // eslint-disable-next-line no-undef
   if (__DEVELOPMENT__ && import.meta.webpackHot) {
     import.meta.webpackHot.accept('./reducer', () => {
-      store.replaceReducer(require('./reducer').default(history))
+      store.replaceReducer(require('./reducer').default())
     })
   }
 

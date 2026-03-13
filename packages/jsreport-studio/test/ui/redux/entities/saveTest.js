@@ -2,7 +2,7 @@ import 'should'
 import { actions, ActionTypes } from '../../../../src/redux/entities'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
+describeAsyncStore('entities.actions.save', async ({ store, api, router }) => {
   itAsync('should patch to API if entity not __isNew and clear __isDirty', async () => {
     store.update({ entities: { 1: { __entitySet: 'testEntity', __isDirty: true, _id: '1' } } })
     let called = false
@@ -43,8 +43,8 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
     api.patch((p) => { })
 
     await store.dispatch(actions.save('1'))
-    history.should.have.key(ActionTypes.API_START)
-    history.should.have.key(ActionTypes.API_DONE)
+    router.should.have.key(ActionTypes.API_START)
+    router.should.have.key(ActionTypes.API_DONE)
   })
 
   itAsync('patch trigger API_FAILED when API throws', async () => {
@@ -54,7 +54,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
     try {
       await store.dispatch(actions.save('1'))
     } catch (e) {
-      history.should.have.key(ActionTypes.API_FAILED)
+      router.should.have.key(ActionTypes.API_FAILED)
     }
   })
 
@@ -99,8 +99,8 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
     api.post((p) => ({ _id: '2' }))
 
     await store.dispatch(actions.save('1'))
-    history.should.have.key(ActionTypes.API_START)
-    history.should.have.key(ActionTypes.API_DONE)
+    router.should.have.key(ActionTypes.API_START)
+    router.should.have.key(ActionTypes.API_DONE)
   })
 
   itAsync('post trigger API_FAILED when API throws', async () => {
@@ -110,7 +110,7 @@ describeAsyncStore('entities.actions.save', async ({ store, api, history }) => {
     try {
       await store.dispatch(actions.save('1'))
     } catch (e) {
-      history.should.have.key(ActionTypes.API_FAILED)
+      router.should.have.key(ActionTypes.API_FAILED)
     }
   })
 })

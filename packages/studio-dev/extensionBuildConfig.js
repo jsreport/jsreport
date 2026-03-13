@@ -121,6 +121,7 @@ module.exports = (customExtName, opts = {}) => {
                 importLoaders: 1,
                 sourceMap: true,
                 modules: {
+                  namedExport: false,
                   localIdentName: `x-${extensionName}-[name]-[local]`
                 }
               }

@@ -3,7 +3,7 @@ import { actions } from '../../../../src/redux/editor'
 import * as entities from '../../../../src/redux/entities'
 import { describeAsyncStore, itAsync } from '../asyncStore'
 
-describeAsyncStore('editor.actions.closeTab', ({ store, api, history }) => {
+describeAsyncStore('editor.actions.closeTab', ({ store, api, router }) => {
   itAsync('should remove tab from collection and unload', async () => {
     store.update({
       entities: { 1: { __entitySet: 'testEntity', _id: '1', shortid: 'foo' } },
@@ -12,8 +12,8 @@ describeAsyncStore('editor.actions.closeTab', ({ store, api, history }) => {
 
     await store.dispatch(actions.closeTab('1'))
 
-    history.should.have.key(entities.ActionTypes.UNLOAD)
-    history[entities.ActionTypes.UNLOAD]._id.should.be.eql('1')
+    router.should.have.key(entities.ActionTypes.UNLOAD)
+    router[entities.ActionTypes.UNLOAD]._id.should.be.eql('1')
 
     store.getState().editor.tabs.should.have.length(0)
     should(store.getState().editor.activeTabKey).not.be.ok()

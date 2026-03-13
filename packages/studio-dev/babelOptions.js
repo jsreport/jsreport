@@ -1,5 +1,5 @@
 
-module.exports = ({ withReact = false, withTransformRuntime = false } = {}) => {
+module.exports = ({ development = false, withReact = false, withTransformRuntime = false } = {}) => {
   const studioDev = require('.')
   const browserTargets = studioDev.browserTargets
 
@@ -18,7 +18,15 @@ module.exports = ({ withReact = false, withTransformRuntime = false } = {}) => {
   const plugins = []
 
   if (withReact) {
-    presets.push(require.resolve('@babel/preset-react'))
+    const reactPresetOptions = {
+      runtime: 'automatic'
+    }
+
+    if (development) {
+      reactPresetOptions.development = true
+    }
+
+    presets.push([require.resolve('@babel/preset-react'), reactPresetOptions])
   }
 
   if (withTransformRuntime) {
