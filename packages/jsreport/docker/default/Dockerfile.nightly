@@ -47,8 +47,8 @@ RUN apk update --no-cache && \
     harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
-    libcurl@edge=8.18.0-r0 \
-    git@edge=2.53.0-r0 \
+    libcurl@edge \
+    git@edge \
     # so user can docker exec -it test /bin/bash
     bash
 
