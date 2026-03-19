@@ -239,7 +239,7 @@ class AssetEditor extends Component {
 
   renderEditorToolbar () {
     const { link, previewLoading, previewOpen, codeActive } = this.state
-    const { entity, codeEntity, displayName, icon, onDownload, onUpload } = this.props
+    const { entity, codeEntity, displayName, icon = 'fa-file-o', onDownload, onUpload } = this.props
     const lazyPreview = this.getLazyPreviewStatus(entity)
     const previewEnabled = this.getPreviewEnabledStatus(entity)
     const embeddingCode = this.getEmbeddingCode(entity)
@@ -541,10 +541,6 @@ class AssetEditor extends Component {
       </div>
     )
   }
-}
-
-AssetEditor.defaultProps = {
-  icon: 'fa-file-o'
 }
 
 function resolveTemplateEditorMode (template) {

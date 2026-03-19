@@ -1,4 +1,4 @@
-import { matchPath } from 'react-router-dom'
+import { matchPath } from 'react-router'
 
 const createSelectors = (structure) => {
   const { getIn, toJS } = structure

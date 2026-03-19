@@ -111,21 +111,19 @@ const RawTreeNodeItem = React.memo(({
   })
 
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
-    item: { type: ENTITY_NODE_DRAG_TYPE },
+    type: ENTITY_NODE_DRAG_TYPE,
+    item: () => ({
+      entitySet: node.data.__entitySet,
+      isGroupEntity: checkIsGroupEntityNode(node),
+      isCollapsed,
+      node
+    }),
     collect: (monitor) => {
       return {
         isDragging: monitor.isDragging()
       }
     },
-    previewOptions: dragPreviewOptions,
-    begin: () => {
-      return {
-        entitySet: node.data.__entitySet,
-        isGroupEntity: checkIsGroupEntityNode(node),
-        isCollapsed,
-        node
-      }
-    }
+    previewOptions: dragPreviewOptions
   })
 
   const draggingExpandTimeoutRef = useRef(null)

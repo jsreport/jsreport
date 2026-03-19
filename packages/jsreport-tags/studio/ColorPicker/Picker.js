@@ -27,7 +27,13 @@ const PickerSwatch = handleHover(({ hover, color, onClick }) => {
   )
 })
 
-const Picker = ({ width, colors, onChange, triangle }) => {
+const defaultColors = [
+  '#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76',
+  '#1273DE', '#004DCF', '#5300EB', '#EB9694', '#FAD0C3',
+  '#FEF3BD', '#C1E1C5', '#BEDADC', '#C4DEF6'
+]
+
+const Picker = ({ width = '200px', colors = defaultColors, onChange, triangle }) => {
   const styles = {
     card: {
       width,
@@ -50,15 +56,6 @@ const Picker = ({ width, colors, onChange, triangle }) => {
       ))}
     </div>
   )
-}
-
-Picker.defaultProps = {
-  width: '200px',
-  colors: [
-    '#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76',
-    '#1273DE', '#004DCF', '#5300EB', '#EB9694', '#FAD0C3',
-    '#FEF3BD', '#C1E1C5', '#BEDADC', '#C4DEF6'
-  ]
 }
 
 export default Picker

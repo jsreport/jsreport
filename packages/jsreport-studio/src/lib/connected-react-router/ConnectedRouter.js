@@ -1,7 +1,7 @@
 import { PureComponent } from 'react'
 import PropTypes from 'prop-types'
 import { connect, ReactReduxContext } from 'react-redux'
-import { RouterProvider } from 'react-router-dom'
+import { RouterProvider } from 'react-router/dom'
 import isEqualWith from 'lodash/isEqualWith'
 import { onLocationChanged } from './actions'
 import createSelectors from './selectors'

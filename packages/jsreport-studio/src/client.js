@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { ConnectedRouter, onLocationChanged } from './lib/connected-react-router'
 import ReactModal from 'react-modal'
@@ -119,13 +119,24 @@ const start = async () => {
     <ConnectedRouter router={ctx.router} />
   )
 
-  ReactDOM.render(
-    <React.StrictMode>
-      <Provider store={store} key='provider'>
-        {component}
-      </Provider>
-    </React.StrictMode>,
-    getAppElement()
+  const root = createRoot(getAppElement())
+
+  // NOTE: we dont use StrictMode because of there is issues with the monaco editor
+  // the linter is not showing markers, because it seems the editor model is lost during effects re-run
+  // when StrictMode is enabled, also we need to check our own effects to see if they are ok.
+  // check: https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-strict-mode
+  // root.render(
+  //   <React.StrictMode>
+  //     <Provider store={store} key='provider'>
+  //       {component}
+  //     </Provider>
+  //   </React.StrictMode>
+  // )
+
+  root.render(
+    <Provider store={store} key='provider'>
+      {component}
+    </Provider>
   )
 
   document.getElementById('loader').style.display = 'none'

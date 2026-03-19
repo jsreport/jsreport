@@ -1,5 +1,5 @@
 import React from 'react'
-import { createBrowserRouter, useParams } from 'react-router-dom'
+import { createBrowserRouter, useParams } from 'react-router'
 import { rootPath } from './lib/configuration'
 import App from './containers/App/App'
 

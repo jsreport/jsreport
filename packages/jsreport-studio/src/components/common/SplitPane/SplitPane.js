@@ -106,11 +106,12 @@ class SplitPane extends Component {
   }
 
   setSize (props, state, cb) {
-    const ref = this.props.primary === 'first' ? this.pane1Ref.current : this.pane2Ref.current
+    const { primary = 'first', size, defaultSize = '50%', minSize = 50 } = props
+    const ref = primary === 'first' ? this.pane1Ref.current : this.pane2Ref.current
     let newSize
 
     if (ref) {
-      newSize = props.size || (state && state.draggedSize) || props.defaultSize || props.minSize
+      newSize = size || (state && state.draggedSize) || defaultSize || minSize
 
       ref.setState({
         size: newSize
@@ -131,11 +132,12 @@ class SplitPane extends Component {
   }
 
   collapse (v) {
-    const shouldCollapseAsync = (this.props.onCollapsing != null) ? this.triggerEvent('collapsing', v) : true
+    const { onCollapsing, collapsable = 'second' } = this.props
+    const shouldCollapseAsync = (onCollapsing != null) ? this.triggerEvent('collapsing', v) : true
 
     Promise.resolve(shouldCollapseAsync).then((shouldCollapse) => {
-      const ref1 = this.props.collapsable === 'first' ? this.pane2Ref.current : this.pane1Ref.current
-      const ref2 = this.props.collapsable === 'first' ? this.pane1Ref.current : this.pane2Ref.current
+      const ref1 = collapsable === 'first' ? this.pane2Ref.current : this.pane1Ref.current
+      const ref2 = collapsable === 'first' ? this.pane1Ref.current : this.pane2Ref.current
 
       let stateToUpdate
 
@@ -208,9 +210,11 @@ class SplitPane extends Component {
   }
 
   onMouseDown (event) {
-    if (this.props.allowResize && !this.props.size) {
+    const { allowResize = true, size, split = 'vertical' } = this.props
+
+    if (allowResize && !size) {
       this.unFocus()
-      const position = this.props.split === 'vertical' ? event.clientX : event.clientY
+      const position = split === 'vertical' ? event.clientX : event.clientY
 
       this.triggerEvent('dragStarted')
 
@@ -224,25 +228,27 @@ class SplitPane extends Component {
   }
 
   onMouseMove (event, force) {
-    if (this.props.allowResize && !this.props.size && !this.state.collapsed) {
+    const { allowResize = true, size, primary = 'first', split = 'vertical', minSize = 50 } = this.props
+
+    if (allowResize && !size && !this.state.collapsed) {
       if (this.state.active || force) {
         this.unFocus()
-        const ref = this.props.primary === 'first' ? this.pane1Ref.current : this.pane2Ref.current
+        const ref = primary === 'first' ? this.pane1Ref.current : this.pane2Ref.current
         if (ref) {
           const node = ref.node
 
           if (node.getBoundingClientRect) {
             const width = node.getBoundingClientRect().width
             const height = node.getBoundingClientRect().height
-            const current = this.props.split === 'vertical' ? event.clientX : event.clientY
-            const size = this.props.split === 'vertical' ? width : height
+            const current = split === 'vertical' ? event.clientX : event.clientY
+            const size = split === 'vertical' ? width : height
             const position = this.state.position
-            const newPosition = this.props.primary === 'first' ? (position - current) : (current - position)
+            const newPosition = primary === 'first' ? (position - current) : (current - position)
 
             let newSize = size - newPosition
 
-            if (newSize < this.props.minSize) {
-              newSize = this.props.minSize
+            if (newSize < minSize) {
+              newSize = minSize
             } else {
               this.setState({
                 position: current,
@@ -266,9 +272,10 @@ class SplitPane extends Component {
   }
 
   onMouseUp () {
+    const { allowResize = true, size } = this.props
     document.removeEventListener('mousemove', this.onMouseMove)
 
-    if (this.props.allowResize && !this.props.size) {
+    if (allowResize && !size) {
       if (this.state.active) {
         this.triggerEvent('dragFinished')
 
@@ -285,12 +292,12 @@ class SplitPane extends Component {
 
   render () {
     const {
-      split,
-      allowResize,
+      split = 'vertical',
+      allowResize = true,
       resizerClassName,
       renderCollapsedIcon,
       collapsedText,
-      collapsable,
+      collapsable = 'second',
       buttons = true
     } = this.props
 
@@ -364,15 +371,6 @@ SplitPane.propTypes = {
   onCollapsing: PropTypes.func,
   onBeforeCollapseChange: PropTypes.func,
   onCollapseChange: PropTypes.func
-}
-
-SplitPane.defaultProps = {
-  split: 'vertical',
-  minSize: 50,
-  allowResize: true,
-  primary: 'first',
-  collapsable: 'second',
-  defaultSize: '50%'
 }
 
 export default SplitPane

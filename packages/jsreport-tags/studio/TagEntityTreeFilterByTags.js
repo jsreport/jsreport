@@ -35,14 +35,14 @@ class TagEntityTreeFilterByTags extends Component {
   }
 
   addSelectedTag (tag) {
-    const previousSelectedTags = this.props.selectedTags
+    const { selectedTags: previousSelectedTags, onTagSelectChange = () => {} } = this.props
 
     const selectedTags = [
       ...previousSelectedTags,
       tag
     ]
 
-    this.props.onTagSelectChange(selectedTags)
+    onTagSelectChange(selectedTags)
     this.focus()
   }
 
@@ -95,6 +95,8 @@ class TagEntityTreeFilterByTags extends Component {
       return
     }
 
+    const { selectedTags, onFilterClose } = this.props
+
     const keyCode = ev.keyCode
     const inputTag = ev.target
     let remove = false
@@ -104,7 +106,7 @@ class TagEntityTreeFilterByTags extends Component {
     if (keyCode === enterKey) {
       ev.preventDefault()
 
-      return this.props.onFilterClose()
+      return onFilterClose()
     }
 
     if (keyCode === removeKey) {
@@ -112,7 +114,6 @@ class TagEntityTreeFilterByTags extends Component {
     }
 
     if (remove && inputTag.value === '') {
-      const selectedTags = this.props.selectedTags
       const selectedTagsLastIndex = selectedTags.length - 1
 
       ev.preventDefault()
@@ -124,14 +125,14 @@ class TagEntityTreeFilterByTags extends Component {
   }
 
   onRemoveTagItem (tag, tagIndex) {
-    const originalSelectedTags = this.props.selectedTags
+    const { selectedTags: originalSelectedTags, onTagSelectChange = () => {} } = this.props
 
     const selectedTags = [
       ...originalSelectedTags.slice(0, tagIndex),
       ...originalSelectedTags.slice(tagIndex + 1)
     ]
 
-    this.props.onTagSelectChange(selectedTags)
+    onTagSelectChange(selectedTags)
   }
 
   renderTagItem (tag) {
@@ -221,10 +222,6 @@ class TagEntityTreeFilterByTags extends Component {
       </div>
     )
   }
-}
-
-TagEntityTreeFilterByTags.defaultProps = {
-  onTagSelectChange: () => {}
 }
 
 export default TagEntityTreeFilterByTags

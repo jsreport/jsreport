@@ -17,7 +17,7 @@ const ColorWrap = (Picker) => {
       super(props)
 
       this.state = {
-        ...colorToState(props.color),
+        ...colorToState(props.color ?? ''),
         visible: props.display
       }
 
@@ -30,7 +30,7 @@ const ColorWrap = (Picker) => {
 
     static getDerivedStateFromProps (props) {
       return {
-        ...colorToState(props.color),
+        ...colorToState(props.color ?? ''),
         visible: props.display
       }
     }
@@ -47,18 +47,17 @@ const ColorWrap = (Picker) => {
     }
 
     render () {
+      const color = this.props.color ?? ''
+
       return (
         <Picker
           {...this.props}
+          color={color}
           {...this.state}
           onChange={this.handleChange}
         />
       )
     }
-  }
-
-  ColorPicker.defaultProps = {
-    color: ''
   }
 
   return ColorPicker
