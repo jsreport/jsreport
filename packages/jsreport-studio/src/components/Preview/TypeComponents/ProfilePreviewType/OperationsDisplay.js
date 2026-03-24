@@ -1,10 +1,11 @@
 import React, { useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react'
 import classNames from 'classnames'
-import ReactFlow, { ReactFlowProvider, Controls, isNode } from 'react-flow-renderer'
+import { ReactFlowProvider, ReactFlow, Controls, isNode } from '@xyflow/react'
 import dagre from 'dagre'
 import OperationNode from './OperationNode'
 import DefaultEdge from './DefaultEdge'
 import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
+import '@xyflow/react/dist/style.css'
 import styles from '../../Preview.css'
 
 const nodeTypes = {
@@ -15,12 +16,16 @@ const edgeTypes = {
   customDefault: DefaultEdge
 }
 
+const proOptions = { hideAttribution: true }
+
+const defaultViewport = { x: 0, y: 0, zoom: 0.8 }
+
 const OperationsDisplay = React.memo(function OperationsDisplay (props) {
   const { templateShortid, profileOperations, profileErrorEvent, onCanvasClick, onElementClick, renderErrorModal } = props
   const lastFitViewDisplayRef = useRef(undefined)
   const graphInstanceRef = useRef(undefined)
 
-  const handleLoad = useCallback((reactFlowInstance) => {
+  const handleInit = useCallback((reactFlowInstance) => {
     graphInstanceRef.current = reactFlowInstance
     lastFitViewDisplayRef.current = null
 
@@ -34,7 +39,7 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
     storedViewInfo = JSON.parse(storedViewInfo)
 
     if (storedViewInfo.templateShortid === templateShortid) {
-      graphInstanceRef.current.setTransform({ x: storedViewInfo.x, y: storedViewInfo.y, zoom: storedViewInfo.zoom })
+      graphInstanceRef.current.setViewport({ x: storedViewInfo.x, y: storedViewInfo.y, zoom: storedViewInfo.zoom })
     } else {
       window.sessionStorage.removeItem('profileCanvasView')
       lastFitViewDisplayRef.current = Date.now()
@@ -49,14 +54,16 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
     }
   }, [onElementClick])
 
-  const elements = useMemo(() => getElementsFromOperations(profileOperations, profileErrorEvent), [profileOperations, profileErrorEvent])
+  const [nodes, edges] = useMemo(() => getElementsFromOperations(profileOperations, profileErrorEvent), [profileOperations, profileErrorEvent])
 
   const mainRenderOperation = profileOperations.find(o => o.startEvent && o.startEvent.subtype === 'render')
   const isCompleted = mainRenderOperation && (mainRenderOperation.endEvent || profileErrorEvent)
 
+  const elementsCount = nodes.length + edges.length
+
   // handle progressive fit to view in canvas when the profile operations display take long
   useLayoutEffect(() => {
-    if (elements.length === 0 || lastFitViewDisplayRef.current == null || isCompleted) {
+    if (elementsCount === 0 || lastFitViewDisplayRef.current == null || isCompleted) {
       return
     }
 
@@ -67,7 +74,7 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
       lastFitViewDisplayRef.current = now
       graphInstanceRef.current.fitView({ padding: 0.25 })
     }
-  }, [elements, isCompleted])
+  }, [elementsCount, isCompleted])
 
   // handle the last fit to view when the operations are completed, it also
   // remembers the final canvas view information that the operations produced,
@@ -85,13 +92,13 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
       if (isCompleted) {
         graphInstanceRef.current.fitView()
 
-        const viewInfo = graphInstanceRef.current.toObject()
+        const instanceInfo = graphInstanceRef.current.toObject()
 
         window.sessionStorage.setItem('profileCanvasView', JSON.stringify({
           templateShortid,
-          x: viewInfo.position[0],
-          y: viewInfo.position[1],
-          zoom: viewInfo.zoom
+          x: instanceInfo.viewport.x,
+          y: instanceInfo.viewport.y,
+          zoom: instanceInfo.viewport.zoom
         }))
       }
     }, 200)
@@ -106,7 +113,10 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
       {renderErrorModal(profileErrorEvent)}
       <ReactFlowProvider>
         <ReactFlow
-          elements={elements}
+          colorMode='light'
+          proOptions={proOptions}
+          nodes={nodes}
+          edges={edges}
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable={false}
@@ -116,14 +126,15 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
           selectNodesOnDrag={false}
           onlyRenderVisibleElements={false}
           minZoom={0}
-          defaultZoom={0.8}
-          onLoad={handleLoad}
-          onElementClick={handleElementClick}
+          defaultViewport={defaultViewport}
+          onInit={handleInit}
+          onNodeClick={handleElementClick}
+          onEdgeClick={handleElementClick}
           onPaneClick={onCanvasClick}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
         >
-          <Controls showInteractive={false} />
+          <Controls className={styles.profileControls} showInteractive={false} />
         </ReactFlow>
       </ReactFlowProvider>
     </div>
@@ -131,10 +142,15 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
 })
 
 function getElementsFromOperations (operations, errorEvent) {
+  const result = {
+    nodes: [],
+    edges: []
+  }
+
   const mainProfileOperation = operations.find(o => o.startEvent && o.startEvent.subtype === 'profile')
 
   if (!mainProfileOperation) {
-    return []
+    return [result.nodes, result.edges]
   }
 
   const allEvents = [errorEvent, ...operations.map(o => o.startEvent), ...operations.map(o => o.endEvent)].filter(e => e)
@@ -151,7 +167,6 @@ function getElementsFromOperations (operations, errorEvent) {
     erroredOperation = operations.find(o => o.id === errorEvent.previousOperationId)
   }
 
-  const elements = []
   const defaultPosition = { x: 0, y: 0 }
 
   const needsEndNode = []
@@ -161,7 +176,7 @@ function getElementsFromOperations (operations, errorEvent) {
     const operation = operations[i]
 
     if (operation.previousOperationId != null) {
-      elements.push(createEdge(operation.previousOperationId, operation.id, {
+      result.edges.push(createEdge(operation.previousOperationId, operation.id, {
         data: {
           outputId: operation.previousOperationId,
           inputId: operation.id
@@ -198,7 +213,7 @@ function getElementsFromOperations (operations, errorEvent) {
     }
 
     lastNode = node
-    elements.push(node)
+    result.nodes.push(node)
   }
 
   // eslint-disable-next-line
@@ -222,9 +237,9 @@ function getElementsFromOperations (operations, errorEvent) {
       className: endNodeClass
     }
 
-    elements.push(endNode)
+    result.nodes.push(endNode)
 
-    elements.push(createEdge(operation.endEvent.previousOperationId, endNodeId, {
+    result.edges.push(createEdge(operation.endEvent.previousOperationId, endNodeId, {
       data: {
         outputId: operation.id,
         inputId: null
@@ -251,9 +266,9 @@ function getElementsFromOperations (operations, errorEvent) {
       className: endNodeClass
     }
 
-    elements.push(endNode)
+    result.nodes.push(endNode)
 
-    elements.push(createEdge(lastNode.id, endNodeId, {
+    result.edges.push(createEdge(lastNode.id, endNodeId, {
       data: {
         outputId: lastNode.id,
         inputId: null
@@ -266,39 +281,37 @@ function getElementsFromOperations (operations, errorEvent) {
   dagreGraph.setDefaultEdgeLabel(() => ({}))
   dagreGraph.setGraph({ rankdir: 'LR' })
 
-  elements.forEach((el) => {
-    if (isNode(el)) {
-      const dimensions = { width: 150, height: 50 }
+  for (const node of result.nodes) {
+    const dimensions = { width: 150, height: 50 }
 
-      if (el.type === 'start') {
-        dimensions.width = 10
-      }
-
-      dagreGraph.setNode(el.id, dimensions)
-    } else {
-      dagreGraph.setEdge(el.source, el.target)
+    if (node.type === 'start') {
+      dimensions.width = 10
     }
-  })
+
+    dagreGraph.setNode(node.id, dimensions)
+  }
+
+  for (const edge of result.edges) {
+    dagreGraph.setEdge(edge.source, edge.target)
+  }
 
   dagre.layout(dagreGraph)
 
-  return elements.map((el) => {
-    if (isNode(el)) {
-      const nodeWithPosition = dagreGraph.node(el.id)
+  for (const node of result.nodes) {
+    const nodeWithPosition = dagreGraph.node(node.id)
 
-      el.targetPosition = 'left'
-      el.sourcePosition = 'right'
+    node.targetPosition = 'left'
+    node.sourcePosition = 'right'
 
-      // we need this little hack to pass a slightly different position
-      // in order to notify react flow about the change
-      el.position = {
-        x: nodeWithPosition.x + Math.random() / 1000,
-        y: nodeWithPosition.y
-      }
+    // we need this little hack to pass a slightly different position
+    // in order to notify react flow about the change
+    node.position = {
+      x: nodeWithPosition.x + Math.random() / 1000,
+      y: nodeWithPosition.y
     }
+  }
 
-    return el
-  })
+  return [result.nodes, result.edges]
 }
 
 function createEdge (sourceId, targetId, opts = {}) {
@@ -310,7 +323,7 @@ function createEdge (sourceId, targetId, opts = {}) {
     target: targetId,
     type: 'customDefault',
     className: styles.profileOperationEdge,
-    arrowHeadType: 'arrowclosed',
+    markerEnd: { type: 'arrowclosed' },
     ...opts
   }
 

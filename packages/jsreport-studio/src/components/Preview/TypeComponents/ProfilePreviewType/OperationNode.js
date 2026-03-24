@@ -1,6 +1,6 @@
 import React, { Fragment, useState, useCallback } from 'react'
 import { useDispatch } from 'react-redux'
-import { Handle } from 'react-flow-renderer'
+import { Handle } from '@xyflow/react'
 import fileSaver from 'filesaver.js-npm'
 import { actions as progressActions } from '../../../../redux/progress'
 import styles from '../../Preview.css'

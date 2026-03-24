@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import React, { Fragment, useEffect } from 'react'
-import { getSmoothStepPath, getMarkerEnd } from 'react-flow-renderer'
+import { getSmoothStepPath } from '@xyflow/react'
 import styles from '../../Preview.css'
 
 const DefaultEdge = React.memo(function DefaultEdge (props) {
@@ -13,23 +13,24 @@ const DefaultEdge = React.memo(function DefaultEdge (props) {
     sourcePosition,
     targetPosition,
     style = {},
-    arrowHeadType,
-    markerEndId
+    markerEnd
   } = props
 
-  const edgePath = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
-  const markerEnd = getMarkerEnd(arrowHeadType, markerEndId)
+  const [edgePath] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
   const expanderClass = classNames('react-flow__edge-path', styles.profileOperationEdgeExpander)
   const mainClass = classNames('react-flow__edge-path', styles.main)
 
   useEffect(() => {
-    const elId = 'react-flow__arrowclosed'
-    const clonedElId = `${elId}-active`
+    // NOTE: this id depends on the version of react flow, if we update we should review if the id
+    // remains the same, and update it if needed, also ensure we update selectors in Preview.css
+    // which references the ${elId}-active
+    const elId = '1__type=arrowclosed'
+    const clonedElId = 'custom-arrowclosed-active'
 
     if (document.getElementById(clonedElId) == null) {
       const markerEndEl = document.getElementById(elId)
       const clonedMarkerEndEl = markerEndEl.cloneNode(true)
-      clonedMarkerEndEl.id = `${clonedMarkerEndEl.id}-active`
+      clonedMarkerEndEl.id = clonedElId
       markerEndEl.parentElement.appendChild(clonedMarkerEndEl)
     }
   }, [])

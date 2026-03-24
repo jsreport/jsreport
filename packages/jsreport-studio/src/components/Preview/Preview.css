@@ -68,7 +68,12 @@
 
 .profileOperations :global(.react-flow__node-default),
 .profileOperations :global(.react-flow__edge-text) {
+  color: #333;
   font-size: 12px;
+}
+
+.profileControls {
+  color: #333;
 }
 
 .profileButtonAction {
@@ -146,7 +151,7 @@
   }
 }
 
-:global(#react-flow__arrowclosed-active) > * {
+:global(#custom-arrowclosed-active) > * {
   stroke: $primary-selection-backgroundColor !important;
   fill: $primary-selection-backgroundColor !important;
 }
@@ -163,7 +168,7 @@
 
 .profileOperationEdge.active .main {
   stroke: $primary-selection-backgroundColor !important;
-  marker-end: url("#react-flow__arrowclosed-active") !important;
+  marker-end: url("#custom-arrowclosed-active") !important;
 }
 
 .profileLogs {
