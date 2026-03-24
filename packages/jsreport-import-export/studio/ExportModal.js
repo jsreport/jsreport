@@ -8,7 +8,7 @@ function ExportModal (props) {
   const { options } = props
   const references = useEntitiesSelector((entities) => entities)
   const [processing, setProcessing] = useState(false)
-  const entityTreeRef = useRef(null)
+  const entityTreeRef = useRef(undefined)
 
   const exportableReferences = useMemo(() => {
     const exportableEntitySets = Studio.extensions['import-export'].options.exportableEntitySets

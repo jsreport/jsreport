@@ -46,7 +46,7 @@ const Toolbar = (props) => {
 
 const ToolbarGroup = ({ items, groupMode, setFilter, setGroupMode, onNewEntity }) => {
   const [isActive, setActive] = useState(false)
-  const itemsContainerRef = useRef(null)
+  const itemsContainerRef = useRef(undefined)
 
   const closeMenu = () => {
     setActive(false)

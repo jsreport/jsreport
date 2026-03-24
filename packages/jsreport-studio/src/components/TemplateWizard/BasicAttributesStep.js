@@ -2,7 +2,7 @@ import { useRef, useCallback, useEffect } from 'react'
 import { values as configuration } from '../../lib/configuration'
 
 function BasicAttributesStep (props) {
-  const nameInputRef = useRef(null)
+  const nameInputRef = useRef(undefined)
   const { template, setAttributes, setNext, processing } = props
 
   useEffect(() => {

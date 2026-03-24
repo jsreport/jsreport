@@ -29,8 +29,8 @@ const GroupNode = React.memo(({
   onNodeClick,
   onContextMenu
 }) => {
-  const containerRef = useRef(null)
-  const titleRef = useRef(null)
+  const containerRef = useRef(undefined)
+  const titleRef = useRef(undefined)
 
   const groupIsEntity = checkIsGroupEntityNode(node)
 

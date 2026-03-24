@@ -7,10 +7,10 @@ import ResultDisplay from './ResultsDisplay'
 import styles from './TextSearchPreviewType.css'
 
 function TextSearchPreviewType (props) {
-  const searchElRef = useRef(null)
-  const searchAbortControllerRef = useRef(null)
+  const searchElRef = useRef(undefined)
+  const searchAbortControllerRef = useRef(undefined)
   const [text, setText] = useState('')
-  const [searchResult, setSearchResult] = useState(null)
+  const [searchResult, setSearchResult] = useState(undefined)
 
   const debouncedTextSearch = useMemo(() => {
     return debounce(doTextSearch, 500)

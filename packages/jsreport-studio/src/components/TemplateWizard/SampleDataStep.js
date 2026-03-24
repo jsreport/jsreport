@@ -6,7 +6,7 @@ function SampleDataStep (props) {
   const { template, setAttributes, setNext, processing } = props
   const [entityRefControlKey, setEntityRefControlKey] = useState(() => shortid.generate())
   const mountedRef = useRef(false)
-  const nameInputRef = useRef(null)
+  const nameInputRef = useRef(undefined)
 
   let activeMode = 'new'
 

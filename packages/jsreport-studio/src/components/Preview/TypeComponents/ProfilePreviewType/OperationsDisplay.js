@@ -17,8 +17,8 @@ const edgeTypes = {
 
 const OperationsDisplay = React.memo(function OperationsDisplay (props) {
   const { templateShortid, profileOperations, profileErrorEvent, onCanvasClick, onElementClick, renderErrorModal } = props
-  const lastFitViewDisplayRef = useRef(null)
-  const graphInstanceRef = useRef(null)
+  const lastFitViewDisplayRef = useRef(undefined)
+  const graphInstanceRef = useRef(undefined)
 
   const handleLoad = useCallback((reactFlowInstance) => {
     graphInstanceRef.current = reactFlowInstance

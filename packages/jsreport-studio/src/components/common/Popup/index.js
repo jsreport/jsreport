@@ -4,7 +4,7 @@ import styles from './Popup.css'
 
 const Popup = React.forwardRef(function Popup (props, externalRef) {
   const { open, onRequestClose, position = {}, children } = props
-  const containerRef = useRef(null)
+  const containerRef = useRef(undefined)
 
   useEffect(() => {
     const tryHide = (ev) => {

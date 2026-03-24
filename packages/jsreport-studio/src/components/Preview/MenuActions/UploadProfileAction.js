@@ -4,7 +4,7 @@ import openProfileFromStreamReader from '../../../helpers/openProfileFromStreamR
 import api from '../../../helpers/api'
 
 const UploadProfileAction = ({ completed, closeMenu }) => {
-  const uploadProfileInputRef = useRef(null)
+  const uploadProfileInputRef = useRef(undefined)
   const enabled = completed
 
   return (

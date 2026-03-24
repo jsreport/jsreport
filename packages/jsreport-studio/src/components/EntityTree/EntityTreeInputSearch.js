@@ -4,7 +4,7 @@ import EntityTreeButton from './EntityTreeButton'
 import styles from './EntityTreeInputSearch.css'
 
 const InputSearch = ({ value, onChange, onKeyDown }) => {
-  const inputFilterRef = useRef(null)
+  const inputFilterRef = useRef(undefined)
 
   useEffect(() => {
     inputFilterRef.current && inputFilterRef.current.focus()

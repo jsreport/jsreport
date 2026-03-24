@@ -5,9 +5,9 @@ import { values as configuration } from '../../lib/configuration'
 
 const FrameDisplay = React.forwardRef(function FrameDisplay (props, externalRef) {
   const { src, styles: frameStyles = {}, blobCleanup = true, onLoad } = props
-  const containerRef = useRef(null)
-  const overlayRef = useRef(null)
-  const iframeRef = useRef(null)
+  const containerRef = useRef(undefined)
+  const overlayRef = useRef(undefined)
+  const iframeRef = useRef(undefined)
   const blobCleanupRef = useRef(blobCleanup)
 
   const handleOnLoad = useCallback(() => {

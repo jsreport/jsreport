@@ -8,7 +8,7 @@ const NewUsersGroupModal = (props) => {
   const defaults = props.options.defaults || {}
   const [groupNameError, setGroupNameError] = useState(false)
   const [apiError, setApiError] = useState(null)
-  const groupNameRef = useRef()
+  const groupNameRef = useRef(undefined)
 
   const validateGroupName = useCallback(() => {
     setGroupNameError(groupNameRef.current.value === '')

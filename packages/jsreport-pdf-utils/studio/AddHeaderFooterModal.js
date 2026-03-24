@@ -7,7 +7,7 @@ const Content = (props) => {
   const [processing, setProcessing] = useState(false)
   const [templateName, setTemplateName] = useState('header-footer')
   const [pageMargin, setPageMargin] = useState('2cm')
-  const nameInputRef = useRef(null)
+  const nameInputRef = useRef(undefined)
 
   const { entity: mainTemplate } = options
 

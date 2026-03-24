@@ -6,8 +6,8 @@ import styles from './Preview.css'
 const Preview = (props) => {
   const { tabs = [], renderActions, activeTab, onActiveTabChange, children } = props
   const [actionsMenuActive, setActionsMenuActive] = useState(false)
-  const actionsMenuTriggerRef = useRef(null)
-  const actionsMenuContainerRef = useRef(null)
+  const actionsMenuTriggerRef = useRef(undefined)
+  const actionsMenuContainerRef = useRef(undefined)
 
   const shouldRenderTabs = tabs.length > 0 || renderActions != null
 

@@ -3,7 +3,7 @@ import Studio from 'jsreport-studio'
 
 const PreviewComponentToolbar = (props) => {
   const [isRunning, setIsRunning] = useState(false)
-  const stopPreviewRef = useRef(null)
+  const stopPreviewRef = useRef(undefined)
   const entity = props.tab != null && props.tab.entity != null ? props.tab.entity : undefined
 
   const previewComponent = useCallback(function previewComponent (componentShortid, componentName) {

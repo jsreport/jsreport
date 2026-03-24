@@ -12,7 +12,7 @@ export default function useDropHandler ({
   onDragOut,
   onDragEnd
 }) {
-  const dragLastClientOffsetRef = useRef(null)
+  const dragLastClientOffsetRef = useRef(undefined)
 
   const onDragOver = ({ clientOffset, sourceNode, isOverShallow }) => {
     const listNodeDimensions = listRef.current.node.getBoundingClientRect()

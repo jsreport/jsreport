@@ -47,9 +47,9 @@ const EntityTree = React.forwardRef(({
     return dispatch(editorActions.hierarchyMove(...params))
   }, [dispatch])
 
-  const listContainerRef = useRef(null)
-  const listRef = useRef(null)
-  const contextMenuRef = useRef(null)
+  const listContainerRef = useRef(undefined)
+  const listRef = useRef(undefined)
+  const contextMenuRef = useRef(undefined)
   // using memo because we want to ensure stable reference to the exposed [selectedEntities, selectDispatch]
   // useState seems to not return stable array on each render
   const selectedInfo = useMemo(() => [selectedEntities, selectDispatch], [selectedEntities, selectDispatch])

@@ -8,9 +8,9 @@ import styles from './EntityTreeSelectionModal.css'
 
 function EntityTreeSelectionModal ({ options, close }) {
   const [newMode, setNewMode] = useState(false)
-  const cancelRef = useRef(null)
-  const newEntityCreatedRef = useRef(null)
-  const entityTreeRef = useRef(null)
+  const cancelRef = useRef(undefined)
+  const newEntityCreatedRef = useRef(undefined)
+  const entityTreeRef = useRef(undefined)
 
   const getReferences = useMemo(createGetReferencesSelector, [])
   const references = useSelector(getReferences)

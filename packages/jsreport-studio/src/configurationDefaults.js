@@ -470,7 +470,7 @@ export default () => {
   ))
 
   configuration.toolbarComponents.settings.push((props) => {
-    const uploadProfileInputRef = useRef(null)
+    const uploadProfileInputRef = useRef(undefined)
 
     return (
       <div

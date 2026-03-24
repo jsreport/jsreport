@@ -4,7 +4,7 @@ import resolveUrl from '../../../helpers/resolveUrl'
 const DownloadProfileAction = ({ completed, data, closeMenu }) => {
   const { profileOperations } = data
   const mainProfileOperation = profileOperations.find((op) => op.startEvent.subtype === 'profile')
-  const containerRef = useRef(null)
+  const containerRef = useRef(undefined)
 
   const enabled = completed && mainProfileOperation != null
 

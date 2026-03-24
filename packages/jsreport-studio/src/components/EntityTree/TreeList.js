@@ -9,8 +9,8 @@ import { values as configuration } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
 const TreeList = React.forwardRef(function TreeList ({ groupMode, entities }, ref) {
-  const containerRef = useRef(null)
-  const virtualListRef = useRef(null)
+  const containerRef = useRef(undefined)
+  const virtualListRef = useRef(undefined)
   const allNodesByNodeIdRef = useRef({})
   const rootEntityNodesRef = useRef([])
   const parentNodesByIdRef = useRef({})

@@ -126,7 +126,7 @@ const RawTreeNodeItem = React.memo(({
     previewOptions: dragPreviewOptions
   })
 
-  const draggingExpandTimeoutRef = useRef(null)
+  const draggingExpandTimeoutRef = useRef(undefined)
   const prevIsOverShallow = usePrevious(isOverShallow)
 
   useEffect(() => {

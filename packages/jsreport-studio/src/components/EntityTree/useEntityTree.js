@@ -35,8 +35,8 @@ export default function useEntityTree (main, {
   contextMenuRef
 }) {
   const defaultGroupMode = configuration.extensions.studio.options.entityTreeGroupMode
-  const dragOverContextRef = useRef(null)
-  const dragCacheRef = useRef(null)
+  const dragOverContextRef = useRef(undefined)
+  const dragCacheRef = useRef(undefined)
   const [groupMode, setGroupMode] = useState(defaultGroupMode)
   const [clipboard, setClipboard] = useState(null)
   const [highlightedArea, setHighlightedArea] = useState(null)

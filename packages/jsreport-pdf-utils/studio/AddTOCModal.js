@@ -6,7 +6,7 @@ const Content = (props) => {
   const [error, setError] = useState(null)
   const [processing, setProcessing] = useState(false)
   const [templateName, setTemplateName] = useState('toc')
-  const nameInputRef = useRef(null)
+  const nameInputRef = useRef(undefined)
 
   const { entity: mainTemplate } = options
 

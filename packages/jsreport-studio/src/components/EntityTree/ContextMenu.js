@@ -264,7 +264,7 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
 
 const ContextMenuContainer = ({ children }) => {
   const [isMounted, setMounted] = useState(false)
-  const nodeRef = useRef(null)
+  const nodeRef = useRef(undefined)
 
   useEffect(() => {
     nodeRef.current = document.createElement('div')

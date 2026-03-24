@@ -6,8 +6,8 @@ import useOpenErrorLine from '../useOpenErrorLine'
 const ReportPreviewType = React.memo(function ReportPreviewType (props) {
   const { data } = props
   const { reportSrc, reportFile, profileErrorEvent } = data
-  const goToErrorLineContainerRef = useRef(null)
-  const iframeRef = useRef(null)
+  const goToErrorLineContainerRef = useRef(undefined)
+  const iframeRef = useRef(undefined)
   const openErrorLine = useOpenErrorLine()
   const displayGoToErrorLine = profileErrorEvent != null && errorHasLineInfo(profileErrorEvent)
 
