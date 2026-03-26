@@ -8,12 +8,24 @@ module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 1 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+if (true) {
+  module.exports = __webpack_require__(6);
+} else // removed by dead control flow
+{}
+
+
+/***/ }),
+/* 2 */
 /***/ ((module) => {
 
 module.exports = Studio;
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -25,8 +37,8 @@ const PDF_UTILS_TAB_TITLE = 'PDF_UTILS_TAB_TITLE';
 const PDF_UTILS_TAB_EDITOR = 'PDF_UTILS_TAB_EDITOR';
 
 /***/ }),
-/* 3 */,
-/* 4 */
+/* 4 */,
+/* 5 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -35,6 +47,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+
 
 class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   static title(entity, entities) {
@@ -60,23 +74,67 @@ class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     if (password == null || password === '') {
       password = pdfSign.passwordFilled === true ? '******' : '';
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "properties-section"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "password",
-      value: password,
-      onChange: v => changePdfSign({
-        passwordRaw: v.target.value
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+      className: "properties-section",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: "password"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+          type: "password",
+          value: password,
+          onChange: v => changePdfSign({
+            passwordRaw: v.target.value
+          })
+        })]
       })
-    })));
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Properties);
 
 /***/ }),
-/* 5 */
+/* 6 */
+/***/ ((__unused_webpack_module, exports) => {
+
+/**
+ * @license React
+ * react-jsx-runtime.production.js
+ *
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
+  REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+function jsxProd(type, config, maybeKey) {
+  var key = null;
+  void 0 !== maybeKey && (key = "" + maybeKey);
+  void 0 !== config.key && (key = "" + config.key);
+  if ("key" in config) {
+    maybeKey = {};
+    for (var propName in config)
+      "key" !== propName && (maybeKey[propName] = config[propName]);
+  } else maybeKey = config;
+  config = maybeKey.ref;
+  return {
+    $$typeof: REACT_ELEMENT_TYPE,
+    type: type,
+    key: key,
+    ref: void 0 !== config ? config : null,
+    props: maybeKey
+  };
+}
+exports.Fragment = REACT_FRAGMENT_TYPE;
+exports.jsx = jsxProd;
+exports.jsxs = jsxProd;
+
+
+/***/ }),
+/* 7 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -85,9 +143,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
+
 
 
 
@@ -187,19 +247,22 @@ class TemplatePdfUtilsProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Comp
     }
   }
   render() {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "properties-section"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      onClick: () => this.openEditor()
-    }, "Configure")));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      className: "properties-section",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("button", {
+          onClick: () => this.openEditor(),
+          children: "Configure"
+        })
+      })
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TemplatePdfUtilsProperties);
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -208,27 +271,30 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (props => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, props.entity.name + ' pdf utils ' + (props.entity.__isDirty ? '*' : '')));
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (props => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+  children: props.entity.name + ' pdf utils ' + (props.entity.__isDirty ? '*' : '')
+}));
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _AddHeaderFooterModal__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
-/* harmony import */ var _AddTOCModal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(10);
-/* harmony import */ var _AddCoverModal__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11);
-/* harmony import */ var _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(13);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _AddHeaderFooterModal__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
+/* harmony import */ var _AddTOCModal__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+/* harmony import */ var _AddCoverModal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
+/* harmony import */ var _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(14);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1);
 
 
 
@@ -236,14 +302,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().EntityRefSelect);
-const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().sharedComponents);
+const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().EntityRefSelect);
+const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().sharedComponents);
 const AdvancedMergeModal = props => {
   const {
     operation: initialOperation,
     update
   } = props.options;
-  const [operation, setOperation] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(initialOperation);
+  const [operation, setOperation] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialOperation);
   const updateOperation = op => {
     update(op);
     setOperation({
@@ -251,48 +317,69 @@ const AdvancedMergeModal = props => {
       ...op
     });
   };
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", null, "advanced merge configuration"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h3", null, "Merge whole document"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "render specified template and merge the result into the current pdf. The first page of the template output will be merged into the first page of the current pdf, the second page to the second one and so on. When the option is deselected, the first page of the template output will be merged to all pages of the current pdf."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-    type: "checkbox",
-    disabled: operation.renderForEveryPage,
-    checked: operation.mergeWholeDocument === true,
-    onChange: v => updateOperation({
-      mergeWholeDocument: v.target.checked,
-      renderForEveryPage: false
-    })
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-    style: {
-      marginTop: '1rem'
-    },
-    className: "form-group"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h3", null, "Render for every page (deprecated)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "if true, the operation invokes rendering of the specified template for every pdf page (slow), otherwise it is invoked just once and the single output is merged"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-    type: "checkbox",
-    disabled: operation.mergeWholeDocument,
-    checked: operation.renderForEveryPage === true,
-    onChange: v => updateOperation({
-      renderForEveryPage: v.target.checked,
-      mergeWholeDocument: false
-    })
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-    style: {
-      marginTop: '1rem'
-    },
-    className: "form-group"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h3", null, "Merge to front"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "if true, the pdf produced by the operation is merged to the front layer, otherwise it is merged to the background"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-    type: "checkbox",
-    checked: operation.mergeToFront === true,
-    onChange: v => updateOperation({
-      mergeToFront: v.target.checked
-    })
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-    className: "button-bar"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-    className: "button confirmation",
-    onClick: () => props.close()
-  }, "ok")));
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+      children: "advanced merge configuration"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      className: "form-group",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
+        children: "Merge whole document"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+        children: "render specified template and merge the result into the current pdf. The first page of the template output will be merged into the first page of the current pdf, the second page to the second one and so on. When the option is deselected, the first page of the template output will be merged to all pages of the current pdf."
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+        type: "checkbox",
+        disabled: operation.renderForEveryPage,
+        checked: operation.mergeWholeDocument === true,
+        onChange: v => updateOperation({
+          mergeWholeDocument: v.target.checked,
+          renderForEveryPage: false
+        })
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      style: {
+        marginTop: '1rem'
+      },
+      className: "form-group",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
+        children: "Render for every page (deprecated)"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+        children: "if true, the operation invokes rendering of the specified template for every pdf page (slow), otherwise it is invoked just once and the single output is merged"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+        type: "checkbox",
+        disabled: operation.mergeWholeDocument,
+        checked: operation.renderForEveryPage === true,
+        onChange: v => updateOperation({
+          renderForEveryPage: v.target.checked,
+          mergeWholeDocument: false
+        })
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      style: {
+        marginTop: '1rem'
+      },
+      className: "form-group",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
+        children: "Merge to front"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+        children: "if true, the pdf produced by the operation is merged to the front layer, otherwise it is merged to the background"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+        type: "checkbox",
+        checked: operation.mergeToFront === true,
+        onChange: v => updateOperation({
+          mergeToFront: v.target.checked
+        })
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+      className: "button-bar",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+        className: "button confirmation",
+        onClick: () => props.close(),
+        children: "ok"
+      })
+    })]
+  });
 };
-class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
+class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -304,7 +391,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const {
       entity
     } = this.props;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_AddHeaderFooterModal__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openModal(_AddHeaderFooterModal__WEBPACK_IMPORTED_MODULE_2__["default"], {
       entity
     });
   }
@@ -312,7 +399,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const {
       entity
     } = this.props;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_AddTOCModal__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openModal(_AddTOCModal__WEBPACK_IMPORTED_MODULE_3__["default"], {
       entity
     });
   }
@@ -320,12 +407,12 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const {
       entity
     } = this.props;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_AddCoverModal__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openModal(_AddCoverModal__WEBPACK_IMPORTED_MODULE_4__["default"], {
       entity
     });
   }
   addOperation(entity) {
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: [...(entity.pdfOperations || []), {
         type: 'merge',
         mergeWholeDocument: true
@@ -333,7 +420,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }));
   }
   updateOperation(entity, index, update) {
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: entity.pdfOperations.map((o, i) => i === index ? Object.assign({}, o, update) : o)
     }));
   }
@@ -352,9 +439,9 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (keys.length === 0 || keys.every(k => pdfMeta[k] == null)) {
       const newEntity = Object.assign({}, entity);
       newEntity.pdfMeta = null;
-      return jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(newEntity);
+      return jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(newEntity);
     }
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       pdfMeta
     }));
   }
@@ -373,9 +460,9 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (keys.length === 0 || keys.every(k => pdfPassword[k] == null || pdfPassword[k] === false)) {
       const newEntity = Object.assign({}, entity);
       newEntity.pdfPassword = null;
-      return jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(newEntity);
+      return jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(newEntity);
     }
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       pdfPassword
     }));
   }
@@ -394,14 +481,14 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (keys.length === 0 || keys.every(k => pdfSign[k] == null)) {
       const newEntity = Object.assign({}, entity);
       newEntity.pdfSign = null;
-      return jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(newEntity);
+      return jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(newEntity);
     }
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       pdfSign
     }));
   }
   removeOperation(entity, index) {
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: entity.pdfOperations.filter((a, i) => i !== index)
     }));
   }
@@ -436,7 +523,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const tmp = pdfOperations[index + 1];
     pdfOperations[index + 1] = pdfOperations[index];
     pdfOperations[index] = tmp;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: pdfOperations
     }));
   }
@@ -445,91 +532,128 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const tmp = pdfOperations[index - 1];
     pdfOperations[index - 1] = pdfOperations[index];
     pdfOperations[index] = tmp;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: pdfOperations
     }));
   }
   renderOperation(entity, operation, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tr", {
-      key: index
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", {
-      style: {
-        minWidth: '170px'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(EntityRefSelect, {
-      headingLabel: "Select template",
-      newLabel: "New template",
-      filter: references => {
-        const templates = references.templates.filter(e => e.shortid !== entity.shortid && e.recipe.includes('pdf'));
-        return {
-          templates: templates
-        };
-      },
-      value: operation.templateShortid ? operation.templateShortid : null,
-      onChange: selected => this.updateOperation(entity, index, {
-        templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null
-      }),
-      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(sharedComponents.NewTemplateModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
-        options: {
-          ...modalProps.options,
-          defaults: {
-            folder: entity.folder
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("tr", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+        style: {
+          minWidth: '170px'
+        },
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(EntityRefSelect, {
+          headingLabel: "Select template",
+          newLabel: "New template",
+          filter: references => {
+            const templates = references.templates.filter(e => e.shortid !== entity.shortid && e.recipe.includes('pdf'));
+            return {
+              templates: templates
+            };
           },
-          activateNewTab: false
-        }
-      }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("select", {
-      value: operation.type,
-      onChange: v => this.updateOperation(entity, index, {
-        type: v.target.value
-      })
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      value: "merge"
-    }, "merge"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      value: "append"
-    }, "append"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      value: "prepend"
-    }, "prepend"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, operation.type === 'merge' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      onClick: () => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(AdvancedMergeModal, {
-        operation: entity.pdfOperations[index],
-        update: o => this.updateOperation(entity, index, o)
-      })
-    }, "advanced")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: operation.enabled !== false,
-      onChange: v => this.updateOperation(entity, index, {
-        enabled: v.target.checked
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: "button",
-      style: {
-        backgroundColor: '#c6c6c6'
-      },
-      onClick: () => this.removeOperation(entity, index)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-      className: "fa fa-times"
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, entity.pdfOperations[index - 1] ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: "button",
-      style: {
-        backgroundColor: '#c6c6c6'
-      },
-      onClick: () => this.moveUp(entity, index)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-      className: "fa fa-arrow-up"
-    })) : ''), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, entity.pdfOperations[index + 1] ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: "button",
-      style: {
-        backgroundColor: '#c6c6c6'
-      },
-      onClick: () => this.moveDown(entity, index)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-      className: "fa fa-arrow-down"
-    })) : ''));
+          value: operation.templateShortid ? operation.templateShortid : null,
+          onChange: selected => this.updateOperation(entity, index, {
+            templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null
+          }),
+          renderNew: modalProps => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(sharedComponents.NewTemplateModal, {
+            ...modalProps,
+            options: {
+              ...modalProps.options,
+              defaults: {
+                folder: entity.folder
+              },
+              activateNewTab: false
+            }
+          })
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("select", {
+          value: operation.type,
+          onChange: v => this.updateOperation(entity, index, {
+            type: v.target.value
+          }),
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+            value: "merge",
+            children: "merge"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+            value: "append",
+            children: "append"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+            value: "prepend",
+            children: "prepend"
+          })]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+        children: operation.type === 'merge' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+          onClick: () => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openModal(AdvancedMergeModal, {
+            operation: entity.pdfOperations[index],
+            update: o => this.updateOperation(entity, index, o)
+          }),
+          children: "advanced"
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+          type: "checkbox",
+          checked: operation.enabled !== false,
+          onChange: v => this.updateOperation(entity, index, {
+            enabled: v.target.checked
+          })
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+          className: "button",
+          style: {
+            backgroundColor: '#c6c6c6'
+          },
+          onClick: () => this.removeOperation(entity, index),
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("i", {
+            className: "fa fa-times"
+          })
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+        children: entity.pdfOperations[index - 1] ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+          className: "button",
+          style: {
+            backgroundColor: '#c6c6c6'
+          },
+          onClick: () => this.moveUp(entity, index),
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("i", {
+            className: "fa fa-arrow-up"
+          })
+        }) : ''
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+        children: entity.pdfOperations[index + 1] ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+          className: "button",
+          style: {
+            backgroundColor: '#c6c6c6'
+          },
+          onClick: () => this.moveDown(entity, index),
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("i", {
+            className: "fa fa-arrow-down"
+          })
+        }) : ''
+      })]
+    }, index);
   }
   renderOperations(entity) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("table", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].operationTable
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Template"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Operation"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Advanced"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Enabled"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tbody", null, (entity.pdfOperations || []).map((o, i) => this.renderOperation(entity, o, i))));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("table", {
+      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].operationTable,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("thead", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("tr", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {
+            children: "Template"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {
+            children: "Operation"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {
+            children: "Advanced"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {
+            children: "Enabled"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {})]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("tbody", {
+        children: (entity.pdfOperations || []).map((o, i) => this.renderOperation(entity, o, i))
+      })]
+    });
   }
   renderCustomMetadata(entity) {
     const existingCustomMetadata = this.getExistingCustomMetadata(entity);
@@ -542,111 +666,141 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }, []);
     let body = null;
     if (customMetadataList.length > 0) {
-      body = customMetadataList.map((item, idx) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tr", {
-        key: item.key
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", {
-        style: {
-          textAlign: 'center',
-          paddingLeft: '5px',
-          paddingRight: '10px'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, item.key)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", {
-        style: {
-          textAlign: 'center',
-          paddingLeft: '5px'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-        type: "text",
-        value: item.value,
-        onChange: v => this.updateCustomMetadata(entity, item.key, v.target.value)
-      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-        className: "button",
-        style: {
-          backgroundColor: '#c6c6c6'
-        },
-        onClick: () => this.removeCustomMetadata(entity, item.key)
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-        className: "fa fa-times"
-      })))));
+      body = customMetadataList.map((item, idx) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("tr", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+          style: {
+            textAlign: 'center',
+            paddingLeft: '5px',
+            paddingRight: '10px'
+          },
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+            children: item.key
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+          style: {
+            textAlign: 'center',
+            paddingLeft: '5px'
+          },
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+            type: "text",
+            value: item.value,
+            onChange: v => this.updateCustomMetadata(entity, item.key, v.target.value)
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("td", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+            className: "button",
+            style: {
+              backgroundColor: '#c6c6c6'
+            },
+            onClick: () => this.removeCustomMetadata(entity, item.key),
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("i", {
+              className: "fa fa-times"
+            })
+          })
+        })]
+      }, item.key));
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("table", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].operationTable
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Key"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Value"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tbody", null, body));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("table", {
+      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].operationTable,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("thead", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("tr", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {
+            children: "Key"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {
+            children: "Value"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("th", {})]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("tbody", {
+        children: body
+      })]
+    });
   }
   renderCustomMetadataCreate(entity, customMetadataCreate) {
     const existingCustomMetadata = this.getExistingCustomMetadata(entity);
     let el;
     if (customMetadataCreate == null) {
-      el = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      el = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
         style: {
           marginTop: '1rem',
           minHeight: '160px'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-        className: "button confirmation",
-        onClick: () => {
-          const newKeyPrefix = 'key';
-          let targetNewKey = newKeyPrefix;
-          let counter = 1;
-          while (existingCustomMetadata[targetNewKey] != null) {
-            counter += 1;
-            targetNewKey = `${newKeyPrefix}${counter}`;
-          }
-          this.setState({
-            customMetadataCreate: {
-              key: targetNewKey,
-              value: 'value'
+        },
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+          className: "button confirmation",
+          onClick: () => {
+            const newKeyPrefix = 'key';
+            let targetNewKey = newKeyPrefix;
+            let counter = 1;
+            while (existingCustomMetadata[targetNewKey] != null) {
+              counter += 1;
+              targetNewKey = `${newKeyPrefix}${counter}`;
             }
-          });
-        }
-      }, "Add custom metadata"));
+            this.setState({
+              customMetadataCreate: {
+                key: targetNewKey,
+                value: 'value'
+              }
+            });
+          },
+          children: "Add custom metadata"
+        })
+      });
     } else {
       const saveDisabled = customMetadataCreate.key === '' || customMetadataCreate.value === '';
-      el = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      el = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
         style: {
           marginTop: '1rem'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("hr", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-        className: "form-group"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Key"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-        type: "text",
-        value: customMetadataCreate.key,
-        onChange: v => this.setState({
-          customMetadataCreate: {
-            ...customMetadataCreate,
-            key: v.target.value
-          }
-        })
-      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-        className: "form-group"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Value"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-        type: "text",
-        value: customMetadataCreate.value,
-        onChange: v => this.setState({
-          customMetadataCreate: {
-            ...customMetadataCreate,
-            value: v.target.value
-          }
-        })
-      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-        style: {
-          marginTop: '1rem'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-        className: `button confirmation ${saveDisabled ? 'disabled' : ''}`,
-        disabled: saveDisabled,
-        onClick: () => {
-          this.updateCustomMetadata(entity, customMetadataCreate.key, customMetadataCreate.value);
-          this.setState({
-            customMetadataCreate: null
-          });
-        }
-      }, existingCustomMetadata[customMetadataCreate.key] == null || customMetadataCreate.key === '' ? 'Add' : 'Update'), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-        className: "button confirmation",
-        onClick: () => this.setState({
-          customMetadataCreate: null
-        })
-      }, "Cancel")));
+        },
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("hr", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: "form-group",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+            children: "Key"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+            type: "text",
+            value: customMetadataCreate.key,
+            onChange: v => this.setState({
+              customMetadataCreate: {
+                ...customMetadataCreate,
+                key: v.target.value
+              }
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: "form-group",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+            children: "Value"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+            type: "text",
+            value: customMetadataCreate.value,
+            onChange: v => this.setState({
+              customMetadataCreate: {
+                ...customMetadataCreate,
+                value: v.target.value
+              }
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          style: {
+            marginTop: '1rem'
+          },
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+            className: `button confirmation ${saveDisabled ? 'disabled' : ''}`,
+            disabled: saveDisabled,
+            onClick: () => {
+              this.updateCustomMetadata(entity, customMetadataCreate.key, customMetadataCreate.value);
+              this.setState({
+                customMetadataCreate: null
+              });
+            },
+            children: existingCustomMetadata[customMetadataCreate.key] == null || customMetadataCreate.key === '' ? 'Add' : 'Update'
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+            className: "button confirmation",
+            onClick: () => this.setState({
+              customMetadataCreate: null
+            }),
+            children: "Cancel"
+          })]
+        })]
+      });
     }
     return el;
   }
@@ -664,494 +818,635 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const pdfPassword = entity.pdfPassword || {};
     const pdfSign = entity.pdfSign || {};
     const pdfCompression = entity.pdfCompression || {};
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
       className: "block custom-editor",
       style: {
         overflowX: 'auto'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-      className: "fa fa-file-pdf-o"
-    }), " pdf utils configuration"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
-      style: {
-        marginTop: '0.2rem'
-      }
-    }, "quick actions"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem',
-        marginBottom: '0.8rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: "button confirmation",
-      style: {
-        marginLeft: 0
       },
-      onClick: () => this.addHeaderFooter()
-    }, "Add header/footer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: "button confirmation",
-      onClick: () => this.addTOC()
-    }, "Add Table of Contents"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: "button confirmation",
-      onClick: () => this.addCover()
-    }, "Add cover page"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].separator
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabContainer
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("ul", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitles
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
-      onClick: () => this.setState({
-        activeTab: 'operations'
-      })
-    }, "operations"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'meta' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
-      onClick: () => this.setState({
-        activeTab: 'meta'
-      })
-    }, "meta"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'password' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
-      onClick: () => this.setState({
-        activeTab: 'password'
-      })
-    }, "password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'sign' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
-      onClick: () => this.setState({
-        activeTab: 'sign'
-      })
-    }, "sign"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'pdfA' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
-      onClick: () => this.setState({
-        activeTab: 'pdfA'
-      })
-    }, "pdfA"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
-      onClick: () => this.setState({
-        activeTab: 'pdfAccessibility'
-      })
-    }, "pdf accessibility"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
-      onClick: () => this.setState({
-        activeTab: 'pdfCompression'
-      })
-    }, "compression")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "Use merge/append operations to add dynamic headers or concatenate multiple pdf reports into one. See more docs and examples ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("a", {
-      href: "https://jsreport.net/learn/pdf-utils"
-    }, "here"), "."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, this.renderOperations(entity)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: "button confirmation",
-      onClick: () => this.addOperation(entity)
-    }, "Add operation"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'meta' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "Add General metadata information to the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem',
-        paddingBottom: '0.5rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Title"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      value: pdfMeta.title || '',
-      onChange: v => this.updateMeta(entity, {
-        title: v.target.value
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Author"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      value: pdfMeta.author || '',
-      onChange: v => this.updateMeta(entity, {
-        author: v.target.value
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Subject"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      value: pdfMeta.subject || '',
-      onChange: v => this.updateMeta(entity, {
-        subject: v.target.value
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Keywords"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      value: pdfMeta.keywords || '',
-      onChange: v => this.updateMeta(entity, {
-        keywords: v.target.value
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Creator"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      value: pdfMeta.creator || '',
-      onChange: v => this.updateMeta(entity, {
-        creator: v.target.value
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Producer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      value: pdfMeta.producer || '',
-      onChange: v => this.updateMeta(entity, {
-        producer: v.target.value
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Language"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      value: pdfMeta.language || '',
-      onChange: v => this.updateMeta(entity, {
-        language: v.target.value
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "Add Custom metadata for the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, this.renderCustomMetadata(entity)), this.renderCustomMetadataCreate(entity, customMetadataCreate)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'password' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "Add encryption and access privileges to the final PDF. You can specify either user password, owner password or both passwords. Behavior differs according to passwords you provides:", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("ul", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "When only user password is provided, users with user password are able to decrypt the file and have full access to the document."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "When only owner password is provided, users are able to decrypt and open the document without providing any password, but the access is limited to those operations explicitly permitted. Users with owner password have full access to the document."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "When both passwords are provided, users with user password are able to decrypt the file but only have limited access to the file according to permission settings. Users with owner password have full access to the document."))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem',
-        paddingBottom: '0.5rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", null, "Encryption"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "password-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "User Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "password",
-      autoComplete: "off",
-      title: "Users will be prompted to enter the password to decrypt the file when opening it",
-      placeholder: "user password",
-      value: pdfPassword.password || '',
-      onChange: v => this.updatePassword(entity, {
-        password: v.target.value
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", null, "Access privileges"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "To set access privileges for the PDF, you need to provide an owner password and permission settings."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "owner-password-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Owner Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "password",
-      autoComplete: "off",
-      title: "Users with the owner password will always have full access to the PDF (no matter the permission settings)",
-      placeholder: "owner password",
-      value: pdfPassword.ownerPassword || '',
-      onChange: v => this.updatePassword(entity, {
-        ownerPassword: v.target.value
-      })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "printing-permission-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Printing permission"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("select", {
-      value: pdfPassword.printing || '-1',
-      title: "Whether printing the file is allowed, and in which resolution the printing can be done",
-      onChange: v => this.updatePassword(entity, {
-        printing: v.target.value === '-1' ? null : v.target.value
-      })
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "-1",
-      value: "-1"
-    }, "Not allowed"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "lowResolution",
-      value: "lowResolution",
-      title: "Allows the printing in degraded resolution"
-    }, "Low Resolution"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "highResolution",
-      value: "highResolution",
-      title: "Allows the printing in the best resolution"
-    }, "High Resolution"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "modify-permission-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
-      title: "Whether modifying the file is allowed"
-    }, "Modify permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfPassword.modifying === true,
-      onChange: v => this.updatePassword(entity, {
-        modifying: v.target.checked
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "copy-permission-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
-      title: "Whether copying text or graphics from the file is allowed"
-    }, "Copy permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfPassword.copying === true,
-      onChange: v => this.updatePassword(entity, {
-        copying: v.target.checked
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "annotation-permission-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
-      title: "Whether annotating, form filling the file is allowed"
-    }, "Annotation permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfPassword.annotating === true,
-      onChange: v => this.updatePassword(entity, {
-        annotating: v.target.checked
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "fillingForms-permission-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
-      title: "Whether form filling and signing the file is allowed"
-    }, "Filling Forms permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfPassword.fillingForms === true,
-      onChange: v => this.updatePassword(entity, {
-        fillingForms: v.target.checked
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "contentAccessibility-permission-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
-      title: "Whether copying text from the file for accessibility is allowed"
-    }, "Content Accessibility permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfPassword.contentAccessibility === true,
-      onChange: v => this.updatePassword(entity, {
-        contentAccessibility: v.target.checked
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      key: "documentAssembly-permission-field",
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
-      title: "Whether assembling document is allowed"
-    }, "Assembling Document permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfPassword.documentAssembly === true,
-      onChange: v => this.updatePassword(entity, {
-        documentAssembly: v.target.checked
-      })
-    })))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'sign' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "Add a digital signature to the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem',
-        paddingBottom: '0.5rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Select certificate (asset)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(EntityRefSelect, {
-      headingLabel: "Select certificate",
-      newLabel: "New certificate asset",
-      value: pdfSign.certificateAssetShortid || '',
-      onChange: selected => this.updateSign(entity, {
-        certificateAssetShortid: selected.length > 0 ? selected[0].shortid : null
-      }),
-      filter: references => ({
-        data: references.assets
-      }),
-      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(sharedComponents.NewAssetModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
-        options: {
-          ...modalProps.options,
-          defaults: {
-            folder: entity.folder
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("h1", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("i", {
+          className: "fa fa-file-pdf-o"
+        }), " pdf utils configuration"]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+          style: {
+            marginTop: '0.2rem'
           },
-          activateNewTab: false
-        }
-      }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Sign Reason filled to pdf"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      placeholder: "signed...",
-      value: pdfSign.reason,
-      onChange: v => this.updateSign(entity, {
-        reason: v.target.value
-      })
-    })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'pdfA' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "Produce output complying with PDF/A-1B standard (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem',
-        paddingBottom: '0.5rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfA.enabled === true,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfA: {
-          enabled: v.target.checked
-        }
-      }))
-    }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "copy tags during operations (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem',
-        paddingBottom: '0.5rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfAccessibility.enabled === true,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfAccessibility: {
-          ...entity.pdfAccessibility,
-          enabled: v.target.checked
-        }
-      }))
-    })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "pdf/UA (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "tasks for the template developer:", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("ul", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "html img needs to have the alt attribute"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "the pdf utils meta needs to have filled language"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "\"copy tags\" needs to be selected"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem',
-        paddingBottom: '0.5rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfAccessibility.pdfUA === true,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfAccessibility: {
-          ...entity.pdfAccessibility,
-          pdfUA: v.target.checked
-        }
-      }))
-    }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
-      style: {
-        marginTop: '1rem'
-      }
-    }, "compression (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        marginTop: '1rem',
-        paddingBottom: '0.5rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfCompression.enabled === true,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfCompression: {
-          ...entity.pdfCompression,
-          enabled: v.target.checked
-        }
-      }))
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "remove accessibility"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfCompression.removeAccessibility !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfCompression: {
-          ...entity.pdfCompression,
-          removeAccessibility: v.target.checked
-        }
-      }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "recompress streams"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfCompression.recompressStreams !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfCompression: {
-          ...entity.pdfCompression,
-          recompressStreams: v.target.checked
-        }
-      }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "use object streams"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfCompression.useObjectStreams !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfCompression: {
-          ...entity.pdfCompression,
-          useObjectStreams: v.target.checked
-        }
-      }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "remove effects"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfCompression.removeEffects !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfCompression: {
-          ...entity.pdfCompression,
-          removeEffects: v.target.checked
-        }
-      }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "convert images to jpeg"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: pdfCompression.convertImagesToJpeg !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfCompression: {
-          ...entity.pdfCompression,
-          convertImagesToJpeg: v.target.checked
-        }
-      }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "JPEG quality"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "number",
-      min: "0",
-      max: "100",
-      placeholder: "60",
-      value: pdfCompression.jpegQuality || '',
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
-        pdfCompression: {
-          ...entity.pdfCompression,
-          jpegQuality: parseInt(v.target.value, 10)
-        }
-      }))
-    }))))));
+          children: "quick actions"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          style: {
+            marginTop: '1rem',
+            marginBottom: '0.8rem'
+          },
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+            className: "button confirmation",
+            style: {
+              marginLeft: 0
+            },
+            onClick: () => this.addHeaderFooter(),
+            children: "Add header/footer"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+            className: "button confirmation",
+            onClick: () => this.addTOC(),
+            children: "Add Table of Contents"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+            className: "button confirmation",
+            onClick: () => this.addCover(),
+            children: "Add cover page"
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+        className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].separator
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabContainer,
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("ul", {
+          className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabTitles,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+            className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabTitle} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+            onClick: () => this.setState({
+              activeTab: 'operations'
+            }),
+            children: "operations"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+            className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabTitle} ${activeTab === 'meta' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+            onClick: () => this.setState({
+              activeTab: 'meta'
+            }),
+            children: "meta"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+            className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabTitle} ${activeTab === 'password' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+            onClick: () => this.setState({
+              activeTab: 'password'
+            }),
+            children: "password"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+            className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabTitle} ${activeTab === 'sign' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+            onClick: () => this.setState({
+              activeTab: 'sign'
+            }),
+            children: "sign"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+            className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabTitle} ${activeTab === 'pdfA' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+            onClick: () => this.setState({
+              activeTab: 'pdfA'
+            }),
+            children: "pdfA"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+            className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabTitle} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+            onClick: () => this.setState({
+              activeTab: 'pdfAccessibility'
+            }),
+            children: "pdf accessibility"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+            className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabTitle} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+            onClick: () => this.setState({
+              activeTab: 'pdfCompression'
+            }),
+            children: "compression"
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabPanel} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("p", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: ["Use merge/append operations to add dynamic headers or concatenate multiple pdf reports into one. See more docs and examples ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("a", {
+              href: "https://jsreport.net/learn/pdf-utils",
+              children: "here"
+            }), "."]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: this.renderOperations(entity)
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+              className: "button confirmation",
+              onClick: () => this.addOperation(entity),
+              children: "Add operation"
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabPanel} ${activeTab === 'meta' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: "Add General metadata information to the final PDF."
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+            style: {
+              marginTop: '1rem',
+              paddingBottom: '0.5rem'
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Title"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "text",
+                value: pdfMeta.title || '',
+                onChange: v => this.updateMeta(entity, {
+                  title: v.target.value
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Author"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "text",
+                value: pdfMeta.author || '',
+                onChange: v => this.updateMeta(entity, {
+                  author: v.target.value
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Subject"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "text",
+                value: pdfMeta.subject || '',
+                onChange: v => this.updateMeta(entity, {
+                  subject: v.target.value
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Keywords"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "text",
+                value: pdfMeta.keywords || '',
+                onChange: v => this.updateMeta(entity, {
+                  keywords: v.target.value
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Creator"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "text",
+                value: pdfMeta.creator || '',
+                onChange: v => this.updateMeta(entity, {
+                  creator: v.target.value
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Producer"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "text",
+                value: pdfMeta.producer || '',
+                onChange: v => this.updateMeta(entity, {
+                  producer: v.target.value
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Language"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "text",
+                value: pdfMeta.language || '',
+                onChange: v => this.updateMeta(entity, {
+                  language: v.target.value
+                })
+              })]
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+            children: "Add Custom metadata for the final PDF."
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: this.renderCustomMetadata(entity)
+          }), this.renderCustomMetadataCreate(entity, customMetadataCreate)]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabPanel} ${activeTab === 'password' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: ["Add encryption and access privileges to the final PDF. You can specify either user password, owner password or both passwords. Behavior differs according to passwords you provides:", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("ul", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+                children: "When only user password is provided, users with user password are able to decrypt the file and have full access to the document."
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+                children: "When only owner password is provided, users are able to decrypt and open the document without providing any password, but the access is limited to those operations explicitly permitted. Users with owner password have full access to the document."
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+                children: "When both passwords are provided, users with user password are able to decrypt the file but only have limited access to the file according to permission settings. Users with owner password have full access to the document."
+              })]
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+            style: {
+              marginTop: '1rem',
+              paddingBottom: '0.5rem'
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+                children: "Encryption"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+                className: "form-group",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                  children: "User Password"
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                  type: "password",
+                  autoComplete: "off",
+                  title: "Users will be prompted to enter the password to decrypt the file when opening it",
+                  placeholder: "user password",
+                  value: pdfPassword.password || '',
+                  onChange: v => this.updatePassword(entity, {
+                    password: v.target.value
+                  })
+                })]
+              }, 'password-field')]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+                children: "Access privileges"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+                children: "To set access privileges for the PDF, you need to provide an owner password and permission settings."
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+                className: "form-group",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                  children: "Owner Password"
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                  type: "password",
+                  autoComplete: "off",
+                  title: "Users with the owner password will always have full access to the PDF (no matter the permission settings)",
+                  placeholder: "owner password",
+                  value: pdfPassword.ownerPassword || '',
+                  onChange: v => this.updatePassword(entity, {
+                    ownerPassword: v.target.value
+                  })
+                })]
+              }, 'owner-password-field'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+                className: "form-group",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                  children: "Printing permission"
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("select", {
+                  value: pdfPassword.printing || '-1',
+                  title: "Whether printing the file is allowed, and in which resolution the printing can be done",
+                  onChange: v => this.updatePassword(entity, {
+                    printing: v.target.value === '-1' ? null : v.target.value
+                  }),
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                    value: "-1",
+                    children: "Not allowed"
+                  }, '-1'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                    value: "lowResolution",
+                    title: "Allows the printing in degraded resolution",
+                    children: "Low Resolution"
+                  }, 'lowResolution'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                    value: "highResolution",
+                    title: "Allows the printing in the best resolution",
+                    children: "High Resolution"
+                  }, 'highResolution')]
+                })]
+              }, 'printing-permission-field'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+                className: "form-group",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                  title: "Whether modifying the file is allowed",
+                  children: ["Modify permission", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                    type: "checkbox",
+                    checked: pdfPassword.modifying === true,
+                    onChange: v => this.updatePassword(entity, {
+                      modifying: v.target.checked
+                    })
+                  })]
+                })
+              }, 'modify-permission-field'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+                className: "form-group",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                  title: "Whether copying text or graphics from the file is allowed",
+                  children: ["Copy permission", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                    type: "checkbox",
+                    checked: pdfPassword.copying === true,
+                    onChange: v => this.updatePassword(entity, {
+                      copying: v.target.checked
+                    })
+                  })]
+                })
+              }, 'copy-permission-field'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+                className: "form-group",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                  title: "Whether annotating, form filling the file is allowed",
+                  children: ["Annotation permission", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                    type: "checkbox",
+                    checked: pdfPassword.annotating === true,
+                    onChange: v => this.updatePassword(entity, {
+                      annotating: v.target.checked
+                    })
+                  })]
+                })
+              }, 'annotation-permission-field'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+                className: "form-group",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                  title: "Whether form filling and signing the file is allowed",
+                  children: ["Filling Forms permission", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                    type: "checkbox",
+                    checked: pdfPassword.fillingForms === true,
+                    onChange: v => this.updatePassword(entity, {
+                      fillingForms: v.target.checked
+                    })
+                  })]
+                })
+              }, 'fillingForms-permission-field'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+                className: "form-group",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                  title: "Whether copying text from the file for accessibility is allowed",
+                  children: ["Content Accessibility permission", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                    type: "checkbox",
+                    checked: pdfPassword.contentAccessibility === true,
+                    onChange: v => this.updatePassword(entity, {
+                      contentAccessibility: v.target.checked
+                    })
+                  })]
+                })
+              }, 'contentAccessibility-permission-field'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+                className: "form-group",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                  title: "Whether assembling document is allowed",
+                  children: ["Assembling Document permission", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                    type: "checkbox",
+                    checked: pdfPassword.documentAssembly === true,
+                    onChange: v => this.updatePassword(entity, {
+                      documentAssembly: v.target.checked
+                    })
+                  })]
+                })
+              }, 'documentAssembly-permission-field')]
+            })]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabPanel} ${activeTab === 'sign' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: "Add a digital signature to the final PDF."
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+            style: {
+              marginTop: '1rem',
+              paddingBottom: '0.5rem'
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Select certificate (asset)"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(EntityRefSelect, {
+                headingLabel: "Select certificate",
+                newLabel: "New certificate asset",
+                value: pdfSign.certificateAssetShortid || '',
+                onChange: selected => this.updateSign(entity, {
+                  certificateAssetShortid: selected.length > 0 ? selected[0].shortid : null
+                }),
+                filter: references => ({
+                  data: references.assets
+                }),
+                renderNew: modalProps => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(sharedComponents.NewAssetModal, {
+                  ...modalProps,
+                  options: {
+                    ...modalProps.options,
+                    defaults: {
+                      folder: entity.folder
+                    },
+                    activateNewTab: false
+                  }
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "Sign Reason filled to pdf"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "text",
+                placeholder: "signed...",
+                value: pdfSign.reason,
+                onChange: v => this.updateSign(entity, {
+                  reason: v.target.value
+                })
+              })]
+            })]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabPanel} ${activeTab === 'pdfA' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: "Produce output complying with PDF/A-1B standard (beta)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+            style: {
+              marginTop: '1rem',
+              paddingBottom: '0.5rem'
+            },
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+              className: "form-group",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                children: ["Enabled", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                  type: "checkbox",
+                  checked: pdfA.enabled === true,
+                  onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                    pdfA: {
+                      enabled: v.target.checked
+                    }
+                  }))
+                })]
+              })
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabPanel} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: "copy tags during operations (beta)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+            style: {
+              marginTop: '1rem',
+              paddingBottom: '0.5rem'
+            },
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+              className: "form-group",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                children: ["Enabled", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                  type: "checkbox",
+                  checked: pdfAccessibility.enabled === true,
+                  onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                    pdfAccessibility: {
+                      ...entity.pdfAccessibility,
+                      enabled: v.target.checked
+                    }
+                  }))
+                })]
+              })
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: "pdf/UA (beta)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("p", {
+            children: ["tasks for the template developer:", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("ul", {
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+                children: "html img needs to have the alt attribute"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+                children: "the pdf utils meta needs to have filled language"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("li", {
+                children: "\"copy tags\" needs to be selected"
+              })]
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+            style: {
+              marginTop: '1rem',
+              paddingBottom: '0.5rem'
+            },
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+              className: "form-group",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                children: ["Enabled", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                  type: "checkbox",
+                  checked: pdfAccessibility.pdfUA === true,
+                  onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                    pdfAccessibility: {
+                      ...entity.pdfAccessibility,
+                      pdfUA: v.target.checked
+                    }
+                  }))
+                })]
+              })
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].tabPanel} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''}`,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+            style: {
+              marginTop: '1rem'
+            },
+            children: "compression (beta)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+            style: {
+              marginTop: '1rem',
+              paddingBottom: '0.5rem'
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+              className: "form-group",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+                children: ["Enabled", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                  type: "checkbox",
+                  checked: pdfCompression.enabled === true,
+                  onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                    pdfCompression: {
+                      ...entity.pdfCompression,
+                      enabled: v.target.checked
+                    }
+                  }))
+                })]
+              })
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "remove accessibility"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "checkbox",
+                checked: pdfCompression.removeAccessibility !== false,
+                onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                  pdfCompression: {
+                    ...entity.pdfCompression,
+                    removeAccessibility: v.target.checked
+                  }
+                }))
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "recompress streams"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "checkbox",
+                checked: pdfCompression.recompressStreams !== false,
+                onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                  pdfCompression: {
+                    ...entity.pdfCompression,
+                    recompressStreams: v.target.checked
+                  }
+                }))
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "use object streams"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "checkbox",
+                checked: pdfCompression.useObjectStreams !== false,
+                onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                  pdfCompression: {
+                    ...entity.pdfCompression,
+                    useObjectStreams: v.target.checked
+                  }
+                }))
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "remove effects"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "checkbox",
+                checked: pdfCompression.removeEffects !== false,
+                onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                  pdfCompression: {
+                    ...entity.pdfCompression,
+                    removeEffects: v.target.checked
+                  }
+                }))
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "convert images to jpeg"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "checkbox",
+                checked: pdfCompression.convertImagesToJpeg !== false,
+                onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                  pdfCompression: {
+                    ...entity.pdfCompression,
+                    convertImagesToJpeg: v.target.checked
+                  }
+                }))
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              className: "form-group",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+                children: "JPEG quality"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+                type: "number",
+                min: "0",
+                max: "100",
+                placeholder: "60",
+                value: pdfCompression.jpegQuality || '',
+                onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity(Object.assign({}, entity, {
+                  pdfCompression: {
+                    ...entity.pdfCompression,
+                    jpegQuality: parseInt(v.target.value, 10)
+                  }
+                }))
+              })]
+            })]
+          })]
+        })]
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PdfUtilsEditor);
 
 /***/ }),
-/* 8 */
-/***/ ((module) => {
-
-module.exports = Studio.runtime['helpers/extends'];
-
-/***/ }),
-/* 9 */
+/* 10 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -1160,8 +1455,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+
 
 
 const Content = props => {
@@ -1173,7 +1470,7 @@ const Content = props => {
   const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [templateName, setTemplateName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('header-footer');
   const [pageMargin, setPageMargin] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('2cm');
-  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(undefined);
   const {
     entity: mainTemplate
   } = options;
@@ -1249,45 +1546,64 @@ const Content = props => {
     await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openTab(newHeaderFooterTemplate);
     close();
   }, [processing, templateName, mainTemplate]);
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", null, "Add header/footer")), /*#__PURE__*/React.createElement("div", {
-    className: "form-group",
-    style: {
-      marginLeft: '0px',
-      marginRight: '0px'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'red',
-      display: error ? 'block' : 'none'
-    }
-  }, error)), /*#__PURE__*/React.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/React.createElement("label", null, "Template"), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    placeholder: "name...",
-    ref: nameInputRef,
-    value: templateName,
-    onChange: e => setTemplateName(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/React.createElement("label", null, "Top/Bottom Page margin"), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    placeholder: "2cm",
-    value: pageMargin,
-    onChange: e => setPageMargin(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "button-bar"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "button danger",
-    onClick: () => close()
-  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
-    className: "button confirmation",
-    onClick: () => handleSave()
-  }, "Ok")));
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
+        children: "Add header/footer"
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      className: "form-group",
+      style: {
+        marginLeft: '0px',
+        marginRight: '0px'
+      },
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+        style: {
+          color: 'red',
+          display: error ? 'block' : 'none'
+        },
+        children: error
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "form-group",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+        children: "Template"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+        type: "text",
+        placeholder: "name...",
+        ref: nameInputRef,
+        value: templateName,
+        onChange: e => setTemplateName(e.target.value)
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "form-group",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+        children: "Top/Bottom Page margin"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+        type: "text",
+        placeholder: "2cm",
+        value: pageMargin,
+        onChange: e => setPageMargin(e.target.value)
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "button-bar",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+        className: "button danger",
+        onClick: () => close(),
+        children: "Cancel"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+        className: "button confirmation",
+        onClick: () => handleSave(),
+        children: "Ok"
+      })]
+    })]
+  });
 };
 class AddHeaderFooterModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   render() {
-    return /*#__PURE__*/React.createElement(Content, this.props);
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(Content, {
+      ...this.props
+    });
   }
 }
 function getDefaultHeaderFooterContent() {
@@ -1365,7 +1681,7 @@ function getTotalPages (pages) {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddHeaderFooterModal);
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -1374,8 +1690,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+
 
 
 const Content = props => {
@@ -1386,7 +1704,7 @@ const Content = props => {
   const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [templateName, setTemplateName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('toc');
-  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(undefined);
   const {
     entity: mainTemplate
   } = options;
@@ -1463,38 +1781,54 @@ const Content = props => {
     await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openTab(newTOCTemplate);
     close();
   }, [processing, templateName, mainTemplate]);
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", null, "Add Table of Contents")), /*#__PURE__*/React.createElement("div", {
-    className: "form-group",
-    style: {
-      marginLeft: '0px',
-      marginRight: '0px'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'red',
-      display: error ? 'block' : 'none'
-    }
-  }, error)), /*#__PURE__*/React.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/React.createElement("label", null, "Template"), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    placeholder: "name...",
-    ref: nameInputRef,
-    value: templateName,
-    onChange: e => setTemplateName(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "button-bar"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "button danger",
-    onClick: () => close()
-  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
-    className: "button confirmation",
-    onClick: () => handleSave()
-  }, "Ok")));
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
+        children: "Add Table of Contents"
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      className: "form-group",
+      style: {
+        marginLeft: '0px',
+        marginRight: '0px'
+      },
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+        style: {
+          color: 'red',
+          display: error ? 'block' : 'none'
+        },
+        children: error
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "form-group",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+        children: "Template"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+        type: "text",
+        placeholder: "name...",
+        ref: nameInputRef,
+        value: templateName,
+        onChange: e => setTemplateName(e.target.value)
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "button-bar",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+        className: "button danger",
+        onClick: () => close(),
+        children: "Cancel"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+        className: "button confirmation",
+        onClick: () => handleSave(),
+        children: "Ok"
+      })]
+    })]
+  });
 };
 class AddTOCModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   render() {
-    return /*#__PURE__*/React.createElement(Content, this.props);
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(Content, {
+      ...this.props
+    });
   }
 }
 function getDefaultTOCContent() {
@@ -1700,7 +2034,7 @@ function level(chapters, opts) {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddTOCModal);
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -1709,9 +2043,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _getCoverImgContent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var _getCoverImgContent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
+
 
 
 
@@ -1723,7 +2059,7 @@ const Content = props => {
   const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
   const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [templateName, setTemplateName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('cover');
-  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(undefined);
   const {
     entity: mainTemplate
   } = options;
@@ -1829,38 +2165,54 @@ const Content = props => {
     await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openTab(newCoverTemplate);
     close();
   }, [processing, templateName, mainTemplate]);
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", null, "Add Cover")), /*#__PURE__*/React.createElement("div", {
-    className: "form-group",
-    style: {
-      marginLeft: '0px',
-      marginRight: '0px'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: 'red',
-      display: error ? 'block' : 'none'
-    }
-  }, error)), /*#__PURE__*/React.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/React.createElement("label", null, "Template"), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    placeholder: "name...",
-    ref: nameInputRef,
-    value: templateName,
-    onChange: e => setTemplateName(e.target.value)
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "button-bar"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "button danger",
-    onClick: () => close()
-  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
-    className: "button confirmation",
-    onClick: () => handleSave()
-  }, "Ok")));
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h3", {
+        children: "Add Cover"
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      className: "form-group",
+      style: {
+        marginLeft: '0px',
+        marginRight: '0px'
+      },
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+        style: {
+          color: 'red',
+          display: error ? 'block' : 'none'
+        },
+        children: error
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      className: "form-group",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+        children: "Template"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+        type: "text",
+        placeholder: "name...",
+        ref: nameInputRef,
+        value: templateName,
+        onChange: e => setTemplateName(e.target.value)
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      className: "button-bar",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("button", {
+        className: "button danger",
+        onClick: () => close(),
+        children: "Cancel"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("button", {
+        className: "button confirmation",
+        onClick: () => handleSave(),
+        children: "Ok"
+      })]
+    })]
+  });
 };
 class AddCover extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   render() {
-    return /*#__PURE__*/React.createElement(Content, this.props);
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Content, {
+      ...this.props
+    });
   }
 }
 function getDefaultCoverContent() {
@@ -1973,7 +2325,7 @@ function getDefaultCoverContent() {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddCover);
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -1985,7 +2337,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -1996,7 +2348,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"separator":"x-pdf-utils-PdfUtilsEditor-separator","operationTable":"x-pdf-utils-PdfUtilsEditor-operationTable","customMetadataTable":"x-pdf-utils-PdfUtilsEditor-customMetadataTable","tabContainer":"x-pdf-utils-PdfUtilsEditor-tabContainer","tabTitles":"x-pdf-utils-PdfUtilsEditor-tabTitles","tabTitle":"x-pdf-utils-PdfUtilsEditor-tabTitle","active":"x-pdf-utils-PdfUtilsEditor-active","tabPanel":"x-pdf-utils-PdfUtilsEditor-tabPanel"});
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -2005,8 +2357,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+
 
 
 class FooterStyleProblemModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -2042,41 +2396,64 @@ class FooterStyleProblemModal extends react__WEBPACK_IMPORTED_MODULE_0__.Compone
     }
   }
   render() {
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "Eventual footers style problems found"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "The latest Chromium contains breaking changes in the CSS flexbox calculation and we found that this may eventually impact your footers alignment. The fix is to change the CSS used to render footers and replace the following CSS:"), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("code", null, ".main.height=100%"), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), "with", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("code", null, ".main.height=100vh"), ".", /*#__PURE__*/React.createElement("br", null)), /*#__PURE__*/React.createElement("p", null, "You can do this manually later and ignore this now or you can let the automation to correct the styles using \"Try to fix\" button."), /*#__PURE__*/React.createElement("p", null, "This is the list of affected entities jsreport found:", /*#__PURE__*/React.createElement("br", null), this.state.problematicEntities == null ? /*#__PURE__*/React.createElement("i", {
-      className: "fa fa-circle-o-notch fa-spin"
-    }) : '', /*#__PURE__*/React.createElement("textarea", {
-      style: {
-        width: '100%',
-        boxSizing: 'border-box'
-      },
-      rows: "10",
-      readOnly: true,
-      value: (this.state.problematicEntities || []).map(entity => `${entity.path} (${entity.entitySet})`).join('\n')
-    })), /*#__PURE__*/React.createElement("p", {
-      style: {
-        fontWeight: 'bold'
-      }
-    }, "Make sure you have backup before performing the automatic fix!")), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("div", {
-      className: "button-bar"
-    }, /*#__PURE__*/React.createElement("button", {
-      className: "button confirmation",
-      title: "The same popup will open after you refresh studio",
-      onClick: () => this.props.close()
-    }, "Remind later"), /*#__PURE__*/React.createElement("button", {
-      style: {
-        whiteSpace: 'nowrap'
-      },
-      className: "button confirmation",
-      title: "The above entities content will be fixed",
-      onClick: () => this.fix()
-    }, "Try to fix"), /*#__PURE__*/React.createElement("button", {
-      style: {
-        whiteSpace: 'nowrap'
-      },
-      className: "button confirmation",
-      title: "Nothing happends and you can fix entities by hand or ignore it",
-      onClick: () => this.ignore()
-    }, "Ignore")));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
+        children: "Eventual footers style problems found"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+          children: "The latest Chromium contains breaking changes in the CSS flexbox calculation and we found that this may eventually impact your footers alignment. The fix is to change the CSS used to render footers and replace the following CSS:"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("code", {
+            children: ".main.height=100%"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), "with", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("code", {
+            children: ".main.height=100vh"
+          }), ".", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {})]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+          children: "You can do this manually later and ignore this now or you can let the automation to correct the styles using \"Try to fix\" button."
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+          children: ["This is the list of affected entities jsreport found:", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), this.state.problematicEntities == null ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+            className: "fa fa-circle-o-notch fa-spin"
+          }) : '', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("textarea", {
+            style: {
+              width: '100%',
+              boxSizing: 'border-box'
+            },
+            rows: "10",
+            readOnly: true,
+            value: (this.state.problematicEntities || []).map(entity => `${entity.path} (${entity.entitySet})`).join('\n')
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+          style: {
+            fontWeight: 'bold'
+          },
+          children: "Make sure you have backup before performing the automatic fix!"
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "button-bar",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+          className: "button confirmation",
+          title: "The same popup will open after you refresh studio",
+          onClick: () => this.props.close(),
+          children: "Remind later"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+          style: {
+            whiteSpace: 'nowrap'
+          },
+          className: "button confirmation",
+          title: "The above entities content will be fixed",
+          onClick: () => this.fix(),
+          children: "Try to fix"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+          style: {
+            whiteSpace: 'nowrap'
+          },
+          className: "button confirmation",
+          title: "Nothing happends and you can fix entities by hand or ignore it",
+          onClick: () => this.ignore(),
+          children: "Ignore"
+        })]
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FooterStyleProblemModal);
@@ -2151,17 +2528,17 @@ class FooterStyleProblemModal extends react__WEBPACK_IMPORTED_MODULE_0__.Compone
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _AssetProperties__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var _TemplatePdfUtilsProperties_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var _PdfUtilsTitle_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
-/* harmony import */ var _PdfUtilsEditor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(7);
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2);
-/* harmony import */ var _FooterStyleProblemModal_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(14);
+/* harmony import */ var _AssetProperties__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
+/* harmony import */ var _TemplatePdfUtilsProperties_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+/* harmony import */ var _PdfUtilsTitle_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
+/* harmony import */ var _PdfUtilsEditor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(9);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(3);
+/* harmony import */ var _FooterStyleProblemModal_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(15);
 
 
 

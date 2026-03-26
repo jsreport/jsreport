@@ -8,25 +8,39 @@ module.exports = Studio;
 
 /***/ }),
 /* 1 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+
+
+if (true) {
+  module.exports = __webpack_require__(6);
+} else // removed by dead control flow
+{}
+
+
+/***/ }),
+/* 2 */
 /***/ ((module) => {
 
 module.exports = Studio.libraries['react'];
 
 /***/ }),
-/* 2 */,
-/* 3 */
+/* 3 */,
+/* 4 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
 /* harmony import */ var filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
+
 
 
 
@@ -37,7 +51,7 @@ function ExportModal(props) {
   } = props;
   const references = useEntitiesSelector(entities => entities);
   const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const entityTreeRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const entityTreeRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(undefined);
   const exportableReferences = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     const exportableEntitySets = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().extensions)['import-export'].options.exportableEntitySets;
     return Object.keys(references).reduce((acu, entitySetName) => {
@@ -87,74 +101,122 @@ function ExportModal(props) {
       alert('Unable to prepare export ' + e.message + ' ' + e.stack);
     }
   }, [processing]);
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-    className: "fa fa-download"
-  }), " Export objects")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    style: {
-      height: '30rem',
-      overflow: 'auto'
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.EntityTree, {
-    ref: entityTreeRef,
-    entities: exportableReferences,
-    selectable: true,
-    initialSelected: initialSelected
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "button-bar"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-    className: `button confirmation ${processing ? 'disabled' : ''}`,
-    onClick: () => download()
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-    className: "fa fa-circle-o-notch fa-spin",
-    style: {
-      display: processing ? 'inline-block' : 'none'
-    }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-    style: {
-      display: processing ? 'none' : 'inline'
-    }
-  }, "Download"))));
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+    className: "form-group",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("h1", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("i", {
+          className: "fa fa-download"
+        }), " Export objects"]
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      style: {
+        height: '30rem',
+        overflow: 'auto'
+      },
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.EntityTree, {
+        ref: entityTreeRef,
+        entities: exportableReferences,
+        selectable: true,
+        initialSelected: initialSelected
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      className: "button-bar",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("a", {
+        className: `button confirmation ${processing ? 'disabled' : ''}`,
+        onClick: () => download(),
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("i", {
+          className: "fa fa-circle-o-notch fa-spin",
+          style: {
+            display: processing ? 'inline-block' : 'none'
+          }
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+          style: {
+            display: processing ? 'none' : 'inline'
+          },
+          children: "Download"
+        })]
+      })
+    })]
+  });
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ExportModal);
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ ((module) => {
 
 module.exports = Studio.libraries['filesaver.js-npm'];
 
 /***/ }),
-/* 5 */
+/* 6 */
+/***/ ((__unused_webpack_module, exports) => {
+
+/**
+ * @license React
+ * react-jsx-runtime.production.js
+ *
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
+  REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+function jsxProd(type, config, maybeKey) {
+  var key = null;
+  void 0 !== maybeKey && (key = "" + maybeKey);
+  void 0 !== config.key && (key = "" + config.key);
+  if ("key" in config) {
+    maybeKey = {};
+    for (var propName in config)
+      "key" !== propName && (maybeKey[propName] = config[propName]);
+  } else maybeKey = config;
+  config = maybeKey.ref;
+  return {
+    $$typeof: REACT_ELEMENT_TYPE,
+    type: type,
+    key: key,
+    ref: void 0 !== config ? config : null,
+    props: maybeKey
+  };
+}
+exports.Fragment = REACT_FRAGMENT_TYPE;
+exports.jsx = jsxProd;
+exports.jsxs = jsxProd;
+
+
+/***/ }),
+/* 7 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
 
 
 
-const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().EntityRefSelect);
-const FileInput = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().FileInput);
-const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().sharedComponents);
-class ImportFinishedModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
+const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().EntityRefSelect);
+const FileInput = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().FileInput);
+const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().sharedComponents);
+class ImportFinishedModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   componentDidMount() {
     setTimeout(() => this.confirmBtn.focus(), 0);
   }
   componentWillUnmount() {
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().reset().catch(() => {});
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().reset().catch(() => {});
   }
   confirm() {
     this.props.close();
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().reset().catch(e => {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().reset().catch(e => {
       console.error(e);
     });
   }
@@ -162,32 +224,46 @@ class ImportFinishedModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const {
       log
     } = this.props.options;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-      className: "fa fa-info-circle"
-    }), " Import finished"), log != null && log !== '' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", null, "Some errors/warnings happened during the import:")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("textarea", {
-      style: {
-        width: '100%',
-        boxSizing: 'border-box'
-      },
-      rows: "10",
-      readOnly: true,
-      value: log
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", null, "Now we need to reload the studio..")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "button-bar"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      ref: el => {
-        this.confirmBtn = el;
-      },
-      className: "button confirmation",
-      onClick: () => this.confirm()
-    }, "Ok")));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("h1", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+          className: "fa fa-info-circle"
+        }), " Import finished"]
+      }), log != null && log !== '' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+            children: "Some errors/warnings happened during the import:"
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("textarea", {
+          style: {
+            width: '100%',
+            boxSizing: 'border-box'
+          },
+          rows: "10",
+          readOnly: true,
+          value: log
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+          children: "Now we need to reload the studio.."
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "button-bar",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+          ref: el => {
+            this.confirmBtn = el;
+          },
+          className: "button confirmation",
+          onClick: () => this.confirm(),
+          children: "Ok"
+        })
+      })]
+    });
   }
 }
-class ImportModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
+class ImportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -229,7 +305,7 @@ class ImportModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       if (this.state.selectedFolderShortid != null) {
         params.targetFolder = this.state.selectedFolderShortid;
       }
-      const result = await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('api/validate-import', {
+      const result = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('api/validate-import', {
         params,
         attach: {
           filename: 'import.jsrexport',
@@ -271,7 +347,7 @@ class ImportModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       if (this.state.selectedFolderShortid != null) {
         params.targetFolder = this.state.selectedFolderShortid;
       }
-      const result = await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('api/import', {
+      const result = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('api/import', {
         params,
         attach: {
           filename: 'import.jsrexport',
@@ -282,7 +358,7 @@ class ImportModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
         processing: false,
         retryWithContinueOnFail: false
       });
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(ImportFinishedModal, {
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openModal(ImportFinishedModal, {
         log: result.log
       });
     } catch (e) {
@@ -311,174 +387,219 @@ class ImportModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     });
   }
   render() {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-      className: "fa fa-upload"
-    }), " Import objects"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "A ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("b", null, "validation is run first"), ", so you can safely upload the exported package and review the changes which will be performed. Afterwards ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("b", null, "you can confirm or cancel the import"), ".")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(FileInput, {
-      placeholder: "select export file to import...",
-      selectedFile: this.state.selectedFile,
-      onFileSelect: file => this.setState({
-        selectedFile: file
-      }),
-      disabled: this.state.processing === true || this.state.validated
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("fieldset", {
-      style: {
-        padding: '0px',
-        margin: '0px',
-        borderWidth: '1px'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("legend", {
-      style: {
-        marginLeft: '0.2rem'
-      }
-    }, "Options"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        opacity: this.state.processing === true || this.state.validated ? 0.7 : 1
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "radio",
-      name: "import-mode",
-      value: "merge",
-      style: {
-        verticalAlign: 'middle',
-        margin: '0px'
-      },
-      checked: !this.state.fullImport,
-      onChange: this.handleImportModeChange
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
-      style: {
-        display: 'inline-block',
-        verticalAlign: 'middle',
-        paddingLeft: '0.2rem',
-        paddingRight: '0.5rem'
-      }
-    }, "Merge")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "radio",
-      name: "import-mode",
-      value: "full",
-      style: {
-        verticalAlign: 'middle',
-        margin: '0px'
-      },
-      checked: this.state.fullImport,
-      onChange: this.handleImportModeChange
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
-      style: {
-        display: 'inline-block',
-        verticalAlign: 'middle',
-        paddingLeft: '0.2rem',
-        paddingRight: '0.5rem'
-      }
-    }, "Full")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        display: !this.state.fullImport ? 'block' : 'none',
-        border: '1px dashed black',
-        padding: '0.6rem',
-        opacity: this.state.processing === true || this.state.validated ? 0.7 : 1
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
-      style: {
-        display: 'inline-block',
-        marginBottom: '5px'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("b", null, "Optionally"), " you can select a folder in which the entities  will be inserted"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        maxHeight: '20rem',
-        overflow: 'auto'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(EntityRefSelect, {
-      noModal: true,
-      treeStyle: {
-        minHeight: 'auto',
-        maxHeight: 'none'
-      },
-      headingLabel: "Select folder",
-      newLabel: "New folder for import",
-      filter: references => ({
-        folders: references.folders
-      }),
-      selectableFilter: (isGroup, entity) => entity.__entitySet === 'folders',
-      value: this.state.selectedFolderShortid,
-      disabled: this.state.processing === true || this.state.validated,
-      onChange: selected => {
-        this.setState({
-          selectedFolderShortid: selected.length > 0 ? selected[0].shortid : null
-        });
-      },
-      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(sharedComponents.NewFolderModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
-        options: {
-          ...modalProps.options,
-          entitySet: 'folders'
-        }
-      }))
-    }))), this.state.fullImport && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
-      style: {
-        marginTop: '10px'
-      }
-    }, "A ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("b", null, "full import"), " means that ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("b", null, "all the entities that are not present in the export file will be deleted"), ", after the import ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("b", null, "you will have only the entities that were present in the export file"), ".")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, !this.state.validated && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "button-bar"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: `button confirmation ${this.state.processing ? 'disabled' : ''}`,
-      style: {
-        opacity: this.state.selectedFile == null ? 0.7 : 1
-      },
-      disabled: this.state.selectedFile == null,
-      onClick: () => this.validate(this.state.selectedFile)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-      className: "fa fa-circle-o-notch fa-spin",
-      style: {
-        display: this.state.processing ? 'inline-block' : 'none'
-      }
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
-      style: {
-        display: this.state.processing ? 'none' : 'inline'
-      }
-    }, "Validate"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), this.state.validated && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", null, "Log of changes with the import:")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("textarea", {
-      style: {
-        width: '100%',
-        boxSizing: 'border-box'
-      },
-      rows: "10",
-      readOnly: true,
-      value: this.state.log
-    })), this.state.validated && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "button-bar"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: `button danger ${this.state.processing ? 'disabled' : ''}`,
-      onClick: () => this.cancel()
-    }, "Cancel"), (this.state.status === '0' || this.state.retryWithContinueOnFail) && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      className: `button confirmation ${this.state.processing ? 'disabled' : ''}`,
-      onClick: () => this.import()
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
-      className: "fa fa-circle-o-notch fa-spin",
-      style: {
-        display: this.state.processing ? 'inline-block' : 'none'
-      }
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
-      style: {
-        display: this.state.processing ? 'none' : 'inline'
-      }
-    }, this.state.retryWithContinueOnFail ? 'Ignore errors and continue' : 'Import')))));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("h1", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+          className: "fa fa-upload"
+        }), " Import objects"]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+          children: ["A ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("b", {
+            children: "validation is run first"
+          }), ", so you can safely upload the exported package and review the changes which will be performed. Afterwards ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("b", {
+            children: "you can confirm or cancel the import"
+          }), "."]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(FileInput, {
+          placeholder: "select export file to import...",
+          selectedFile: this.state.selectedFile,
+          onFileSelect: file => this.setState({
+            selectedFile: file
+          }),
+          disabled: this.state.processing === true || this.state.validated
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("fieldset", {
+          style: {
+            padding: '0px',
+            margin: '0px',
+            borderWidth: '1px'
+          },
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("legend", {
+            style: {
+              marginLeft: '0.2rem'
+            },
+            children: "Options"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+            className: "form-group",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+              style: {
+                opacity: this.state.processing === true || this.state.validated ? 0.7 : 1
+              },
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("label", {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+                  type: "radio",
+                  name: "import-mode",
+                  value: "merge",
+                  style: {
+                    verticalAlign: 'middle',
+                    margin: '0px'
+                  },
+                  checked: !this.state.fullImport,
+                  onChange: this.handleImportModeChange
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+                  style: {
+                    display: 'inline-block',
+                    verticalAlign: 'middle',
+                    paddingLeft: '0.2rem',
+                    paddingRight: '0.5rem'
+                  },
+                  children: "Merge"
+                })]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("label", {
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+                  type: "radio",
+                  name: "import-mode",
+                  value: "full",
+                  style: {
+                    verticalAlign: 'middle',
+                    margin: '0px'
+                  },
+                  checked: this.state.fullImport,
+                  onChange: this.handleImportModeChange
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+                  style: {
+                    display: 'inline-block',
+                    verticalAlign: 'middle',
+                    paddingLeft: '0.2rem',
+                    paddingRight: '0.5rem'
+                  },
+                  children: "Full"
+                })]
+              })]
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+            className: "form-group",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+              style: {
+                display: !this.state.fullImport ? 'block' : 'none',
+                border: '1px dashed black',
+                padding: '0.6rem',
+                opacity: this.state.processing === true || this.state.validated ? 0.7 : 1
+              },
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("label", {
+                style: {
+                  display: 'inline-block',
+                  marginBottom: '5px'
+                },
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("b", {
+                  children: "Optionally"
+                }), " you can select a folder in which the entities  will be inserted"]
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+                style: {
+                  maxHeight: '20rem',
+                  overflow: 'auto'
+                },
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(EntityRefSelect, {
+                  noModal: true,
+                  treeStyle: {
+                    minHeight: 'auto',
+                    maxHeight: 'none'
+                  },
+                  headingLabel: "Select folder",
+                  newLabel: "New folder for import",
+                  filter: references => ({
+                    folders: references.folders
+                  }),
+                  selectableFilter: (isGroup, entity) => entity.__entitySet === 'folders',
+                  value: this.state.selectedFolderShortid,
+                  disabled: this.state.processing === true || this.state.validated,
+                  onChange: selected => {
+                    this.setState({
+                      selectedFolderShortid: selected.length > 0 ? selected[0].shortid : null
+                    });
+                  },
+                  renderNew: modalProps => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(sharedComponents.NewFolderModal, {
+                    ...modalProps,
+                    options: {
+                      ...modalProps.options,
+                      entitySet: 'folders'
+                    }
+                  })
+                })
+              })]
+            }), this.state.fullImport && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+              style: {
+                marginTop: '10px'
+              },
+              children: ["A ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("b", {
+                children: "full import"
+              }), " means that ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("b", {
+                children: "all the entities that are not present in the export file will be deleted"
+              }), ", after the import ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("b", {
+                children: "you will have only the entities that were present in the export file"
+              }), "."]
+            })]
+          })]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "form-group",
+        children: [!this.state.validated && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+          className: "button-bar",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("button", {
+            className: `button confirmation ${this.state.processing ? 'disabled' : ''}`,
+            style: {
+              opacity: this.state.selectedFile == null ? 0.7 : 1
+            },
+            disabled: this.state.selectedFile == null,
+            onClick: () => this.validate(this.state.selectedFile),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+              className: "fa fa-circle-o-notch fa-spin",
+              style: {
+                display: this.state.processing ? 'inline-block' : 'none'
+              }
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+              style: {
+                display: this.state.processing ? 'none' : 'inline'
+              },
+              children: "Validate"
+            })]
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), this.state.validated && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+              children: "Log of changes with the import:"
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("textarea", {
+            style: {
+              width: '100%',
+              boxSizing: 'border-box'
+            },
+            rows: "10",
+            readOnly: true,
+            value: this.state.log
+          })]
+        }), this.state.validated && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "button-bar",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+            className: `button danger ${this.state.processing ? 'disabled' : ''}`,
+            onClick: () => this.cancel(),
+            children: "Cancel"
+          }), (this.state.status === '0' || this.state.retryWithContinueOnFail) && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("button", {
+            className: `button confirmation ${this.state.processing ? 'disabled' : ''}`,
+            onClick: () => this.import(),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+              className: "fa fa-circle-o-notch fa-spin",
+              style: {
+                display: this.state.processing ? 'inline-block' : 'none'
+              }
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+              style: {
+                display: this.state.processing ? 'none' : 'inline'
+              },
+              children: this.state.retryWithContinueOnFail ? 'Ignore errors and continue' : 'Import'
+            })]
+          })]
+        })]
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImportModal);
-
-/***/ }),
-/* 6 */
-/***/ ((module) => {
-
-module.exports = Studio.runtime['helpers/extends'];
 
 /***/ })
 /******/ 	]);
@@ -550,34 +671,38 @@ module.exports = Studio.runtime['helpers/extends'];
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _ExportModal_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
-/* harmony import */ var _ImportModal_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
+/* harmony import */ var _ExportModal_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _ImportModal_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
 
 
 
-jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addToolbarComponent(props => /*#__PURE__*/React.createElement("div", {
+
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addToolbarComponent(props => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
   className: "toolbar-button",
   onClick: () => {
     jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_ExportModal_js__WEBPACK_IMPORTED_MODULE_0__["default"]);
     props.closeMenu();
-  }
-}, /*#__PURE__*/React.createElement("i", {
-  className: "fa fa-download"
-}), "Export"), 'settings');
-jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addToolbarComponent(props => /*#__PURE__*/React.createElement("div", {
+  },
+  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("i", {
+    className: "fa fa-download"
+  }), "Export"]
+}), 'settings');
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addToolbarComponent(props => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
   className: "toolbar-button",
   onClick: () => {
     jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_ImportModal_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
     props.closeMenu();
-  }
-}, /*#__PURE__*/React.createElement("i", {
-  className: "fa fa-upload"
-}), "Import"), 'settings');
+  },
+  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("i", {
+    className: "fa fa-upload"
+  }), "Import"]
+}), 'settings');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addEntityTreeContextMenuItemsResolver(_ref => {
   let {
     node,

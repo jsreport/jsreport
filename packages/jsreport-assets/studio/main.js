@@ -15,6 +15,19 @@ module.exports = Studio;
 
 /***/ }),
 /* 2 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+if (true) {
+  module.exports = __webpack_require__(10);
+} else // removed by dead control flow
+{}
+
+
+/***/ }),
+/* 3 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -26,6 +39,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+
 
 
 let _fileUploadButton;
@@ -153,15 +168,14 @@ class AssetUploadButton extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }));
   }
   renderUpload() {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
       type: "file",
-      key: "file",
       ref: this.inputFileRef,
       style: {
         display: 'none'
       },
       onChange: e => this.upload(e)
-    });
+    }, 'file');
   }
   render() {
     return this.renderUpload(true);
@@ -170,26 +184,25 @@ class AssetUploadButton extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AssetUploadButton);
 
 /***/ }),
-/* 3 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var _require = __webpack_require__(10),
-    CopyToClipboard = _require.CopyToClipboard;
-
-CopyToClipboard.CopyToClipboard = CopyToClipboard;
-module.exports = CopyToClipboard;
-
-/***/ }),
 /* 4 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var deselectCurrent = __webpack_require__(5);
+var _require = __webpack_require__(12),
+  CopyToClipboard = _require.CopyToClipboard;
+CopyToClipboard.CopyToClipboard = CopyToClipboard;
+module.exports = CopyToClipboard;
+
+/***/ }),
+/* 5 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var deselectCurrent = __webpack_require__(6);
 
 var clipboardToIE11Formatting = {
   "text/plain": "Text",
@@ -305,7 +318,7 @@ module.exports = copy;
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ ((module) => {
 
 
@@ -350,7 +363,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -371,8 +384,8 @@ __webpack_require__.r(__webpack_exports__);
 }]);
 
 /***/ }),
-/* 7 */,
-/* 8 */
+/* 8 */,
+/* 9 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -382,15 +395,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _AssetUploadButton_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _AssetUploadButton_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var superagent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
+/* harmony import */ var superagent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 /* harmony import */ var superagent__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(superagent__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var react_copy_to_clipboard__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3);
+/* harmony import */ var react_copy_to_clipboard__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(4);
 /* harmony import */ var react_copy_to_clipboard__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_copy_to_clipboard__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var binary_extensions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11);
-/* harmony import */ var _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(12);
+/* harmony import */ var binary_extensions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(13);
+/* harmony import */ var _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(14);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(2);
+
 
 
 
@@ -566,11 +581,14 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     } else if (this.isOfficeFile(entity)) {
       if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().extensions).assets.options.officePreview.showWarning !== false && jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().getSettingValueByKey('office-preview-informed', false) === false) {
         jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().setSetting('office-preview-informed', true);
-        jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(() => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, "We need to upload your office asset to our publicly hosted server to be able to use Office Online Service for previewing here in the studio. You can disable it in the configuration, see", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-          href: "https://jsreport.net/learn/xlsx#preview-in-studio",
-          target: "_blank",
-          rel: "noopener noreferrer"
-        }, "the docs for details"), "."));
+        jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(() => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+          children: ["We need to upload your office asset to our publicly hosted server to be able to use Office Online Service for previewing here in the studio. You can disable it in the configuration, see", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("a", {
+            href: "https://jsreport.net/learn/xlsx#preview-in-studio",
+            target: "_blank",
+            rel: "noopener noreferrer",
+            children: "the docs for details"
+          }), "."]
+        }));
       }
     }
     if (previewOpen) {
@@ -598,24 +616,33 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }, () => done && done());
   }
   renderBinary(entity) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "custom-editor"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-file-o"
-    }), " ", entity.name)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-      className: "button confirmation",
-      rel: "noreferrer",
-      target: "_blank",
-      href: jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?download=true`),
-      title: "Download"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-download"
-    }), " Download"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      className: "button confirmation",
-      onClick: () => _AssetUploadButton_js__WEBPACK_IMPORTED_MODULE_1__["default"].OpenUpload()
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-upload"
-    }), " Upload")));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+      className: "custom-editor",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("h1", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+            className: "fa fa-file-o"
+          }), " ", entity.name]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("a", {
+          className: "button confirmation",
+          rel: "noreferrer",
+          target: "_blank",
+          href: jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?download=true`),
+          title: "Download",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+            className: "fa fa-download"
+          }), " Download"]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("button", {
+          className: "button confirmation",
+          onClick: () => _AssetUploadButton_js__WEBPACK_IMPORTED_MODULE_1__["default"].OpenUpload(),
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+            className: "fa fa-upload"
+          }), " Upload"]
+        })]
+      })]
+    });
   }
   renderEditorToolbar() {
     const {
@@ -628,7 +655,7 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       entity,
       codeEntity,
       displayName,
-      icon,
+      icon = 'fa-file-o',
       onDownload,
       onUpload
     } = this.props;
@@ -642,112 +669,130 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     if (!visibleName) {
       visibleName = '<none>';
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].toolbarContainer
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].toolbarRow
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", {
-      className: _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].toolbarAssetName
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: `fa ${icon}`
-    }), "\xA0", entity != null ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-      href: "#",
-      onClick: ev => {
-        ev.preventDefault();
-        jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openTab({
-          _id: entity._id
-        });
-      }
-    }, visibleName) : visibleName)), embeddingCode !== '' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_copy_to_clipboard__WEBPACK_IMPORTED_MODULE_4__.CopyToClipboard, {
-      text: embeddingCode
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-      className: "button confirmation",
-      title: "Copy the embedding code to clipboard"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-clipboard"
-    }))), entity != null && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      className: "button confirmation",
-      title: "Download",
-      onClick: () => {
-        if (onDownload) {
-          onDownload(entity);
-        } else {
-          const downloadEl = document.createElement('a');
-          downloadEl.target = '_blank';
-          downloadEl.href = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?download=true`);
-          downloadEl.click();
-        }
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-download"
-    })), entity != null && !entity.link && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      className: "button confirmation",
-      title: "Upload",
-      onClick: () => {
-        const cb = () => {
-          let wasOpen = false;
-          if (lazyPreview && this.state.previewOpen) {
-            wasOpen = true;
-          }
-          this.clearPreview(() => {
-            if (wasOpen) {
-              this.preview(entity);
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+      className: _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].toolbarContainer,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+        className: _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].toolbarRow,
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("h3", {
+          className: _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].toolbarAssetName,
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+              className: `fa ${icon}`
+            }), "\xA0", entity != null ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("a", {
+              href: "#",
+              onClick: ev => {
+                ev.preventDefault();
+                jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openTab({
+                  _id: entity._id
+                });
+              },
+              children: visibleName
+            }) : visibleName]
+          })
+        }), embeddingCode !== '' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(react_copy_to_clipboard__WEBPACK_IMPORTED_MODULE_4__.CopyToClipboard, {
+          text: embeddingCode,
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("a", {
+            className: "button confirmation",
+            title: "Copy the embedding code to clipboard",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+              className: "fa fa-clipboard"
+            })
+          })
+        }), entity != null && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("button", {
+          className: "button confirmation",
+          title: "Download",
+          onClick: () => {
+            if (onDownload) {
+              onDownload(entity);
+            } else {
+              const downloadEl = document.createElement('a');
+              downloadEl.target = '_blank';
+              downloadEl.href = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?download=true`);
+              downloadEl.click();
             }
-          });
-        };
-        if (onUpload) {
-          onUpload(entity, cb);
-        } else {
-          _AssetUploadButton_js__WEBPACK_IMPORTED_MODULE_1__["default"].OpenUpload({
-            targetAsset: {
-              _id: entity._id,
-              name: entity.name
-            },
-            uploadCallback: cb
-          });
-        }
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-upload"
-    })), lazyPreview && entity != null && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      className: `button confirmation ${!previewEnabled || previewLoading ? 'disabled' : ''}`,
-      onClick: () => this.preview(entity),
-      title: previewOpen ? 'Refresh' : 'Preview'
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: `fa fa-${previewLoading ? '' : previewOpen ? 'retweet' : 'eye'}`
-    }), " ", previewLoading ? 'Loading..' : ''), lazyPreview && entity != null && previewOpen && !previewLoading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      className: `button confirmation ${!previewEnabled || previewLoading ? 'disabled' : ''}`,
-      onClick: () => this.clearPreview(),
-      title: "Clear"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-times"
-    })), codeEntity != null && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      className: `button ${codeActive ? 'danger' : 'confirmation'}`,
-      onClick: () => this.setState(state => {
-        const change = {};
-        if (state.codeActive) {
-          jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().store.dispatch(jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().entities.actions.flushUpdates());
-        } else {
-          change.previewOpen = false;
-          change.previewLoading = false;
-          jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().stopProgress();
-        }
-        return {
-          codeActive: !state.codeActive,
-          ...change
-        };
-      }),
-      title: `${codeActive ? 'Hide' : 'Show'} ${codeEntity.content != null ? 'content and helpers' : 'helpers'}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-code"
-    }))), entity != null && entity.link && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].toolbarRow,
-      style: {
-        margin: '0.6rem'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("b", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-folder-open"
-    }), " linked to file:"), " ", link)));
+          },
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+            className: "fa fa-download"
+          })
+        }), entity != null && !entity.link && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("button", {
+          className: "button confirmation",
+          title: "Upload",
+          onClick: () => {
+            const cb = () => {
+              let wasOpen = false;
+              if (lazyPreview && this.state.previewOpen) {
+                wasOpen = true;
+              }
+              this.clearPreview(() => {
+                if (wasOpen) {
+                  this.preview(entity);
+                }
+              });
+            };
+            if (onUpload) {
+              onUpload(entity, cb);
+            } else {
+              _AssetUploadButton_js__WEBPACK_IMPORTED_MODULE_1__["default"].OpenUpload({
+                targetAsset: {
+                  _id: entity._id,
+                  name: entity.name
+                },
+                uploadCallback: cb
+              });
+            }
+          },
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+            className: "fa fa-upload"
+          })
+        }), lazyPreview && entity != null && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("button", {
+          className: `button confirmation ${!previewEnabled || previewLoading ? 'disabled' : ''}`,
+          onClick: () => this.preview(entity),
+          title: previewOpen ? 'Refresh' : 'Preview',
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+            className: `fa fa-${previewLoading ? '' : previewOpen ? 'retweet' : 'eye'}`
+          }), " ", previewLoading ? 'Loading..' : '']
+        }), lazyPreview && entity != null && previewOpen && !previewLoading && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("button", {
+          className: `button confirmation ${!previewEnabled || previewLoading ? 'disabled' : ''}`,
+          onClick: () => this.clearPreview(),
+          title: "Clear",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+            className: "fa fa-times"
+          })
+        }), codeEntity != null && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("button", {
+          className: `button ${codeActive ? 'danger' : 'confirmation'}`,
+          onClick: () => this.setState(state => {
+            const change = {};
+            if (state.codeActive) {
+              jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().store.dispatch(jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().entities.actions.flushUpdates());
+            } else {
+              change.previewOpen = false;
+              change.previewLoading = false;
+              jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().stopProgress();
+            }
+            return {
+              codeActive: !state.codeActive,
+              ...change
+            };
+          }),
+          title: `${codeActive ? 'Hide' : 'Show'} ${codeEntity.content != null ? 'content and helpers' : 'helpers'}`,
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+            className: "fa fa-code"
+          })
+        })]
+      }), entity != null && entity.link && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
+        className: _AssetEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].toolbarRow,
+        style: {
+          margin: '0.6rem'
+        },
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("span", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("b", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+              className: "fa fa-folder-open"
+            }), " linked to file:"]
+          }), " ", link]
+        })
+      })]
+    });
   }
   renderEditorContent() {
     const {
@@ -761,8 +806,7 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       codeActive
     } = this.state;
     if (codeEntity != null && codeActive) {
-      const helpersEditor = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.TextEditor, {
-        key: codeEntity._id + '_helpers',
+      const helpersEditor = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.TextEditor, {
         name: codeEntity._id + '_helpers',
         getFilename: () => `${codeEntity.name} (helpers)`,
         mode: "javascript",
@@ -772,34 +816,37 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
           helpers: v
         })),
         value: codeEntity.helpers || ''
-      });
+      }, codeEntity._id + '_helpers');
       if (Object.prototype.hasOwnProperty.call(codeEntity, 'content')) {
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.SplitPane, {
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.SplitPane, {
           primary: "second",
           split: "horizontal",
           resizerClassName: "resizer-horizontal",
-          defaultSize: window.innerHeight * 0.2 + 'px'
-        }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.TextEditor, {
-          key: codeEntity._id,
-          name: codeEntity._id,
-          getFilename: () => codeEntity.name,
-          mode: resolveTemplateEditorMode(codeEntity) || 'handlebars',
-          onUpdate: v => onUpdate(Object.assign({
-            _id: codeEntity._id
-          }, {
-            content: v
-          })),
-          value: codeEntity.content || ''
-        }), helpersEditor);
+          defaultSize: window.innerHeight * 0.2 + 'px',
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.TextEditor, {
+            name: codeEntity._id,
+            getFilename: () => codeEntity.name,
+            mode: resolveTemplateEditorMode(codeEntity) || 'handlebars',
+            onUpdate: v => onUpdate(Object.assign({
+              _id: codeEntity._id
+            }, {
+              content: v
+            })),
+            value: codeEntity.content || ''
+          }, codeEntity._id), helpersEditor]
+        });
       }
       return helpersEditor;
     }
     if (entity == null) {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
         style: {
           padding: '2rem'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", null, emptyMessage != null ? emptyMessage : 'Asset is empty'));
+        },
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("i", {
+          children: emptyMessage != null ? emptyMessage : 'Asset is empty'
+        })
+      });
     }
     const parts = entity.name.split('.');
     const extension = parts[parts.length - 1];
@@ -817,17 +864,18 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       });
     }
     if (this.isImage(entity)) {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
         style: {
           overflow: 'auto'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("img", {
-        src: jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`),
-        style: {
-          display: 'block',
-          margin: '3rem auto'
-        }
-      }));
+        },
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("img", {
+          src: jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`),
+          style: {
+            display: 'block',
+            margin: '3rem auto'
+          }
+        })
+      });
     }
     if (this.isFont(entity)) {
       const newStyle = document.createElement('style');
@@ -837,34 +885,41 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
          format('${extension === 'ttf' ? 'truetype' : 'woff'}');
         }`));
       document.head.appendChild(newStyle);
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
         style: {
           overflow: 'auto',
           fontFamily: parts[0],
           padding: '2rem'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, " Hello world font ", entity.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."));
+        },
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("h1", {
+          children: [" Hello world font ", entity.name]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("p", {
+          children: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."
+        })]
+      });
     }
     if (this.isPdf(entity)) {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
         className: "block",
         style: {
           height: '100%'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("object", {
-        style: {
-          height: '100%'
         },
-        data: jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`),
-        type: "application/pdf"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("embed", {
-        src: jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`),
-        type: "application/pdf"
-      })));
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("object", {
+          style: {
+            height: '100%'
+          },
+          data: jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`),
+          type: "application/pdf",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("embed", {
+            src: jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/${entity._id}/content?v=${new Date().getTime()}`),
+            type: "application/pdf"
+          })
+        })
+      });
     }
     if (this.isOfficeFile(entity)) {
       const officeSrc = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(`assets/office/${entity._id}/content`);
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.FramePreview, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.FramePreview, {
         onLoad: () => this.previewLoadFinish(),
         src: officeSrc
       });
@@ -886,7 +941,7 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     } catch (e) {
       return this.renderBinary(entity);
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.TextEditor, {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.TextEditor, {
       name: entity._id,
       mode: mode,
       value: text,
@@ -901,16 +956,14 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       initialLoading
     } = this.state;
     if (initialLoading) {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null);
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {});
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "block"
-    }, this.renderEditorToolbar(), this.renderEditorContent());
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+      className: "block",
+      children: [this.renderEditorToolbar(), this.renderEditorContent()]
+    });
   }
 }
-AssetEditor.defaultProps = {
-  icon: 'fa-file-o'
-};
 function resolveTemplateEditorMode(template) {
   // eslint-disable-next-line
   for (const k in jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.templateEditorModeResolvers) {
@@ -924,14 +977,55 @@ function resolveTemplateEditorMode(template) {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AssetEditor);
 
 /***/ }),
-/* 9 */
+/* 10 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+/**
+ * @license React
+ * react-jsx-runtime.production.js
+ *
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
+  REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+function jsxProd(type, config, maybeKey) {
+  var key = null;
+  void 0 !== maybeKey && (key = "" + maybeKey);
+  void 0 !== config.key && (key = "" + config.key);
+  if ("key" in config) {
+    maybeKey = {};
+    for (var propName in config)
+      "key" !== propName && (maybeKey[propName] = config[propName]);
+  } else maybeKey = config;
+  config = maybeKey.ref;
+  return {
+    $$typeof: REACT_ELEMENT_TYPE,
+    type: type,
+    key: key,
+    ref: void 0 !== config ? config : null,
+    props: maybeKey
+  };
+}
+exports.Fragment = REACT_FRAGMENT_TYPE;
+exports.jsx = jsxProd;
+exports.jsxs = jsxProd;
+
+
+/***/ }),
+/* 11 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = Studio.libraries['superagent'];
 
 /***/ }),
-/* 10 */
+/* 12 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -941,120 +1035,86 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.CopyToClipboard = void 0;
-
+var _copyToClipboard = _interopRequireDefault(__webpack_require__(5));
 var _react = _interopRequireDefault(__webpack_require__(0));
-
-var _copyToClipboard = _interopRequireDefault(__webpack_require__(4));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
-
-function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var CopyToClipboard =
-/*#__PURE__*/
-function (_React$PureComponent) {
-  _inherits(CopyToClipboard, _React$PureComponent);
-
+var _excluded = ["text", "onCopy", "options", "children"];
+function _interopRequireDefault(e) { return e && e.__esModule ? e : { "default": e }; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], -1 === t.indexOf(o) && {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
+function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (-1 !== e.indexOf(n)) continue; t[n] = r[n]; } return t; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
+function _possibleConstructorReturn(t, e) { if (e && ("object" == _typeof(e) || "function" == typeof e)) return e; if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined"); return _assertThisInitialized(t); }
+function _assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _getPrototypeOf(t) { return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, _getPrototypeOf(t); }
+function _inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && _setPrototypeOf(t, e); }
+function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, _setPrototypeOf(t, e); }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+var CopyToClipboard = exports.CopyToClipboard = /*#__PURE__*/function (_React$PureComponent) {
   function CopyToClipboard() {
-    var _getPrototypeOf2;
-
     var _this;
-
     _classCallCheck(this, CopyToClipboard);
-
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
-
-    _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(CopyToClipboard)).call.apply(_getPrototypeOf2, [this].concat(args)));
-
-    _defineProperty(_assertThisInitialized(_this), "onClick", function (event) {
+    _this = _callSuper(this, CopyToClipboard, [].concat(args));
+    _defineProperty(_this, "onClick", function (event) {
       var _this$props = _this.props,
-          text = _this$props.text,
-          onCopy = _this$props.onCopy,
-          children = _this$props.children,
-          options = _this$props.options;
-
+        text = _this$props.text,
+        onCopy = _this$props.onCopy,
+        children = _this$props.children,
+        options = _this$props.options;
       var elem = _react["default"].Children.only(children);
-
       var result = (0, _copyToClipboard["default"])(text, options);
-
       if (onCopy) {
         onCopy(text, result);
-      } // Bypass onClick if it was present
+      }
 
-
-      if (elem && elem.props && typeof elem.props.onClick === 'function') {
+      // Bypass onClick if it was present
+      if (elem !== null && elem !== void 0 && elem.props && typeof elem.props.onClick === 'function') {
         elem.props.onClick(event);
       }
     });
-
     return _this;
   }
-
-  _createClass(CopyToClipboard, [{
+  _inherits(CopyToClipboard, _React$PureComponent);
+  return _createClass(CopyToClipboard, [{
     key: "render",
     value: function render() {
       var _this$props2 = this.props,
-          _text = _this$props2.text,
-          _onCopy = _this$props2.onCopy,
-          _options = _this$props2.options,
-          children = _this$props2.children,
-          props = _objectWithoutProperties(_this$props2, ["text", "onCopy", "options", "children"]);
-
+        _text = _this$props2.text,
+        _onCopy = _this$props2.onCopy,
+        _options = _this$props2.options,
+        children = _this$props2.children,
+        props = _objectWithoutProperties(_this$props2, _excluded);
       var elem = _react["default"].Children.only(children);
-
-      return _react["default"].cloneElement(elem, _objectSpread({}, props, {
+      return /*#__PURE__*/_react["default"].cloneElement(elem, _objectSpread(_objectSpread({}, props), {}, {
         onClick: this.onClick
       }));
     }
   }]);
-
-  return CopyToClipboard;
 }(_react["default"].PureComponent);
-
-exports.CopyToClipboard = CopyToClipboard;
-
 _defineProperty(CopyToClipboard, "defaultProps", {
   onCopy: undefined,
   options: undefined
 });
 
 /***/ }),
-/* 11 */
+/* 13 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('["3dm","3ds","3g2","3gp","7z","a","aac","adp","ai","aif","aiff","alz","ape","apk","ar","arj","asf","au","avi","bak","baml","bh","bin","bk","bmp","btif","bz2","bzip2","cab","caf","cgm","class","cmx","cpio","cr2","csv","cur","dat","dcm","deb","dex","djvu","dll","dmg","dng","doc","docm","docx","dot","dotm","dra","DS_Store","dsk","dts","dtshd","dvb","dwg","dxf","ecelp4800","ecelp7470","ecelp9600","egg","eol","eot","epub","exe","f4v","fbs","fh","fla","flac","fli","flv","fpx","fst","fvt","g3","gh","gif","graffle","gz","gzip","h261","h263","h264","icns","ico","ief","img","ipa","iso","jar","jpeg","jpg","jpgv","jpm","jxr","key","ktx","lha","lib","lvp","lz","lzh","lzma","lzo","m3u","m4a","m4v","mar","mdi","mht","mid","midi","mj2","mka","mkv","mmr","mng","mobi","mov","movie","mp3","mp4","mp4a","mpeg","mpg","mpga","mxu","nef","npx","numbers","o","oga","ogg","ogv","otf","pages","pbm","pcx","pdb","pdf","pea","pgm","pic","png","pnm","pot","potm","potx","ppa","ppam","ppm","pps","ppsm","ppsx","ppt","pptm","pptx","psd","pya","pyc","pyo","pyv","qt","rar","ras","raw","resources","rgb","rip","rlc","rmf","rmvb","rtf","rz","s3m","s7z","scpt","sgi","shar","sil","sketch","slk","smv","so","stl","sub","swf","tar","tbz","tbz2","tga","tgz","thmx","tif","tiff","tlz","ttc","ttf","txz","udf","uvh","uvi","uvm","uvp","uvs","uvu","viv","vob","war","wav","wax","wbmp","wdp","weba","webm","webp","whl","wim","wm","wma","wmv","wmx","woff","woff2","wrm","wvx","xbm","xif","xla","xlam","xls","xlsb","xlsm","xlsx","xlt","xltm","xltx","xm","xmind","xpi","xpm","xwd","xz","z","zip","zipx"]');
+module.exports = /*#__PURE__*/JSON.parse('["3dm","3ds","3g2","3gp","7z","a","aac","adp","ai","aif","aiff","alz","ape","apk","ar","arj","asf","au","avi","bak","baml","bh","bin","bk","bmp","btif","bz2","bzip2","cab","caf","cgm","class","cmx","cpio","cr2","csv","cur","dat","dcm","deb","dex","djvu","dll","dmg","dng","doc","docm","docx","dot","dotm","dra","DS_Store","dsk","dts","dtshd","dvb","dwg","dxf","ecelp4800","ecelp7470","ecelp9600","egg","eol","eot","epub","exe","f4v","fbs","fh","fla","flac","fli","flv","fpx","fst","fvt","g3","gh","gif","graffle","gz","gzip","h261","h263","h264","icns","ico","ief","img","ipa","iso","jar","jpeg","jpg","jpgv","jpm","jxr","key","ktx","lha","lib","lvp","lz","lzh","lzma","lzo","m3u","m4a","m4v","mar","mdi","mht","mid","midi","mj2","mka","mkv","mmr","mng","mobi","mov","movie","mp3","mp4","mp4a","mpeg","mpg","mpga","mxu","nef","npx","numbers","o","oga","ogg","ogv","otf","pages","pbm","pcx","pdb","pdf","pea","pgm","pic","png","pnm","pot","potm","potx","ppa","ppam","ppm","pps","ppsm","ppsx","ppt","pptm","pptx","psd","pya","pyc","pyo","pyv","qt","rar","ras","raw","resources","rgb","rip","rlc","rmf","rmvb","rtf","rz","s3m","s7z","scpt","sgi","shar","sil","sketch","slk","smv","so","stl","sub","swf","tar","tbz","tbz2","tga","tgz","thmx","tif","tiff","tlz","ttc","ttf","txz","udf","uvh","uvi","uvm","uvp","uvs","uvu","viv","vob","war","wav","wax","wbmp","wdp","weba","webm","webp","whl","wim","wm","wma","wmv","wmx","woff","woff2","wrm","wvx","xbm","xif","xla","xlam","xls","xlsb","xlsm","xlsx","xlt","xltm","xltx","xm","xmind","xpi","xpm","xwd","xz","z","zip","zipx"]');
 
 /***/ }),
-/* 12 */
+/* 14 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1066,7 +1126,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"toolbarContainer":"x-assets-AssetEditor-toolbarContainer","toolbarRow":"x-assets-AssetEditor-toolbarRow","toolbarAssetName":"x-assets-AssetEditor-toolbarAssetName"});
 
 /***/ }),
-/* 13 */
+/* 15 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1076,10 +1136,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _scopeOptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
-/* harmony import */ var _AssetUploadButton__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _scopeOptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
+/* harmony import */ var _AssetUploadButton__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
+
 
 
 
@@ -1156,93 +1218,125 @@ class NewAssetModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     } = this.state;
     const currentScopeValue = scope != null ? scope : 'global';
     const currentScopeOption = _scopeOptions__WEBPACK_IMPORTED_MODULE_1__["default"].find(opt => opt.value === currentScopeValue);
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "New asset")), isLink ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "relative or absolute path to existing file"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "text",
-      name: "link",
-      ref: this.linkRef
-    })) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "name"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "text",
-      name: "name",
-      ref: this.nameRef,
-      placeholder: "styles.css",
-      onKeyPress: e => this.handleKeyPress(e)
-    })), (jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().extensions).assets.options.allowAssetsLinkedToFiles !== false ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "link to existing file"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "checkbox",
-      checked: isLink,
-      onChange: () => this.setState({
-        isLink: !isLink
-      })
-    })) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "shared helpers attached to templates"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "checkbox",
-      checked: isSharedHelper === true,
-      onChange: v => {
-        this.setState({
-          isSharedHelper: v.target.checked,
-          scope: v.target.checked === false ? null : 'global'
-        });
-      }
-    })), isSharedHelper && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "scope"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
-      value: currentScopeValue,
-      onChange: v => {
-        const newScope = v.target.value;
-        this.setState({
-          scope: newScope
-        });
-      }
-    }, _scopeOptions__WEBPACK_IMPORTED_MODULE_1__["default"].map(opt => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
-      key: opt.key,
-      value: opt.value,
-      title: opt.desc
-    }, opt.title))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("em", null, currentScopeOption.desc)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      style: {
-        color: 'red',
-        display: error ? 'block' : 'none'
-      }
-    }, error)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group",
-      style: {
-        opacity: 0.8
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("hr", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "You can use assets to embed any kind of static content into report template.", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), "This can be for example css style, image, font, html or even javascript shared helpers. ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), "See the", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-      target: "_blank",
-      rel: "noreferrer",
-      title: "Help",
-      href: "http://jsreport.net/learn/assets"
-    }, "documentation"), " for details.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "button-bar"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      className: "button confirmation",
-      onClick: () => {
-        this.props.close();
-        _AssetUploadButton__WEBPACK_IMPORTED_MODULE_2__["default"].OpenUploadNew(this.props.options.defaults, {
-          activateNewTab: this.props.options.activateNewTab,
-          onNewEntityCallback: this.props.options.onNewEntity
-        });
-      }
-    }, "Upload"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      onClick: () => this.createAsset(),
-      className: "button confirmation"
-    }, "Ok")));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("label", {
+          children: "New asset"
+        })
+      }), isLink ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("label", {
+          children: "relative or absolute path to existing file"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
+          type: "text",
+          name: "link",
+          ref: this.linkRef
+        })]
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("label", {
+          children: "name"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
+          type: "text",
+          name: "name",
+          ref: this.nameRef,
+          placeholder: "styles.css",
+          onKeyPress: e => this.handleKeyPress(e)
+        })]
+      }), (jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().extensions).assets.options.allowAssetsLinkedToFiles !== false ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("label", {
+          children: "link to existing file"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
+          type: "checkbox",
+          checked: isLink,
+          onChange: () => this.setState({
+            isLink: !isLink
+          })
+        })]
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("label", {
+          children: "shared helpers attached to templates"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
+          type: "checkbox",
+          checked: isSharedHelper === true,
+          onChange: v => {
+            this.setState({
+              isSharedHelper: v.target.checked,
+              scope: v.target.checked === false ? null : 'global'
+            });
+          }
+        })]
+      }), isSharedHelper && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("label", {
+          children: "scope"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("select", {
+          value: currentScopeValue,
+          onChange: v => {
+            const newScope = v.target.value;
+            this.setState({
+              scope: newScope
+            });
+          },
+          children: _scopeOptions__WEBPACK_IMPORTED_MODULE_1__["default"].map(opt => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("option", {
+            value: opt.value,
+            title: opt.desc,
+            children: opt.title
+          }, opt.key))
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("em", {
+          children: currentScopeOption.desc
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("span", {
+          style: {
+            color: 'red',
+            display: error ? 'block' : 'none'
+          },
+          children: error
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "form-group",
+        style: {
+          opacity: 0.8
+        },
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("hr", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("span", {
+          children: ["You can use assets to embed any kind of static content into report template.", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("br", {}), "This can be for example css style, image, font, html or even javascript shared helpers. ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("br", {}), "See the", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("a", {
+            target: "_blank",
+            rel: "noreferrer",
+            title: "Help",
+            href: "http://jsreport.net/learn/assets",
+            children: "documentation"
+          }), " for details."]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+        className: "button-bar",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("button", {
+          className: "button confirmation",
+          onClick: () => {
+            this.props.close();
+            _AssetUploadButton__WEBPACK_IMPORTED_MODULE_2__["default"].OpenUploadNew(this.props.options.defaults, {
+              activateNewTab: this.props.options.activateNewTab,
+              onNewEntityCallback: this.props.options.onNewEntity
+            });
+          },
+          children: "Upload"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("button", {
+          onClick: () => this.createAsset(),
+          className: "button confirmation",
+          children: "Ok"
+        })]
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (NewAssetModal);
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1252,9 +1346,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _scopeOptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
+/* harmony import */ var _scopeOptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
+
 
 
 
@@ -1292,42 +1388,56 @@ class AssetProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     } = this.props;
     const currentScopeValue = entity.sharedHelpersScope != null ? entity.sharedHelpersScope : 'global';
     const currentScopeOption = _scopeOptions__WEBPACK_IMPORTED_MODULE_1__["default"].find(opt => opt.value === currentScopeValue);
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().extensions).assets.options.allowAssetsLinkedToFiles !== false ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "link"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "text",
-      value: entity.link || '',
-      onChange: v => onChange({
-        _id: entity._id,
-        link: v.target.value
-      })
-    })) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "shared helpers attached to templates"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "checkbox",
-      checked: entity.sharedHelpersScope != null,
-      onChange: v => {
-        onChange({
-          _id: entity._id,
-          sharedHelpersScope: v.target.checked === false ? null : 'global'
-        });
-      }
-    })), entity.sharedHelpersScope != null && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "scope"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
-      value: currentScopeValue,
-      onChange: v => {
-        const newScope = v.target.value;
-        onChange({
-          _id: entity._id,
-          sharedHelpersScope: newScope
-        });
-      }
-    }, _scopeOptions__WEBPACK_IMPORTED_MODULE_1__["default"].map(opt => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
-      key: opt.key,
-      value: opt.value,
-      title: opt.desc
-    }, opt.title))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("em", null, currentScopeOption.desc)));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      children: [(jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().extensions).assets.options.allowAssetsLinkedToFiles !== false ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "link"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+          type: "text",
+          value: entity.link || '',
+          onChange: v => onChange({
+            _id: entity._id,
+            link: v.target.value
+          })
+        })]
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "shared helpers attached to templates"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+          type: "checkbox",
+          checked: entity.sharedHelpersScope != null,
+          onChange: v => {
+            onChange({
+              _id: entity._id,
+              sharedHelpersScope: v.target.checked === false ? null : 'global'
+            });
+          }
+        })]
+      }), entity.sharedHelpersScope != null && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "scope"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("select", {
+          value: currentScopeValue,
+          onChange: v => {
+            const newScope = v.target.value;
+            onChange({
+              _id: entity._id,
+              sharedHelpersScope: newScope
+            });
+          },
+          children: _scopeOptions__WEBPACK_IMPORTED_MODULE_1__["default"].map(opt => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("option", {
+            value: opt.value,
+            title: opt.desc,
+            children: opt.title
+          }, opt.key))
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("em", {
+          children: currentScopeOption.desc
+        })]
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AssetProperties);
@@ -1402,14 +1512,14 @@ class AssetProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _AssetEditor_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
-/* harmony import */ var _AssetUploadButton_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
-/* harmony import */ var _NewAssetModal_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(13);
-/* harmony import */ var _AssetProperties_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(14);
+/* harmony import */ var _AssetEditor_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _AssetUploadButton_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var _NewAssetModal_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(15);
+/* harmony import */ var _AssetProperties_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(16);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_4__);
 

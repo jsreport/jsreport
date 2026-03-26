@@ -1,20 +1,33 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ([
 /* 0 */
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-module.exports = Studio.libraries['react'];
+
+
+if (true) {
+  module.exports = __webpack_require__(14);
+} else // removed by dead control flow
+{}
+
 
 /***/ }),
 /* 1 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = Studio;
+module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 2 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = Studio;
+
+/***/ }),
+/* 3 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -22,10 +35,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(0);
+
 
 
 
@@ -43,7 +58,7 @@ const ShowColor = props => {
   if (!borderColor) {
     borderColor = (0,_colorLuminance__WEBPACK_IMPORTED_MODULE_2__["default"])(currentColor, -0.35);
   }
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
     style: {
       backgroundColor: currentColor,
       borderWidth: '1px',
@@ -59,13 +74,6 @@ const ShowColor = props => {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ShowColor);
 
 /***/ }),
-/* 3 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = Studio.runtime['helpers/extends'];
-
-/***/ }),
 /* 4 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -74,12 +82,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
-/* harmony import */ var _ColorPicker__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(14);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
+/* harmony import */ var _ColorPicker__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(15);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(0);
+
 
 
 
@@ -117,36 +127,41 @@ const ColorPicketTrigger = props => {
     }
     colorPickerContainerStyles.transform = transformValue;
   }
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    style: currentContainerStyles
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-    style: containerTriggerPickerStyles
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-    style: {
-      display: 'inline-block'
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_2__["default"], {
-    color: currentColor
-  }), "\xA0", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-    type: "text",
-    value: currentColor,
-    style: {
-      width: '90px'
-    },
-    maxLength: 7,
-    placeholder: "#006600",
-    onFocus: onClickColorTrigger,
-    onChange: ev => typeof onInputChange === 'function' && onInputChange(ev.target.value)
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.Popover, {
-    wrapper: false,
-    open: displayColorPicker,
-    onClose: onCloseColorPicker
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    style: colorPickerContainerStyles
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ColorPicker__WEBPACK_IMPORTED_MODULE_3__["default"], {
-    color: currentColor,
-    onChangeComplete: color => typeof onChangeSelectionColor === 'function' && onChangeSelectionColor(color.hex)
-  }))));
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+    style: currentContainerStyles,
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("span", {
+      style: containerTriggerPickerStyles,
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("span", {
+        style: {
+          display: 'inline-block'
+        },
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_ShowColor__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          color: currentColor
+        }), "\xA0", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
+          type: "text",
+          value: currentColor,
+          style: {
+            width: '90px'
+          },
+          maxLength: 7,
+          placeholder: "#006600",
+          onFocus: onClickColorTrigger,
+          onChange: ev => typeof onInputChange === 'function' && onInputChange(ev.target.value)
+        })]
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.Popover, {
+      wrapper: false,
+      open: displayColorPicker,
+      onClose: onCloseColorPicker,
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+        style: colorPickerContainerStyles,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_ColorPicker__WEBPACK_IMPORTED_MODULE_3__["default"], {
+          color: currentColor,
+          onChangeComplete: color => typeof onChangeSelectionColor === 'function' && onChangeSelectionColor(color.hex)
+        })
+      })
+    })]
+  });
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ColorPicketTrigger);
 
@@ -612,7 +627,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var mitt__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(24);
+/* harmony import */ var mitt__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(25);
 
 const emitter = (0,mitt__WEBPACK_IMPORTED_MODULE_0__["default"])();
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (emitter);
@@ -646,11 +661,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(0);
+
 
 
 
@@ -716,87 +733,137 @@ class NewTagModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       selectedColor,
       error
     } = this.state;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "New tag")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "name"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "text",
-      name: "name",
-      ref: this.nameRef,
-      placeholder: "tag name...",
-      onKeyPress: e => this.handleKeyPress(e)
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "color"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      displayColorPicker: displayColorPicker,
-      containerStyles: {
-        border: '1px dashed #000'
-      },
-      color: selectedColor,
-      onClickColorTrigger: () => this.setState({
-        displayColorPicker: true
-      }),
-      onCloseColorPicker: () => this.setState({
-        displayColorPicker: false
-      }),
-      onInputChange: colorInputValue => colorInputValue !== selectedColor && this.setState({
-        selectedColor: colorInputValue
-      }),
-      onChangeSelectionColor: colorHex => this.setState({
-        selectedColor: colorHex
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Description"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("textarea", {
-      name: "description",
-      ref: this.descriptionRef,
-      placeholder: "You can add more details about this tag here...",
-      rows: "4",
-      style: {
-        resize: 'vertical'
-      }
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      style: {
-        color: 'red',
-        display: error ? 'block' : 'none'
-      }
-    }, error)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group",
-      style: {
-        opacity: 0.8
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("hr", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "You can use tags to organize jsreport objects.", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), "This can be for example a tag to organize and group related templates, images, data, scripts, assets, etc. ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), "See the ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-      target: "_blank",
-      rel: "noreferrer",
-      title: "Help",
-      href: "http://jsreport.net/learn/tags"
-    }, "documentation"), " for details.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "button-bar"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      onClick: () => this.createTag(),
-      className: "button confirmation"
-    }, "Ok")));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "New tag"
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "name"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+          type: "text",
+          name: "name",
+          ref: this.nameRef,
+          placeholder: "tag name...",
+          onKeyPress: e => this.handleKeyPress(e)
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "color"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__["default"], {
+            displayColorPicker: displayColorPicker,
+            containerStyles: {
+              border: '1px dashed #000'
+            },
+            color: selectedColor,
+            onClickColorTrigger: () => this.setState({
+              displayColorPicker: true
+            }),
+            onCloseColorPicker: () => this.setState({
+              displayColorPicker: false
+            }),
+            onInputChange: colorInputValue => colorInputValue !== selectedColor && this.setState({
+              selectedColor: colorInputValue
+            }),
+            onChangeSelectionColor: colorHex => this.setState({
+              selectedColor: colorHex
+            })
+          })
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "Description"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("textarea", {
+          name: "description",
+          ref: this.descriptionRef,
+          placeholder: "You can add more details about this tag here...",
+          rows: "4",
+          style: {
+            resize: 'vertical'
+          }
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+          style: {
+            color: 'red',
+            display: error ? 'block' : 'none'
+          },
+          children: error
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        style: {
+          opacity: 0.8
+        },
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("hr", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("span", {
+          children: ["You can use tags to organize jsreport objects.", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("br", {}), "This can be for example a tag to organize and group related templates, images, data, scripts, assets, etc. ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("br", {}), "See the ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("a", {
+            target: "_blank",
+            rel: "noreferrer",
+            title: "Help",
+            href: "http://jsreport.net/learn/tags",
+            children: "documentation"
+          }), " for details."]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        className: "button-bar",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("button", {
+          onClick: () => this.createTag(),
+          className: "button confirmation",
+          children: "Ok"
+        })
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (NewTagModal);
 
 /***/ }),
 /* 14 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _ColorWrap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(15);
-/* harmony import */ var _Picker__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(16);
+/**
+ * @license React
+ * react-jsx-runtime.production.js
+ *
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,_ColorWrap__WEBPACK_IMPORTED_MODULE_0__["default"])(_Picker__WEBPACK_IMPORTED_MODULE_1__["default"]));
+var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
+  REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+function jsxProd(type, config, maybeKey) {
+  var key = null;
+  void 0 !== maybeKey && (key = "" + maybeKey);
+  void 0 !== config.key && (key = "" + config.key);
+  if ("key" in config) {
+    maybeKey = {};
+    for (var propName in config)
+      "key" !== propName && (maybeKey[propName] = config[propName]);
+  } else maybeKey = config;
+  config = maybeKey.ref;
+  return {
+    $$typeof: REACT_ELEMENT_TYPE,
+    type: type,
+    key: key,
+    ref: void 0 !== config ? config : null,
+    props: maybeKey
+  };
+}
+exports.Fragment = REACT_FRAGMENT_TYPE;
+exports.jsx = jsxProd;
+exports.jsxs = jsxProd;
+
 
 /***/ }),
 /* 15 */
@@ -807,13 +874,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
-/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lodash_debounce__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
+/* harmony import */ var _ColorWrap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(16);
+/* harmony import */ var _Picker__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(17);
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,_ColorWrap__WEBPACK_IMPORTED_MODULE_0__["default"])(_Picker__WEBPACK_IMPORTED_MODULE_1__["default"]));
+
+/***/ }),
+/* 16 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
+/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash_debounce__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(0);
 
 
 
@@ -825,26 +906,28 @@ const colorToState = data => {
   };
 };
 const ColorWrap = Picker => {
-  class ColorPicker extends (react__WEBPACK_IMPORTED_MODULE_1__.PureComponent || react__WEBPACK_IMPORTED_MODULE_1__.Component) {
+  class ColorPicker extends (react__WEBPACK_IMPORTED_MODULE_0__.PureComponent || react__WEBPACK_IMPORTED_MODULE_0__.Component) {
     constructor(props) {
+      var _props$color;
       super(props);
       this.state = {
-        ...colorToState(props.color),
+        ...colorToState((_props$color = props.color) !== null && _props$color !== void 0 ? _props$color : ''),
         visible: props.display
       };
-      this.debounce = lodash_debounce__WEBPACK_IMPORTED_MODULE_2___default()((fn, data, event) => {
+      this.debounce = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()((fn, data, event) => {
         fn(data, event);
       }, 100);
       this.handleChange = this.handleChange.bind(this);
     }
     static getDerivedStateFromProps(props) {
+      var _props$color2;
       return {
-        ...colorToState(props.color),
+        ...colorToState((_props$color2 = props.color) !== null && _props$color2 !== void 0 ? _props$color2 : ''),
         visible: props.display
       };
     }
     handleChange(data, event) {
-      const isValidColor = (0,_simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_3__["default"])(data.hex);
+      const isValidColor = (0,_simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_2__["default"])(data.hex);
       if (isValidColor) {
         const colors = colorToState(data);
         this.setState(colors);
@@ -853,20 +936,22 @@ const ColorWrap = Picker => {
       }
     }
     render() {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(Picker, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, this.props, this.state, {
+      var _this$props$color;
+      const color = (_this$props$color = this.props.color) !== null && _this$props$color !== void 0 ? _this$props$color : '';
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(Picker, {
+        ...this.props,
+        color: color,
+        ...this.state,
         onChange: this.handleChange
-      }));
+      });
     }
   }
-  ColorPicker.defaultProps = {
-    color: ''
-  };
   return ColorPicker;
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ColorWrap);
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -874,8 +959,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _utils_handleHover__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(17);
-/* harmony import */ var _Swatch__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(18);
+/* harmony import */ var _utils_handleHover__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
+/* harmony import */ var _Swatch__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(19);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+
 
 
 const PickerSwatch = (0,_utils_handleHover__WEBPACK_IMPORTED_MODULE_0__["default"])(_ref => {
@@ -899,17 +986,19 @@ const PickerSwatch = (0,_utils_handleHover__WEBPACK_IMPORTED_MODULE_0__["default
       boxShadow: '0 0 5px 2px rgba(0,0,0,0.25)'
     };
   }
-  return /*#__PURE__*/React.createElement("div", {
-    style: styles.swatch
-  }, /*#__PURE__*/React.createElement(_Swatch__WEBPACK_IMPORTED_MODULE_1__["default"], {
-    color: color,
-    onClick: onClick
-  }));
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    style: styles.swatch,
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_Swatch__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      color: color,
+      onClick: onClick
+    })
+  });
 });
+const defaultColors = ['#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76', '#1273DE', '#004DCF', '#5300EB', '#EB9694', '#FAD0C3', '#FEF3BD', '#C1E1C5', '#BEDADC', '#C4DEF6'];
 const Picker = _ref2 => {
   let {
-    width,
-    colors,
+    width = '200px',
+    colors = defaultColors,
     onChange,
     triangle
   } = _ref2;
@@ -930,22 +1019,18 @@ const Picker = _ref2 => {
     hex,
     source: 'hex'
   }, e);
-  return /*#__PURE__*/React.createElement("div", {
-    style: styles.card
-  }, colors.map(c => /*#__PURE__*/React.createElement(PickerSwatch, {
-    color: c,
-    key: c,
-    onClick: handleChange
-  })));
-};
-Picker.defaultProps = {
-  width: '200px',
-  colors: ['#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76', '#1273DE', '#004DCF', '#5300EB', '#EB9694', '#FAD0C3', '#FEF3BD', '#C1E1C5', '#BEDADC', '#C4DEF6']
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    style: styles.card,
+    children: colors.map(c => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(PickerSwatch, {
+      color: c,
+      onClick: handleChange
+    }, c))
+  });
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Picker);
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -953,15 +1038,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 
 
 const handleHover = function (Component) {
   let Span = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'span';
-  return class Hover extends (react__WEBPACK_IMPORTED_MODULE_1___default().Component) {
+  return class Hover extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
     constructor(props) {
       super(props);
       this.state = {
@@ -981,17 +1065,21 @@ const handleHover = function (Component) {
       });
     }
     render() {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(Span, {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(Span, {
         onMouseOver: this.handleMouseOver,
-        onMouseOut: this.handleMouseOut
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(Component, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, this.props, this.state)));
+        onMouseOut: this.handleMouseOut,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(Component, {
+          ...this.props,
+          ...this.state
+        })
+      });
     }
   };
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (handleHover);
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -999,6 +1087,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+
 const Swatch = _ref => {
   let {
     color,
@@ -1015,7 +1105,7 @@ const Swatch = _ref => {
     }
   };
   const handleClick = e => onClick(color, e);
-  return /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("div", {
     style: styles.swatch,
     onClick: handleClick,
     title: title
@@ -1024,7 +1114,7 @@ const Swatch = _ref => {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Swatch);
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1032,9 +1122,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+
 
 
 class TagEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1046,21 +1138,34 @@ class TagEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     if (entity.description) {
       description = entity.description;
     } else {
-      description = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", null, "(no description for this tag)");
+      description = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+        children: "(no description for this tag)"
+      });
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "custom-editor"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-tag"
-    }), " ", entity.name)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, "Description: ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, description)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, "Color: ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      color: entity.color
-    })));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "custom-editor",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("h1", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("i", {
+            className: "fa fa-tag"
+          }), " ", entity.name]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        children: ["Description: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+          children: description
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        children: ["Color: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_ShowColor__WEBPACK_IMPORTED_MODULE_1__["default"], {
+          color: entity.color
+        })]
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEditor);
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1068,20 +1173,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ TagProperties)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
 /* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(0);
+
 
 
 
 class TagProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   static title(entity, entities) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "tag (color: ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      color: entity.color,
-      width: 15,
-      height: 15
-    }), ")"));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("span", {
+        children: ["tag (color: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_ShowColor__WEBPACK_IMPORTED_MODULE_1__["default"], {
+          color: entity.color,
+          width: 15,
+          height: 15
+        }), ")"]
+      })
+    });
   }
   constructor(props) {
     super(props);
@@ -1097,48 +1208,57 @@ class TagProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       entity,
       onChange
     } = this.props;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "properties-section"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Color"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      displayColorPicker: displayColorPicker,
-      containerStyles: {
-        border: '1px dashed #000'
-      },
-      color: entity.color,
-      onClickColorTrigger: () => this.setState({
-        displayColorPicker: true
-      }),
-      onCloseColorPicker: () => this.setState({
-        displayColorPicker: false
-      }),
-      onInputChange: colorInputValue => colorInputValue !== entity.color && onChange({
-        _id: entity._id,
-        color: colorInputValue
-      }),
-      onChangeSelectionColor: colorHex => onChange({
-        _id: entity._id,
-        color: colorHex
-      })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "Description"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("textarea", {
-      rows: "4",
-      style: {
-        resize: 'vertical'
-      },
-      value: entity.description || '',
-      onChange: v => onChange({
-        _id: entity._id,
-        description: v.target.value
-      })
-    })));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      className: "properties-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "Color"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__["default"], {
+            displayColorPicker: displayColorPicker,
+            containerStyles: {
+              border: '1px dashed #000'
+            },
+            color: entity.color,
+            onClickColorTrigger: () => this.setState({
+              displayColorPicker: true
+            }),
+            onCloseColorPicker: () => this.setState({
+              displayColorPicker: false
+            }),
+            onInputChange: colorInputValue => colorInputValue !== entity.color && onChange({
+              _id: entity._id,
+              color: colorInputValue
+            }),
+            onChangeSelectionColor: colorHex => onChange({
+              _id: entity._id,
+              color: colorHex
+            })
+          })
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "Description"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("textarea", {
+          rows: "4",
+          style: {
+            resize: 'vertical'
+          },
+          value: entity.description || '',
+          onChange: v => onChange({
+            _id: entity._id,
+            description: v.target.value
+          })
+        })]
+      })]
+    });
   }
 }
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1146,19 +1266,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(0);
 
 
 
 
-const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().EntityRefSelect);
-const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().sharedComponents);
+const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().EntityRefSelect);
+const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().sharedComponents);
 const selectValues = selected => {
   const tags = selected.map(v => {
     return {
@@ -1167,7 +1286,7 @@ const selectValues = selected => {
   });
   return tags;
 };
-class EntityTagProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
+class EntityTagProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   static getSelectedTags(entity, entities) {
     const getNameAndColor = t => {
       const foundTags = Object.keys(entities).map(k => entities[k]).filter(tg => tg.shortid === t.shortid);
@@ -1188,19 +1307,23 @@ class EntityTagProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (!entity.tags || !entity.tags.length) {
       return 'tags';
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, "tags:\xA0", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, EntityTagProperties.getSelectedTags(entity, entities).map((t, tIndex, allSelectTags) => {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
-        key: t.shortid,
-        style: {
-          display: 'inline-block',
-          marginRight: '2px'
-        }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_2__["default"], {
-        color: t.color,
-        width: 12,
-        height: 15
-      }), "\xA0", t.name, tIndex === allSelectTags.length - 1 ? '' : ',');
-    })));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("span", {
+      children: ["tags:\xA0", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+        children: EntityTagProperties.getSelectedTags(entity, entities).map((t, tIndex, allSelectTags) => {
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("span", {
+            style: {
+              display: 'inline-block',
+              marginRight: '2px'
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_ShowColor__WEBPACK_IMPORTED_MODULE_1__["default"], {
+              color: t.color,
+              width: 12,
+              height: 15
+            }), "\xA0", t.name, tIndex === allSelectTags.length - 1 ? '' : ',']
+          }, t.shortid);
+        })
+      })]
+    });
   }
   componentDidMount() {
     this.removeInvalidTagReferences();
@@ -1230,38 +1353,41 @@ class EntityTagProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       entity,
       onChange
     } = this.props;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "properties-section"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(EntityRefSelect, {
-      headingLabel: "Select tags",
-      newLabel: "New tag for template",
-      filter: references => ({
-        tags: references.tags
-      }),
-      value: entity.tags ? entity.tags.map(t => t.shortid) : [],
-      onChange: selected => onChange({
-        _id: entity._id,
-        tags: selectValues(selected)
-      }),
-      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(sharedComponents.NewTagModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
-        options: {
-          ...modalProps.options,
-          defaults: {
-            folder: entity.folder
-          },
-          activateNewTab: false
-        }
-      })),
-      multiple: true
-    })));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      className: "properties-section",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        className: "form-group",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(EntityRefSelect, {
+          headingLabel: "Select tags",
+          newLabel: "New tag for template",
+          filter: references => ({
+            tags: references.tags
+          }),
+          value: entity.tags ? entity.tags.map(t => t.shortid) : [],
+          onChange: selected => onChange({
+            _id: entity._id,
+            tags: selectValues(selected)
+          }),
+          renderNew: modalProps => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(sharedComponents.NewTagModal, {
+            ...modalProps,
+            options: {
+              ...modalProps.options,
+              defaults: {
+                folder: entity.folder
+              },
+              activateNewTab: false
+            }
+          }),
+          multiple: true
+        })
+      })
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (EntityTagProperties);
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1269,9 +1395,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+
 
 
 class TagEntityTreeOrganizeButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1293,31 +1421,34 @@ class TagEntityTreeOrganizeButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_
     const {
       groupMode
     } = this.props;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
       title: "Group and organize entities tree by tag",
       style: {
         display: 'inline-block'
       },
-      onClick: this.handleOrganizationModeChange
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      style: {
-        display: 'inline-block',
-        marginRight: '0.3rem'
-      },
-      className: groupMode === 'tags' ? _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_1__["default"].active : ''
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      className: "fa fa-tags"
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      style: {
-        display: 'inline-block'
-      }
-    }, "Group by tag"));
+      onClick: this.handleOrganizationModeChange,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+        style: {
+          display: 'inline-block',
+          marginRight: '0.3rem'
+        },
+        className: groupMode === 'tags' ? _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_1__["default"].active : '',
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+          className: "fa fa-tags"
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+        style: {
+          display: 'inline-block'
+        },
+        children: "Group by tag"
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeOrganizeButtonToolbar);
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1325,14 +1456,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
 /* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
-/* harmony import */ var _TagEntityTreeFilterByTags__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(25);
+/* harmony import */ var _TagEntityTreeFilterByTags__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(26);
 /* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(0);
+
 
 
 
@@ -1382,45 +1515,50 @@ class TagEntityTreeFilterButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_0_
     } = this.state;
     const allTags = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getReferences().tags;
     const isActive = selectedTags.length > 0;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
       title: "Filter entities tree by tag",
       style: {
         display: 'inline-block'
       },
-      onClick: this.handleFilterClick
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      style: {
-        display: 'inline-block'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      style: {
-        display: 'inline-block',
-        marginRight: '0.3rem'
-      },
-      className: isActive ? _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : ''
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      className: "fa fa-filter"
-    }), "\xA0", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      className: "fa fa-tag"
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      style: {
-        display: 'inline-block'
-      }
-    }, "Filter by tag")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.Popover, {
-      open: showFilter,
-      onClose: this.handleCloseFilter
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_TagEntityTreeFilterByTags__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      tags: allTags,
-      selectedTags: selectedTags,
-      onTagSelectChange: this.handleTagSelectChange,
-      onFilterClose: this.handleCloseFilter
-    })));
+      onClick: this.handleFilterClick,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("span", {
+        style: {
+          display: 'inline-block'
+        },
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("span", {
+          style: {
+            display: 'inline-block',
+            marginRight: '0.3rem'
+          },
+          className: isActive ? _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_5__["default"].active : '',
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+            className: "fa fa-filter"
+          }), "\xA0", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+            className: "fa fa-tag"
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          style: {
+            display: 'inline-block'
+          },
+          children: "Filter by tag"
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.Popover, {
+        open: showFilter,
+        onClose: this.handleCloseFilter,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_TagEntityTreeFilterByTags__WEBPACK_IMPORTED_MODULE_4__["default"], {
+          tags: allTags,
+          selectedTags: selectedTags,
+          onTagSelectChange: this.handleTagSelectChange,
+          onFilterClose: this.handleCloseFilter
+        })
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeFilterButtonToolbar);
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1495,7 +1633,7 @@ function mitt(all                 ) {
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1503,14 +1641,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(26);
+/* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(27);
 /* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_list__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _getColorLuminance__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(27);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
-/* harmony import */ var _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(29);
+/* harmony import */ var _getColorLuminance__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(28);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3);
+/* harmony import */ var _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(30);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(0);
+
 
 
 
@@ -1541,9 +1681,12 @@ class TagEntityTreeFilterByTags extends react__WEBPACK_IMPORTED_MODULE_0__.Compo
     return (index, key) => this.renderTagItem(tags[index]);
   }
   addSelectedTag(tag) {
-    const previousSelectedTags = this.props.selectedTags;
+    const {
+      selectedTags: previousSelectedTags,
+      onTagSelectChange = () => {}
+    } = this.props;
     const selectedTags = [...previousSelectedTags, tag];
-    this.props.onTagSelectChange(selectedTags);
+    onTagSelectChange(selectedTags);
     this.focus();
   }
   focus() {
@@ -1585,6 +1728,10 @@ class TagEntityTreeFilterByTags extends react__WEBPACK_IMPORTED_MODULE_0__.Compo
     if (ev.defaultPrevented) {
       return;
     }
+    const {
+      selectedTags,
+      onFilterClose
+    } = this.props;
     const keyCode = ev.keyCode;
     const inputTag = ev.target;
     let remove = false;
@@ -1592,13 +1739,12 @@ class TagEntityTreeFilterByTags extends react__WEBPACK_IMPORTED_MODULE_0__.Compo
     const removeKey = 8;
     if (keyCode === enterKey) {
       ev.preventDefault();
-      return this.props.onFilterClose();
+      return onFilterClose();
     }
     if (keyCode === removeKey) {
       remove = true;
     }
     if (remove && inputTag.value === '') {
-      const selectedTags = this.props.selectedTags;
       const selectedTagsLastIndex = selectedTags.length - 1;
       ev.preventDefault();
       if (selectedTagsLastIndex >= 0) {
@@ -1607,18 +1753,23 @@ class TagEntityTreeFilterByTags extends react__WEBPACK_IMPORTED_MODULE_0__.Compo
     }
   }
   onRemoveTagItem(tag, tagIndex) {
-    const originalSelectedTags = this.props.selectedTags;
+    const {
+      selectedTags: originalSelectedTags,
+      onTagSelectChange = () => {}
+    } = this.props;
     const selectedTags = [...originalSelectedTags.slice(0, tagIndex), ...originalSelectedTags.slice(tagIndex + 1)];
-    this.props.onTagSelectChange(selectedTags);
+    onTagSelectChange(selectedTags);
   }
   renderTagItem(tag) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      key: tag.shortid,
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
       className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsListItem,
-      onClick: () => this.addSelectedTag(tag)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      color: tag.color
-    }), "\xA0", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, tag.name));
+      onClick: () => this.addSelectedTag(tag),
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_ShowColor__WEBPACK_IMPORTED_MODULE_4__["default"], {
+        color: tag.color
+      }), "\xA0", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+        children: tag.name
+      })]
+    }, tag.shortid);
   }
   render() {
     const {
@@ -1640,66 +1791,71 @@ class TagEntityTreeFilterByTags extends react__WEBPACK_IMPORTED_MODULE_0__.Compo
     if (selectedTags.length === 0) {
       stylesForInputTag.width = '100%';
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].searchTagsContainer
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].searchTagsInputBox
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].searchTagsInputBoxIcon
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      ref: this.tagSelectionRef,
-      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsSelect,
-      onClick: this.handleTagSelectionClick
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, selectedTags.map((tag, tagIndex) => {
-      const tagStyles = {
-        backgroundColor: tag.color,
-        borderColor: (0,_colorLuminance__WEBPACK_IMPORTED_MODULE_2__["default"])(tag.color, -0.35),
-        color: (0,_getColorLuminance__WEBPACK_IMPORTED_MODULE_3__["default"])(tag.color) >= 0.5 ? '#000' : '#fff'
-      };
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-        key: tag.shortid,
-        className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsSelectItem,
-        style: tagStyles
-      }, tag.name, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-        className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsSelectItemRemove,
-        onClick: () => this.onRemoveTagItem(tag, tagIndex)
-      }));
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      ref: this.tagSelectionInputRef,
-      type: "text",
-      placeholder: selectedTags.length === 0 ? 'select a tag' : '',
-      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].searchTags,
-      style: stylesForInputTag,
-      onChange: this.handleChangeInputTag,
-      onKeyDown: this.handleKeyDownInputTag
-    })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      ref: this.tagListRef,
-      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsListContainer,
-      style: stylesForTagsList
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsList
-    }, tags.length === 0 ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsListEmpty
-    }, "No tags registered") : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react_list__WEBPACK_IMPORTED_MODULE_1___default()), {
-      itemRenderer: this.createRenderer(tagsToShowInList),
-      length: tagsToShowInList.length
-    }))));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].searchTagsContainer,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].searchTagsInputBox,
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("i", {
+          className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].searchTagsInputBoxIcon
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          ref: this.tagSelectionRef,
+          className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsSelect,
+          onClick: this.handleTagSelectionClick,
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("span", {
+            children: [selectedTags.map((tag, tagIndex) => {
+              const tagStyles = {
+                backgroundColor: tag.color,
+                borderColor: (0,_colorLuminance__WEBPACK_IMPORTED_MODULE_2__["default"])(tag.color, -0.35),
+                color: (0,_getColorLuminance__WEBPACK_IMPORTED_MODULE_3__["default"])(tag.color) >= 0.5 ? '#000' : '#fff'
+              };
+              return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("span", {
+                className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsSelectItem,
+                style: tagStyles,
+                children: [tag.name, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("a", {
+                  className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsSelectItemRemove,
+                  onClick: () => this.onRemoveTagItem(tag, tagIndex)
+                })]
+              }, tag.shortid);
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+              ref: this.tagSelectionInputRef,
+              type: "text",
+              placeholder: selectedTags.length === 0 ? 'select a tag' : '',
+              className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].searchTags,
+              style: stylesForInputTag,
+              onChange: this.handleChangeInputTag,
+              onKeyDown: this.handleKeyDownInputTag
+            })]
+          })
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+        ref: this.tagListRef,
+        className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsListContainer,
+        style: stylesForTagsList,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsList,
+          children: tags.length === 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+            className: _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__["default"].tagsListEmpty,
+            children: "No tags registered"
+          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)((react_list__WEBPACK_IMPORTED_MODULE_1___default()), {
+            itemRenderer: this.createRenderer(tagsToShowInList),
+            length: tagsToShowInList.length
+          })
+        })
+      })]
+    });
   }
 }
-TagEntityTreeFilterByTags.defaultProps = {
-  onTagSelectChange: () => {}
-};
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeFilterByTags);
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = Studio.libraries['react-list'];
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1707,7 +1863,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _hexToRgb__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(28);
+/* harmony import */ var _hexToRgb__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(29);
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (hex => {
   const rgb = (0,_hexToRgb__WEBPACK_IMPORTED_MODULE_0__["default"])(hex);
@@ -1734,7 +1890,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1757,7 +1913,7 @@ const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
 });
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1769,7 +1925,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"searchTagsContainer":"x-tags-TagEntityTreeFilterByTags-searchTagsContainer","searchTagsInputBox":"x-tags-TagEntityTreeFilterByTags-searchTagsInputBox","searchTagsInputBoxIcon":"x-tags-TagEntityTreeFilterByTags-searchTagsInputBoxIcon fa fa-tag","searchTags":"x-tags-TagEntityTreeFilterByTags-searchTags","tagsListContainer":"x-tags-TagEntityTreeFilterByTags-tagsListContainer","tagsList":"x-tags-TagEntityTreeFilterByTags-tagsList","tagsListEmpty":"x-tags-TagEntityTreeFilterByTags-tagsListEmpty","tagsListItem":"x-tags-TagEntityTreeFilterByTags-tagsListItem","tagsSelect":"x-tags-TagEntityTreeFilterByTags-tagsSelect","tagsSelectItem":"x-tags-TagEntityTreeFilterByTags-tagsSelectItem","tagsSelectItemRemove":"x-tags-TagEntityTreeFilterByTags-tagsSelectItemRemove"});
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1777,11 +1933,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(0);
+
 
 
 
@@ -1798,18 +1956,19 @@ class TagEntityTreeItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       entityTags = [entity];
     }
     const tagsLength = entityTags.length;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
       style: {
         display: 'inline-block',
         marginLeft: '0.2rem',
         marginRight: '0.2rem'
-      }
-    }, entityTags.map((entityTag, tagIndex) => {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(TagInfo, {
-        key: entityTag.shortid,
-        shortid: entityTag.shortid
-      }, tagIndex !== tagsLength - 1 ? ' ' : null);
-    }));
+      },
+      children: entityTags.map((entityTag, tagIndex) => {
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(TagInfo, {
+          shortid: entityTag.shortid,
+          children: tagIndex !== tagsLength - 1 ? ' ' : null
+        }, entityTag.shortid);
+      })
+    });
   }
 }
 const TagInfo = _ref => {
@@ -1821,18 +1980,19 @@ const TagInfo = _ref => {
   if (tag == null) {
     return null;
   }
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-    title: tag.name
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_2__["default"], {
-    color: tag.color,
-    width: 8,
-    height: 15
-  }), children);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("span", {
+    title: tag.name,
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_ShowColor__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      color: tag.color,
+      width: 8,
+      height: 15
+    }), children]
+  });
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeItem);
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1840,12 +2000,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
 /* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(0);
+
 
 
 
@@ -1872,31 +2034,32 @@ class TagEntityTreeTagGroupItem extends react__WEBPACK_IMPORTED_MODULE_0__.Compo
       });
     }
     const tagsLength = tags.length;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
       style: {
         display: 'inline-block',
         marginLeft: '0.2rem',
         marginRight: '0.2rem'
-      }
-    }, tags.map((tag, tagIndex) => {
-      if (!tag) {
-        return null;
-      }
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-        key: tag.shortid,
-        title: tag.name
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_2__["default"], {
-        color: tag.color,
-        width: 8,
-        height: 15
-      }), tagIndex !== tagsLength - 1 ? ' ' : null);
-    }));
+      },
+      children: tags.map((tag, tagIndex) => {
+        if (!tag) {
+          return null;
+        }
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("span", {
+          title: tag.name,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_ShowColor__WEBPACK_IMPORTED_MODULE_2__["default"], {
+            color: tag.color,
+            width: 8,
+            height: 15
+          }), tagIndex !== tagsLength - 1 ? ' ' : null]
+        }, tag.shortid);
+      })
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeTagGroupItem);
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1921,7 +2084,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1934,7 +2097,7 @@ __webpack_require__.r(__webpack_exports__);
 const {
   noTagGroupName,
   tagsGroupName
-} = __webpack_require__(34);
+} = __webpack_require__(35);
 function createGroupEntitiesByTags() {
   const tagsCache = new WeakMap();
   return (entitySets, entities, helpers) => {
@@ -2181,7 +2344,7 @@ function addItemsByTag(newItems, entitySetsNames, allTagEntities, currentTagEnti
 }
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ ((module) => {
 
 const noTagGroupName = '(objects without tag)';
@@ -2273,24 +2436,24 @@ module.exports.tagsGroupName = tagsGroupName;
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _NewTagModal__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
-/* harmony import */ var _TagEditor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(19);
-/* harmony import */ var _TagProperties__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(20);
-/* harmony import */ var _EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(21);
-/* harmony import */ var _TagEntityTreeOrganizeButtonToolbar__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(22);
-/* harmony import */ var _TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(23);
-/* harmony import */ var _TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(30);
-/* harmony import */ var _TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(31);
+/* harmony import */ var _TagEditor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(20);
+/* harmony import */ var _TagProperties__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(21);
+/* harmony import */ var _EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(22);
+/* harmony import */ var _TagEntityTreeOrganizeButtonToolbar__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(23);
+/* harmony import */ var _TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(24);
+/* harmony import */ var _TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(31);
+/* harmony import */ var _TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(32);
 /* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(10);
 /* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(9);
-/* harmony import */ var _filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(32);
-/* harmony import */ var _groupEntitiesByTags__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(33);
+/* harmony import */ var _filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(33);
+/* harmony import */ var _groupEntitiesByTags__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(34);
 
 
 

@@ -15,6 +15,19 @@ module.exports = Studio;
 
 /***/ }),
 /* 2 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+if (true) {
+  module.exports = __webpack_require__(24);
+} else // removed by dead control flow
+{}
+
+
+/***/ }),
+/* 3 */
 /***/ ((module) => {
 
 /**
@@ -51,10 +64,10 @@ module.exports = isObject;
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var freeGlobal = __webpack_require__(10);
+var freeGlobal = __webpack_require__(11);
 
 /** Detect free variable `self`. */
 var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
@@ -66,10 +79,10 @@ module.exports = root;
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var root = __webpack_require__(3);
+var root = __webpack_require__(4);
 
 /** Built-in value references. */
 var Symbol = root.Symbol;
@@ -78,7 +91,7 @@ module.exports = Symbol;
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ ((module, exports) => {
 
 
@@ -115,13 +128,13 @@ exports.suffix = function (n) {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module) {
 
 !function(e,t){ true?module.exports=t():0}("undefined"!=typeof self?self:this,function(){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var o=t[r]={i:r,l:!1,exports:{}};return e[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)n.d(r,o,function(t){return e[t]}.bind(null,o));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=4)}([function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=n(1),o=n(2),i=function(){function e(t,n){this.expression=t,this.options=n,this.expressionParts=new Array(5),e.locales[n.locale]?this.i18n=e.locales[n.locale]:(console.warn("Locale '"+n.locale+"' could not be found; falling back to 'en'."),this.i18n=e.locales.en),void 0===n.use24HourTimeFormat&&(n.use24HourTimeFormat=this.i18n.use24HourTimeFormatByDefault())}return e.toString=function(t,n){var r=void 0===n?{}:n,o=r.throwExceptionOnParseError,i=void 0===o||o,s=r.verbose,a=void 0!==s&&s,u=r.dayOfWeekStartIndexZero,c=void 0===u||u,f=r.use24HourTimeFormat,p=r.locale;return new e(t,{throwExceptionOnParseError:i,verbose:a,dayOfWeekStartIndexZero:c,use24HourTimeFormat:f,locale:void 0===p?"en":p}).getFullDescription()},e.initialize=function(t){e.specialCharacters=["/","-",",","*"],t.load(e.locales)},e.prototype.getFullDescription=function(){var e="";try{var t=new o.CronParser(this.expression,this.options.dayOfWeekStartIndexZero);this.expressionParts=t.parse();var n=this.getTimeOfDayDescription(),r=this.getDayOfMonthDescription(),i=this.getMonthDescription();e+=n+r+this.getDayOfWeekDescription()+i+this.getYearDescription(),e=(e=this.transformVerbosity(e,this.options.verbose)).charAt(0).toLocaleUpperCase()+e.substr(1)}catch(t){if(this.options.throwExceptionOnParseError)throw""+t;e=this.i18n.anErrorOccuredWhenGeneratingTheExpressionD()}return e},e.prototype.getTimeOfDayDescription=function(){var t=this.expressionParts[0],n=this.expressionParts[1],o=this.expressionParts[2],i="";if(r.StringUtilities.containsAny(n,e.specialCharacters)||r.StringUtilities.containsAny(o,e.specialCharacters)||r.StringUtilities.containsAny(t,e.specialCharacters))if(t||!(n.indexOf("-")>-1)||n.indexOf(",")>-1||n.indexOf("/")>-1||r.StringUtilities.containsAny(o,e.specialCharacters))if(!t&&o.indexOf(",")>-1&&-1==o.indexOf("-")&&-1==o.indexOf("/")&&!r.StringUtilities.containsAny(n,e.specialCharacters)){var s=o.split(",");i+=this.i18n.at();for(var a=0;a<s.length;a++)i+=" ",i+=this.formatTime(s[a],n,""),a<s.length-2&&(i+=","),a==s.length-2&&(i+=this.i18n.spaceAnd())}else{var u=this.getSecondsDescription(),c=this.getMinutesDescription(),f=this.getHoursDescription();(i+=u).length>0&&c.length>0&&(i+=", "),(i+=c).length>0&&f.length>0&&(i+=", "),i+=f}else{var p=n.split("-");i+=r.StringUtilities.format(this.i18n.everyMinuteBetweenX0AndX1(),this.formatTime(o,p[0],""),this.formatTime(o,p[1],""))}else i+=this.i18n.atSpace()+this.formatTime(o,n,t);return i},e.prototype.getSecondsDescription=function(){var e=this;return this.getSegmentDescription(this.expressionParts[0],this.i18n.everySecond(),function(e){return e},function(t){return r.StringUtilities.format(e.i18n.everyX0Seconds(),t)},function(t){return e.i18n.secondsX0ThroughX1PastTheMinute()},function(t){return"0"==t?"":parseInt(t)<20?e.i18n.atX0SecondsPastTheMinute():e.i18n.atX0SecondsPastTheMinuteGt20()||e.i18n.atX0SecondsPastTheMinute()})},e.prototype.getMinutesDescription=function(){var e=this,t=this.expressionParts[0];return this.getSegmentDescription(this.expressionParts[1],this.i18n.everyMinute(),function(e){return e},function(t){return r.StringUtilities.format(e.i18n.everyX0Minutes(),t)},function(t){return e.i18n.minutesX0ThroughX1PastTheHour()},function(n){try{return"0"==n&&""==t?"":parseInt(n)<20?e.i18n.atX0MinutesPastTheHour():e.i18n.atX0MinutesPastTheHourGt20()||e.i18n.atX0MinutesPastTheHour()}catch(t){return e.i18n.atX0MinutesPastTheHour()}})},e.prototype.getHoursDescription=function(){var e=this,t=this.expressionParts[2];return this.getSegmentDescription(t,this.i18n.everyHour(),function(t){return e.formatTime(t,"0","")},function(t){return r.StringUtilities.format(e.i18n.everyX0Hours(),t)},function(t){return e.i18n.betweenX0AndX1()},function(t){return e.i18n.atX0()})},e.prototype.getDayOfWeekDescription=function(){var e=this,t=this.i18n.daysOfTheWeek();return"*"==this.expressionParts[5]?"":this.getSegmentDescription(this.expressionParts[5],this.i18n.commaEveryDay(),function(e){var n=e;return e.indexOf("#")>-1?n=e.substr(0,e.indexOf("#")):e.indexOf("L")>-1&&(n=n.replace("L","")),t[parseInt(n)]},function(t){return r.StringUtilities.format(e.i18n.commaEveryX0DaysOfTheWeek(),t)},function(t){return e.i18n.commaX0ThroughX1()},function(t){var n=null;if(t.indexOf("#")>-1){var r=null;switch(t.substring(t.indexOf("#")+1)){case"1":r=e.i18n.first();break;case"2":r=e.i18n.second();break;case"3":r=e.i18n.third();break;case"4":r=e.i18n.fourth();break;case"5":r=e.i18n.fifth()}n=e.i18n.commaOnThe()+r+e.i18n.spaceX0OfTheMonth()}else if(t.indexOf("L")>-1)n=e.i18n.commaOnTheLastX0OfTheMonth();else{n="*"!=e.expressionParts[3]?e.i18n.commaAndOnX0():e.i18n.commaOnlyOnX0()}return n})},e.prototype.getMonthDescription=function(){var e=this,t=this.i18n.monthsOfTheYear();return this.getSegmentDescription(this.expressionParts[4],"",function(e){return t[parseInt(e)-1]},function(t){return r.StringUtilities.format(e.i18n.commaEveryX0Months(),t)},function(t){return e.i18n.commaMonthX0ThroughMonthX1()||e.i18n.commaX0ThroughX1()},function(t){return e.i18n.commaOnlyInX0()})},e.prototype.getDayOfMonthDescription=function(){var e=this,t=null,n=this.expressionParts[3];switch(n){case"L":t=this.i18n.commaOnTheLastDayOfTheMonth();break;case"WL":case"LW":t=this.i18n.commaOnTheLastWeekdayOfTheMonth();break;default:var o=n.match(/(\d{1,2}W)|(W\d{1,2})/);if(o){var i=parseInt(o[0].replace("W","")),s=1==i?this.i18n.firstWeekday():r.StringUtilities.format(this.i18n.weekdayNearestDayX0(),i.toString());t=r.StringUtilities.format(this.i18n.commaOnTheX0OfTheMonth(),s);break}var a=n.match(/L-(\d{1,2})/);if(a){var u=a[1];t=r.StringUtilities.format(this.i18n.commaDaysBeforeTheLastDayOfTheMonth(),u);break}t=this.getSegmentDescription(n,this.i18n.commaEveryDay(),function(t){return"L"==t?e.i18n.lastDay():t},function(t){return"1"==t?e.i18n.commaEveryDay():e.i18n.commaEveryX0Days()},function(t){return e.i18n.commaBetweenDayX0AndX1OfTheMonth()},function(t){return e.i18n.commaOnDayX0OfTheMonth()})}return t},e.prototype.getYearDescription=function(){var e=this;return this.getSegmentDescription(this.expressionParts[6],"",function(e){return/^\d+$/.test(e)?new Date(parseInt(e),1).getFullYear().toString():e},function(t){return r.StringUtilities.format(e.i18n.commaEveryX0Years(),t)},function(t){return e.i18n.commaYearX0ThroughYearX1()||e.i18n.commaX0ThroughX1()},function(t){return e.i18n.commaOnlyInX0()})},e.prototype.getSegmentDescription=function(e,t,n,o,i,s){var a=this,u=null;if(e)if("*"===e)u=t;else if(r.StringUtilities.containsAny(e,["/","-",","]))if(e.indexOf("/")>-1){var c=e.split("/");if(u=r.StringUtilities.format(o(c[1]),n(c[1])),c[0].indexOf("-")>-1)0!=(y=this.generateBetweenSegmentDescription(c[0],i,n)).indexOf(", ")&&(u+=", "),u+=y;else if(!r.StringUtilities.containsAny(c[0],["*",","])){var f=r.StringUtilities.format(s(c[0]),n(c[0]));f=f.replace(", ",""),u+=r.StringUtilities.format(this.i18n.commaStartingX0(),f)}}else if(e.indexOf(",")>-1){c=e.split(",");for(var p="",h=0;h<c.length;h++){var y;if(h>0&&c.length>2&&(p+=",",h<c.length-1&&(p+=" ")),h>0&&c.length>1&&(h==c.length-1||2==c.length)&&(p+=this.i18n.spaceAnd()+" "),c[h].indexOf("-")>-1)p+=y=(y=this.generateBetweenSegmentDescription(c[h],function(e){return a.i18n.commaX0ThroughX1()},n)).replace(", ","");else p+=n(c[h])}u=r.StringUtilities.format(s(e),p)}else e.indexOf("-")>-1&&(u=this.generateBetweenSegmentDescription(e,i,n));else u=r.StringUtilities.format(s(e),n(e));else u="";return u},e.prototype.generateBetweenSegmentDescription=function(e,t,n){var o="",i=e.split("-"),s=n(i[0]),a=n(i[1]);a=a.replace(":00",":59");var u=t(e);return o+=r.StringUtilities.format(u,s,a)},e.prototype.formatTime=function(e,t,n){var r=parseInt(e),o="";this.options.use24HourTimeFormat||(o=r>=12?" PM":" AM",r>12&&(r-=12),0===r&&(r=12));var i=t,s="";return n&&(s=":"+("00"+n).substring(n.length)),("00"+r.toString()).substring(r.toString().length)+":"+("00"+i.toString()).substring(i.toString().length)+s+o},e.prototype.transformVerbosity=function(e,t){return t||(e=(e=(e=(e=e.replace(new RegExp(this.i18n.commaEveryMinute(),"g"),"")).replace(new RegExp(this.i18n.commaEveryHour(),"g"),"")).replace(new RegExp(this.i18n.commaEveryDay(),"g"),"")).replace(/\, ?$/,"")),e},e.locales={},e}();t.ExpressionDescriptor=i},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(){}return e.format=function(e){for(var t=[],n=1;n<arguments.length;n++)t[n-1]=arguments[n];return e.replace(/%s/g,function(){return t.shift()})},e.containsAny=function(e,t){return t.some(function(t){return e.indexOf(t)>-1})},e}();t.StringUtilities=r},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(e,t){void 0===t&&(t=!0),this.expression=e,this.dayOfWeekStartIndexZero=t}return e.prototype.parse=function(){var e=this.extractParts(this.expression);return this.normalize(e),this.validate(e),e},e.prototype.extractParts=function(e){if(!this.expression)throw new Error("Expression is empty");var t=e.trim().split(" ");if(t.length<5)throw new Error("Expression has only "+t.length+" part"+(1==t.length?"":"s")+". At least 5 parts are required.");if(5==t.length)t.unshift(""),t.push("");else if(6==t.length)/\d{4}$/.test(t[5])?t.unshift(""):t.push("");else if(t.length>7)throw new Error("Expression has "+t.length+" parts; too many!");return t},e.prototype.normalize=function(e){var t=this;if(e[3]=e[3].replace("?","*"),e[5]=e[5].replace("?","*"),0==e[0].indexOf("0/")&&(e[0]=e[0].replace("0/","*/")),0==e[1].indexOf("0/")&&(e[1]=e[1].replace("0/","*/")),0==e[2].indexOf("0/")&&(e[2]=e[2].replace("0/","*/")),0==e[3].indexOf("1/")&&(e[3]=e[3].replace("1/","*/")),0==e[4].indexOf("1/")&&(e[4]=e[4].replace("1/","*/")),0==e[5].indexOf("1/")&&(e[5]=e[5].replace("1/","*/")),0==e[6].indexOf("1/")&&(e[6]=e[6].replace("1/","*/")),e[5]=e[5].replace(/(^\d)|([^#/\s]\d)/g,function(e){var n=e.replace(/\D/,""),r=n;return t.dayOfWeekStartIndexZero?"7"==n&&(r="0"):r=(parseInt(n)-1).toString(),e.replace(n,r)}),"L"==e[5]&&(e[5]="6"),"?"==e[3]&&(e[3]="*"),e[3].indexOf("W")>-1&&(e[3].indexOf(",")>-1||e[3].indexOf("-")>-1))throw new Error("The 'W' character can be specified only when the day-of-month is a single day, not a range or list of days.");var n={SUN:0,MON:1,TUE:2,WED:3,THU:4,FRI:5,SAT:6};for(var r in n)e[5]=e[5].replace(new RegExp(r,"gi"),n[r].toString());var o={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};for(var i in o)e[4]=e[4].replace(new RegExp(i,"gi"),o[i].toString());"0"==e[0]&&(e[0]=""),/\*|\-|\,|\//.test(e[2])||!/\*|\//.test(e[1])&&!/\*|\//.test(e[0])||(e[2]+="-"+e[2]);for(var s=0;s<e.length;s++)if("*/1"==e[s]&&(e[s]="*"),e[s].indexOf("/")>-1&&!/^\*|\-|\,/.test(e[s])){var a=null;switch(s){case 4:a="12";break;case 5:a="6";break;case 6:a="9999";break;default:a=null}if(null!=a){var u=e[s].split("/");e[s]=u[0]+"-"+a+"/"+u[1]}}},e.prototype.validate=function(e){this.assertNoInvalidCharacters("DOW",e[5]),this.assertNoInvalidCharacters("DOM",e[3])},e.prototype.assertNoInvalidCharacters=function(e,t){var n=t.match(/[A-KM-VX-Z]+/gi);if(n&&n.length)throw new Error(e+" part contains invalid values: '"+n.toString()+"'")},e}();t.CronParser=r},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(){}return e.prototype.atX0SecondsPastTheMinuteGt20=function(){return null},e.prototype.atX0MinutesPastTheHourGt20=function(){return null},e.prototype.commaMonthX0ThroughMonthX1=function(){return null},e.prototype.commaYearX0ThroughYearX1=function(){return null},e.prototype.use24HourTimeFormatByDefault=function(){return!1},e.prototype.anErrorOccuredWhenGeneratingTheExpressionD=function(){return"An error occured when generating the expression description.  Check the cron expression syntax."},e.prototype.everyMinute=function(){return"every minute"},e.prototype.everyHour=function(){return"every hour"},e.prototype.atSpace=function(){return"At "},e.prototype.everyMinuteBetweenX0AndX1=function(){return"Every minute between %s and %s"},e.prototype.at=function(){return"At"},e.prototype.spaceAnd=function(){return" and"},e.prototype.everySecond=function(){return"every second"},e.prototype.everyX0Seconds=function(){return"every %s seconds"},e.prototype.secondsX0ThroughX1PastTheMinute=function(){return"seconds %s through %s past the minute"},e.prototype.atX0SecondsPastTheMinute=function(){return"at %s seconds past the minute"},e.prototype.everyX0Minutes=function(){return"every %s minutes"},e.prototype.minutesX0ThroughX1PastTheHour=function(){return"minutes %s through %s past the hour"},e.prototype.atX0MinutesPastTheHour=function(){return"at %s minutes past the hour"},e.prototype.everyX0Hours=function(){return"every %s hours"},e.prototype.betweenX0AndX1=function(){return"between %s and %s"},e.prototype.atX0=function(){return"at %s"},e.prototype.commaEveryDay=function(){return", every day"},e.prototype.commaEveryX0DaysOfTheWeek=function(){return", every %s days of the week"},e.prototype.commaX0ThroughX1=function(){return", %s through %s"},e.prototype.first=function(){return"first"},e.prototype.second=function(){return"second"},e.prototype.third=function(){return"third"},e.prototype.fourth=function(){return"fourth"},e.prototype.fifth=function(){return"fifth"},e.prototype.commaOnThe=function(){return", on the "},e.prototype.spaceX0OfTheMonth=function(){return" %s of the month"},e.prototype.lastDay=function(){return"the last day"},e.prototype.commaOnTheLastX0OfTheMonth=function(){return", on the last %s of the month"},e.prototype.commaOnlyOnX0=function(){return", only on %s"},e.prototype.commaAndOnX0=function(){return", and on %s"},e.prototype.commaEveryX0Months=function(){return", every %s months"},e.prototype.commaOnlyInX0=function(){return", only in %s"},e.prototype.commaOnTheLastDayOfTheMonth=function(){return", on the last day of the month"},e.prototype.commaOnTheLastWeekdayOfTheMonth=function(){return", on the last weekday of the month"},e.prototype.commaDaysBeforeTheLastDayOfTheMonth=function(){return", %s days before the last day of the month"},e.prototype.firstWeekday=function(){return"first weekday"},e.prototype.weekdayNearestDayX0=function(){return"weekday nearest day %s"},e.prototype.commaOnTheX0OfTheMonth=function(){return", on the %s of the month"},e.prototype.commaEveryX0Days=function(){return", every %s days"},e.prototype.commaBetweenDayX0AndX1OfTheMonth=function(){return", between day %s and %s of the month"},e.prototype.commaOnDayX0OfTheMonth=function(){return", on day %s of the month"},e.prototype.commaEveryMinute=function(){return", every minute"},e.prototype.commaEveryHour=function(){return", every hour"},e.prototype.commaEveryX0Years=function(){return", every %s years"},e.prototype.commaStartingX0=function(){return", starting %s"},e.prototype.daysOfTheWeek=function(){return["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]},e.prototype.monthsOfTheYear=function(){return["January","February","March","April","May","June","July","August","September","October","November","December"]},e}();t.en=r},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=n(0),o=n(5);r.ExpressionDescriptor.initialize(new o.enLocaleLoader),t.default=r.ExpressionDescriptor;var i=r.ExpressionDescriptor.toString;t.toString=i},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=n(3),o=function(){function e(){}return e.prototype.load=function(e){e.en=new r.en},e}();t.enLocaleLoader=o}])});
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -131,13 +144,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(19);
+/* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(22);
 /* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_list__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
+/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
 /* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(lodash_debounce__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(20);
+/* harmony import */ var _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(23);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2);
+
 
 
 
@@ -268,32 +283,56 @@ class ScheduleEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     if (!task) {
       this.pending = Math.max(this.pending, index);
       this.lazyFetch();
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tr", {
-        key: index
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-        className: "fa fa-spinner fa-spin fa-fw"
-      })));
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("tr", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("td", {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("i", {
+            className: "fa fa-spinner fa-spin fa-fw"
+          })
+        })
+      }, index);
     }
     return this.renderItem(task, index);
   }
   renderItem(task, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tr", {
-      key: index,
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("tr", {
       className: this.state.active === task._id ? 'active' : '',
-      onClick: () => this.openReport(task)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      className: _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].state + ' ' + (task.state === 'error' ? _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].error : task.state === 'success' ? _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].success : _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].canceled)
-    }, task.state)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      className: _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].value
-    }, task.creationDate ? task.creationDate.toLocaleString() : '')), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].value
-    }, task.finishDate ? task.finishDate.toLocaleString() : '')));
+      onClick: () => this.openReport(task),
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("td", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("span", {
+          className: _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].state + ' ' + (task.state === 'error' ? _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].error : task.state === 'success' ? _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].success : _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].canceled),
+          children: task.state
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("td", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("span", {
+          className: _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].value,
+          children: task.creationDate ? task.creationDate.toLocaleString() : ''
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("td", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
+          className: _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].value,
+          children: task.finishDate ? task.finishDate.toLocaleString() : ''
+        })
+      })]
+    }, index);
   }
   renderItems(items, ref) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("table", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("table", {
       className: "table",
-      ref: ref
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "state"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "start"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "finish"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tbody", null, items));
+      ref: ref,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("thead", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("tr", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("th", {
+            children: "state"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("th", {
+            children: "start"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("th", {
+            children: "finish"
+          })]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("tbody", {
+        children: items
+      })]
+    });
   }
   render() {
     const {
@@ -304,38 +343,55 @@ class ScheduleEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       nextRun
     } = this.state;
     nextRun = nextRun || entity.nextRun;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "block custom-editor"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-calendar"
-    }), " ", entity.name), nextRun ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "next run\xA0\xA0"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("small", null, nextRun.toLocaleString()), !this.props.entity.__isNew && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-      disabled: this.state.running,
-      style: this.state.running ? {
-        color: '#c6c6c6'
-      } : {},
-      className: "button confirmation",
-      onClick: () => this.runNow()
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-play"
-    }), ' ', /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, this.state.running ? 'Running..' : 'Run now'))) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, "Not planned yet. Fill CRON expression and report template in the properties.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].listContainer + ' block-item'
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react_list__WEBPACK_IMPORTED_MODULE_1___default()), {
-      type: "uniform",
-      itemsRenderer: this.renderItems,
-      itemRenderer: index => this.tryRenderItem(index),
-      length: count
-    })));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+      className: "block custom-editor",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("h1", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("i", {
+            className: "fa fa-calendar"
+          }), " ", entity.name]
+        }), nextRun ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("span", {
+            children: "next run\xA0\xA0"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("small", {
+            children: nextRun.toLocaleString()
+          }), !this.props.entity.__isNew && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("button", {
+            disabled: this.state.running,
+            style: this.state.running ? {
+              color: '#c6c6c6'
+            } : {},
+            className: "button confirmation",
+            onClick: () => this.runNow(),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("i", {
+              className: "fa fa-play"
+            }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("span", {
+              children: this.state.running ? 'Running..' : 'Run now'
+            })]
+          })]
+        }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
+          children: "Not planned yet. Fill CRON expression and report template in the properties."
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
+        className: _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__["default"].listContainer + ' block-item',
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)((react_list__WEBPACK_IMPORTED_MODULE_1___default()), {
+          type: "uniform",
+          itemsRenderer: this.renderItems,
+          itemRenderer: index => this.tryRenderItem(index),
+          length: count
+        })
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ScheduleEditor);
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var isObject = __webpack_require__(2),
-    now = __webpack_require__(9),
-    toNumber = __webpack_require__(11);
+var isObject = __webpack_require__(3),
+    now = __webpack_require__(10),
+    toNumber = __webpack_require__(12);
 
 /** Error message constants. */
 var FUNC_ERROR_TEXT = 'Expected a function';
@@ -527,10 +583,10 @@ module.exports = debounce;
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var root = __webpack_require__(3);
+var root = __webpack_require__(4);
 
 /**
  * Gets the timestamp of the number of milliseconds that have elapsed since
@@ -556,7 +612,7 @@ module.exports = now;
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /** Detect free variable `global` from Node.js. */
@@ -566,17 +622,15 @@ module.exports = freeGlobal;
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var isObject = __webpack_require__(2),
-    isSymbol = __webpack_require__(12);
+var baseTrim = __webpack_require__(13),
+    isObject = __webpack_require__(3),
+    isSymbol = __webpack_require__(15);
 
 /** Used as references for various `Number` constants. */
 var NAN = 0 / 0;
-
-/** Used to match leading and trailing whitespace. */
-var reTrim = /^\s+|\s+$/g;
 
 /** Used to detect bad signed hexadecimal string values. */
 var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
@@ -627,7 +681,7 @@ function toNumber(value) {
   if (typeof value != 'string') {
     return value === 0 ? value : +value;
   }
-  value = value.replace(reTrim, '');
+  value = baseTrim(value);
   var isBinary = reIsBinary.test(value);
   return (isBinary || reIsOctal.test(value))
     ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
@@ -638,11 +692,61 @@ module.exports = toNumber;
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseGetTag = __webpack_require__(13),
-    isObjectLike = __webpack_require__(16);
+var trimmedEndIndex = __webpack_require__(14);
+
+/** Used to match leading whitespace. */
+var reTrimStart = /^\s+/;
+
+/**
+ * The base implementation of `_.trim`.
+ *
+ * @private
+ * @param {string} string The string to trim.
+ * @returns {string} Returns the trimmed string.
+ */
+function baseTrim(string) {
+  return string
+    ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, '')
+    : string;
+}
+
+module.exports = baseTrim;
+
+
+/***/ }),
+/* 14 */
+/***/ ((module) => {
+
+/** Used to match a single whitespace character. */
+var reWhitespace = /\s/;
+
+/**
+ * Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
+ * character of `string`.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {number} Returns the index of the last non-whitespace character.
+ */
+function trimmedEndIndex(string) {
+  var index = string.length;
+
+  while (index-- && reWhitespace.test(string.charAt(index))) {}
+  return index;
+}
+
+module.exports = trimmedEndIndex;
+
+
+/***/ }),
+/* 15 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseGetTag = __webpack_require__(16),
+    isObjectLike = __webpack_require__(19);
 
 /** `Object#toString` result references. */
 var symbolTag = '[object Symbol]';
@@ -673,12 +777,12 @@ module.exports = isSymbol;
 
 
 /***/ }),
-/* 13 */
+/* 16 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var Symbol = __webpack_require__(4),
-    getRawTag = __webpack_require__(14),
-    objectToString = __webpack_require__(15);
+var Symbol = __webpack_require__(5),
+    getRawTag = __webpack_require__(17),
+    objectToString = __webpack_require__(18);
 
 /** `Object#toString` result references. */
 var nullTag = '[object Null]',
@@ -707,10 +811,10 @@ module.exports = baseGetTag;
 
 
 /***/ }),
-/* 14 */
+/* 17 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var Symbol = __webpack_require__(4);
+var Symbol = __webpack_require__(5);
 
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
@@ -759,7 +863,7 @@ module.exports = getRawTag;
 
 
 /***/ }),
-/* 15 */
+/* 18 */
 /***/ ((module) => {
 
 /** Used for built-in method references. */
@@ -787,7 +891,7 @@ module.exports = objectToString;
 
 
 /***/ }),
-/* 16 */
+/* 19 */
 /***/ ((module) => {
 
 /**
@@ -822,7 +926,7 @@ module.exports = isObjectLike;
 
 
 /***/ }),
-/* 17 */
+/* 20 */
 /***/ ((module) => {
 
 var DEFAULT_INTERVAL = ['*'];
@@ -1114,15 +1218,15 @@ var CronBuilder = (function() {
 module.exports = CronBuilder;
 
 /***/ }),
-/* 18 */,
-/* 19 */
+/* 21 */,
+/* 22 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = Studio.libraries['react-list'];
 
 /***/ }),
-/* 20 */
+/* 23 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1134,7 +1238,48 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"listContainer":"x-scheduling-ScheduleEditor-listContainer","state":"x-scheduling-ScheduleEditor-state","error":"x-scheduling-ScheduleEditor-error","cancelled":"x-scheduling-ScheduleEditor-cancelled","success":"x-scheduling-ScheduleEditor-success"});
 
 /***/ }),
-/* 21 */
+/* 24 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+/**
+ * @license React
+ * react-jsx-runtime.production.js
+ *
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
+  REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+function jsxProd(type, config, maybeKey) {
+  var key = null;
+  void 0 !== maybeKey && (key = "" + maybeKey);
+  void 0 !== config.key && (key = "" + config.key);
+  if ("key" in config) {
+    maybeKey = {};
+    for (var propName in config)
+      "key" !== propName && (maybeKey[propName] = config[propName]);
+  } else maybeKey = config;
+  config = maybeKey.ref;
+  return {
+    $$typeof: REACT_ELEMENT_TYPE,
+    type: type,
+    key: key,
+    ref: void 0 !== config ? config : null,
+    props: maybeKey
+  };
+}
+exports.Fragment = REACT_FRAGMENT_TYPE;
+exports.jsx = jsxProd;
+exports.jsxs = jsxProd;
+
+
+/***/ }),
+/* 25 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1142,19 +1287,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(22);
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var cron_builder__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(17);
-/* harmony import */ var cron_builder__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(cron_builder__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var cronstrue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6);
-/* harmony import */ var cronstrue__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(cronstrue__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _HourTimePicker__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(23);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
+/* harmony import */ var ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var cron_builder__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(20);
+/* harmony import */ var cron_builder__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(cron_builder__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var cronstrue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
+/* harmony import */ var cronstrue__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(cronstrue__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _HourTimePicker__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(26);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(2);
 
 
 
@@ -1162,9 +1306,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_5___default().EntityRefSelect);
-const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_5___default().sharedComponents);
-class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
+const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().EntityRefSelect);
+const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().sharedComponents);
+class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -1228,7 +1372,7 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       return false;
     }
     try {
-      const cronExp = new (cron_builder__WEBPACK_IMPORTED_MODULE_3___default())(cron);
+      const cronExp = new (cron_builder__WEBPACK_IMPORTED_MODULE_2___default())(cron);
       const parsedCron = cronExp.getAll();
       let cronInfo;
       let selectedPeriod;
@@ -1357,7 +1501,7 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }, resetCron);
   }
   onCronBuilderChange(stateToSet, resetCron) {
-    const cronExp = new (cron_builder__WEBPACK_IMPORTED_MODULE_3___default())();
+    const cronExp = new (cron_builder__WEBPACK_IMPORTED_MODULE_2___default())();
     const {
       onChange,
       entity
@@ -1429,7 +1573,7 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (period === 'm' || period === 'y') {
       for (let i = 1; i <= 31; i++) {
         newState.days.push({
-          name: ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_2___default()(i),
+          name: ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_1___default()(i),
           value: i
         });
       }
@@ -1546,175 +1690,205 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     let cronDescription = '';
     if (entity.cron) {
       try {
-        cronDescription = cronstrue__WEBPACK_IMPORTED_MODULE_4___default().toString(entity.cron);
+        cronDescription = cronstrue__WEBPACK_IMPORTED_MODULE_3___default().toString(entity.cron);
       } catch (e) {
         cronDescription = 'Invalid cron expression';
       }
     }
     if (!entity || entity.__entitySet !== 'schedules') {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null);
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {});
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Template"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(EntityRefSelect, {
-      headingLabel: "Select template",
-      newLabel: "New template for schedule",
-      filter: references => ({
-        templates: references.templates
-      }),
-      value: entity.templateShortid ? entity.templateShortid : null,
-      onChange: selected => onChange({
-        _id: entity._id,
-        templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null
-      }),
-      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(sharedComponents.NewTemplateModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
-        options: {
-          ...modalProps.options,
-          defaults: {
-            folder: entity.folder
-          },
-          activateNewTab: false
-        }
-      }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "CRON"), !useExpression && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, "Expression: ", entity.cron)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, "Description: ", cronDescription)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: useExpression,
-      onChange: v => this.onUseExpressionChange(v.target.checked)
-    }), "Use expression"), useExpression && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "text",
-      value: entity.cron || '',
-      onChange: v => onChange({
-        _id: entity._id,
-        cron: v.target.value
-      })
-    })), !useExpression && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Every", ' ', /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("select", {
-      value: selectedPeriod,
-      onChange: ev => this.onCronBuilderChange(this.onPeriodChange(ev.target.value, true))
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "-",
-      value: ""
-    }, "- not selected -"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "mn",
-      value: "mn"
-    }, "minute"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "h",
-      value: "h"
-    }, "hour"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "d",
-      value: "d"
-    }, "day"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "w",
-      value: "w"
-    }, "week"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "m",
-      value: "m"
-    }, "month"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "y",
-      value: "y"
-    }, "year")))), !useExpression && showDay && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, `on${showMonth ? ' the' : ''}`, ' ', /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("select", {
-      value: selectedDay,
-      onChange: ev => this.onCronBuilderChange({
-        selectedDay: ev.target.value
-      })
-    }, days.map(day => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: day.value,
-      value: day.value
-    }, day.name))))), !useExpression && showMonth && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "of", ' ', /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("select", {
-      value: selectedMonth,
-      onChange: ev => this.onCronBuilderChange({
-        selectedMonth: ev.target.value
-      })
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "01",
-      value: "01"
-    }, "January"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "02",
-      value: "02"
-    }, "February"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "03",
-      value: "03"
-    }, "March"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "04",
-      value: "04"
-    }, "April"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "05",
-      value: "05"
-    }, "May"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "06",
-      value: "06"
-    }, "June"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "07",
-      value: "07"
-    }, "July"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "08",
-      value: "08"
-    }, "August"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "09",
-      value: "09"
-    }, "September"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "10",
-      value: "10"
-    }, "October"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "11",
-      value: "11"
-    }, "November"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
-      key: "12",
-      value: "12"
-    }, "December")))), !useExpression && (showHour || showMinute) && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, "at", ' ', /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      style: {
-        display: 'inline-block'
-      }
-    }, showHour && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_HourTimePicker__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      type: "hour",
-      value: selectedHour,
-      onChange: val => this.onCronBuilderChange({
-        selectedHour: val
-      })
-    }), showHour && showMinute && ' : ', showMinute && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(_HourTimePicker__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      type: "minute",
-      value: selectedMinute,
-      onChange: val => this.onCronBuilderChange({
-        selectedMinute: val
-      })
-    }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
-      type: "checkbox",
-      checked: entity.enabled !== false,
-      onChange: v => onChange({
-        _id: entity._id,
-        enabled: v.target.checked
-      })
-    })));
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+          children: "Template"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(EntityRefSelect, {
+          headingLabel: "Select template",
+          newLabel: "New template for schedule",
+          filter: references => ({
+            templates: references.templates
+          }),
+          value: entity.templateShortid ? entity.templateShortid : null,
+          onChange: selected => onChange({
+            _id: entity._id,
+            templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null
+          }),
+          renderNew: modalProps => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(sharedComponents.NewTemplateModal, {
+            ...modalProps,
+            options: {
+              ...modalProps.options,
+              defaults: {
+                folder: entity.folder
+              },
+              activateNewTab: false
+            }
+          })
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+          children: "CRON"
+        }), !useExpression && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          className: "form-group",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("span", {
+            children: ["Expression: ", entity.cron]
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          className: "form-group",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("span", {
+            children: ["Description: ", cronDescription]
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: "form-group",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+              type: "checkbox",
+              checked: useExpression,
+              onChange: v => this.onUseExpressionChange(v.target.checked)
+            }), "Use expression"]
+          }), useExpression && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+            type: "text",
+            value: entity.cron || '',
+            onChange: v => onChange({
+              _id: entity._id,
+              cron: v.target.value
+            })
+          })]
+        }), !useExpression && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          className: "form-group",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+            children: ["Every", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("select", {
+              value: selectedPeriod,
+              onChange: ev => this.onCronBuilderChange(this.onPeriodChange(ev.target.value, true)),
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "",
+                children: "- not selected -"
+              }, '-'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "mn",
+                children: "minute"
+              }, 'mn'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "h",
+                children: "hour"
+              }, 'h'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "d",
+                children: "day"
+              }, 'd'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "w",
+                children: "week"
+              }, 'w'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "m",
+                children: "month"
+              }, 'm'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "y",
+                children: "year"
+              }, 'y')]
+            })]
+          })
+        }), !useExpression && showDay && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          className: "form-group",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+            children: [`on${showMonth ? ' the' : ''}`, ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("select", {
+              value: selectedDay,
+              onChange: ev => this.onCronBuilderChange({
+                selectedDay: ev.target.value
+              }),
+              children: days.map(day => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: day.value,
+                children: day.name
+              }, day.value))
+            })]
+          })
+        }), !useExpression && showMonth && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          className: "form-group",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("label", {
+            children: ["of", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("select", {
+              value: selectedMonth,
+              onChange: ev => this.onCronBuilderChange({
+                selectedMonth: ev.target.value
+              }),
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "01",
+                children: "January"
+              }, '01'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "02",
+                children: "February"
+              }, '02'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "03",
+                children: "March"
+              }, '03'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "04",
+                children: "April"
+              }, '04'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "05",
+                children: "May"
+              }, '05'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "06",
+                children: "June"
+              }, '06'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "07",
+                children: "July"
+              }, '07'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "08",
+                children: "August"
+              }, '08'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "09",
+                children: "September"
+              }, '09'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "10",
+                children: "October"
+              }, '10'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "11",
+                children: "November"
+              }, '11'), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("option", {
+                value: "12",
+                children: "December"
+              }, '12')]
+            })]
+          })
+        }), !useExpression && (showHour || showMinute) && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+          className: "form-group",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+            children: ["at", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+              style: {
+                display: 'inline-block'
+              },
+              children: [showHour && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_HourTimePicker__WEBPACK_IMPORTED_MODULE_5__["default"], {
+                type: "hour",
+                value: selectedHour,
+                onChange: val => this.onCronBuilderChange({
+                  selectedHour: val
+                })
+              }), showHour && showMinute && ' : ', showMinute && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_HourTimePicker__WEBPACK_IMPORTED_MODULE_5__["default"], {
+                type: "minute",
+                value: selectedMinute,
+                onChange: val => this.onCronBuilderChange({
+                  selectedMinute: val
+                })
+              })]
+            })]
+          })
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        className: "form-group",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("label", {
+          children: "Enabled"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("input", {
+          type: "checkbox",
+          checked: entity.enabled !== false,
+          onChange: v => onChange({
+            _id: entity._id,
+            enabled: v.target.checked
+          })
+        })]
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ScheduleProperties);
 
 /***/ }),
-/* 22 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = Studio.runtime['helpers/extends'];
-
-/***/ }),
-/* 23 */
+/* 26 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1726,7 +1900,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _HourTimeSelect__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(24);
+/* harmony import */ var _HourTimeSelect__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(27);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
+
 
 
 
@@ -1752,38 +1928,40 @@ class HourTimePicker extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       type,
       value
     } = this.props;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
       style: {
         display: 'inline-block'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-      type: "text",
-      readOnly: true,
-      style: {
-        width: '30px',
-        cursor: 'pointer'
       },
-      value: value,
-      onClick: () => this.setState({
-        editing: true
-      })
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.Popover, {
-      wrapper: false,
-      open: editing,
-      onClose: () => this.setState({
-        editing: false
-      })
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_HourTimeSelect__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      type: type,
-      value: value,
-      onSelect: this.handleSelect
-    })));
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+        type: "text",
+        readOnly: true,
+        style: {
+          width: '30px',
+          cursor: 'pointer'
+        },
+        value: value,
+        onClick: () => this.setState({
+          editing: true
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.Popover, {
+        wrapper: false,
+        open: editing,
+        onClose: () => this.setState({
+          editing: false
+        }),
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_HourTimeSelect__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          type: type,
+          value: value,
+          onSelect: this.handleSelect
+        })
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (HourTimePicker);
 
 /***/ }),
-/* 24 */
+/* 27 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1793,7 +1971,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(25);
+/* harmony import */ var _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(28);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+
 
 
 class HourTimeSelectItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1809,10 +1989,11 @@ class HourTimeSelectItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       value,
       active
     } = this.props;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
       className: _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].item + ' ' + (active ? _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].itemSelected : ''),
-      onClick: this.handleClick
-    }, value);
+      onClick: this.handleClick,
+      children: value
+    });
   }
 }
 class HourTimeSelect extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1849,35 +2030,37 @@ class HourTimeSelect extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       }
       items = items.concat(cols.map(colValue => {
         const valueItem = String(colValue).length === 1 ? `0${colValue}` : String(colValue);
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(HourTimeSelectItem, {
-          key: colValue,
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(HourTimeSelectItem, {
           active: this.props.value === valueItem,
           value: valueItem,
           onClick: this.handleItemClick
-        });
+        }, colValue);
       }));
       rowCount++;
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
       className: _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].container,
       style: {
         width: '150px'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].title
-    }, title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].list,
-      ref: itemsContainer => {
-        this.itemsContainer = itemsContainer;
       },
-      tabIndex: "-1"
-    }, items));
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].title,
+        children: title
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].list,
+        ref: itemsContainer => {
+          this.itemsContainer = itemsContainer;
+        },
+        tabIndex: "-1",
+        children: items
+      })]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (HourTimeSelect);
 
 /***/ }),
-/* 25 */
+/* 28 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1889,7 +2072,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"container":"x-scheduling-HourTimeSelect-container","title":"x-scheduling-HourTimeSelect-title","list":"x-scheduling-HourTimeSelect-list","item":"x-scheduling-HourTimeSelect-item","itemSelected":"x-scheduling-HourTimeSelect-itemSelected"});
 
 /***/ }),
-/* 26 */
+/* 29 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1899,9 +2082,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ScheduleEditor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
+/* harmony import */ var _ScheduleEditor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
+
 
 
 
@@ -1913,14 +2098,15 @@ class DownloadButton extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   }
   render() {
     if (!this.props.tab || !this.props.tab.entity || this.props.tab.entity.__entitySet !== 'schedules' || !_ScheduleEditor__WEBPACK_IMPORTED_MODULE_1__["default"].ActiveReport) {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null);
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {});
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
       className: "toolbar-button",
-      onClick: () => this.download()
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-download"
-    }), "Download");
+      onClick: () => this.download(),
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("i", {
+        className: "fa fa-download"
+      }), "Download"]
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DownloadButton);
@@ -2007,13 +2193,13 @@ class DownloadButton extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _ScheduleEditor_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
-/* harmony import */ var _ScheduleProperties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(21);
-/* harmony import */ var _DownloadButton_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(26);
+/* harmony import */ var _ScheduleEditor_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _ScheduleProperties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(25);
+/* harmony import */ var _DownloadButton_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(29);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_3__);
 
