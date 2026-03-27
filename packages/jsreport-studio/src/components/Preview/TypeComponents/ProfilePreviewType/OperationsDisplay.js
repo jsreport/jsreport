@@ -1,7 +1,7 @@
-import React, { useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react'
+import React, { useEffect, useRef, useCallback, useMemo } from 'react'
 import classNames from 'classnames'
 import { ReactFlowProvider, ReactFlow, Controls, isNode } from '@xyflow/react'
-import dagre from 'dagre'
+import dagre from '@dagrejs/dagre'
 import OperationNode from './OperationNode'
 import DefaultEdge from './DefaultEdge'
 import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
@@ -43,6 +43,8 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
     } else {
       window.sessionStorage.removeItem('profileCanvasView')
       lastFitViewDisplayRef.current = Date.now()
+      // initial fit to view
+      graphInstanceRef.current.fitView({ padding: 0.25 })
     }
   }, [templateShortid])
 
@@ -59,22 +61,23 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
   const mainRenderOperation = profileOperations.find(o => o.startEvent && o.startEvent.subtype === 'render')
   const isCompleted = mainRenderOperation && (mainRenderOperation.endEvent || profileErrorEvent)
 
-  const elementsCount = nodes.length + edges.length
+  // handle progressive fit to view in canvas
+  useEffect(() => {
+    const elementsCount = nodes.length + edges.length
 
-  // handle progressive fit to view in canvas when the profile operations display take long
-  useLayoutEffect(() => {
     if (elementsCount === 0 || lastFitViewDisplayRef.current == null || isCompleted) {
       return
     }
 
-    const now = Date.now()
-    const elapsedTime = now - lastFitViewDisplayRef.current
-
-    if (elapsedTime >= 300) {
-      lastFitViewDisplayRef.current = now
+    const timeoutId = setTimeout(() => {
+      lastFitViewDisplayRef.current = Date.now()
       graphInstanceRef.current.fitView({ padding: 0.25 })
+    }, 50)
+
+    return () => {
+      clearTimeout(timeoutId)
     }
-  }, [elementsCount, isCompleted])
+  }, [nodes, edges, isCompleted])
 
   // handle the last fit to view when the operations are completed, it also
   // remembers the final canvas view information that the operations produced,
@@ -90,16 +93,16 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
       }
 
       if (isCompleted) {
-        graphInstanceRef.current.fitView()
+        graphInstanceRef.current.fitView().then(() => {
+          const instanceInfo = graphInstanceRef.current.toObject()
 
-        const instanceInfo = graphInstanceRef.current.toObject()
-
-        window.sessionStorage.setItem('profileCanvasView', JSON.stringify({
-          templateShortid,
-          x: instanceInfo.viewport.x,
-          y: instanceInfo.viewport.y,
-          zoom: instanceInfo.viewport.zoom
-        }))
+          window.sessionStorage.setItem('profileCanvasView', JSON.stringify({
+            templateShortid,
+            x: instanceInfo.viewport.x,
+            y: instanceInfo.viewport.y,
+            zoom: instanceInfo.viewport.zoom
+          }))
+        })
       }
     }, 200)
 
