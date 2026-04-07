@@ -69,6 +69,20 @@ class Profiler {
 
     if (m.type === 'operationStart') {
       req.context.profiling.lastOperationId = m.operationId
+
+      if (m.operationGroupId == null && req.context.profiling.activeGroupHierarchy.length > 0) {
+        m.operationGroupId = req.context.profiling.activeGroupHierarchy[req.context.profiling.activeGroupHierarchy.length - 1]
+      }
+
+      if (m.group != null) {
+        req.context.profiling.activeGroupHierarchy.push(m.operationId)
+      }
+    } else if (m.type === 'operationEnd' && req.context.profiling.activeGroupHierarchy.includes(m.operationId)) {
+      req.context.profiling.activeGroupHierarchy = req.context.profiling.activeGroupHierarchy.filter(ogId => ogId !== m.operationId)
+
+      if (m.operationGroupId == null && req.context.profiling.activeGroupHierarchy.length > 0) {
+        m.operationGroupId = req.context.profiling.activeGroupHierarchy[req.context.profiling.activeGroupHierarchy.length - 1]
+      }
     }
 
     if (m.doDiffs !== false && req.context.profiling.mode === 'full' && (m.type === 'operationStart' || m.type === 'operationEnd')) {
@@ -148,6 +162,7 @@ class Profiler {
     const profilerEvent = {
       type: 'operationStart',
       subtype: 'render',
+      group: `Render: ${templateName}`,
       name: templateName,
       previousOperationId: parentReq ? parentReq.context.profiling.lastOperationId : null
     }
@@ -161,9 +176,15 @@ class Profiler {
     } else {
       await this.emit({
         type: 'operationEnd',
-        subtype: 'render',
         operationId
       }, req, res)
+
+      // NOTE: we dont propagate last operation id, event id to parent request, we want the
+      // nodes of different renders to not connect sequentially
+      // (different renders belongs to different node ranks),
+      // instead the nodes that connect
+      // are the one before the child render and the one after the child render.
+      // this also matter for request/response diffs.
     }
 
     if (!req.context.isChildRequest) {

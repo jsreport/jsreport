@@ -25,102 +25,80 @@ class Scripts {
   }
 
   async handleBeforeRender (req, res) {
-    req.context.scriptsCache = await this._findScripts(req)
+    await this.runScripts(req, res, {
+      method: 'beforeRender',
+      getScripts: async () => {
+        req.context.scriptsCache = await this._findScripts(req)
 
-    let generalScriptsProfilerEvent
-    let currentScriptProfilerEvent
+        this.reporter.logger.debug(`Found ${req.context.scriptsCache.length} script(s) to process`, req)
 
-    const onBeforeExecute = (script, topLevelFunctionsNames) => {
-      if (req.context.scriptsCache.length && topLevelFunctionsNames.includes('beforeRender')) {
-        if (generalScriptsProfilerEvent == null) {
-          generalScriptsProfilerEvent = this.reporter.profiler.emit({
-            type: 'operationStart',
-            subtype: 'scriptsBeforeRender',
-            name: 'scripts beforeRender'
-          }, req, res)
+        for (const script of req.context.scriptsCache) {
+          await this.reporter.runInSandbox({
+            context: {},
+            initFn: (getTopLevelFunctions) => {
+              const topLevelFunctions = getTopLevelFunctions(script.content)
+
+              if (topLevelFunctions.includes('beforeRender')) {
+                script.shouldRunBeforeRender = true
+              }
+            },
+            executionFn: () => {},
+            userCode: ''
+          }, req)
         }
 
-        currentScriptProfilerEvent = this.reporter.profiler.emit({
-          type: 'operationStart',
-          subtype: 'script',
-          name: `scripts ${script.name || 'anonymous'}`,
-          previousOperationId: generalScriptsProfilerEvent.operationId
-        }, req, res)
+        const beforeRenderScripts = req.context.scriptsCache.filter(s => s.shouldRunBeforeRender)
+
+        if (beforeRenderScripts.length > 0) {
+          this.reporter.logger.debug(`Processing ${beforeRenderScripts.length} beforeRender script function(s)`, req)
+        }
+
+        return req.context.scriptsCache.filter(s => s.shouldRunBeforeRender)
       }
-    }
-
-    const onAfterExecute = () => {
-      if (currentScriptProfilerEvent) {
-        this.reporter.profiler.emit({
-          type: 'operationEnd',
-          operationId: currentScriptProfilerEvent.operationId
-        }, req, res)
-
-        currentScriptProfilerEvent = null
-      }
-    }
-
-    for (const script of req.context.scriptsCache) {
-      await this._runScript(req, res, {
-        script,
-        method: 'beforeRender',
-        onBeforeExecute,
-        onAfterExecute
-      })
-    }
-
-    if (generalScriptsProfilerEvent) {
-      this.reporter.profiler.emit({
-        type: 'operationEnd',
-        operationId: generalScriptsProfilerEvent.operationId
-      }, req, res)
-      req.context.profiling.lastOperationId = generalScriptsProfilerEvent.operationId
-    }
+    })
   }
 
   async handleAfterRender (req, res) {
-    let generalScriptsProfilerEvent
-    let currentScriptProfilerEvent
+    await this.runScripts(req, res, {
+      method: 'afterRender',
+      getScripts: () => {
+        const afterRenderScripts = req.context.scriptsCache.filter(s => s.shouldRunAfterRender)
 
-    const onBeforeExecute = (script) => {
-      if (req.context.scriptsCache.find(s => s.shouldRunAfterRender)) {
-        if (generalScriptsProfilerEvent == null) {
-          generalScriptsProfilerEvent = this.reporter.profiler.emit({
-            type: 'operationStart',
-            subtype: 'scriptsAfterRender',
-            name: 'scripts afterRender'
-          }, req, res)
+        if (afterRenderScripts.length > 0) {
+          this.reporter.logger.debug(`Processing ${afterRenderScripts.length} afterRender script function(s)`, req)
         }
 
-        currentScriptProfilerEvent = this.reporter.profiler.emit({
-          type: 'operationStart',
-          subtype: 'script',
-          name: `scripts ${script.name || 'anonymous'}`,
-          previousOperationId: generalScriptsProfilerEvent.operationId
-        }, req, res)
+        return afterRenderScripts
       }
-    }
+    })
+  }
 
-    const onAfterExecute = () => {
-      if (currentScriptProfilerEvent) {
-        this.reporter.profiler.emit({
-          type: 'operationEnd',
-          operationId: currentScriptProfilerEvent.operationId
-        }, req, res)
+  async runScripts (req, res, { method, getScripts }) {
+    const generalScriptsProfilerEvent = this.reporter.profiler.emit({
+      type: 'operationStart',
+      subtype: `scripts${method.charAt(0).toUpperCase() + method.slice(1)}`,
+      name: `scripts ${method}`,
+      group: `Scripts: ${method}`
+    }, req, res)
 
-        currentScriptProfilerEvent = null
-      }
-    }
+    const scripts = await getScripts()
 
-    for (const script of req.context.scriptsCache) {
-      if (script.shouldRunAfterRender) {
-        await this._runScript(req, res, {
-          script,
-          method: 'afterRender',
-          onBeforeExecute,
-          onAfterExecute
-        })
-      }
+    for (const script of scripts) {
+      const currentScriptProfilerEvent = this.reporter.profiler.emit({
+        type: 'operationStart',
+        subtype: 'script',
+        name: `script: ${script.name || 'anonymous'}`
+      }, req, res)
+
+      await this._runScript(req, res, {
+        script,
+        method
+      })
+
+      this.reporter.profiler.emit({
+        type: 'operationEnd',
+        operationId: currentScriptProfilerEvent.operationId
+      }, req, res)
     }
 
     if (generalScriptsProfilerEvent) {
@@ -128,11 +106,10 @@ class Scripts {
         type: 'operationEnd',
         operationId: generalScriptsProfilerEvent.operationId
       }, req, res)
-      req.context.profiling.lastOperationId = generalScriptsProfilerEvent.operationId
     }
   }
 
-  async _runScript (req, res, { script, method, onBeforeExecute, onAfterExecute }) {
+  async _runScript (req, res, { script, method, onBeforeExecute = () => {}, onAfterExecute = () => {} }) {
     this.reporter.logger.debug(`Executing script ${(script.name || script.shortid || 'anonymous')} (${method})`, req)
 
     await this.reporter.beforeScriptListeners.fire({ script }, req, res)

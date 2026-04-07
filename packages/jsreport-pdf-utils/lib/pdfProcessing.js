@@ -1,12 +1,6 @@
 const PdfManipulator = require('./pdfManipulator')
 
 module.exports = async (inputs, reporter, req, res) => {
-  const pdfUtilsProfilerEvent = reporter.profiler.emit({
-    type: 'operationStart',
-    subtype: 'pdfUtils',
-    name: 'pdf utils'
-  }, req, res)
-
   const { pdfContent, operations, pdfMeta, pdfPassword, pdfSign, pdfA, pdfAccessibility, pdfCompression, outlines, removeHiddenMarks } = inputs
 
   const runRender = async (shortidOrTemplate, data) => {
@@ -57,15 +51,15 @@ module.exports = async (inputs, reporter, req, res) => {
       templateDef = operation.template
     }
 
-    reporter.logger.debug(`pdf-utils running pdf operation ${operation.type}`, req)
-
     if (operation.type === 'append') {
       const profilerEvent = reporter.profiler.emit({
         type: 'operationStart',
         subtype: 'pdfUtilsAppend',
         name: 'pdf utils append',
-        previousOperationId: pdfUtilsProfilerEvent.operationId
+        group: 'Pdf Utils: append'
       }, req, res)
+
+      reporter.logger.debug(`pdf-utils running pdf operation ${operation.type}`, req)
 
       await manipulator.append(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
 
@@ -80,10 +74,13 @@ module.exports = async (inputs, reporter, req, res) => {
       const profilerEvent = reporter.profiler.emit({
         type: 'operationStart',
         subtype: 'pdfUtilsPrepend',
-        name: 'pdf utils append',
-        previousOperationId: pdfUtilsProfilerEvent.operationId
+        name: 'pdf utils prepend',
+        group: 'Pdf Utils: prepend'
       }, req, res)
+      reporter.logger.debug(`pdf-utils running pdf operation ${operation.type}`, req)
+
       await manipulator.prepend(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
+
       reporter.profiler.emit({
         type: 'operationEnd',
         operationId: profilerEvent.operationId
@@ -96,9 +93,10 @@ module.exports = async (inputs, reporter, req, res) => {
         type: 'operationStart',
         subtype: 'pdfUtilsMerge',
         name: 'pdf utils merge',
-        previousOperationId: pdfUtilsProfilerEvent.operationId
+        group: 'Pdf Utils: merge'
       }, req, res)
       if (operation.mergeWholeDocument) {
+        reporter.logger.debug(`pdf-utils running pdf operation ${operation.type} (merge whole document)`, req)
         const mergeBuffer = await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } })
         await manipulator.merge(mergeBuffer, { mergeToFront: operation.mergeToFront })
 
@@ -108,6 +106,14 @@ module.exports = async (inputs, reporter, req, res) => {
         }, req, res)
         continue
       }
+
+      let optionLog = ''
+
+      if (operation.renderForEveryPage) {
+        optionLog = ' (render for each page)'
+      }
+
+      reporter.logger.debug(`pdf-utils running pdf operation ${operation.type}${optionLog}`, req)
 
       const singleMergeBuffer = !operation.renderForEveryPage
         ? await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } })
@@ -130,6 +136,7 @@ module.exports = async (inputs, reporter, req, res) => {
       }
 
       await manipulator.merge(pagesBuffers, { mergeToFront: operation.mergeToFront })
+
       reporter.profiler.emit({
         type: 'operationEnd',
         operationId: profilerEvent.operationId
@@ -137,6 +144,12 @@ module.exports = async (inputs, reporter, req, res) => {
       continue
     }
   }
+
+  const postProcessProfilerEvent = reporter.profiler.emit({
+    type: 'operationStart',
+    subtype: 'pdfUtilsPostProcess',
+    name: 'pdf utils postprocess'
+  }, req, res)
 
   reporter.logger.debug('pdf-utils postprocess start', req)
 
@@ -148,10 +161,8 @@ module.exports = async (inputs, reporter, req, res) => {
 
   reporter.profiler.emit({
     type: 'operationEnd',
-    operationId: pdfUtilsProfilerEvent.operationId
+    operationId: postProcessProfilerEvent.operationId
   }, req, res)
-
-  req.context.profiling.lastOperationId = pdfUtilsProfilerEvent.operationId
 
   return manipulator.toBuffer()
 }

@@ -2,10 +2,10 @@ import React, { Fragment, useState, useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { Handle } from '@xyflow/react'
 import fileSaver from 'filesaver.js-npm'
+import TimeSpent from './TimeSpent'
 import { actions as progressActions } from '../../../../redux/progress'
 import styles from '../../Preview.css'
 import { openModal } from '../../../../helpers/openModal'
-import humanizeReportDuration from '../../../../helpers/humanizeReportDuration'
 
 const OperationNode = React.memo(function OperationNode (props) {
   const {
@@ -16,7 +16,10 @@ const OperationNode = React.memo(function OperationNode (props) {
     sourcePosition = 'bottom'
   } = props
 
-  const { time, timeCost, timestamp, error, renderResult, end, isFullRequestProfilingEnabled, isMainProfileNode } = data
+  const {
+    startNode, time, timeCost, error, renderResult,
+    mainEndNode, end, isFullRequestProfilingEnabled
+  } = data
 
   const dispatch = useDispatch()
 
@@ -71,28 +74,13 @@ const OperationNode = React.memo(function OperationNode (props) {
     </button>
   )
 
-  const Error = () => <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span>
-
-  const formattedTime = new Intl.DateTimeFormat(navigator.language,
-    {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
-      fractionalSecondDigits: 3,
-      hour12: false
-    }
-  ).format(timestamp)
-
   let type = 'standard'
 
   if (renderResult != null) {
     type = 'download'
   } else if (error != null && end) {
     type = 'error'
-  } else if (isMainProfileNode) {
+  } else if (startNode) {
     type = 'start'
   }
 
@@ -100,49 +88,51 @@ const OperationNode = React.memo(function OperationNode (props) {
     if (type === 'download') {
       return Download(renderResult)
     } else if (type === 'error') {
-      return Error()
+      return <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span>
     } else if (type === 'start') {
-      return <span id={id}><i className={`fa fa-play ${styles.profileStartNodeLabel}`} /></span>
+      let icon = 'bars-staggered'
+
+      if (startNode === 'profile') {
+        icon = 'hourglass-start'
+      } else if (startNode === 'render') {
+        icon = 'play'
+      }
+
+      return <span><i className={`fa fa-${icon} ${styles.profileStartNodeLabel}`} /></span>
     }
 
     return <span>{data.label}</span>
+  }
+
+  const renderTimeSpent = () => {
+    if (type === 'download' || type === 'error') {
+      if (!mainEndNode) {
+        return
+      }
+
+      const props = {
+        time,
+        timeCost: null,
+        icon: <i className='fa fa-hourglass-end' />
+      }
+
+      return <TimeSpent {...props} />
+    }
+
+    return <TimeSpent time={time} timeCost={timeCost} />
   }
 
   return (
     // eslint-disable-next-line
     <Fragment>
       <Handle type='target' position={targetPosition} isConnectable={isConnectable} />
-      <div id={id} title={formattedTime} className={type === 'standard' ? styles.profileStandardNodeContent : ''}>
+      <div id={id} className={type === 'standard' ? styles.profileStandardNodeContent : ''}>
         {renderNodeContent()}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
-      <div
-        className={`${styles.profileExecutionTimeCost} ${getTimeCostCategoryClass(timeCost * 100)}`}
-        style={{ width: `${timeCost * 100}%` }}
-      >
-        &nbsp;
-      </div>
-      {/* eslint-disable-next-line */}
-      <Fragment>
-        <div className={styles.profileExecutionTime}>
-          <span className={styles.profileExecutionTimeLabel}>{humanizeReportDuration(time)}</span>
-        </div>
-        <div className={styles.profileExecutionTimeCover} title={`${time}ms`}>
-          &nbsp;
-        </div>
-      </Fragment>
+      {renderTimeSpent()}
     </Fragment>
   )
 })
-
-function getTimeCostCategoryClass (percentageCost) {
-  if (percentageCost < 20) {
-    return styles.low
-  } else if (percentageCost < 60) {
-    return styles.medium
-  } else {
-    return styles.high
-  }
-}
 
 export default OperationNode

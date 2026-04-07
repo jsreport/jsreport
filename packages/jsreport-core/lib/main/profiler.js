@@ -73,6 +73,7 @@ module.exports = (reporter) => {
     m.timestamp = new Date().getTime()
     m.id = generateRequestId()
     m.previousOperationId = m.previousOperationId || null
+
     if (m.type !== 'log') {
       m.operationId = m.operationId || generateRequestId()
       req.context.profiling.lastOperationId = m.operationId
@@ -105,6 +106,10 @@ module.exports = (reporter) => {
 
     if (lastOperation != null) {
       req.context.profiling.lastOperation = lastOperation
+
+      // keeping the last operation and event id in sync (from worker to main)
+      req.context.profiling.lastOperationId = lastOperation.operationId
+      req.context.profiling.lastEventId = lastOperation.id
     }
 
     runInProfilerChain(async () => {
@@ -172,6 +177,7 @@ module.exports = (reporter) => {
     profilerOperationsChainsMap.set(req.context.rootId, Promise.resolve())
 
     req.context.profiling.lastOperation = null
+    req.context.profiling.activeGroupHierarchy = []
 
     const profile = {
       _id: reporter.documentStore.generateId(),
@@ -218,7 +224,7 @@ module.exports = (reporter) => {
       timeout: reporter.options.enableRequestReportTimeout && req.options.timeout ? req.options.timeout : reporter.options.reportTimeout
     }
 
-    // we set the request here because this listener will container the req which
+    // we set the request here because this listener will contain the req which
     // the .render() starts
     profilerRequestMap.set(req.context.rootId, req)
 
@@ -520,7 +526,7 @@ module.exports = (reporter) => {
 
         if (!profile.timeout) {
           // we can calculate profile timeout only after worker parses request and req.options.timeout is calculated
-          // if the timeout isnt calculated we error orphans that hangs for very long time before worker gets allocated and parses req
+          // if the timeout is not calculated we error orphans that hangs for very long time before worker gets allocated and parses req
           if ((profile.timestamp.getTime() + reporter.options.profiler.maxUnallocatedProfileAge) < new Date().getTime()) {
             try {
               await reporter.documentStore.collection('profiles').update({

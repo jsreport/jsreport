@@ -131,6 +131,15 @@ module.exports = (reporter, definition) => {
       return
     }
 
+    const pdfUtilsProfilerEvent = reporter.profiler.emit({
+      type: 'operationStart',
+      subtype: 'pdfUtils',
+      name: 'pdf utils',
+      group: 'Pdf Utils'
+    }, req, res)
+
+    reporter.logger.info('pdf-utils is starting pdf processing', req)
+
     let pdfSign
 
     if (req.template.pdfSign) {
@@ -197,8 +206,6 @@ module.exports = (reporter, definition) => {
       pdfSign = null
     }
 
-    reporter.logger.info('pdf-utils is starting pdf processing', req)
-
     try {
       const pdfContent = await res.output.getBuffer()
 
@@ -221,14 +228,19 @@ module.exports = (reporter, definition) => {
       ))
 
       await res.output.update(output)
+
+      reporter.logger.info('pdf-utils pdf processing was finished', req)
+
+      reporter.profiler.emit({
+        type: 'operationEnd',
+        operationId: pdfUtilsProfilerEvent.operationId
+      }, req, res)
     } catch (e) {
       throw reporter.createError('Error while executing pdf-utils operations', {
         original: e,
         weak: true
       })
     }
-
-    reporter.logger.info('pdf-utils pdf processing was finished', req)
   })
 
   reporter.initializeListeners.add(definition.name, async () => {

@@ -83,6 +83,17 @@
   padding-right: 0.6rem;
 }
 
+.profileOperationGroupNode {
+  background: none !important;
+  border-color: var(--xy-node-color, var(--xy-node-color-default)) !important;
+  padding: 0 !important;
+}
+
+.profileOperationGroupHeader {
+  padding: 2px;
+  border-bottom: 1px solid;
+}
+
 .profileOperationNode {
   cursor: pointer !important;
   border-radius: 1px !important;
@@ -270,17 +281,21 @@
   font-family: monospace;
 }
 
+.profileActiveControl {
+  color: $primary-selection-backgroundColor;
+}
+
 .profileExecutionTime {
   position: absolute;
   left: 50%;
-  bottom: calc(-50% - 5px);
+  bottom: -22px;
 }
 
 .profileExecutionTimeCover {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(-50% - 5px);
+  bottom: -22px;
 }
 
 .profileExecutionTimeLabel {
@@ -296,7 +311,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(-50% - 5px);
+  bottom: -22px;
 }
 
 .profileExecutionTimeCost.low {
