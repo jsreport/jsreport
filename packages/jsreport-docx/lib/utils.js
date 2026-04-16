@@ -309,13 +309,18 @@ function clearEl (el, filterFn) {
   }
 }
 
-function findOrCreateChildNode (docNode, nodeName, targetNode) {
+function findOrCreateChildNode (docNode, nodeName, targetNode, onCreate) {
   let result
   const existingNode = findChildNode(nodeName, targetNode)
 
   if (!existingNode) {
     result = docNode.createElement(nodeName)
-    targetNode.appendChild(result)
+
+    if (onCreate) {
+      onCreate(result)
+    } else {
+      targetNode.appendChild(result)
+    }
   } else {
     result = existingNode
   }

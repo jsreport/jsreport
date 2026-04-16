@@ -1420,9 +1420,30 @@ async function docxSData (data, options) {
     const jsreport = require('jsreport-proxy')
     const sectionsData = jsreport.req.context.__docxSharedData.sections
 
-    const currentCount = (sectionsData.output.counter.get(optionsToUse.hash.cId) ?? 0) + 1
+    // we need to be able to put the sections on last repetition, but also consider that
+    // we should always put the section mark for different loop iterations
+    const itemId = `@${optionsToUse.data.index ?? -1}`
 
-    sectionsData.output.counter.set(optionsToUse.hash.cId, currentCount)
+    if (sectionsData.output.counter.get(optionsToUse.hash.cId) == null) {
+      sectionsData.output.counter.set(optionsToUse.hash.cId, {
+        lastItemId: itemId,
+        count: 0,
+        keep: []
+      })
+    }
+
+    const currentCount = (sectionsData.output.counter.get(optionsToUse.hash.cId).count) + 1
+
+    sectionsData.output.counter.get(optionsToUse.hash.cId).count = currentCount
+
+    if (sectionsData.output.counter.get(optionsToUse.hash.cId).lastItemId === itemId) {
+      sectionsData.output.counter.get(optionsToUse.hash.cId).keep.pop()
+      sectionsData.output.counter.get(optionsToUse.hash.cId).keep.push(currentCount)
+    } else {
+      sectionsData.output.counter.get(optionsToUse.hash.cId).keep.push(currentCount)
+    }
+
+    sectionsData.output.counter.get(optionsToUse.hash.cId).lastItemId = itemId
 
     return new Handlebars.SafeString(`<!--__docxSectionPr${optionsToUse.hash.cId}__-->`)
   }

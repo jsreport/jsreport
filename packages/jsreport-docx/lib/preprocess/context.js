@@ -114,7 +114,10 @@ module.exports = (files, headerFooterRefs, sharedData) => {
         // only mark paragraphs when there is more than one section in the document
         if (sectionsMap.size > 1) {
           for (const paragraphEl of paragraphEls) {
-            const pPrEl = findOrCreateChildNode(targetDoc, 'w:pPr', paragraphEl)
+            const pPrEl = findOrCreateChildNode(targetDoc, 'w:pPr', paragraphEl, (newEl) => {
+              paragraphEl.insertBefore(newEl, paragraphEl.firstChild)
+            })
+
             const helperCallEl = targetDoc.createElement('docxRemove')
             helperCallEl.textContent = `{{docxSData type='sectionMark' cId='${sectionId}'}}`
             pPrEl.appendChild(helperCallEl)

@@ -1831,6 +1831,142 @@ describe('docx', () => {
       }
     }
   })
+
+  it('section break should still work with loop', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'section-break-with-loop.docx'))
+          }
+        }
+      },
+      data: {
+        chapters: [
+          { name: 'Chapter 1', description: 'lorem ipsum 1' },
+          { name: 'Chapter 2', description: 'lorem ipsum 2' },
+          { name: 'Chapter 3', description: 'lorem ipsum 3' },
+          { name: 'Chapter 4', description: 'lorem ipsum 4' }
+        ]
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    const paragraphEls = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphEls.length).be.eql(8)
+
+    const sectionPrEls = nodeListToArray(doc.getElementsByTagName('w:sectPr'))
+
+    should(sectionPrEls.length).be.eql(5)
+
+    const bodyChildEls = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes)
+
+    should(bodyChildEls.length).be.eql(9)
+
+    for (const [index, childEl] of bodyChildEls.entries()) {
+      switch (index) {
+        case 0: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Chapter 1')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 1: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('lorem ipsum 1')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 2: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Chapter 2')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 3: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('lorem ipsum 2')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 4: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Chapter 3')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 5: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('lorem ipsum 3')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 6: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('Chapter 4')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 7: {
+          should(childEl.nodeName).be.eql('w:p')
+          should(childEl.textContent).be.eql('lorem ipsum 4')
+
+          const sectionPrEl = getSectionEl(childEl)
+
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', sectionPrEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        case 8: {
+          should(childEl.nodeName).be.eql('w:sectPr')
+
+          should(findChildNode('w:pgSz', childEl).getAttribute('w:w')).be.eql('12240')
+          should(findChildNode('w:pgSz', childEl).getAttribute('w:h')).be.eql('15840')
+          break
+        }
+        default:
+          throw new Error(`Unexpected child element "${childEl.nodeName}" at index ${index}`)
+      }
+    }
+  })
 })
 
 describe('docx with extensions.docx.previewInWordOnline === false', () => {

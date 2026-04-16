@@ -12,9 +12,9 @@ module.exports = async (files, sharedData) => {
   // we are sure the last section is the last sequential number in the template, because
   // there is no way user content can change that section
   const latestSectionId = (sharedData.sections.template.data.size - 1).toString()
-  const totalSectionsMarkCount = Array.from(sharedData.sections.output.counter.values()).reduce((acu, count) => acu + count, 0)
-  const totalSectionsMarkBeforeLastCount = totalSectionsMarkCount - sharedData.sections.output.counter.get(latestSectionId)
-  const replaceLastSection = sharedData.sections.output.counter.size > 1 && sharedData.sections.output.counter.get(latestSectionId) === 1
+  const totalSectionsMarkCount = Array.from(sharedData.sections.output.counter.values()).reduce((acu, info) => acu + info.count, 0)
+  const totalSectionsMarkBeforeLastCount = totalSectionsMarkCount - sharedData.sections.output.counter.get(latestSectionId).count
+  const replaceLastSection = sharedData.sections.output.counter.size > 1 && sharedData.sections.output.counter.get(latestSectionId).count === 1
   let sectionMarkCount = 0
   let sectionToMoveId
 
@@ -23,12 +23,11 @@ module.exports = async (files, sharedData) => {
     /<!--__docxSectionPr([\d]+)__-->/g,
     async (match, sectionId) => {
       const currentRepetition = (sectionsCounter.get(sectionId) ?? 0) + 1
-      const lastRepetition = sharedData.sections.output.counter.get(sectionId)
 
       sectionsCounter.set(sectionId, currentRepetition)
       sectionMarkCount++
 
-      if (currentRepetition !== lastRepetition) {
+      if (!sharedData.sections.output.counter.get(sectionId).keep.includes(currentRepetition)) {
         return ''
       }
 
