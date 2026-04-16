@@ -41,6 +41,10 @@ class Scripts {
               if (topLevelFunctions.includes('beforeRender')) {
                 script.shouldRunBeforeRender = true
               }
+
+              if (topLevelFunctions.includes('afterRender')) {
+                script.shouldRunAfterRender = true
+              }
             },
             executionFn: () => {},
             userCode: ''
@@ -120,10 +124,6 @@ class Scripts {
       throw this.reporter.createError(scriptExecResult.error.message, {
         weak: true
       })
-    }
-
-    if (scriptExecResult.shouldRunAfterRender) {
-      script.shouldRunAfterRender = true
     }
 
     if (scriptExecResult.requestCancel) {

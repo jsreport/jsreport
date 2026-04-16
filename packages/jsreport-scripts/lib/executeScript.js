@@ -103,7 +103,6 @@ module.exports = async function executeScript (reporter, { script, method, onBef
     }
 
     return {
-      shouldRunAfterRender: topLevelFunctions.afterRender != null,
       // we only propagate well known properties from the req executed in scripts
       // we also create new object that avoids passing a proxy object to rest of the
       // execution flow when script is running in in-process strategy
