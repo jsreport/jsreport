@@ -130,6 +130,9 @@ main()
 
 ## Changelog
 
+### 1.2.1
+- update deps to fix audit
+
 ### 1.2.0
 - add support for images
 - add indentation support (using `data-cell-indent` on cells)

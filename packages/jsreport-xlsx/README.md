@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.7.0
+- update deps to fix audit
+- improve performance of xlsx generation step for bigger xlsx templates
+
 ### 4.6.1
 - fix lazy formulas that are processed on the last part of rendering
 - fix engine cache not being used because part of the handlebars template was containing a dynamic value

@@ -40,12 +40,12 @@
     "p-map": "4.0.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.3.0",
+    "@jsreport/jsreport-assets": "4.3.1",
     "@jsreport/jsreport-authentication": "4.3.1",
     "@jsreport/jsreport-chrome-pdf": "4.4.0",
-    "@jsreport/jsreport-core": "4.9.0",
+    "@jsreport/jsreport-core": "4.10.0",
     "@jsreport/jsreport-data": "4.2.0",
-    "@jsreport/jsreport-express": "4.3.1",
+    "@jsreport/jsreport-express": "4.3.2",
     "@jsreport/studio-dev": "4.1.0",
     "mocha": "11.7.5",
     "puppeteer": "24.36.1",

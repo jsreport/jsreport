@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-licensing",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "jsreport extension for enterprise license verification ",
   "keywords": [
     "jsreport"
@@ -29,7 +29,7 @@
     "axios": "1.15.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.9.0",
+    "@jsreport/jsreport-core": "4.10.0",
     "@jsreport/studio-dev": "4.1.0",
     "mocha": "11.7.5",
     "nanoid": "3.3.8",

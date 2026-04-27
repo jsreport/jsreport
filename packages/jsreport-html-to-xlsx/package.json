@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-html-to-xlsx",
-  "version": "4.4.0",
+  "version": "4.4.1",
   "description": "jsreport recipe capable of converting html into excel",
   "keywords": [
     "jsreport",
@@ -34,8 +34,8 @@
     "test": "mocha test --timeout 8000 && standard"
   },
   "dependencies": {
-    "@jsreport/html-to-xlsx": "1.2.0",
-    "@jsreport/office": "4.2.0",
+    "@jsreport/html-to-xlsx": "1.2.1",
+    "@jsreport/office": "4.2.1",
     "chrome-page-eval": "1.4.0",
     "nanoid": "3.3.8",
     "node.extend.without.arrays": "1.1.6",
@@ -43,8 +43,8 @@
     "phantom-page-eval": "2.0.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.9.0",
-    "@jsreport/jsreport-handlebars": "4.1.0",
+    "@jsreport/jsreport-core": "4.10.0",
+    "@jsreport/jsreport-handlebars": "4.1.1",
     "@jsreport/studio-dev": "4.1.0",
     "cheerio-page-eval": "1.4.0",
     "handlebars": "4.7.9",

@@ -18,6 +18,10 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.4.2
+- update deps to fix audit
+- mitigate node24 deprecation warnings
+
 ### 4.4.1
 - update lodash, diff2html to fix audit
 

@@ -7,6 +7,9 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 4.1.1
+- update deps to fix audit
+
 ### 4.1.0
 - minimum node.js version is now `22.18.0`
 - fix visibilityPermissions not getting preserved after import

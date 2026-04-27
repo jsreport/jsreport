@@ -5,6 +5,9 @@ Some helpers for officed based jsreport recipes
 
 ## Changelog
 
+### 4.2.1
+- update deps to fix npm audit
+
 ### 4.2.0
 - update minimum nodejs to 22.18
 - update axios to fix audit

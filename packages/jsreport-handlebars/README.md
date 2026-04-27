@@ -7,6 +7,9 @@ See the docs https://jsreport.net/learn/handlebars
 
 ## Changelog
 
+### 4.1.1
+- update handlebars to fix audit
+
 ### 4.1.0
 - minimum node.js version is now `22.18.0`
 

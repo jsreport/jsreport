@@ -7,6 +7,9 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.4.1
+- update deps to fix audit
+
 ### 4.4.0
 - fix rendering in aws lambda (by avoiding using window-size launch args because it makes the process to not work in that environment)
 - add support for images

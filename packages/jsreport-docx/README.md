@@ -7,6 +7,10 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.10.2
+- update deps to fix audit
+- fix section breaks not working with loop
+
 ### 4.10.1
 - fix engine cache not being used because part of the handlebars template was containing a dynamic value
 

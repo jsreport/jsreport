@@ -282,6 +282,11 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.10.0
+
+- update deps fix audit
+- expose `structuredClone` in sandbox
+
 ### 4.9.0
 - changes to support async requests to get proper `reportTimeout` not counting the time the worker takes to to be ready
 
