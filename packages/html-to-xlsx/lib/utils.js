@@ -1,5 +1,8 @@
 const color = require('tinycolor2')
 const { parse: parseCssTransform } = require('transform-parser')
+const { customAlphabet } = require('nanoid')
+
+const nanoid = customAlphabet('0123456789abcdef', 32)
 
 const numFmtMap = Object.create(null)
 
@@ -223,6 +226,11 @@ function getPendingStylesAsCells (pendingCellStylesByRow) {
   return output.join('\n')
 }
 
+function uuidv4 () {
+  const id = nanoid()
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`
+}
+
 module.exports.sizePxToPt = sizePxToPt
 module.exports.parsePx = parsePx
 module.exports.parseTransform = parseTransform
@@ -231,3 +239,4 @@ module.exports.numFmtMap = numFmtMap
 module.exports.colorToArgb = colorToArgb
 module.exports.getBorder = getBorder
 module.exports.getPendingStylesAsCells = getPendingStylesAsCells
+module.exports.uuidv4 = uuidv4

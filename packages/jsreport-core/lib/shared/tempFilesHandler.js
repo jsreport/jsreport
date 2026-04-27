@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const fsAsync = require('fs/promises')
-const { v4: uuidv4 } = require('uuid')
+const uuidv4 = require('./generateUUID')
 
 module.exports.ensureTempDirectoryExists = async function (tempDirectory) {
   await fsAsync.mkdir(tempDirectory, {

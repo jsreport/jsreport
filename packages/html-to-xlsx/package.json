@@ -29,9 +29,9 @@
     "escape-string-regexp": "4.0.0",
     "excel-formula-tokenizer": "3.0.0",
     "moment": "2.29.4",
+    "nanoid": "3.3.8",
     "tinycolor2": "1.4.2",
-    "transform-parser": "1.0.1",
-    "uuid": "8.3.2"
+    "transform-parser": "1.0.1"
   },
   "devDependencies": {
     "@jsreport/office": "4.2.0",

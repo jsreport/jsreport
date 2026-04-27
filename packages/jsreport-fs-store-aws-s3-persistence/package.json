@@ -24,7 +24,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.850.0",
     "@aws-sdk/client-sqs": "3.848.0",
-    "uuid": "8.3.2"
+    "nanoid": "3.3.8"
   },
   "devDependencies": {
     "standard": "16.0.4"

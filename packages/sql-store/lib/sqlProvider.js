@@ -1,5 +1,7 @@
 const OdataSql = require('@jsreport/odata-to-sql')
-const { v4: uuidv4 } = require('uuid')
+const { customAlphabet } = require('nanoid')
+
+const nanoid = customAlphabet('0123456789abcdef', 32)
 
 class Cursor {
   constructor (entitySet, odataSql, executeQuery, query, fields, opts) {
@@ -44,6 +46,11 @@ class Cursor {
     this.query.$sort = Object.assign({}, this.query.$sort, h)
     return this
   }
+}
+
+function uuidv4 () {
+  const id = nanoid()
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`
 }
 
 module.exports = (options, dialect, executeQuery, transactionManager = {}) => ({

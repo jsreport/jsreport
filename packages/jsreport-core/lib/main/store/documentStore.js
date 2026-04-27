@@ -1,6 +1,6 @@
 const events = require('events')
 const { nanoid } = require('nanoid')
-const { v4: uuidv4 } = require('uuid')
+const uuidv4 = require('../../shared/generateUUID')
 const createListenerCollection = require('../../shared/listenerCollection')
 const { resolvePropDefinition, typeDefToJSONSchema } = require('./typeUtils')
 const { findReferencePropertiesInType, findLinkedEntitiesForReferenceValue, existsReferenceValue, updateReferenceValue } = require('./referenceUtils')

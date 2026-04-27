@@ -2,10 +2,10 @@
 
 const path = require('path')
 const fs = require('fs')
-const { v4: uuidv4 } = require('uuid')
 const tmpDir = require('os').tmpdir()
 const stylesMap = require('./stylesMap')
 const tableToXlsx = require('./tableToXlsx')
+const { uuidv4 } = require('./utils')
 
 const extractTableScriptFn = fs.readFileSync(
   path.join(__dirname, './scripts/conversionScript.js')

@@ -1,6 +1,5 @@
 const path = require('path')
 const fs = require('fs')
-const { v4: uuidv4 } = require('uuid')
 const moment = require('moment')
 const ExcelJS = require('@jsreport/exceljs')
 const { tokenize } = require('excel-formula-tokenizer')
@@ -23,7 +22,7 @@ async function tableToXlsx (options, tables, xlsxTemplateBuf, id) {
   const outputFilePath = path.join(options.tmpDir, `${id}.xlsx`)
 
   const writeTempFileStream = async (filenameOrFn) => {
-    const filenameResult = typeof filenameOrFn === 'function' ? filenameOrFn(uuidv4()) : filenameOrFn
+    const filenameResult = typeof filenameOrFn === 'function' ? filenameOrFn(utils.uuidv4()) : filenameOrFn
 
     if (filenameResult == null || filenameResult === '') {
       throw new Error('No valid filename')

@@ -1,10 +1,12 @@
 const JsReport = require('@jsreport/jsreport-core')
 const http = require('http')
 const fs = require('fs')
-const { v4: uuidv4 } = require('uuid')
+const { customAlphabet } = require('nanoid')
 const path = require('path')
 const should = require('should')
 const licenseJsonFilePath = path.join(__dirname, '../', 'jsreport.license.json')
+
+const nanoid = customAlphabet('0123456789abcdef', 32)
 
 process.env.LICENSING_SERVER = 'http://localhost:6000'
 process.env.LICENSING_USAGE_CHECK_INTERVAL = 100
@@ -400,3 +402,8 @@ describe('licensing', () => {
     attempt.should.be.eql(1)
   })
 })
+
+function uuidv4 () {
+  const id = nanoid()
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`
+}

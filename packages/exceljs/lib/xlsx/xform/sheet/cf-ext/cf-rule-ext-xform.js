@@ -1,9 +1,11 @@
-const {v4: uuidv4} = require('uuid');
+const {customAlphabet} = require('nanoid');
 const BaseXform = require('../../base-xform');
 const CompositeXform = require('../../composite-xform');
 
 const DatabarExtXform = require('./databar-ext-xform');
 const IconSetExtXform = require('./icon-set-ext-xform');
+
+const nanoid = customAlphabet('0123456789abcdef', 32);
 
 const extIcons = {
   '3Triangles': true,
@@ -93,6 +95,11 @@ class CfRuleExtXform extends CompositeXform {
   onParserClose(name, parser) {
     Object.assign(this.model, parser.model);
   }
+}
+
+function uuidv4() {
+  const id = nanoid();
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
 }
 
 module.exports = CfRuleExtXform;

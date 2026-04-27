@@ -5,7 +5,8 @@
  * auth tokens.
  */
 
-const { v4: uuidv4 } = require('uuid')
+const { customAlphabet } = require('nanoid')
+const nanoid = customAlphabet('0123456789abcdef', 32)
 
 async function generateSharingToken (reporter, shortid, req) {
   const template = await reporter.documentStore.collection('templates').findOne({ shortid: shortid }, req)
@@ -53,6 +54,11 @@ function routes (reporter) {
       }).catch(next)
     })
   }
+}
+
+function uuidv4 () {
+  const id = nanoid()
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`
 }
 
 module.exports = (reporter, definition) => {

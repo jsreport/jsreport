@@ -5,7 +5,10 @@ const {
   CopyObjectCommand, PutObjectCommand, DeleteObjectsCommand, HeadBucketCommand
 } = require('@aws-sdk/client-s3')
 const { SQSClient, CreateQueueCommand, SendMessageCommand, ReceiveMessageCommand, ChangeMessageVisibilityCommand, DeleteMessageCommand } = require('@aws-sdk/client-sqs')
-const { v4: uuidv4 } = require('uuid')
+const { customAlphabet } = require('nanoid')
+
+const nanoid = customAlphabet('0123456789abcdef', 32)
+
 const instanceId = uuidv4()
 
 module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock = {}, s3Options = {} }) => {
@@ -342,4 +345,9 @@ async function getBucketRegion (bucket, s3Options = {}) {
     region = 'eu-west-1' // legacy EU code
   }
   return region
+}
+
+function uuidv4 () {
+  const id = nanoid()
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`
 }

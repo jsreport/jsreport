@@ -44,7 +44,7 @@ module.exports = (reporter, definition) => {
 
   reporter.options.sandbox.nativeModules.push({
     globalVariableName: 'uuid',
-    module: require.resolve('uuid')
+    module: path.join(__dirname, '../../lib/shared/generateUUID.js')
   })
 
   reporter.options.sandbox.modules.push({
