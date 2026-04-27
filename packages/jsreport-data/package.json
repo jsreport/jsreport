@@ -32,7 +32,7 @@
     "@jsreport/jsreport-core": "4.9.0",
     "@jsreport/jsreport-handlebars": "4.1.0",
     "@jsreport/studio-dev": "4.1.0",
-    "handlebars": "4.7.7",
+    "handlebars": "4.7.9",
     "in-publish": "2.0.1",
     "mocha": "11.7.5",
     "should": "13.2.3",

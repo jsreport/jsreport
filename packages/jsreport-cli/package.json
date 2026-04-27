@@ -77,7 +77,7 @@
     "@jsreport/jsreport-handlebars": "4.1.0",
     "cross-env": "7.0.3",
     "execa": "1.0.0",
-    "handlebars": "4.7.7",
+    "handlebars": "4.7.9",
     "mkdirp": "0.5.5",
     "mocha": "11.7.5",
     "node.extend.without.arrays": "1.1.6",
