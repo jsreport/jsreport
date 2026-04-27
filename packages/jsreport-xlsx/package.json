@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@jsreport/office": "4.2.0",
-    "@xmldom/xmldom": "0.8.6",
+    "@xmldom/xmldom": "0.8.13",
     "html-entities": "2.4.0",
     "js-excel-date-convert": "1.0.2",
     "lodash": "4.17.23",

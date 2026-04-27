@@ -76,7 +76,7 @@
     "postversion": "git push --no-verify && git push --tags --no-verify"
   },
   "dependencies": {
-    "@xmldom/xmldom": "0.8.6",
+    "@xmldom/xmldom": "0.8.13",
     "archiver": "7.0.1",
     "dayjs": "^1.8.34",
     "fast-csv": "4.3.6",

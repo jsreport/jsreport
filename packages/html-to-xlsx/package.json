@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@jsreport/office": "4.2.0",
-    "@xmldom/xmldom": "0.8.6",
+    "@xmldom/xmldom": "0.8.13",
     "chrome-page-eval": "1.4.0",
     "mocha": "11.7.5",
     "phantom-page-eval": "2.0.1",
