@@ -42,7 +42,7 @@
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.3.1",
     "@jsreport/jsreport-authentication": "4.3.1",
-    "@jsreport/jsreport-chrome-pdf": "4.4.0",
+    "@jsreport/jsreport-chrome-pdf": "4.4.1",
     "@jsreport/jsreport-core": "4.10.0",
     "@jsreport/jsreport-data": "4.2.0",
     "@jsreport/jsreport-express": "4.3.2",

@@ -29,6 +29,9 @@ chrome-image
 
 ## Changelog
 
+### 4.4.1
+- fix getting real object values in latest puppeteer (`24.42.0`)
+
 ### 4.4.0
 - update Chrome to `142.0.7444.175`
 - minimum node.js version is now `22.18.0`

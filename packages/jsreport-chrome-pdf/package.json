@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-chrome-pdf",
-  "version": "4.4.0",
+  "version": "4.4.1",
   "description": "jsreport recipe which is rendering pdf from html using headless chrome",
   "keywords": [
     "jsreport",
