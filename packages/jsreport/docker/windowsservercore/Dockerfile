@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2025
 EXPOSE 5488
 
 # install nodejs
-ADD https://nodejs.org/dist/v22.17.1/node-v22.17.1-x64.msi nodejs.msi
+ADD https://nodejs.org/dist/v22.18.0/node-v22.18.0-x64.msi nodejs.msi
 RUN msiexec.exe /q /i nodejs.msi
 RUN del /f nodejs.msi
 
