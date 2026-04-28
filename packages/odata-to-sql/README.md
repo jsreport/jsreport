@@ -4,6 +4,9 @@ Generate SQL from OData in node.js
 
 ## Changelog
 
+### 0.14.3
+- update deps to fix audit
+
 ### 0.14.2
 - update lodash dep to fix audit
 

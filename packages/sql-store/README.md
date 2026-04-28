@@ -4,6 +4,9 @@
 
 ## Changelog
 
+### 3.2.3
+- update deps to fix audit
+
 ### 3.2.2
 
 - update `@jsreport/odata-to-sql` to fix audit
