@@ -89,10 +89,9 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, content, strategy, time
     page.on('console', (m) => {
       const type = m.type()
       const text = m.text()
+      const args = m.args()
 
-      if (text.includes('JSHandle@object')) {
-        const args = m.args()
-
+      if (text.includes('JSHandle@object') || args.map((arg) => arg.toString()).includes('JSHandle@object')) {
         const argPromises = args.map((argHandle) => {
           return argHandle.jsonValue()
         })
