@@ -28,9 +28,9 @@ RUN apt-get update && \
     # this condition is useful when the registry contain different latest versions
     # per architecture, if the versions match then just use the same version number on both paths
     if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    apt install -y chromium=144.0.7559.109-1xtradeb1.2404.1; \
+    apt install -y chromium=147.0.7727.116-1xtradeb1.2404.1; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    apt install -y chromium=144.0.7559.109-1xtradeb1.2404.1; \
+    apt install -y chromium=147.0.7727.116-1xtradeb1.2404.1; \
     fi && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
@@ -83,14 +83,14 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.1.0 \
     @jsreport/jsreport-pug@5.1.0 \
     @jsreport/jsreport-aws-s3-storage@4.2.0 \
     @jsreport/jsreport-azure-storage@4.2.0 \
-    @jsreport/jsreport-docxtemplater@4.2.0 \
-    @jsreport/jsreport-mssql-store@4.2.1 \
-    @jsreport/jsreport-postgres-store@4.3.1 \
+    @jsreport/jsreport-docxtemplater@4.2.1 \
+    @jsreport/jsreport-mssql-store@4.2.2 \
+    @jsreport/jsreport-postgres-store@4.3.2 \
     @jsreport/jsreport-mongodb-store@4.2.0 \
     @jsreport/jsreport-office-password@4.2.0 \
     @jsreport/jsreport-html-to-text@4.3.0 \
-    @jsreport/jsreport-html-embedded-in-docx@4.2.0 \
-    @jsreport/jsreport-fs-store-aws-s3-persistence@4.2.0 \
+    @jsreport/jsreport-html-embedded-in-docx@4.2.1 \
+    @jsreport/jsreport-fs-store-aws-s3-persistence@4.2.1 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@4.2.0 \
     @jsreport/jsreport-unoconv@4.2.0 \
     @jsreport/jsreport-libreoffice@1.1.0 \
@@ -100,7 +100,7 @@ COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js inst
 COPY ./packages/jsreport/docker/full/build-oracledb-src.sh build-oracledb-src.sh
 # script created with steps recommend here from oracledb repository
 # https://github.com/oracle/node-oracledb/issues/1382#issuecomment-849157748
-RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --storeVersion=4.2.1
+RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --storeVersion=4.2.2
 
 RUN npm cache clean -f && rm -rf /tmp/*
 
