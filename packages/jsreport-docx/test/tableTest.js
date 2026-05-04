@@ -603,6 +603,53 @@ describe('docx table', () => {
     }
   })
 
+  it('table with custom col width should not crash when w:tcPr has no w:tcW (e.g. Google Docs export)', async () => {
+    // Regression test: w:tcW is optional per OOXML spec. Google Docs DOCX exports
+    // omit it because cell widths are inherited from w:tblGrid. Before the fix,
+    // this caused a TypeError in preprocess/table.js when the colsWidth helper
+    // parameter was used.
+    const people = [
+      {
+        name: 'Jan',
+        email: 'jan.blaha@foo.com'
+      },
+      {
+        name: 'Boris',
+        email: 'boris@foo.met'
+      }
+    ]
+
+    const colsWidth = ['100px']
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'table-custom-col-width-no-tcw.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        people,
+        colsWidth
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('Jan')
+    text.should.containEql('Boris')
+
+    // The output should be a valid DOCX with no w:tcW (since the template had none)
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const cellEls = nodeListToArray(doc.getElementsByTagName('w:tc'))
+    should(cellEls.length).be.greaterThan(0)
+  })
+
   it('table with custom col width (single col configured) and horizontal merged cells', async () => {
     const people = [
       {

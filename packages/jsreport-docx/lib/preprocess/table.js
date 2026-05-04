@@ -322,11 +322,20 @@ module.exports = (files) => {
 
         for (const tableCellEl of tableCellEls) {
           const tableCellPrEl = nodeListToArray(tableCellEl.childNodes).find((node) => node.nodeName === 'w:tcPr')
-          const tableCellWidthEl = nodeListToArray(tableCellPrEl.childNodes).find((node) => node.nodeName === 'w:tcW')
-          const gridSpanEl = nodeListToArray(tableCellPrEl.childNodes).find((node) => node.nodeName === 'w:gridSpan')
+          // w:tcPr is optional per OOXML spec; w:tcW inside it is also optional
+          // (e.g. Google Docs DOCX exports omit w:tcW because cell widths are
+          // inherited from w:tblGrid). Skip width templating when these are absent.
+          const tableCellWidthEl = tableCellPrEl != null
+            ? nodeListToArray(tableCellPrEl.childNodes).find((node) => node.nodeName === 'w:tcW')
+            : null
+          const gridSpanEl = tableCellPrEl != null
+            ? nodeListToArray(tableCellPrEl.childNodes).find((node) => node.nodeName === 'w:gridSpan')
+            : null
 
-          tableCellWidthEl.setAttribute('w:w', `{{docxTable check="cellWidthValue" o=${getTableOrCellWidthInDXA(tableCellWidthEl.getAttribute('w:w'))}}}`)
-          tableCellWidthEl.setAttribute('w:type', `{{docxTable check="cellWidthType" o="${tableCellWidthEl.getAttribute('w:type')}"}}`)
+          if (tableCellWidthEl != null) {
+            tableCellWidthEl.setAttribute('w:w', `{{docxTable check="cellWidthValue" o=${getTableOrCellWidthInDXA(tableCellWidthEl.getAttribute('w:w'))}}}`)
+            tableCellWidthEl.setAttribute('w:type', `{{docxTable check="cellWidthType" o="${tableCellWidthEl.getAttribute('w:type')}"}}`)
+          }
 
           const extraAttrs = ['check="cell"']
 
