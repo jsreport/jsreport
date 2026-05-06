@@ -7,7 +7,7 @@ const removeBlockHelper = require('./removeBlockHelper')
 const table = require('./table')
 const clearOriginalSlideNumber = require('./clearOriginalSlideNumber')
 
-module.exports = async (files) => {
+module.exports = async (files, sharedData) => {
   slides(files)
   style(files)
   await image(files)

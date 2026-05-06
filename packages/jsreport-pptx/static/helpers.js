@@ -1,6 +1,37 @@
 /* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
+function pptxContext (options) {
+  const Handlebars = require('handlebars')
+  let data
+
+  const { type: contextType, path: pptxFilePath } = options.hash
+
+  if (contextType === 'global') {
+    const jsreport = require('jsreport-proxy')
+    data = Handlebars.createFrame(options.data)
+
+    data.evalId = jsreport.req.context.__pptxSharedData.evalId
+    data.newFiles = new Map()
+  } else if (contextType === 'slide') {
+    data = Handlebars.createFrame(options.data)
+  }
+
+  if (data == null) {
+    throw new Error(`data was not initialized in "${contextType}"`)
+  }
+
+  if (contextType !== 'global' && pptxFilePath != null) {
+    data.pptxFilePath = pptxFilePath
+  }
+
+  const context = { data }
+
+  const output = options.fn(this, context)
+
+  return output
+}
+
 function pptxList (data, options) {
   const Handlebars = require('handlebars')
   return Handlebars.helpers.each(data, options)
@@ -72,20 +103,22 @@ function pptxTable (data, options) {
     if (
       optionsToUse.hash.check === 'grid'
     ) {
+      const jsreport = require('jsreport-proxy')
       const data = Handlebars.createFrame(optionsToUse.data)
       data.currentCol = { index: null }
-      data.explicitColsWidth = optionsToUse.hash.colsWidth ?? []
-      data.explicitColsWidth = { values: data.explicitColsWidth, customized: optionsToUse.hash.colsWidth != null }
-      const pptxProcessTableGrid = require('pptxProcessTableGrid')
+      data.colsWidth = optionsToUse.hash.colsWidth ?? []
+      data.colsWidth = { values: data.colsWidth, customized: optionsToUse.hash.colsWidth != null }
+      const processTableGrid = jsreport.req.context.__pptxSharedData.processTableGrid
       const tableGridXMLStr = optionsToUse.fn(this, { data })
-      return pptxProcessTableGrid(tableGridXMLStr, data.explicitColsWidth.customized)
+      return processTableGrid(tableGridXMLStr, data.colsWidth.customized)
     }
 
     if (
       optionsToUse.hash.check === 'colWidth'
     ) {
+      const jsreport = require('jsreport-proxy')
       const currentCol = optionsToUse.data.currentCol
-      const colsWidth = optionsToUse.data.explicitColsWidth?.values
+      const colsWidth = optionsToUse.data.colsWidth?.values
       const originalWidth = optionsToUse.hash.o
 
       if (currentCol == null) {
@@ -93,7 +126,7 @@ function pptxTable (data, options) {
       }
 
       if (colsWidth == null) {
-        throw new Error('pptxTable check="colWidth" helper invalid usage, explicitColsWidth was not found')
+        throw new Error('pptxTable check="colWidth" helper invalid usage, colsWidth was not found')
       }
 
       if (currentCol.index == null) {
@@ -105,7 +138,7 @@ function pptxTable (data, options) {
       const currentColIdx = currentCol.index
 
       if (colsWidth[currentColIdx] != null) {
-        const getColWidth = require('pptxGetColWidth')
+        const getColWidth = jsreport.req.context.__pptxSharedData.getColWidth
         const colWidth = getColWidth(colsWidth[currentColIdx])
 
         if (colWidth == null) {
@@ -442,4 +475,39 @@ function pptxChart (options) {
   }
 
   return new Handlebars.SafeString('$pptxChart' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
+}
+
+async function pptxSData (data, options) {
+  const Handlebars = require('handlebars')
+  const optionsToUse = options == null ? data : options
+  const type = optionsToUse.hash.type
+
+  if (type == null) {
+    throw new Error('pptxSData helper type arg is required')
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'newFiles'
+  ) {
+    const jsreport = require('jsreport-proxy')
+
+    await jsreport.templatingEngines.waitForAsyncHelpers()
+
+    const output = []
+
+    for (const [filePath, content] of optionsToUse.data.newFiles) {
+      output.push(`${filePath}\n${content.toString('base64')}`)
+    }
+
+    const separator = '$$$'
+
+    if (output.length === 0) {
+      return ''
+    }
+
+    return new Handlebars.SafeString(`${separator}pptxFile${separator}\n${output.join(`${separator}pptxFile${separator}\n`)}`)
+  }
+
+  throw new Error(`invalid usage of pptxSData helper${type != null ? ` (type: ${type})` : ''}`)
 }

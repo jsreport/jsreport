@@ -1,11 +1,11 @@
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
-const { decode } = require('html-entities')
+const { customAlphabet } = require('nanoid')
 const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const preprocess = require('./preprocess/preprocess.js')
 const postprocess = require('./postprocess/postprocess.js')
 const { contentIsXML } = require('./utils.js')
-
-const decodeXML = (str) => decode(str, { level: 'xml' })
+const decodeXML = require('./decodeXML')
+const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 
 module.exports = async (reporter, inputs, req) => {
   const { pptxTemplateContent, outputPath } = inputs
@@ -28,58 +28,99 @@ module.exports = async (reporter, inputs, req) => {
       }
     }
 
-    await preprocess(files)
+    const sharedData = {
+      evalId: generateRandomId(),
+      // expose options as a getter fn because we dont want user to be able to alter
+      // these values
+      options: (configName) => {
+        return null
+      }
+    }
+
+    await preprocess(files, sharedData)
 
     const filesToRender = files.filter(f => contentIsXML(f.data))
+    const filesSeparator = '$$$pptxFile$$$'
 
-    const contentToRender = filesToRender.map(f => {
-      const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
+    const normalizeAttributeAndTextNode = (node) => {
+      if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
         // we need to decode the xml entities for the attributes for handlebars to work ok
-        if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
-          const str = new XMLSerializer().serializeToString(node)
-          return decodeXML(str)
-        } else if (
-          // we need to decode the xml entities in text nodes for handlebars to work ok with partials
-          node.nodeType === 3 && node.nodeValue &&
-          (node.nodeValue.includes('{{>') || node.nodeValue.includes('{{#>'))
-        ) {
-          const str = new XMLSerializer().serializeToString(node)
+        const str = new XMLSerializer().serializeToString(node)
+        return decodeXML(str)
+      } else if (
+        // we need to decode the xml entities in text nodes for handlebars to work ok with partials
+        node.nodeType === 3 && node.nodeValue &&
+        (node.nodeValue.includes('{{>') || node.nodeValue.includes('{{#>'))
+      ) {
+        const str = new XMLSerializer().serializeToString(node)
 
-          return str.replace(/{{#?&gt;/g, (m) => {
-            return decodeXML(m)
-          })
-        }
-
-        return node
-      })
-
-      return xmlStr.replace(/<pptxRemove>/g, '').replace(/<\/pptxRemove>/g, '')
-    }).join('$$$pptxFile$$$')
-
-    reporter.logger.debug('Starting child request to render pptx dynamic parts', req)
-
-    const res = await reporter.render({
-      template: {
-        content: contentToRender,
-        engine: req.template.engine,
-        recipe: 'html',
-        helpers: req.template.helpers
+        return str.replace(/{{#?&gt;/g, (m) => {
+          return decodeXML(m)
+        })
       }
+
+      return node
+    }
+
+    let contentToRender = filesToRender.map(f => {
+      const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, normalizeAttributeAndTextNode)
+
+      return xmlStr.replace(/<\/?pptxRemove>/g, '')
+    }).join(filesSeparator)
+
+    contentToRender = `{{#pptxContext type='global'}}\n${contentToRender}\n{{pptxSData type='newFiles'}}{{/pptxContext}}`
+
+    reporter.logger.debug('Executing template evaluation for pptx dynamic parts', req)
+
+    req.context.__pptxSharedData = sharedData
+
+    sharedData.getColWidth = function getColWidth (...args) {
+      const getColWidth = require('./getColWidth')
+      return getColWidth(...args)
+    }
+
+    sharedData.processTableGrid = function processTableGrid (...args) {
+      const processTableGrid = require('./processTableGrid')
+      return processTableGrid(...args)
+    }
+
+    const newContent = await reporter.templatingEngines.evaluate({
+      engine: req.template.engine,
+      content: contentToRender,
+      helpers: req.template.helpers,
+      data: req.data
+    }, {
+      entity: req.template,
+      entitySet: 'templates'
     }, req)
 
-    const newContent = await res.output.getBuffer()
-
-    // we remove NUL, VERTICAL TAB unicode characters, which are characters that are illegal in XML.
+    // we remove NUL, VERTICAL TAB unicode characters, which are characters that are illegal in XML
     // NOTE: we should likely find a way to remove illegal characters more generally, using some kind of unicode ranges
     // eslint-disable-next-line no-control-regex
-    const contents = newContent.toString().replace(/\u0000|\u000b/g, '').split('$$$pptxFile$$$')
+    const contents = newContent.toString().replace(/\u0000|\u000b/g, '').split(filesSeparator)
 
     for (let i = 0; i < filesToRender.length; i++) {
       filesToRender[i].data = contents[i]
       filesToRender[i].doc = new DOMParser().parseFromString(contents[i])
     }
 
-    await postprocess(files)
+    // if these are any new files generated during the render
+    for (let i = filesToRender.length; i < contents.length; i++) {
+      const info = contents[i]
+      const separator = info.indexOf('\n')
+      const filePath = info.slice(0, separator)
+      const content = Buffer.from(info.slice(separator + 1), 'base64')
+
+      files.push({
+        path: filePath,
+        data: content
+      })
+    }
+
+    await postprocess(files, sharedData)
+
+    // we dont want the shared data live longer on the request
+    delete req.context.__pptxSharedData
 
     for (const f of files) {
       let shouldSerializeFromDoc
@@ -94,7 +135,7 @@ module.exports = async (reporter, inputs, req) => {
         shouldSerializeFromDoc = f.serializeFromDoc === true
       }
 
-      if (shouldSerializeFromDoc) {
+      if (shouldSerializeFromDoc && f.doc != null) {
         f.data = Buffer.from(new XMLSerializer().serializeToString(f.doc))
       }
     }

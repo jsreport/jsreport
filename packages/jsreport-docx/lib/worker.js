@@ -12,14 +12,12 @@ module.exports = (reporter, definition) => {
     } catch {}
   }
 
-  let helpersScript
-
   reporter.extensionsManager.recipes.push({
     name: 'docx',
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
-  reporter.beforeRenderListeners.insert({ before: 'templates' }, 'docx', (req) => {
+  reporter.beforeRenderListeners.insert({ before: 'templates' }, definition.name, (req) => {
     if (req.template.recipe === 'docx' && !req.template.name && !req.template.shortid && !req.template.content) {
       // templates extension otherwise complains that the template is empty
       // but that is fine for this recipe
@@ -27,11 +25,13 @@ module.exports = (reporter, definition) => {
     }
   })
 
-  reporter.registerHelpersListeners.add('docx', async () => {
-    return helpersScript
+  let helpersScript
+
+  reporter.initializeListeners.add(definition.name, async () => {
+    helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 
-  reporter.initializeListeners.add('docx', async () => {
-    helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
+  reporter.registerHelpersListeners.add(definition.name, async () => {
+    return helpersScript
   })
 }

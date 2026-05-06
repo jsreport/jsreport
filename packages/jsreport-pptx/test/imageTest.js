@@ -76,6 +76,7 @@ describe('pptx image', () => {
 
     reporter.tests.beforeRenderEval((req, res, { require }) => {
       require('nock')('https://some-server.com')
+        .persist()
         .get('/some-image.png')
         .replyWithFile(200, req.data.imagePath, {
           'content-type': 'image/png'

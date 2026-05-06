@@ -6,7 +6,7 @@ const link = require('./link')
 const chart = require('./chart')
 const style = require('./style')
 
-module.exports = (files) => {
+module.exports = (files, sharedData) => {
   concatTags(files)
   slides(files)
   chart(files)

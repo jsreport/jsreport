@@ -12,16 +12,6 @@ module.exports = (reporter, definition) => {
     } catch {}
   }
 
-  reporter.options.sandbox.modules.push({
-    alias: 'pptxGetColWidth',
-    path: path.join(__dirname, './getColWidth.js')
-  })
-
-  reporter.options.sandbox.modules.push({
-    alias: 'pptxProcessTableGrid',
-    path: path.join(__dirname, './processTableGrid.js')
-  })
-
   reporter.extensionsManager.recipes.push({
     name: 'pptx',
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)

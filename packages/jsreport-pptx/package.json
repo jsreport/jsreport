@@ -39,7 +39,8 @@
     "html-entities": "2.4.0",
     "image-size": "2.0.2",
     "js-excel-date-convert": "1.0.2",
-    "moment": "2.29.4"
+    "moment": "2.29.4",
+    "nanoid": "3.3.8"
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.3.1",

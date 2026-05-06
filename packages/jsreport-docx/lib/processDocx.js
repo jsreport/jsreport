@@ -132,7 +132,7 @@ module.exports = async (reporter, inputs, req) => {
     lineToXmlFileMap.set(previousEndLine + 1, '<docxContext global end>')
     contentToRender = `{{#docxContext type='global'}}\n${contentToRender}\n{{docxSData type='newFiles'}}{{/docxContext}}`
 
-    reporter.logger.debug('Starting child request to render docx dynamic parts', req)
+    reporter.logger.debug('Executing template evaluation for docx dynamic parts', req)
 
     let newContent
 
