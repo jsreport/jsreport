@@ -70,7 +70,7 @@ module.exports = async function response ({
       // axios by default has no limits but there is a bug
       // https://github.com/axios/axios/issues/1362 (when following redirects) in
       // which the default limit is not taking into account, so we set it explicitly
-      maxContentLength: Infinity
+      maxContentLength: -1
     })
   } catch (e) {
     let message = `${officeDocumentType} file upload to ${targetPublicUri} failed.`

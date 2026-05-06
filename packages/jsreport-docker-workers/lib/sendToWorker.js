@@ -62,8 +62,8 @@ async function _sendToWorker (url, _data, { executeMain, reporter, timeout, time
         const requestConfig = {
           method: 'POST',
           url,
-          maxContentLength: Infinity,
-          maxBodyLength: Infinity,
+          maxContentLength: -1,
+          maxBodyLength: -1,
           responseType: 'stream',
           transformResponse: [data => data],
           headers: {

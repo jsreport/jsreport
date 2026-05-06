@@ -49,8 +49,8 @@ describe('worker', () => {
     await axios({
       method: 'POST',
       url: 'http://localhost:3000',
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
+      maxContentLength: -1,
+      maxBodyLength: -1,
       responseType: 'text',
       transformResponse: [data => data],
       headers: {
@@ -154,8 +154,8 @@ describe('worker with small timeout', () => {
     await axios({
       method: 'POST',
       url: 'http://localhost:3000',
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
+      maxContentLength: -1,
+      maxBodyLength: -1,
       responseType: 'text',
       transformResponse: [data => data],
       headers: {

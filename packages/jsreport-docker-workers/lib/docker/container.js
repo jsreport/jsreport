@@ -159,8 +159,8 @@ module.exports = class Container {
       await axios({
         method: 'POST',
         url: this.url,
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity,
+        maxContentLength: -1,
+        maxBodyLength: -1,
         responseType: 'text',
         transformResponse: [data => data],
         headers: {

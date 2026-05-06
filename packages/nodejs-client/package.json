@@ -36,7 +36,7 @@
   "engines": {
     "node": ">=22.18"
   },
-  "licence": "MIT",
+  "license": "MIT",
   "standard": {
     "env": {
       "node": true,
