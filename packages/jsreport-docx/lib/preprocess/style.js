@@ -18,16 +18,17 @@ const docxStyleCallRegExp = /{{#docxStyle [^{}]{0,500}}}/
 // and want that if possible {{#docxSData type='styles'}} to be inserted as wrapper of table
 const validParents = ['w:p', 'wps:wsp', 'w:tc', 'w:tr', 'w:tbl']
 
+const startStyleCall = '{{#docxStyle'
+const endStyleCall = '{{/docxStyle}}'
+
 module.exports = (files) => {
   let styleIdCounter = 1
-  const startStyleCall = '{{#docxStyle'
-  const endStyleCall = '{{/docxStyle}}'
 
   for (const f of files.filter(f => f.path.endsWith('.xml'))) {
     const doc = f.doc
 
     const textElementsWithDocxStyle = nodeListToArray(doc.getElementsByTagName('w:t')).filter((tEl) => {
-      return tEl.textContent.includes('{{#docxStyle') || tEl.textContent.includes('{{/docxStyle}}')
+      return tEl.textContent.includes(startStyleCall) || tEl.textContent.includes(endStyleCall)
     })
 
     if (textElementsWithDocxStyle.length === 0) {
@@ -121,8 +122,8 @@ function processStyleClosingTag (doc, opening, ending, docxStyleStartEl, docxSty
   const leftEndText = endingEl.textContent.slice(0, endIdx)
   const targetEndText = endingEl.textContent.slice(endIdx)
 
-  openingEl.textContent = leftStartText + targetStartText.replace(docxStyleCallRegExp, helperCall.replace('{{#docxStyle', `{{docxStyle id="${styleId}"`))
-  endingEl.textContent = leftEndText + targetEndText.replace('{{/docxStyle}}', '$docxStyleEnd')
+  openingEl.textContent = leftStartText + targetStartText.replace(docxStyleCallRegExp, helperCall.replace(startStyleCall, `{{docxStyle id="${styleId}"`))
+  endingEl.textContent = leftEndText + targetEndText.replace(endStyleCall, '$docxStyleEnd')
 
   if (!createStyleEnd) {
     return

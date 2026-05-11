@@ -376,12 +376,35 @@ function pptxTable (data, options) {
 function pptxStyle (options) {
   const Handlebars = require('handlebars')
 
+  const styleId = options.hash.id
   const textColor = options.hash.textColor || ''
   const backgroundColor = options.hash.backgroundColor || ''
+  const validTargets = ['text', 'paragraph', 'shape', 'cell', 'row']
+  const target = options.hash.target || 'text'
 
-  return new Handlebars.SafeString(
-    `<pptxStyle id="${options.hash.id}" textColor="${textColor}" backgroundColor="${backgroundColor}" />`
-  )
+  if (styleId == null) {
+    throw new Error('pptxStyle helper invalid usage, style id not found')
+  }
+
+  if (!validTargets.includes(target)) {
+    throw new Error(`pptxStyle helper "target" parameter must be any of these values: ${validTargets.join(', ')}, current: ${target}`)
+  }
+
+  if (options.data.styles != null) {
+    if (!options.data.styles.has(styleId)) {
+      options.data.styles.set(styleId, [])
+    }
+
+    const items = options.data.styles.get(styleId)
+
+    items.push({
+      textColor,
+      backgroundColor,
+      target
+    })
+  }
+
+  return new Handlebars.SafeString(`$pptxStyleStart${styleId}$`)
 }
 
 function pptxSlides (data, options) {
@@ -484,6 +507,24 @@ async function pptxSData (data, options) {
 
   if (type == null) {
     throw new Error('pptxSData helper type arg is required')
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'styles'
+  ) {
+    const jsreport = require('jsreport-proxy')
+    const newData = Handlebars.createFrame(optionsToUse.data)
+
+    newData.styles = new Map()
+
+    let result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
+
+    const processStyles = jsreport.req.context.__pptxSharedData.processStyles
+
+    result = processStyles(newData.styles, result)
+
+    return result
   }
 
   if (

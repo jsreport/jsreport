@@ -226,6 +226,48 @@ function findChildNode (nodeNameOrFn, targetNode, allNodes = false) {
   return allNodes ? result : result[0]
 }
 
+function findCommonParent (el, parentsHierarchy = []) {
+  if (el == null || parentsHierarchy.length === 0) {
+    return el
+  }
+
+  const validParents = [...parentsHierarchy].reverse()
+  const allParents = []
+
+  while (el.parentNode != null && el.parentNode.tagName !== null) {
+    allParents.push(el.parentNode)
+    el = el.parentNode
+  }
+
+  let matchEl
+
+  while (validParents.length > 0) {
+    matchEl = allParents.find((p) => p.tagName === validParents[0])
+
+    if (matchEl == null) {
+      validParents.shift()
+    } else {
+      break
+    }
+  }
+
+  return matchEl == null ? el.parentNode : matchEl
+}
+
+function processOpeningTag (doc, refElement, helperCall) {
+  const fakeElement = doc.createElement('pptxRemove')
+  fakeElement.textContent = helperCall
+  refElement.parentNode.insertBefore(fakeElement, refElement)
+  return fakeElement
+}
+
+function processClosingTag (doc, refElement, closeCall) {
+  const fakeElement = doc.createElement('pptxRemove')
+  fakeElement.textContent = closeCall
+  refElement.parentNode.insertBefore(fakeElement, refElement.nextSibling)
+  return fakeElement
+}
+
 function createNewRAndTextNode (textOrOptions, templateRNode, doc) {
   const text = typeof textOrOptions === 'string' ? textOrOptions : textOrOptions.text
   const attributes = typeof textOrOptions === 'string' ? {} : (textOrOptions.attributes || {})
@@ -409,4 +451,7 @@ module.exports.getChartEl = getChartEl
 module.exports.clearEl = clearEl
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
+module.exports.findCommonParent = findCommonParent
+module.exports.processOpeningTag = processOpeningTag
+module.exports.processClosingTag = processClosingTag
 module.exports.decodeURIComponentRecursive = decodeURIComponentRecursive

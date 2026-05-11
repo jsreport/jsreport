@@ -172,7 +172,7 @@ describe('pptx image', () => {
           )
         )
 
-        // 3cm defined in the docx
+        // 3cm defined in the pptx
         const targetImageSize = {
           width: unit === 'cm' ? cmToEMU(3) : pxToEMU(100),
           height: unit === 'cm' ? cmToEMU(3) : pxToEMU(100)
@@ -224,7 +224,7 @@ describe('pptx image', () => {
         )
 
         const targetImageSize = {
-          // 2cm defined in the docx
+          // 2cm defined in the pptx
           width: unit === 'cm' ? cmToEMU(2) : pxToEMU(100),
           // height is calculated automatically based on aspect ratio of image
           height:
@@ -284,7 +284,7 @@ describe('pptx image', () => {
             unit === 'cm'
               ? cmToEMU(7.777781879962101)
               : pxToEMU(194.4444094488189),
-          // 2cm defined in the docx
+          // 2cm defined in the pptx
           height: unit === 'cm' ? cmToEMU(2) : pxToEMU(50)
         }
 

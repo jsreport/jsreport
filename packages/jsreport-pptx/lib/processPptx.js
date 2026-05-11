@@ -79,6 +79,11 @@ module.exports = async (reporter, inputs, req) => {
       return getColWidth(...args)
     }
 
+    sharedData.processStyles = function processStyles (...args) {
+      const processStyles = require('./processStyles')
+      return processStyles(...args)
+    }
+
     sharedData.processTableGrid = function processTableGrid (...args) {
       const processTableGrid = require('./processTableGrid')
       return processTableGrid(...args)

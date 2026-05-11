@@ -1,4 +1,4 @@
-const { nodeListToArray } = require('../utils')
+const { nodeListToArray, processOpeningTag, processClosingTag } = require('../utils')
 const regexp = /{{#?pptxTable [^{}]{0,500}}}/
 
 // the same idea as list, check the docs there
@@ -15,7 +15,18 @@ module.exports = (files) => {
 
       if (el.textContent.includes('{{/pptxTable}}') && openTags.length > 0) {
         const tag = openTags.pop()
-        processClosingTag(doc, el, tag.mode === 'column')
+
+        el.textContent = el.textContent.replace('{{/pptxTable}}', '')
+
+        let refElement
+
+        if (tag.mode === 'column') {
+          refElement = el.parentNode.parentNode.parentNode.parentNode
+        } else {
+          refElement = el.parentNode.parentNode.parentNode.parentNode.parentNode
+        }
+
+        processClosingTag(doc, refElement, '{{/pptxTable}}')
       }
 
       if (
@@ -107,11 +118,12 @@ module.exports = (files) => {
         processOpeningTag(doc, cellNode, helperCall.replace('rows=', 'ignore='))
 
         if (!isBlock) {
-          processClosingTag(doc, cellNode)
+          processClosingTag(doc, cellNode, '{{/pptxTable}}')
         } else {
           if (el.textContent.includes('{{/pptxTable')) {
             openTags.pop()
-            processClosingTag(doc, el, true)
+            el.textContent = el.textContent.replace('{{/pptxTable}}', '')
+            processClosingTag(doc, el.parentNode.parentNode.parentNode.parentNode, '{{/pptxTable}}')
           }
 
           const clonedTextNodes = nodeListToArray(newRowNode.getElementsByTagName('a:t'))
@@ -126,12 +138,11 @@ module.exports = (files) => {
         // row template, handling the cells for the data values
         rowNode.parentNode.insertBefore(newRowNode, rowNode.nextSibling)
         const cellInNewRowNode = nodeListToArray(newRowNode.childNodes).find((node) => node.nodeName === 'a:tc')
-
         processOpeningTag(doc, cellInNewRowNode, helperCall.replace('rows=', 'ignore=').replace('columns=', 'ignore='))
-        processClosingTag(doc, cellInNewRowNode)
+        processClosingTag(doc, cellInNewRowNode, '{{/pptxTable}}')
 
         processOpeningTag(doc, newRowNode, helperCall)
-        processClosingTag(doc, newRowNode)
+        processClosingTag(doc, newRowNode, '{{/pptxTable}}')
 
         const tableGridNode = nodeListToArray(tableNode.childNodes).find((node) => node.nodeName === 'a:tblGrid')
         const tableGridColNodes = nodeListToArray(tableGridNode.getElementsByTagName('a:gridCol'))
@@ -144,7 +155,7 @@ module.exports = (files) => {
 
         // add loop for column definitions (pptx table requires this to show the newly created columns)
         processOpeningTag(doc, tableGridColNodes[0], helperCall.replace('rows=', 'ignore='))
-        processClosingTag(doc, tableGridColNodes[0])
+        processClosingTag(doc, tableGridColNodes[0], '{{/pptxTable}}')
       } else if (el.textContent.includes('{{#pptxTable')) {
         const helperCall = el.textContent.match(regexp)[0]
         const isVertical = el.textContent.includes('vertical=')
@@ -190,28 +201,49 @@ module.exports = (files) => {
           }
 
           // add loop for column definitions (pptx table requires this to show the newly created columns)
-          processOpeningTag(doc, tableGridColNodes[cellIndex], helperCall, isVertical)
-          processClosingTag(doc, tableGridColNodes[cellIndex], isVertical)
+          processOpeningTag(doc, tableGridColNodes[cellIndex], helperCall)
+          processClosingTag(doc, tableGridColNodes[cellIndex], '{{/pptxTable}}')
 
-          processOpeningTag(doc, el, helperCall, isVertical)
-          processClosingTag(doc, el, isVertical)
+          el.textContent = el.textContent.replace(regexp, '')
+
+          let refElementElForOpen = el
+
+          if (isVertical) {
+            refElementElForOpen = el.parentNode.parentNode.parentNode.parentNode
+          } else {
+            refElementElForOpen = el.parentNode.parentNode.parentNode.parentNode.parentNode
+          }
+
+          processOpeningTag(doc, refElementElForOpen, helperCall)
+
+          let refElementElForClose
+
+          if (isVertical) {
+            refElementElForClose = el.parentNode.parentNode.parentNode.parentNode
+          } else {
+            refElementElForClose = el.parentNode.parentNode.parentNode.parentNode.parentNode
+          }
+
+          processClosingTag(doc, refElementElForClose, '{{/pptxTable}}')
 
           for (const rowNode of affectedRows) {
             const cellNodes = nodeListToArray(rowNode.childNodes).filter((node) => node.nodeName === 'a:tc')
             const cellNode = cellNodes[cellIndex]
 
             if (cellNode) {
-              processOpeningTag(doc, cellNode, helperCall, isVertical)
-              processClosingTag(doc, cellNode, isVertical)
+              processOpeningTag(doc, cellNode, helperCall)
+              processClosingTag(doc, cellNode, '{{/pptxTable}}')
             }
           }
         } else {
-          processOpeningTag(doc, el, helperCall, isVertical)
+          el.textContent = el.textContent.replace(regexp, '')
+          processOpeningTag(doc, el.parentNode.parentNode.parentNode.parentNode.parentNode, helperCall)
         }
 
         if (isNormal && el.textContent.includes('{{/pptxTable')) {
           openTags.pop()
-          processClosingTag(doc, el)
+          el.textContent = el.textContent.replace('{{/pptxTable}}', '')
+          processClosingTag(doc, el.parentNode.parentNode.parentNode.parentNode.parentNode, '{{/pptxTable}}')
         }
       }
     }
@@ -284,59 +316,9 @@ module.exports = (files) => {
       }
 
       processOpeningTag(doc, tableGridEl, `{{#pptxTable ${extraAttrs.join(' ')}}}`)
-      processClosingTag(doc, tableGridEl)
+      processClosingTag(doc, tableGridEl, '{{/pptxTable}}')
     }
   }
-}
-
-function processOpeningTag (doc, el, helperCall, useColumnRef = false) {
-  if (el.nodeName === 'a:t') {
-    el.textContent = el.textContent.replace(regexp, '')
-  }
-
-  const fakeElement = doc.createElement('pptxRemove')
-
-  fakeElement.textContent = helperCall
-
-  let refElement
-
-  if (el.nodeName !== 'a:t') {
-    refElement = el
-  } else {
-    if (useColumnRef) {
-      // ref is the column a:tc
-      refElement = el.parentNode.parentNode.parentNode.parentNode
-    } else {
-      // ref is the row a:tr
-      refElement = el.parentNode.parentNode.parentNode.parentNode.parentNode
-    }
-  }
-
-  refElement.parentNode.insertBefore(fakeElement, refElement)
-}
-
-function processClosingTag (doc, el, useColumnRef = false) {
-  if (el.nodeName === 'a:t') {
-    el.textContent = el.textContent.replace('{{/pptxTable}}', '')
-  }
-
-  const fakeElement = doc.createElement('pptxRemove')
-
-  fakeElement.textContent = '{{/pptxTable}}'
-
-  let refElement
-
-  if (el.nodeName !== 'a:t') {
-    refElement = el
-  } else {
-    if (useColumnRef) {
-      refElement = el.parentNode.parentNode.parentNode.parentNode
-    } else {
-      refElement = el.parentNode.parentNode.parentNode.parentNode.parentNode
-    }
-  }
-
-  refElement.parentNode.insertBefore(fakeElement, refElement.nextSibling)
 }
 
 function getCellIndex (cellEl) {
