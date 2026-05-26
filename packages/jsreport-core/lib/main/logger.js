@@ -6,6 +6,7 @@ const Transport = require('winston-transport')
 const debug = require('debug')('jsreport')
 const createDefaultLoggerFormat = require('./createDefaultLoggerFormat')
 const createNormalizeMetaLoggerFormat = require('./createNormalizeMetaLoggerFormat')
+const { resolveFormat, loadCustomFormats } = require('./loggerFormats')
 const Request = require('./request')
 
 const defaultLoggerFormat = createDefaultLoggerFormat()
@@ -42,12 +43,19 @@ function configureLogger (logger, _transports) {
   const transports = _transports || {}
   const transportFormatMap = new WeakMap()
 
+  // load any user-defined custom formats from config (logger.formats: { name: { module: '...' } })
+  // safe to call repeatedly; returns an empty object if nothing is configured
+  const customFormats = loadCustomFormats(transports.formats)
+
   // we ensure we do .format cleanup on options first before checking if the logger
   // is configured or not, this ensure that options are properly cleaned up when
   // configureLogger is called more than once (like when execution cli commands from extensions)
   for (const [, transpOptions] of Object.entries(transports)) {
+    if (transpOptions == null || typeof transpOptions !== 'object' || Array.isArray(transpOptions)) {
+      continue
+    }
     if (transpOptions.format != null) {
-      transportFormatMap.set(transpOptions, transpOptions.format)
+      transportFormatMap.set(transpOptions, resolveFormat(transpOptions.format, customFormats))
       delete transpOptions.format
     }
   }
@@ -58,6 +66,16 @@ function configureLogger (logger, _transports) {
     return
   }
 
+  // apply a global logger-level format override (logger.format: 'json' | 'text' | <custom>)
+  // we keep normalizeMetaLoggerFormat in the pipeline so the format receives the same
+  // cleaned-up meta the built-in text format gets — keeps text and json output aligned
+  if (transports.format != null) {
+    logger.format = winston.format.combine(
+      normalizeMetaLoggerFormat(),
+      resolveFormat(transports.format, customFormats)
+    )
+  }
+
   const knownTransports = {
     debug: DebugTransport,
     console: winston.transports.Console,
@@ -66,10 +84,16 @@ function configureLogger (logger, _transports) {
   }
 
   const knownOptions = ['transport', 'module', 'enabled']
+  // top-level logger config keys that are not transports
+  const reservedTopLevelKeys = new Set(['format', 'formats', 'silent'])
   const transportsToAdd = []
 
   for (const [transpName, transpOptions] of Object.entries(transports)) {
     let transportModule
+
+    if (reservedTopLevelKeys.has(transpName)) {
+      continue
+    }
 
     if (!transpOptions || typeof transpOptions !== 'object' || Array.isArray(transpOptions)) {
       continue
