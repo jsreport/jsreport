@@ -1,7 +1,7 @@
 const fs = require('fs')
 const { customAlphabet } = require('nanoid')
-const { getImageSizeInEMU } = require('../imageUtils')
-const { nodeListToArray, findOrCreateChildNode, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
+const { getImageSizeInEMU } = require('../../imageUtils')
+const { nodeListToArray, findOrCreateChildNode, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../../utils')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 
 module.exports = function processImage (files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {

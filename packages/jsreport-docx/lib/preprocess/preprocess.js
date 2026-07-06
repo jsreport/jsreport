@@ -3,6 +3,7 @@ const concatTags = require('./concatTags')
 const context = require('./context')
 const sections = require('./sections')
 const bookmark = require('./bookmark')
+const createImage = require('./createImage')
 const drawingObject = require('./drawingObject')
 const list = require('./list')
 const raw = require('./raw')
@@ -18,7 +19,6 @@ const html = require('./html')
 const child = require('./child')
 
 module.exports = (files, sharedData) => {
-  base(files, sharedData)
   concatTags(files)
 
   const sectionsDetails = sections(files, sharedData)
@@ -31,8 +31,10 @@ module.exports = (files, sharedData) => {
     return acu
   }, [])
 
+  base(files, headerFooterRefs, sharedData)
   bookmark(files, headerFooterRefs)
   watermark(files, headerFooterRefs)
+  createImage(files, headerFooterRefs)
   drawingObject(files, headerFooterRefs)
   list(files)
   raw(files)

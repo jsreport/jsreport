@@ -1,5 +1,5 @@
 const path = require('path')
-const { nodeListToArray, getChartEl } = require('../utils')
+const { nodeListToArray, getChartEl } = require('../../utils')
 
 module.exports = function processChart (files, drawingEl, documentFile, relsDoc) {
   // drawing in docx is inline, this means that it seems not possible to

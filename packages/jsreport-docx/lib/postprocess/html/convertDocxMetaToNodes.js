@@ -9,7 +9,7 @@ const { getImageSizeInEMU } = require('../../imageUtils')
 const { nodeListToArray, clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP, ptToEOAP } = require('../../utils')
 const xmlTemplatesCache = new Map()
 
-module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode, numberingLock } = {}) {
+module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, sharedData, paragraphNode, numberingLock } = {}) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid conversion mode "${mode}"`)
   }
@@ -43,11 +43,6 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
   const listParagraphStyleIdCache = {}
   const numberingListsCache = new Map()
   const hyperlinkStyleIdCache = {}
-  let maxDocPrId
-
-  if (contentTypesFile.doc.documentElement.hasAttribute('drawingMaxDocPrId')) {
-    maxDocPrId = parseInt(contentTypesFile.doc.documentElement.getAttribute('drawingMaxDocPrId'), 10)
-  }
 
   let templateParagraphNode
 
@@ -722,10 +717,8 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       // we give as id the max id detected, we later modify this to the correct value
       // at the drawingObject post-processing
-      const imageId = maxDocPrId != null ? maxDocPrId + 1 : 1
+      const imageId = sharedData.idManagers.get('docPr').generate().id
       const imageName = `Picture ${imageId}`
-
-      maxDocPrId = imageId
 
       const imageMetaAttrs = {
         id: imageId,
@@ -862,10 +855,6 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
     } else {
       throw new Error(`Unsupported docx node "${currentDocxMeta.type}"`)
     }
-  }
-
-  if (maxDocPrId != null) {
-    contentTypesFile.doc.documentElement.setAttribute('drawingMaxDocPrId', maxDocPrId)
   }
 
   // comments are getting removed here as part of html content replacement,

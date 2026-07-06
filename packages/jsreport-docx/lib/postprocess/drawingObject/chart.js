@@ -2,7 +2,7 @@ const path = require('path')
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
-const { serializeXml, nodeListToArray, getChartEl, getNewRelIdFromBaseId, clearEl, findChildNode, findOrCreateChildNode } = require('../utils')
+const { serializeXml, nodeListToArray, getChartEl, getNewRelIdFromBaseId, clearEl, findChildNode, findOrCreateChildNode } = require('../../utils')
 
 module.exports = function processChart (files, referenceDrawingEl, relsDoc, originalChartsXMLMap, newRelIdCounterMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)

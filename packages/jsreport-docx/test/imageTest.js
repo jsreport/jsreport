@@ -34,143 +34,24 @@ describe('docx image', () => {
     }
   })
 
+  const targets = ['placeholder', 'create']
   // we are testing the formats we are sure it works because we have test them manually too,
   // however it is likely that other format of images that are not listed here also work
   const knownFormats = ['png', 'jpeg', 'svg']
 
+  const addTargetTitleSuffix = (title, target) => {
+    return target === 'create' ? `${title} (create)` : title
+  }
+
+  const addTargetFilenameSuffix = (filename, target) => {
+    return target === 'create' ? `${filename}-create` : filename
+  }
+
   knownFormats.forEach(format => {
     describe(`image format ${format}`, () => {
-      it('image', async () => {
-        const { imageBuf, imageExtension } = readImage(format, 'image')
-        const imageDimensions = imageSize(imageBuf)
-
-        const targetImageSize = {
-          width: pxToEMU(imageDimensions.width),
-          height: pxToEMU(imageDimensions.height)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'docx',
-            docx: {
-              templateAsset: {
-                content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
-              }
-            }
-          },
-          data: {
-            src: getImageDataUri(format, imageBuf)
-          }
-        })
-
-        const outputImageMeta = await getImageMeta(result.content)
-        const outputImageSize = outputImageMeta.size
-
-        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
-
-        // should preserve original image size by default
-        outputImageSize.width.should.be.eql(targetImageSize.width)
-        outputImageSize.height.should.be.eql(targetImageSize.height)
-
-        fs.writeFileSync(outputPath, result.content)
-      })
-
-      it('image from async result', async () => {
-        const { imageBuf, imageExtension } = readImage(format, 'image')
-        const imageDimensions = imageSize(imageBuf)
-
-        const targetImageSize = {
-          width: pxToEMU(imageDimensions.width),
-          height: pxToEMU(imageDimensions.height)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'docx',
-            docx: {
-              templateAsset: {
-                content: fs.readFileSync(path.join(docxDirPath, 'image-async.docx'))
-              }
-            },
-            helpers: `
-            function getImage() {
-              return new Promise((resolve) => resolve('${getImageDataUri(format, imageBuf)}') )
-            }
-            `
-          }
-        })
-
-        const outputImageMeta = await getImageMeta(result.content)
-        const outputImageSize = outputImageMeta.size
-
-        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
-
-        // should preserve original image size by default
-        outputImageSize.width.should.be.eql(targetImageSize.width)
-        outputImageSize.height.should.be.eql(targetImageSize.height)
-
-        fs.writeFileSync(outputPath, result.content)
-      })
-
-      it('image from custom loader function', async () => {
-        const { imageBuf, imagePath, imageExtension } = readImage(format, 'image')
-        const imageDimensions = imageSize(imageBuf)
-
-        const targetImageSize = {
-          width: pxToEMU(imageDimensions.width),
-          height: pxToEMU(imageDimensions.height)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'docx',
-            docx: {
-              templateAsset: {
-                content: fs.readFileSync(path.join(docxDirPath, 'image-with-loader.docx'))
-              }
-            },
-            helpers: `
-            function imageLoader(src) {
-              // a loader should always return a stream and type (extension or content type for image)
-              return function loader () {
-                const fs = require('fs')
-
-                // the idea here is that user can load the image from anywhere, user can use
-                // a custom http request library, load from fs or from S3, etc.
-                // the idea of allowing this is that user can still benefit from our
-                // parallel limits and logic of batching images on disk to prevent
-                // loading all images on memory and failing to render when using a lot of images
-                return new Promise((resolve) => resolve({
-                  type: '${format}',
-                  stream: fs.createReadStream(src)
-                }))
-              }
-            }
-            `
-          },
-          data: {
-            src: imagePath
-          }
-        })
-
-        const outputImageMeta = await getImageMeta(result.content)
-        const outputImageSize = outputImageMeta.size
-
-        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
-
-        // should preserve original image size by default
-        outputImageSize.width.should.be.eql(targetImageSize.width)
-        outputImageSize.height.should.be.eql(targetImageSize.height)
-
-        fs.writeFileSync(outputPath, result.content)
-      })
-
-      if (format === 'jpeg') {
-        it('image can render jpeg with CMYK color code', async () => {
-          const { imageBuf, imageExtension } = readImage(format, 'cmyk')
+      for (const target of targets) {
+        it(addTargetTitleSuffix('image', target), async () => {
+          const { imageBuf, imageExtension } = readImage(format, 'image')
           const imageDimensions = imageSize(imageBuf)
 
           const targetImageSize = {
@@ -184,7 +65,7 @@ describe('docx image', () => {
               recipe: 'docx',
               docx: {
                 templateAsset: {
-                  content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+                  content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image', target)}.docx`))
                 }
               }
             },
@@ -204,90 +85,138 @@ describe('docx image', () => {
 
           fs.writeFileSync(outputPath, result.content)
         })
-      }
 
-      it('image can render from url', async () => {
-        const url = `https://some-server.com/some-image.${format}`
+        it(addTargetTitleSuffix('image from async result', target), async () => {
+          const { imageBuf, imageExtension } = readImage(format, 'image')
+          const imageDimensions = imageSize(imageBuf)
 
-        reporter.tests.beforeRenderEval((req, res, { require }) => {
-          require('nock')('https://some-server.com')
-            .get(`/some-image.${req.data.imageFormat}`)
-            .replyWithFile(200, req.data.imagePath, {
-              'content-type': req.data.imageMimeType
-            })
-        })
-
-        const { imagePath, imageExtension } = readImage(format, 'image')
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'docx',
-            docx: {
-              templateAsset: {
-                content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
-              }
-            }
-          },
-          data: {
-            src: url,
-            imageFormat: format,
-            imageMimeType: getImageMimeType(format),
-            imagePath
+          const targetImageSize = {
+            width: pxToEMU(imageDimensions.width),
+            height: pxToEMU(imageDimensions.height)
           }
-        })
 
-        const outputImageMeta = await getImageMeta(result.content)
-
-        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
-
-        fs.writeFileSync(outputPath, result.content)
-      })
-
-      it('image can render from url with returning parametrized content type', async () => {
-        const url = `https://some-server.com/some-image.${format}`
-
-        reporter.tests.beforeRenderEval((req, res, { require }) => {
-          require('nock')('https://some-server.com')
-            .get(`/some-image.${req.data.imageFormat}`)
-            .replyWithFile(200, req.data.imagePath, {
-              'content-type': `${req.data.imageMimeType}; qs=0.7`
-            })
-        })
-
-        const { imagePath, imageExtension } = readImage(format, 'image')
-
-        const result = await reporter
-          .render({
+          const result = await reporter.render({
             template: {
               engine: 'handlebars',
               recipe: 'docx',
               docx: {
                 templateAsset: {
-                  content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+                  content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image-async', target)}.docx`))
                 }
+              },
+              helpers: `
+              function getImage() {
+                return new Promise((resolve) => resolve('${getImageDataUri(format, imageBuf)}') )
               }
-            },
-            data: {
-              src: url,
-              imageFormat: format,
-              imageMimeType: getImageMimeType(format),
-              imagePath
+              `
             }
           })
 
-        const [contentTypesDoc] = await getDocumentsFromDocxBuf(result.content, ['[Content_Types].xml'])
-        contentTypesDoc.toString().should.not.containEql('image/png; qs=0.7')
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
 
-        const outputImageMeta = await getImageMeta(result.content)
+          outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
 
-        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+          // should preserve original image size by default
+          outputImageSize.width.should.be.eql(targetImageSize.width)
+          outputImageSize.height.should.be.eql(targetImageSize.height)
 
-        fs.writeFileSync(outputPath, result.content)
-      })
+          fs.writeFileSync(outputPath, result.content)
+        })
 
-      if (format === 'jpeg') {
-        it('image can render jpeg with CMYK color code from url', async () => {
+        it(addTargetTitleSuffix('image from custom loader function', target), async () => {
+          const { imageBuf, imagePath, imageExtension } = readImage(format, 'image')
+          const imageDimensions = imageSize(imageBuf)
+
+          const targetImageSize = {
+            width: pxToEMU(imageDimensions.width),
+            height: pxToEMU(imageDimensions.height)
+          }
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image-with-loader', target)}.docx`))
+                }
+              },
+              helpers: `
+              function imageLoader(src) {
+                // a loader should always return a stream and type (extension or content type for image)
+                return function loader () {
+                  const fs = require('fs')
+
+                  // the idea here is that user can load the image from anywhere, user can use
+                  // a custom http request library, load from fs or from S3, etc.
+                  // the idea of allowing this is that user can still benefit from our
+                  // parallel limits and logic of batching images on disk to prevent
+                  // loading all images on memory and failing to render when using a lot of images
+                  return new Promise((resolve) => resolve({
+                    type: '${format}',
+                    stream: fs.createReadStream(src)
+                  }))
+                }
+              }
+              `
+            },
+            data: {
+              src: imagePath
+            }
+          })
+
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
+
+          outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+          // should preserve original image size by default
+          outputImageSize.width.should.be.eql(targetImageSize.width)
+          outputImageSize.height.should.be.eql(targetImageSize.height)
+
+          fs.writeFileSync(outputPath, result.content)
+        })
+
+        if (format === 'jpeg') {
+          it(addTargetTitleSuffix('image can render jpeg with CMYK color code', target), async () => {
+            const { imageBuf, imageExtension } = readImage(format, 'cmyk')
+            const imageDimensions = imageSize(imageBuf)
+
+            const targetImageSize = {
+              width: pxToEMU(imageDimensions.width),
+              height: pxToEMU(imageDimensions.height)
+            }
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image', target)}.docx`))
+                  }
+                }
+              },
+              data: {
+                src: getImageDataUri(format, imageBuf)
+              }
+            })
+
+            const outputImageMeta = await getImageMeta(result.content)
+            const outputImageSize = outputImageMeta.size
+
+            outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+            // should preserve original image size by default
+            outputImageSize.width.should.be.eql(targetImageSize.width)
+            outputImageSize.height.should.be.eql(targetImageSize.height)
+
+            fs.writeFileSync(outputPath, result.content)
+          })
+        }
+
+        it(addTargetTitleSuffix('image can render from url', target), async () => {
           const url = `https://some-server.com/some-image.${format}`
 
           reporter.tests.beforeRenderEval((req, res, { require }) => {
@@ -298,7 +227,7 @@ describe('docx image', () => {
               })
           })
 
-          const { imagePath, imageExtension } = readImage(format, 'cmyk')
+          const { imagePath, imageExtension } = readImage(format, 'image')
 
           const result = await reporter.render({
             template: {
@@ -306,7 +235,7 @@ describe('docx image', () => {
               recipe: 'docx',
               docx: {
                 templateAsset: {
-                  content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+                  content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image', target)}.docx`))
                 }
               }
             },
@@ -324,6 +253,88 @@ describe('docx image', () => {
 
           fs.writeFileSync(outputPath, result.content)
         })
+
+        it(addTargetTitleSuffix('image can render from url with returning parametrized content type', target), async () => {
+          const url = `https://some-server.com/some-image.${format}`
+
+          reporter.tests.beforeRenderEval((req, res, { require }) => {
+            require('nock')('https://some-server.com')
+              .get(`/some-image.${req.data.imageFormat}`)
+              .replyWithFile(200, req.data.imagePath, {
+                'content-type': `${req.data.imageMimeType}; qs=0.7`
+              })
+          })
+
+          const { imagePath, imageExtension } = readImage(format, 'image')
+
+          const result = await reporter
+            .render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image', target)}.docx`))
+                  }
+                }
+              },
+              data: {
+                src: url,
+                imageFormat: format,
+                imageMimeType: getImageMimeType(format),
+                imagePath
+              }
+            })
+
+          const [contentTypesDoc] = await getDocumentsFromDocxBuf(result.content, ['[Content_Types].xml'])
+          contentTypesDoc.toString().should.not.containEql('image/png; qs=0.7')
+
+          const outputImageMeta = await getImageMeta(result.content)
+
+          outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+          fs.writeFileSync(outputPath, result.content)
+        })
+
+        if (format === 'jpeg') {
+          it(addTargetTitleSuffix('image can render jpeg with CMYK color code from url', target), async () => {
+            const url = `https://some-server.com/some-image.${format}`
+
+            reporter.tests.beforeRenderEval((req, res, { require }) => {
+              require('nock')('https://some-server.com')
+                .get(`/some-image.${req.data.imageFormat}`)
+                .replyWithFile(200, req.data.imagePath, {
+                  'content-type': req.data.imageMimeType
+                })
+            })
+
+            const { imagePath, imageExtension } = readImage(format, 'cmyk')
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image', target)}.docx`))
+                  }
+                }
+              },
+              data: {
+                src: url,
+                imageFormat: format,
+                imageMimeType: getImageMimeType(format),
+                imagePath
+              }
+            })
+
+            const outputImageMeta = await getImageMeta(result.content)
+
+            outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+            fs.writeFileSync(outputPath, result.content)
+          })
+        }
       }
 
       it('image with placeholder size (usePlaceholderSize)', async () => {
@@ -368,369 +379,373 @@ describe('docx image', () => {
 
   units.forEach(unit => {
     describe(`image size in ${unit}`, () => {
-      it('image with custom size (width, height)', async () => {
-        const docxBuf = fs.readFileSync(
-          path.join(
-            docxDirPath,
-            unit === 'cm'
-              ? 'image-custom-size.docx'
-              : 'image-custom-size-px.docx'
+      for (const target of targets) {
+        it(addTargetTitleSuffix('image with custom size (width, height)', target), async () => {
+          const docxBuf = fs.readFileSync(
+            path.join(
+              docxDirPath,
+              unit === 'cm'
+                ? `${addTargetFilenameSuffix('image-custom-size', target)}.docx`
+                : `${addTargetFilenameSuffix('image-custom-size-px', target)}.docx`
+            )
           )
-        )
 
-        // 3cm defined in the docx
-        const targetImageSize = {
-          width: unit === 'cm' ? cmToEMU(3) : pxToEMU(100),
-          height: unit === 'cm' ? cmToEMU(3) : pxToEMU(100)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'docx',
-            docx: {
-              templateAsset: {
-                content: docxBuf
-              }
-            }
-          },
-          data: {
-            src:
-              'data:image/png;base64,' +
-              fs
-                .readFileSync(path.join(docxDirPath, 'image.png'))
-                .toString('base64')
+          // 3cm defined in the docx
+          const targetImageSize = {
+            width: unit === 'cm' ? cmToEMU(3) : pxToEMU(100),
+            height: unit === 'cm' ? cmToEMU(3) : pxToEMU(100)
           }
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxBuf
+                }
+              }
+            },
+            data: {
+              src:
+                'data:image/png;base64,' +
+                fs
+                  .readFileSync(path.join(docxDirPath, 'image.png'))
+                  .toString('base64')
+            }
+          })
+
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
+
+          outputImageSize.width.should.be.eql(targetImageSize.width)
+          outputImageSize.height.should.be.eql(targetImageSize.height)
+
+          fs.writeFileSync(outputPath, result.content)
         })
 
-        const outputImageMeta = await getImageMeta(result.content)
-        const outputImageSize = outputImageMeta.size
-
-        outputImageSize.width.should.be.eql(targetImageSize.width)
-        outputImageSize.height.should.be.eql(targetImageSize.height)
-
-        fs.writeFileSync(outputPath, result.content)
-      })
-
-      it('image with custom size (width set and height automatic - keep aspect ratio)', async () => {
-        const docxBuf = fs.readFileSync(
-          path.join(
-            docxDirPath,
-            unit === 'cm'
-              ? 'image-custom-size-width.docx'
-              : 'image-custom-size-width-px.docx'
+        it(addTargetTitleSuffix('image with custom size (width set and height automatic - keep aspect ratio)', target), async () => {
+          const docxBuf = fs.readFileSync(
+            path.join(
+              docxDirPath,
+              unit === 'cm'
+                ? `${addTargetFilenameSuffix('image-custom-size-width', target)}.docx`
+                : `${addTargetFilenameSuffix('image-custom-size-width-px', target)}.docx`
+            )
           )
-        )
 
-        const targetImageSize = {
-          // 2cm defined in the docx
-          width: unit === 'cm' ? cmToEMU(2) : pxToEMU(100),
-          // height is calculated automatically based on aspect ratio of image
-          height:
-            unit === 'cm'
-              ? cmToEMU(0.5142851308524194)
-              : pxToEMU(25.714330708661418)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'docx',
-            docx: {
-              templateAsset: {
-                content: docxBuf
-              }
-            }
-          },
-          data: {
-            src:
-              'data:image/png;base64,' +
-              fs
-                .readFileSync(path.join(docxDirPath, 'image.png'))
-                .toString('base64')
+          const targetImageSize = {
+            // 2cm defined in the docx
+            width: unit === 'cm' ? cmToEMU(2) : pxToEMU(100),
+            // height is calculated automatically based on aspect ratio of image
+            height:
+              unit === 'cm'
+                ? cmToEMU(0.5142851308524194)
+                : pxToEMU(25.714330708661418)
           }
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxBuf
+                }
+              }
+            },
+            data: {
+              src:
+                'data:image/png;base64,' +
+                fs
+                  .readFileSync(path.join(docxDirPath, 'image.png'))
+                  .toString('base64')
+            }
+          })
+
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
+
+          outputImageSize.width.should.be.eql(targetImageSize.width)
+          outputImageSize.height.should.be.eql(targetImageSize.height)
+
+          fs.writeFileSync(outputPath, result.content)
         })
 
-        const outputImageMeta = await getImageMeta(result.content)
-        const outputImageSize = outputImageMeta.size
-
-        outputImageSize.width.should.be.eql(targetImageSize.width)
-        outputImageSize.height.should.be.eql(targetImageSize.height)
-
-        fs.writeFileSync(outputPath, result.content)
-      })
-
-      it('image with custom size (height set and width automatic - keep aspect ratio)', async () => {
-        const docxBuf = fs.readFileSync(
-          path.join(
-            docxDirPath,
-            unit === 'cm'
-              ? 'image-custom-size-height.docx'
-              : 'image-custom-size-height-px.docx'
+        it(addTargetTitleSuffix('image with custom size (height set and width automatic - keep aspect ratio)', target), async () => {
+          const docxBuf = fs.readFileSync(
+            path.join(
+              docxDirPath,
+              unit === 'cm'
+                ? `${addTargetFilenameSuffix('image-custom-size-height', target)}.docx`
+                : `${addTargetFilenameSuffix('image-custom-size-height-px', target)}.docx`
+            )
           )
-        )
 
-        const targetImageSize = {
-          // width is calculated automatically based on aspect ratio of image
-          width:
-            unit === 'cm'
-              ? cmToEMU(7.777781879962101)
-              : pxToEMU(194.4444094488189),
-          // 2cm defined in the docx
-          height: unit === 'cm' ? cmToEMU(2) : pxToEMU(50)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'docx',
-            docx: {
-              templateAsset: {
-                content: docxBuf
-              }
-            }
-          },
-          data: {
-            src:
-              'data:image/png;base64,' +
-              fs
-                .readFileSync(path.join(docxDirPath, 'image.png'))
-                .toString('base64')
+          const targetImageSize = {
+            // width is calculated automatically based on aspect ratio of image
+            width:
+              unit === 'cm'
+                ? cmToEMU(7.777781879962101)
+                : pxToEMU(194.4444094488189),
+            // 2cm defined in the docx
+            height: unit === 'cm' ? cmToEMU(2) : pxToEMU(50)
           }
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxBuf
+                }
+              }
+            },
+            data: {
+              src:
+                'data:image/png;base64,' +
+                fs
+                  .readFileSync(path.join(docxDirPath, 'image.png'))
+                  .toString('base64')
+            }
+          })
+
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
+
+          outputImageSize.width.should.be.eql(targetImageSize.width)
+          outputImageSize.height.should.be.eql(targetImageSize.height)
+
+          fs.writeFileSync(outputPath, result.content)
         })
-
-        const outputImageMeta = await getImageMeta(result.content)
-        const outputImageSize = outputImageMeta.size
-
-        outputImageSize.width.should.be.eql(targetImageSize.width)
-        outputImageSize.height.should.be.eql(targetImageSize.height)
-
-        fs.writeFileSync(outputPath, result.content)
-      })
+      }
     })
   })
 
-  it('image with custom rotation and flip', async () => {
-    const imagePath = path.join(docxDirPath, 'image.png')
+  for (const target of targets) {
+    it(addTargetTitleSuffix('image with custom rotation and flip', target), async () => {
+      const imagePath = path.join(docxDirPath, 'image.png')
 
-    const baseImageBase64 = (
-      'data:image/png;base64,' +
-      fs.readFileSync(imagePath).toString('base64')
-    )
+      const baseImageBase64 = (
+        'data:image/png;base64,' +
+        fs.readFileSync(imagePath).toString('base64')
+      )
 
-    const images = [
-      { src: baseImageBase64, imagePath },
-      { src: baseImageBase64, imagePath, rotation: 12 },
-      { src: baseImageBase64, imagePath, rotation: 90 },
-      { src: baseImageBase64, imagePath, flip: 'horizontal' },
-      { src: baseImageBase64, imagePath, flip: 'vertical' },
-      { src: baseImageBase64, imagePath, flip: 'horizontal-vertical' }
-    ]
+      const images = [
+        { src: baseImageBase64, imagePath },
+        { src: baseImageBase64, imagePath, rotation: 12 },
+        { src: baseImageBase64, imagePath, rotation: 90 },
+        { src: baseImageBase64, imagePath, flip: 'horizontal' },
+        { src: baseImageBase64, imagePath, flip: 'vertical' },
+        { src: baseImageBase64, imagePath, flip: 'horizontal-vertical' }
+      ]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(docxDirPath, 'image-rotation-and-flip.docx'))
-          }
-        }
-      },
-      data: {
-        images
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
-    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
-
-    drawingEls.length.should.be.eql(images.length)
-
-    for (const [idx, drawingEl] of drawingEls.entries()) {
-      const docPrEl = getDocPrEl(drawingEl)
-      const pictureEl = getPictureElInfo(drawingEl).picture
-      const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
-      const isImg = pictureEl != null
-
-      should(isImg).be.True()
-
-      // should autogenerate id when image is created from loop
-      docPrEl.getAttribute('id').should.be.eql(pictureCnvPrEl.getAttribute('id'))
-
-      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
-
-      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
-        return el.getAttribute('Id') === imageRelId
-      })
-
-      imageRelEl.getAttribute('Type').should.be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
-
-      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
-
-      // compare returns 0 when buffers are equal
-      Buffer.compare(imageFile.data, fs.readFileSync(imagePath)).should.be.eql(0)
-
-      const pictureSpPrEl = nodeListToArray(pictureEl.childNodes).find(n => n.nodeName === 'pic:spPr')
-
-      should(pictureCnvPrEl).be.ok()
-
-      const xfrmEl = nodeListToArray(pictureSpPrEl.childNodes).find(n => n.nodeName === 'a:xfrm')
-
-      if (idx === 0) {
-        should(xfrmEl.hasAttribute('rot')).be.False()
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
-      } else if (idx === 1) {
-        should(xfrmEl.getAttribute('rot')).be.eql('720000')
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
-      } else if (idx === 2) {
-        should(xfrmEl.getAttribute('rot')).be.eql('5400000')
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
-      } else if (idx === 3) {
-        should(xfrmEl.hasAttribute('rot')).be.False()
-        should(xfrmEl.hasAttribute('flipH')).be.True()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
-      } else if (idx === 4) {
-        should(xfrmEl.hasAttribute('rot')).be.False()
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.True()
-      } else if (idx === 5) {
-        should(xfrmEl.hasAttribute('rot')).be.False()
-        should(xfrmEl.hasAttribute('flipH')).be.True()
-        should(xfrmEl.hasAttribute('flipV')).be.True()
-      }
-    }
-  })
-
-  it('image with orientation in exif metadata', async () => {
-    // if we need to get more samples of these images, check:
-    // https://github.com/ianare/exif-samples/tree/master/jpg/orientation
-    // https://www.galloway.me.uk/2012/01/uiimageorientation-exif-orientation-sample-images/
-    const images = [
-      'orientation1.jpg',
-      'orientation2.jpg',
-      'orientation3.jpg',
-      'orientation4.jpg',
-      'orientation5.jpg',
-      'orientation6.jpg',
-      'orientation7.jpg',
-      'orientation8.jpg'
-    ]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(docxDirPath, 'image-exif-orientation.docx'))
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image-rotation-and-flip', target)}.docx`))
+            }
           }
         },
-        helpers: `
-          const { Readable } = require('stream')
-          const jsreport = require('jsreport-proxy')
+        data: {
+          images
+        }
+      })
 
-          function getImageExif (imgPath) {
-            return async function () {
-              const fsAsync = require('fs/promises')
-              const assetBuf = await fsAsync.readFile(imgPath)
+      fs.writeFileSync(outputPath, result.content)
 
-              return {
-                type: 'jpg',
-                stream: Readable.from(assetBuf)
-              }
-            }
-          }
-        `
-      },
-      data: {
-        images: images.map((imageName) => {
-          return {
-            imagePath: path.join(docxDirPath, imageName)
-          }
+      const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+      const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+      drawingEls.length.should.be.eql(images.length)
+
+      for (const [idx, drawingEl] of drawingEls.entries()) {
+        const docPrEl = getDocPrEl(drawingEl)
+        const pictureEl = getPictureElInfo(drawingEl).picture
+        const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
+        const isImg = pictureEl != null
+
+        should(isImg).be.True()
+
+        // should autogenerate id when image is created from loop
+        docPrEl.getAttribute('id').should.be.eql(pictureCnvPrEl.getAttribute('id'))
+
+        const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+        const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+          return el.getAttribute('Id') === imageRelId
         })
+
+        imageRelEl.getAttribute('Type').should.be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+        const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+        // compare returns 0 when buffers are equal
+        Buffer.compare(imageFile.data, fs.readFileSync(imagePath)).should.be.eql(0)
+
+        const pictureSpPrEl = nodeListToArray(pictureEl.childNodes).find(n => n.nodeName === 'pic:spPr')
+
+        should(pictureCnvPrEl).be.ok()
+
+        const xfrmEl = nodeListToArray(pictureSpPrEl.childNodes).find(n => n.nodeName === 'a:xfrm')
+
+        if (idx === 0) {
+          should(xfrmEl.hasAttribute('rot')).be.False()
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        } else if (idx === 1) {
+          should(xfrmEl.getAttribute('rot')).be.eql('720000')
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        } else if (idx === 2) {
+          should(xfrmEl.getAttribute('rot')).be.eql('5400000')
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        } else if (idx === 3) {
+          should(xfrmEl.hasAttribute('rot')).be.False()
+          should(xfrmEl.hasAttribute('flipH')).be.True()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        } else if (idx === 4) {
+          should(xfrmEl.hasAttribute('rot')).be.False()
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.True()
+        } else if (idx === 5) {
+          should(xfrmEl.hasAttribute('rot')).be.False()
+          should(xfrmEl.hasAttribute('flipH')).be.True()
+          should(xfrmEl.hasAttribute('flipV')).be.True()
+        }
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    it(addTargetTitleSuffix('image with orientation in exif metadata', target), async () => {
+      // if we need to get more samples of these images, check:
+      // https://github.com/ianare/exif-samples/tree/master/jpg/orientation
+      // https://www.galloway.me.uk/2012/01/uiimageorientation-exif-orientation-sample-images/
+      const images = [
+        'orientation1.jpg',
+        'orientation2.jpg',
+        'orientation3.jpg',
+        'orientation4.jpg',
+        'orientation5.jpg',
+        'orientation6.jpg',
+        'orientation7.jpg',
+        'orientation8.jpg'
+      ]
 
-    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
-    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(docxDirPath, `${addTargetFilenameSuffix('image-exif-orientation', target)}.docx`))
+            }
+          },
+          helpers: `
+            const { Readable } = require('stream')
+            const jsreport = require('jsreport-proxy')
 
-    drawingEls.length.should.be.eql(8)
+            function getImageExif (imgPath) {
+              return async function () {
+                const fsAsync = require('fs/promises')
+                const assetBuf = await fsAsync.readFile(imgPath)
 
-    for (const [idx, drawingEl] of drawingEls.entries()) {
-      const docPrEl = getDocPrEl(drawingEl)
-      const pictureEl = getPictureElInfo(drawingEl).picture
-      const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
-      const isImg = pictureEl != null
-
-      should(isImg).be.True()
-
-      // should autogenerate id when image is created from loop
-      docPrEl.getAttribute('id').should.be.eql(pictureCnvPrEl.getAttribute('id'))
-
-      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
-
-      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
-        return el.getAttribute('Id') === imageRelId
+                return {
+                  type: 'jpg',
+                  stream: Readable.from(assetBuf)
+                }
+              }
+            }
+          `
+        },
+        data: {
+          images: images.map((imageName) => {
+            return {
+              imagePath: path.join(docxDirPath, imageName)
+            }
+          })
+        }
       })
 
-      imageRelEl.getAttribute('Type').should.be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+      fs.writeFileSync(outputPath, result.content)
 
-      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+      const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+      const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
 
-      const imageName = images[idx]
+      drawingEls.length.should.be.eql(8)
 
-      // compare returns 0 when buffers are equal
-      Buffer.compare(imageFile.data, fs.readFileSync(path.join(docxDirPath, imageName))).should.be.eql(0)
+      for (const [idx, drawingEl] of drawingEls.entries()) {
+        const docPrEl = getDocPrEl(drawingEl)
+        const pictureEl = getPictureElInfo(drawingEl).picture
+        const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
+        const isImg = pictureEl != null
 
-      const pictureSpPrEl = nodeListToArray(pictureEl.childNodes).find(n => n.nodeName === 'pic:spPr')
+        should(isImg).be.True()
 
-      should(pictureCnvPrEl).be.ok()
+        // should autogenerate id when image is created from loop
+        docPrEl.getAttribute('id').should.be.eql(pictureCnvPrEl.getAttribute('id'))
 
-      const xfrmEl = nodeListToArray(pictureSpPrEl.childNodes).find(n => n.nodeName === 'a:xfrm')
+        const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
 
-      if (imageName === 'orientation1.jpg') {
-        should(xfrmEl.hasAttribute('rot')).be.False()
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
-      } else if (imageName === 'orientation2.jpg') {
-        should(xfrmEl.hasAttribute('rot')).be.False()
-        should(xfrmEl.hasAttribute('flipH')).be.True()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
-      } else if (imageName === 'orientation3.jpg') {
-        should(xfrmEl.getAttribute('rot')).be.eql('10800000')
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
-      } else if (imageName === 'orientation4.jpg') {
-        should(xfrmEl.hasAttribute('rot')).be.False()
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.True()
-      } else if (imageName === 'orientation5.jpg') {
-        should(xfrmEl.getAttribute('rot')).be.eql('5400000')
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.True()
-      } else if (imageName === 'orientation6.jpg') {
-        should(xfrmEl.getAttribute('rot')).be.eql('5400000')
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
-      } else if (imageName === 'orientation7.jpg') {
-        should(xfrmEl.getAttribute('rot')).be.eql('16200000')
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.True()
-      } else if (imageName === 'orientation8.jpg') {
-        should(xfrmEl.getAttribute('rot')).be.eql('16200000')
-        should(xfrmEl.hasAttribute('flipH')).be.False()
-        should(xfrmEl.hasAttribute('flipV')).be.False()
+        const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+          return el.getAttribute('Id') === imageRelId
+        })
+
+        imageRelEl.getAttribute('Type').should.be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+        const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+        const imageName = images[idx]
+
+        // compare returns 0 when buffers are equal
+        Buffer.compare(imageFile.data, fs.readFileSync(path.join(docxDirPath, imageName))).should.be.eql(0)
+
+        const pictureSpPrEl = nodeListToArray(pictureEl.childNodes).find(n => n.nodeName === 'pic:spPr')
+
+        should(pictureCnvPrEl).be.ok()
+
+        const xfrmEl = nodeListToArray(pictureSpPrEl.childNodes).find(n => n.nodeName === 'a:xfrm')
+
+        if (imageName === 'orientation1.jpg') {
+          should(xfrmEl.hasAttribute('rot')).be.False()
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        } else if (imageName === 'orientation2.jpg') {
+          should(xfrmEl.hasAttribute('rot')).be.False()
+          should(xfrmEl.hasAttribute('flipH')).be.True()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        } else if (imageName === 'orientation3.jpg') {
+          should(xfrmEl.getAttribute('rot')).be.eql('10800000')
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        } else if (imageName === 'orientation4.jpg') {
+          should(xfrmEl.hasAttribute('rot')).be.False()
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.True()
+        } else if (imageName === 'orientation5.jpg') {
+          should(xfrmEl.getAttribute('rot')).be.eql('5400000')
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.True()
+        } else if (imageName === 'orientation6.jpg') {
+          should(xfrmEl.getAttribute('rot')).be.eql('5400000')
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        } else if (imageName === 'orientation7.jpg') {
+          should(xfrmEl.getAttribute('rot')).be.eql('16200000')
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.True()
+        } else if (imageName === 'orientation8.jpg') {
+          should(xfrmEl.getAttribute('rot')).be.eql('16200000')
+          should(xfrmEl.hasAttribute('flipH')).be.False()
+          should(xfrmEl.hasAttribute('flipV')).be.False()
+        }
       }
-    }
-  })
+    })
+  }
 
   it('image with extra static tooltip text', async () => {
     const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))

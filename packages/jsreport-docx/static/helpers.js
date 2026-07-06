@@ -1245,7 +1245,7 @@ async function docxImage (optionsToUse) {
     Buffer.from(JSON.stringify(imageConfig)).toString('base64')
   }$`
 
-  if (optionsToUse.data.imageWrapperContext) {
+  if (optionsToUse.data.imageTarget != null) {
     optionsToUse.data.imageConfig = imageConfig
   }
 
@@ -1296,7 +1296,7 @@ async function docxSData (data, options) {
     }
 
     // we immediately remove bookmark if there was not a docxImage call for it
-    if (forImage && optionsToUse.data.imageWrapperContext && optionsToUse.data.imageConfig == null) {
+    if (forImage && optionsToUse.data.imageTarget === 'imagePlaceholder' && optionsToUse.data.imageConfig == null) {
       return ''
     }
 
@@ -1453,27 +1453,45 @@ async function docxSData (data, options) {
     type === 'image'
   ) {
     const jsreport = require('jsreport-proxy')
-    const newData = Handlebars.createFrame(optionsToUse.data)
+    const target = optionsToUse.hash.target
 
-    newData.imageWrapperContext = true
-    newData.imageBookmarkName = ''
-    newData.imageTooltip = ''
-
-    const imageTooltip = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
-
-    newData.imageTooltip = imageTooltip
-
-    if (
-      newData.imageConfig != null &&
-      newData.imageConfig.bookmarkName != null &&
-      typeof newData.imageConfig.bookmarkName === 'string' &&
-      newData.imageConfig.bookmarkName !== ''
-    ) {
-      newData.imageBookmarkName = newData.imageConfig.bookmarkName
+    if (target == null) {
+      throw new Error('docxSData "image" helper requires target parameter to be set')
     }
 
-    const content = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.inverse(this, { data: newData }))
-    return content
+    if (target !== 'imagePlaceholder' && target !== 'createImage') {
+      throw new Error('docxSData "image" helper requires target parameter to be either "imagePlaceholder" or "createImage"')
+    }
+
+    const newData = Handlebars.createFrame(optionsToUse.data)
+    let result
+
+    newData.imageTarget = target
+
+    if (target === 'imagePlaceholder') {
+      newData.imageBookmarkName = ''
+      newData.imageTooltip = ''
+
+      const imageTooltip = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
+
+      newData.imageTooltip = imageTooltip
+
+      if (
+        newData.imageConfig != null &&
+        newData.imageConfig.bookmarkName != null &&
+        typeof newData.imageConfig.bookmarkName === 'string' &&
+        newData.imageConfig.bookmarkName !== ''
+      ) {
+        newData.imageBookmarkName = newData.imageConfig.bookmarkName
+      }
+
+      result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.inverse(this, { data: newData }))
+    } else {
+      result = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
+      result = `<docxNewImage>${result}</docxNewImage>`
+    }
+
+    return new Handlebars.SafeString(result)
   }
 
   if (

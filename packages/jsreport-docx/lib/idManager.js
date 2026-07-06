@@ -1,6 +1,7 @@
 
 const idPrefixMap = Object.assign(Object.create(null), {
   documentRels: 'rId',
+  docPr: '',
   shapeType: '_jsr_t',
   shape: '_jsr_i'
 })

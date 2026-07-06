@@ -143,6 +143,7 @@ async function processParagraphHtmlEmbedContainer (sharedData, referenceParagrap
       doc,
       relsDoc,
       files,
+      sharedData,
       paragraphNode: paragraphEl,
       numberingLock
     })
@@ -154,6 +155,7 @@ async function processParagraphHtmlEmbedContainer (sharedData, referenceParagrap
         doc,
         relsDoc,
         files,
+        sharedData,
         numberingLock
       })
 

@@ -1,7 +1,7 @@
 const {
   nodeListToArray, getPictureElInfo, decodeURIComponentRecursive,
   processOpeningTag, processClosingTag
-} = require('../utils')
+} = require('../../utils')
 
 module.exports = function processImage (files, doc, drawingEl, relsDoc) {
   const pictureElInfo = getPictureElInfo(drawingEl)
@@ -61,7 +61,7 @@ module.exports = function processImage (files, doc, drawingEl, relsDoc) {
       closingImageTargetEl = drawingEl.parentNode
     }
 
-    const openEl = processOpeningTag(doc, openingImageTargetEl, "{{#docxSData type='image'}}")
+    const openEl = processOpeningTag(doc, openingImageTargetEl, "{{#docxSData type='image' target='imagePlaceholder'}}")
     processClosingTag(doc, closingImageTargetEl, '{{/docxSData}}')
 
     linkClickEl.setAttribute('tooltip', '{{@imageTooltip}}')

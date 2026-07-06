@@ -19,14 +19,14 @@ module.exports = (files) => {
       continue
     }
 
-    // first we normalize that w:r elements containing the docxStyle calls only contain one child w:t element
+    // first we normalize that w:r elements containing the docxRemove calls only contain one child w:t element
     // usually office does not generate documents like this but it is valid that
     // the w:r element can contain multiple w:t elements
     for (const textEl of textElementsWithDocxRemove) {
       normalizeSingleTextElInRun(textEl, doc)
     }
 
-    // now we normalize that docxStyle calls (even if nested on same node) are in its own w:t element and other text
+    // now we normalize that docxRemove calls (even if nested on same node) are in its own w:t element and other text
     // is split into new w:t element
     for (const textEl of textElementsWithDocxRemove) {
       normalizeSingleContentInText(textEl, getDocxRemoveCallRegexp, doc)
@@ -52,9 +52,9 @@ module.exports = (files) => {
       const commonParentEl = findCommonParent(tEl.parentNode, validParents)
 
       const stylesEl = commonParentEl.previousSibling
-      const isDocxStylesTag = stylesEl?.tagName === 'docxRemove' && stylesEl?.textContent.startsWith("{{#docxSData type='remove'")
+      const isDocxRemoveTag = stylesEl?.tagName === 'docxRemove' && stylesEl?.textContent.startsWith("{{#docxSData type='remove'")
 
-      if (!isDocxStylesTag) {
+      if (!isDocxRemoveTag) {
         processOpeningTag(doc, commonParentEl, "{{#docxSData type='remove'}}")
         processClosingTag(doc, commonParentEl, '{{/docxSData}}')
       }

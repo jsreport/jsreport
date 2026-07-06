@@ -1,23 +1,16 @@
 const { DOMParser } = require('@xmldom/xmldom')
-const { nodeListToArray, serializeXml, getNewIdFromBaseId, getDocPrEl } = require('../utils')
-const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
-const processImage = require('./processImage')
-const processChart = require('./processChart')
+const { nodeListToArray, serializeXml, getNewIdFromBaseId, getDocPrEl } = require('../../utils')
+const recursiveStringReplaceAsync = require('../../recursiveStringReplaceAsync')
+const processImage = require('./image')
+const processChart = require('./chart')
 
 module.exports = async (files, headerFooterRefs, newBookmarksMap, sharedData) => {
-  const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const docPrIdCounterMap = new Map()
   const imagesNewRelIdCounterMap = new Map()
   const chartsNewRelIdCounterMap = new Map()
   const originalChartsXMLMap = new Map()
-  let maxDocPrId
-
-  if (contentTypesDoc.documentElement.hasAttribute('drawingMaxDocPrId')) {
-    maxDocPrId = parseInt(contentTypesDoc.documentElement.getAttribute('drawingMaxDocPrId'), 10)
-    contentTypesDoc.documentElement.removeAttribute('drawingMaxDocPrId')
-  }
 
   documentFile.data = await recursiveStringReplaceAsync(
     documentFile.data.toString(),
@@ -83,12 +76,12 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, sharedData) =>
 
     // fix id for elements that have been generated after loop
     if (docPrId != null) {
-      const newDocPrId = getNewIdFromBaseId(docPrIdCounterMap, docPrId, maxDocPrId || 0)
+      const newDocPrId = getNewIdFromBaseId(docPrIdCounterMap, docPrId, sharedData.idManagers.get('docPr').last.numId)
 
       if (newDocPrId !== docPrId) {
         changedDocPrId = true
-        maxDocPrId = newDocPrId
-        docPrEl.setAttribute('id', newDocPrId)
+        const lastDocPrId = sharedData.idManagers.get('docPr').generate().id
+        docPrEl.setAttribute('id', lastDocPrId)
       }
     }
 
