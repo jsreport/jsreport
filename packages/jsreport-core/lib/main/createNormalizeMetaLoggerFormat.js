@@ -1,6 +1,6 @@
 const omit = require('lodash.omit')
 const winston = require('winston')
-const { LEVEL, MESSAGE, SPLAT } = require('triple-beam')
+const { LEVEL, MESSAGE, SPLAT } = require('./loggerConstants')
 const normalizeMetaFromLogs = require('../shared/normalizeMetaFromLogs')
 
 module.exports = () => {

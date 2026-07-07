@@ -1,6 +1,6 @@
-const { MESSAGE } = require('triple-beam')
 const colors = require('@colors/colors/safe')
 const winston = require('winston')
+const { MESSAGE } = require('./loggerConstants')
 
 module.exports = (options = {}) => {
   return winston.format((info) => {

@@ -1,6 +1,5 @@
 
-const { loggerFormat, createDefaultLoggerFormat } = require('@jsreport/jsreport-core')
-const defaultLoggerFormatWithTimestamp = createDefaultLoggerFormat({ timestamp: true })
+const { loggerFormat, loggerFormats } = require('@jsreport/jsreport-core')
 
 module.exports = (options) => {
   const coreOptions = {
@@ -46,7 +45,7 @@ module.exports = (options) => {
       handleExceptions: true,
       format: loggerFormat.combine(
         loggerFormat.colorize(),
-        defaultLoggerFormatWithTimestamp()
+        loggerFormats.textWithTimestamp()
       )
     }, reporter.options.logger.console)
 

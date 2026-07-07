@@ -163,7 +163,7 @@ require('@jsreport/jsreport-core')({
 	// options for logging
 	logger: {
 		silent: false, // when true, it will silence all transports defined in logger
-		format: 'text-with-timestamp' // 'text' | 'text-with-timestamp' | 'json' | name of a custom format defined under logger.formats
+		format: 'textWithTimestamp' // 'text' | 'textWithTimestamp' | 'json' | <or name of a custom format defined under logger.formats>
 	},
 	// options for templating engines and other scripts execution
 	// see the https://github.com/pofider/node-script-manager for more information
@@ -231,7 +231,7 @@ jsreport.logger.add(winston.transports.Console, { level: 'info' })
 jsreport ships with three built-in output formats. Pick one with `logger.format`:
 
 - `text` — `info: message key=value, key2=value2`
-- `text-with-timestamp` — `2024-01-01T12:00:00.000Z - info: message key=value` (default)
+- `textWithTimestamp` — `2024-01-01T12:00:00.000Z - info: message key=value` (default)
 - `json` — one JSON object per line, suitable for log aggregators like Datadog, Splunk, ELK
 
 ```js
@@ -257,7 +257,7 @@ Each transport can override the global format. This is useful when you want mach
 ```js
 require('@jsreport/jsreport-core')({
   logger: {
-    console: { transport: 'console', level: 'info', format: 'text-with-timestamp' },
+    console: { transport: 'console', level: 'info', format: 'textWithTimestamp' },
     file:    { transport: 'file', level: 'info', filename: 'jsreport.log', format: 'json' }
   }
 })
@@ -281,27 +281,16 @@ require('@jsreport/jsreport-core')({
 })
 ```
 
-If the module's factory is not the default export, name it with `export`:
-
-```js
-formats: {
-  myformat: { module: 'some-module', export: 'createFormat', options: {} }
-}
-```
-
 A minimal custom format module looks like this:
 
 ```js
 // my-format.js
-const winston = require('winston')
-const { MESSAGE } = require('triple-beam')
+const { loggerFormat, MESSAGE } = require('@jsreport/jsreport-core').loggerConstants
 
-module.exports = (options = {}) => {
-  return winston.format((info) => {
-    info[MESSAGE] = `[${options.prefix || 'APP'}] ${info.level}: ${info.message}`
-    return info
-  })
-}
+module.exports = loggerFormat((info, options) => {
+	info[loggerConstants.MESSAGE] = `[${options.prefix || 'APP'}] ${info.level}: ${info.message}`
+	return info
+})
 ```
 
 ## Typescript

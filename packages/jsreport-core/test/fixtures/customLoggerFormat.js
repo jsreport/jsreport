@@ -1,11 +1,8 @@
-const winston = require('winston')
-const { MESSAGE } = require('triple-beam')
+const { loggerFormat } = require('../../')
+const { MESSAGE } = require('../../lib/main/loggerConstants')
 
-// test fixture: a custom logger format factory consumed by loggerFormats.loadCustomFormats
-module.exports = (options = {}) => {
+module.exports = loggerFormat((info, options) => {
   const prefix = options.prefix || 'CUSTOM'
-  return winston.format((info) => {
-    info[MESSAGE] = `${prefix}: ${info.message}`
-    return info
-  })
-}
+  info[MESSAGE] = `${prefix}: ${info.message}`
+  return info
+})

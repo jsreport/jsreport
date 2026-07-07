@@ -43,7 +43,9 @@ module.exports.getRootSchemaOptions = () => ({
     logger: {
       type: 'object',
       properties: {
-        silent: { type: 'boolean' }
+        formats: { type: 'object' },
+        silent: { type: 'boolean' },
+        format: { type: 'string' }
       }
     },
     reportTimeout: {

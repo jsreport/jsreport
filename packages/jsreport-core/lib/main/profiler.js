@@ -1,11 +1,11 @@
 const EventEmitter = require('events')
 const Transport = require('winston-transport')
 const extend = require('node.extend.without.arrays')
-const generateRequestId = require('../shared/generateRequestId')
 const fs = require('fs/promises')
-const { SPLAT } = require('triple-beam')
 const promisify = require('util').promisify
 const stringifyAsync = promisify(require('yieldable-json').stringifyAsync)
+const { SPLAT } = require('./loggerConstants')
+const generateRequestId = require('../shared/generateRequestId')
 
 module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('ProfileType', {
@@ -368,7 +368,6 @@ module.exports = (reporter) => {
     }
 
     reporter.logger.add(new EmittingProfilesTransport({
-      format: reporter.logger.format,
       level: 'debug'
     }))
 

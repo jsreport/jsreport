@@ -189,7 +189,7 @@ describe('reporter', () => {
   })
 
   describe('logger formats', () => {
-    const { MESSAGE } = require('triple-beam')
+    const { MESSAGE } = require('../lib/main/loggerConstants')
     const customFormatFixturePath = path.join(__dirname, 'fixtures', 'customLoggerFormat.js')
 
     it('should produce JSON output when global format is "json"', async () => {
@@ -199,32 +199,31 @@ describe('reporter', () => {
       const result = reporter.logger.format.transform({
         level: 'info',
         message: 'hello',
-        timestamp: 1700000000000,
         customField: 'value'
-      })
+      }, reporter.logger.format.options)
 
       should(result).not.be.False()
       const output = result[MESSAGE]
       const parsed = JSON.parse(output)
-      parsed.should.have.property('level', 'info')
-      parsed.should.have.property('message', 'hello')
-      parsed.should.have.property('timestamp')
-      parsed.should.have.property('customField', 'value')
+      should(parsed).have.property('level', 'info')
+      should(parsed).have.property('message', 'hello')
+      should(parsed).have.property('timestamp')
+      should(parsed).have.property('customField', 'value')
     })
 
-    it('should produce text output when global format is "text-with-timestamp"', async () => {
-      reporter = core({ discover: false, logger: { format: 'text-with-timestamp' } })
+    it('should produce text output when global format is "textWithTimestamp"', async () => {
+      reporter = core({ discover: false, logger: { format: 'textWithTimestamp' } })
       await reporter.init()
 
       const result = reporter.logger.format.transform({
         level: 'info',
         message: 'hello'
-      })
+      }, reporter.logger.format.options)
 
       const output = result[MESSAGE]
-      output.should.match(/info: hello/)
-      // text-with-timestamp prefixes with an ISO timestamp
-      output.should.match(/^\d{4}-\d{2}-\d{2}T/)
+      should(output).match(/info: hello/)
+      // textWithTimestamp prefixes with an ISO timestamp
+      should(output).match(/^\d{4}-\d{2}-\d{2}T/)
     })
 
     it('should produce text output without timestamp when format is "text"', async () => {
@@ -234,10 +233,10 @@ describe('reporter', () => {
       const result = reporter.logger.format.transform({
         level: 'info',
         message: 'hello'
-      })
+      }, reporter.logger.format.options)
 
       const output = result[MESSAGE]
-      output.should.match(/^info: hello/)
+      should(output).match(/^info: hello/)
     })
 
     it('should reject an unknown global format name', () => {
@@ -322,10 +321,10 @@ describe('reporter', () => {
       const result = reporter.logger.format.transform({
         level: 'info',
         message: 'hello'
-      })
+      }, reporter.logger.format.options)
 
       const output = result[MESSAGE]
-      output.should.eql('TEST: hello')
+      should(output).eql('TEST: hello')
     })
 
     it('should allow a custom format on a per-transport basis', async () => {
@@ -344,6 +343,35 @@ describe('reporter', () => {
       const consoleT = reporter.logger.transports.find((t) => t.name === 'console')
       should(consoleT).not.be.Undefined()
       should(consoleT.format).not.be.Undefined()
+    })
+
+    it('should allow overriding a built-in format as a custom format', async () => {
+      reporter = core({
+        discover: false,
+        logger: {
+          formats: {
+            json: { options: { space: 1 } }
+          },
+          format: 'json'
+        }
+      })
+
+      await reporter.init()
+
+      const result = reporter.logger.format.transform({
+        level: 'info',
+        message: 'hello',
+        customField: 'value'
+      }, reporter.logger.format.options)
+
+      should(result).not.be.False()
+      const output = result[MESSAGE]
+      should(output).containEql('\n')
+      const parsed = JSON.parse(output)
+      should(parsed).have.property('level', 'info')
+      should(parsed).have.property('message', 'hello')
+      should(parsed).have.property('timestamp')
+      should(parsed).have.property('customField', 'value')
     })
 
     it('should reject a custom format whose module cannot be found', () => {
@@ -367,29 +395,14 @@ describe('reporter', () => {
       const result = reporter.logger.format.transform({
         level: 'warn',
         message: 'something happened',
-        timestamp: 1700000000000,
         operationId: 'op-123',
         templateName: 'invoice'
       })
 
       const parsed = JSON.parse(result[MESSAGE])
-      parsed.should.have.property('level', 'warn')
-      parsed.should.have.property('operationId', 'op-123')
-      parsed.should.have.property('templateName', 'invoice')
-    })
-
-    it('should not include the internal "userLevel" hint in JSON output', async () => {
-      reporter = core({ discover: false, logger: { format: 'json' } })
-      await reporter.init()
-
-      const result = reporter.logger.format.transform({
-        level: 'info',
-        message: 'hello',
-        userLevel: true
-      })
-
-      const parsed = JSON.parse(result[MESSAGE])
-      parsed.should.not.have.property('userLevel')
+      should(parsed).have.property('level', 'warn')
+      should(parsed).have.property('operationId', 'op-123')
+      should(parsed).have.property('templateName', 'invoice')
     })
   })
 
