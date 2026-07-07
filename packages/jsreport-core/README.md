@@ -162,7 +162,8 @@ require('@jsreport/jsreport-core')({
 	tempDirectory: path.join(dataDirectory, 'temp'),
 	// options for logging
 	logger: {
-		silent: false // when true, it will silence all transports defined in logger
+		silent: false, // when true, it will silence all transports defined in logger
+		format: 'text-with-timestamp' // 'text' | 'text-with-timestamp' | 'json' | name of a custom format defined under logger.formats
 	},
 	// options for templating engines and other scripts execution
 	// see the https://github.com/pofider/node-script-manager for more information
@@ -223,6 +224,84 @@ jsreport also exposes `logger` property which can be used to adapt the logging a
 const winston = require('winston')
 const jsreport = require('@jsreport/jsreport-core')()
 jsreport.logger.add(winston.transports.Console, { level: 'info' })
+```
+
+### Log output format
+
+jsreport ships with three built-in output formats. Pick one with `logger.format`:
+
+- `text` — `info: message key=value, key2=value2`
+- `text-with-timestamp` — `2024-01-01T12:00:00.000Z - info: message key=value` (default)
+- `json` — one JSON object per line, suitable for log aggregators like Datadog, Splunk, ELK
+
+```js
+require('@jsreport/jsreport-core')({
+  logger: {
+    format: 'json'
+  }
+})
+```
+
+A `json` line looks like this:
+
+```json
+{"timestamp":"2024-01-01T12:00:00.000Z","level":"info","message":"Rendering template ...","operationId":"abc123","templateName":"invoice"}
+```
+
+The JSON formatter preserves all metadata fields the text formatter would have rendered (`operationId`, `templateName`, etc.), so you keep the same structured context regardless of which format you pick.
+
+### Per-transport format
+
+Each transport can override the global format. This is useful when you want machine-readable logs to a file and human-readable logs in the console:
+
+```js
+require('@jsreport/jsreport-core')({
+  logger: {
+    console: { transport: 'console', level: 'info', format: 'text-with-timestamp' },
+    file:    { transport: 'file', level: 'info', filename: 'jsreport.log', format: 'json' }
+  }
+})
+```
+
+### Custom formats from a module
+
+Any npm module that exports a factory returning a [winston format](https://github.com/winstonjs/winston/blob/master/README.md#formats) can be registered under `logger.formats` and then referenced by name. The factory receives the `options` object you specify alongside `module`:
+
+```js
+require('@jsreport/jsreport-core')({
+  logger: {
+    formats: {
+      logstash: {
+        module: '@my/winston-logstash-format',
+        options: { app: 'reports' }
+      }
+    },
+    http: { transport: 'http', level: 'info', host: 'logs.example.com', format: 'logstash' }
+  }
+})
+```
+
+If the module's factory is not the default export, name it with `export`:
+
+```js
+formats: {
+  myformat: { module: 'some-module', export: 'createFormat', options: {} }
+}
+```
+
+A minimal custom format module looks like this:
+
+```js
+// my-format.js
+const winston = require('winston')
+const { MESSAGE } = require('triple-beam')
+
+module.exports = (options = {}) => {
+  return winston.format((info) => {
+    info[MESSAGE] = `[${options.prefix || 'APP'}] ${info.level}: ${info.message}`
+    return info
+  })
+}
 ```
 
 ## Typescript

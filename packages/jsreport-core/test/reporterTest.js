@@ -188,6 +188,211 @@ describe('reporter', () => {
     should(logglyT).not.be.Undefined()
   })
 
+  describe('logger formats', () => {
+    const { MESSAGE } = require('triple-beam')
+    const customFormatFixturePath = path.join(__dirname, 'fixtures', 'customLoggerFormat.js')
+
+    it('should produce JSON output when global format is "json"', async () => {
+      reporter = core({ discover: false, logger: { format: 'json' } })
+      await reporter.init()
+
+      const result = reporter.logger.format.transform({
+        level: 'info',
+        message: 'hello',
+        timestamp: 1700000000000,
+        customField: 'value'
+      })
+
+      should(result).not.be.False()
+      const output = result[MESSAGE]
+      const parsed = JSON.parse(output)
+      parsed.should.have.property('level', 'info')
+      parsed.should.have.property('message', 'hello')
+      parsed.should.have.property('timestamp')
+      parsed.should.have.property('customField', 'value')
+    })
+
+    it('should produce text output when global format is "text-with-timestamp"', async () => {
+      reporter = core({ discover: false, logger: { format: 'text-with-timestamp' } })
+      await reporter.init()
+
+      const result = reporter.logger.format.transform({
+        level: 'info',
+        message: 'hello'
+      })
+
+      const output = result[MESSAGE]
+      output.should.match(/info: hello/)
+      // text-with-timestamp prefixes with an ISO timestamp
+      output.should.match(/^\d{4}-\d{2}-\d{2}T/)
+    })
+
+    it('should produce text output without timestamp when format is "text"', async () => {
+      reporter = core({ discover: false, logger: { format: 'text' } })
+      await reporter.init()
+
+      const result = reporter.logger.format.transform({
+        level: 'info',
+        message: 'hello'
+      })
+
+      const output = result[MESSAGE]
+      output.should.match(/^info: hello/)
+    })
+
+    it('should reject an unknown global format name', () => {
+      reporter = core({ discover: false, logger: { format: 'nonexistent-format' } })
+      return should(reporter.init()).be.rejectedWith(/Unknown logger format "nonexistent-format"/)
+    })
+
+    it('should accept a per-transport format as a string name', async () => {
+      reporter = core({
+        discover: false,
+        logger: {
+          console: { transport: 'console', level: 'info', format: 'json' }
+        }
+      })
+
+      await reporter.init()
+
+      const consoleT = reporter.logger.transports.find((t) => t.name === 'console')
+      should(consoleT).not.be.Undefined()
+      // when format is set on a transport, winston attaches the resolved format instance
+      should(consoleT.format).not.be.Undefined()
+      should(typeof consoleT.format.transform).be.eql('function')
+    })
+
+    it('should reject an unknown per-transport format name', () => {
+      reporter = core({
+        discover: false,
+        logger: {
+          console: { transport: 'console', level: 'info', format: 'bogus-format' }
+        }
+      })
+
+      return should(reporter.init()).be.rejectedWith(/Unknown logger format "bogus-format"/)
+    })
+
+    it('should not treat the "format" key as a transport', async () => {
+      reporter = core({
+        discover: false,
+        logger: {
+          format: 'json',
+          console: { transport: 'console', level: 'info' }
+        }
+      })
+
+      await reporter.init()
+
+      const consoleT = reporter.logger.transports.find((t) => t.name === 'console')
+      should(consoleT).not.be.Undefined()
+      // "format" must not have been added as a transport
+      should(reporter.logger.transports.find((t) => t.name === 'format')).be.Undefined()
+    })
+
+    it('should not treat the "formats" key as a transport', async () => {
+      reporter = core({
+        discover: false,
+        logger: {
+          formats: {},
+          console: { transport: 'console', level: 'info' }
+        }
+      })
+
+      await reporter.init()
+
+      const consoleT = reporter.logger.transports.find((t) => t.name === 'console')
+      should(consoleT).not.be.Undefined()
+      should(reporter.logger.transports.find((t) => t.name === 'formats')).be.Undefined()
+    })
+
+    it('should load a custom format from a module and make it usable by name', async () => {
+      reporter = core({
+        discover: false,
+        logger: {
+          formats: {
+            mycustom: { module: customFormatFixturePath, options: { prefix: 'TEST' } }
+          },
+          format: 'mycustom'
+        }
+      })
+
+      await reporter.init()
+
+      const result = reporter.logger.format.transform({
+        level: 'info',
+        message: 'hello'
+      })
+
+      const output = result[MESSAGE]
+      output.should.eql('TEST: hello')
+    })
+
+    it('should allow a custom format on a per-transport basis', async () => {
+      reporter = core({
+        discover: false,
+        logger: {
+          formats: {
+            mycustom: { module: customFormatFixturePath }
+          },
+          console: { transport: 'console', level: 'info', format: 'mycustom' }
+        }
+      })
+
+      await reporter.init()
+
+      const consoleT = reporter.logger.transports.find((t) => t.name === 'console')
+      should(consoleT).not.be.Undefined()
+      should(consoleT.format).not.be.Undefined()
+    })
+
+    it('should reject a custom format whose module cannot be found', () => {
+      reporter = core({
+        discover: false,
+        logger: {
+          formats: {
+            broken: { module: 'this-module-does-not-exist-xyz' }
+          },
+          format: 'broken'
+        }
+      })
+
+      return should(reporter.init()).be.rejectedWith(/module "this-module-does-not-exist-xyz" not found/)
+    })
+
+    it('should preserve metadata fields in JSON output', async () => {
+      reporter = core({ discover: false, logger: { format: 'json' } })
+      await reporter.init()
+
+      const result = reporter.logger.format.transform({
+        level: 'warn',
+        message: 'something happened',
+        timestamp: 1700000000000,
+        operationId: 'op-123',
+        templateName: 'invoice'
+      })
+
+      const parsed = JSON.parse(result[MESSAGE])
+      parsed.should.have.property('level', 'warn')
+      parsed.should.have.property('operationId', 'op-123')
+      parsed.should.have.property('templateName', 'invoice')
+    })
+
+    it('should not include the internal "userLevel" hint in JSON output', async () => {
+      reporter = core({ discover: false, logger: { format: 'json' } })
+      await reporter.init()
+
+      const result = reporter.logger.format.transform({
+        level: 'info',
+        message: 'hello',
+        userLevel: true
+      })
+
+      const parsed = JSON.parse(result[MESSAGE])
+      parsed.should.not.have.property('userLevel')
+    })
+  })
+
   it('should create custom error', async () => {
     reporter = core({
       discover: false
