@@ -15620,6 +15620,79 @@ describe('xlsx generation - loops', () => {
     should(autoFilterRef).be.eql('C2:E5')
   })
 
+  it('table with dynamic column name', async () => {
+    const items = [{
+      name: 'Alexander',
+      lastname: 'Smith',
+      age: 32
+    }, {
+      name: 'John',
+      lastname: 'Doe',
+      age: 29
+    }, {
+      name: 'Jane',
+      lastname: 'Montana',
+      age: 23
+    }]
+
+    const templateBuf = fs.readFileSync(
+      path.join(xlsxDirPath, 'table-with-dynamic-column-name.xlsx')
+    )
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        col2: 'Lastname',
+        items
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+    const files = await decompress()(result.content)
+
+    should(sheet['!ref']).be.eql('C2:E5')
+
+    should(sheet.C3.v).be.eql(items[0].name)
+    should(sheet.D3.v).be.eql(items[0].lastname)
+    should(sheet.E3.v).be.eql(items[0].age)
+    should(sheet.C4.v).be.eql(items[1].name)
+    should(sheet.D4.v).be.eql(items[1].lastname)
+    should(sheet.E4.v).be.eql(items[1].age)
+    should(sheet.C5.v).be.eql(items[2].name)
+    should(sheet.D5.v).be.eql(items[2].lastname)
+    should(sheet.E5.v).be.eql(items[2].age)
+
+    const tableDoc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'xl/tables/table1.xml').data.toString()
+    )
+
+    const tableRef = tableDoc.documentElement.getAttribute('ref')
+    const autoFilterRef = tableDoc.getElementsByTagName('autoFilter')[0]?.getAttribute('ref')
+
+    should(tableRef).be.eql('C2:E5')
+    should(autoFilterRef).be.eql('C2:E5')
+
+    const tableColumns = tableDoc.documentElement.getElementsByTagName('tableColumns')[0]
+    const tableColumnEls = Array.from(tableColumns.childNodes).filter(n => n.nodeName === 'tableColumn')
+
+    should(tableColumnEls.length).be.eql(3)
+
+    should(tableColumnEls[0].getAttribute('name')).be.eql('Name')
+    should(tableColumnEls[1].getAttribute('name')).be.eql('Lastname')
+    should(tableColumnEls[2].getAttribute('name')).be.eql('Age')
+  })
+
   it('invoice', async () => {
     const templateBuf = fs.readFileSync(path.join(xlsxDirPath, 'invoice.xlsx'))
 

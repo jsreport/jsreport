@@ -165,7 +165,9 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
       filePaths: [],
       refsMeta: new Map(),
       refByCellRefs: new Map(),
-      refSourceEls: []
+      refSourceEls: [],
+      fileIdxByColumnCellRefs: new Map(),
+      columnsMetaByFileIdx: new Map()
     }
 
     // check if there are tables, if there are we need to update its refs at runtime
@@ -203,6 +205,8 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
 
         tableParts.filePaths.push(tableFilePath)
 
+        const tableFileIdx = tableParts.filePaths.length - 1
+
         for (const targetRefSourceEl of targetRefSourceEls) {
           const rangeRef = targetRefSourceEl.getAttribute('ref')
           const rangeParts = rangeRef.split(':')
@@ -226,6 +230,47 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
           }
 
           tableParts.refSourceEls.push(targetRefSourceEl)
+        }
+
+        const tableColumnsEl = Array.from(tableDoc.documentElement.childNodes).find((n) => n.nodeName === 'tableColumns')
+
+        const targetColumnSourceEls = Array.from(tableColumnsEl.childNodes).reduce((acc, n, idx) => {
+          if (n.nodeName === 'tableColumn' && n.getAttribute('name').includes('{{')) {
+            acc.push({ columnIdx: idx, sourceEl: n })
+          }
+          return acc
+        }, [])
+
+        const mainRangeRef = tableDoc.documentElement.getAttribute('ref')
+        const rangeParts = mainRangeRef.split(':')
+
+        if (rangeParts.length !== 2) {
+          throw new Error(`Unexpected range ref format "${mainRangeRef}" in table reference in sheet at ${sheetFilepath}`)
+        }
+
+        const startRangePart = rangeParts[0]
+        const parsedStartRangePart = parseCellRef(startRangePart)
+
+        for (const { columnIdx, sourceEl: targetColumnSourceEl } of targetColumnSourceEls) {
+          const [targetColumnLetter] = getColumnFor(
+            parsedStartRangePart.columnNumber,
+            columnIdx
+          )
+
+          const targetCellRef = `${targetColumnLetter}${parsedStartRangePart.rowNumber}`
+
+          tableParts.fileIdxByColumnCellRefs.set(targetCellRef, tableFileIdx)
+
+          const columnRefMeta = {
+            dataVariableName: `newColumnRef${tableParts.fileIdxByColumnCellRefs.size - 1}`,
+            sourceEl: targetColumnSourceEl
+          }
+
+          if (!tableParts.columnsMetaByFileIdx.has(tableFileIdx)) {
+            tableParts.columnsMetaByFileIdx.set(tableFileIdx, new Map())
+          }
+
+          tableParts.columnsMetaByFileIdx.get(tableFileIdx).set(targetColumnLetter, columnRefMeta)
         }
 
         sharedData.fileDataMap.set(tableFilePath, {
@@ -368,11 +413,21 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
           cellMetadata.calcChainElementIdx = calcChainElementIdx
         }
 
-        // search if we need to update table ref
+        // check if we need to update table ref
         const tableRef = tableParts.refByCellRefs.get(cellRef)
+        // check if we need to update table columns
+        const tablePartIdx = tableParts.fileIdxByColumnCellRefs.get(cellRef)
 
-        if (tableRef != null) {
-          cellMetadata.tableRef = tableRef
+        if (tableRef != null || tablePartIdx != null) {
+          cellMetadata.tablePart = {}
+
+          if (tableRef != null) {
+            cellMetadata.tablePart.ref = tableRef
+          }
+
+          if (tablePartIdx != null) {
+            cellMetadata.tablePart.columnsFileIdx = tablePartIdx
+          }
         }
 
         const styleId = cellEl.getAttribute('s')
@@ -935,10 +990,6 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
       dataItems: []
     })
 
-    // if (f.path === 'xl/worksheets/sheet1.xml') {
-    //   debugger
-    // }
-
     addEndCallback(() => {
       // set that this workbook should perform a full
       // recalculation when the workbook is opened
@@ -992,6 +1043,15 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
 
         // remove dom references
         delete tableParts.refSourceEls
+      }
+
+      // update table columns if needed
+      for (const columnsMeta of tableParts.columnsMetaByFileIdx.values()) {
+        for (const columnMeta of columnsMeta.values()) {
+          columnMeta.sourceEl.setAttribute('name', `{{@${columnMeta.dataVariableName}}}`)
+          // remove dom references
+          delete columnMeta.sourceEl
+        }
       }
 
       // if autofit is configured, we are going to customize the cols so

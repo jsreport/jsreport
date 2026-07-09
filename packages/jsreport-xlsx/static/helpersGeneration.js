@@ -609,9 +609,9 @@ const __xlsxD = (function () {
     }
 
     // update table ref if the cell is part of a table ref
-    if (cellElementMetadata?.tableRef != null) {
-      const tableRef = cellElementMetadata.tableRef
-      const tableRefParts = cellElementMetadata.tableRef.split(':')
+    if (cellElementMetadata?.tablePart?.ref != null) {
+      const tableRef = cellElementMetadata.tablePart.ref
+      const tableRefParts = cellElementMetadata.tablePart.ref.split(':')
       const type = originalCellRef === tableRefParts[0] ? 'start' : 'end'
 
       const tableRefMeta = runtime.tables.refsMeta.get(tableRef)
@@ -867,9 +867,18 @@ const __xlsxD = (function () {
         }
       }
 
-      // only consider the raw value if the value was not empty
-      if (cellType === 'inlineStr' && cellValue != null && cellValue !== '') {
-        cellValue = cellRawValue
+      if (cellType === 'inlineStr') {
+        if (cellElementMetadata?.tablePart?.columnsFileIdx != null) {
+          const tableFilePath = runtime.tables.filePaths[cellElementMetadata.tablePart.columnsFileIdx]
+          const { dataVariables: tableDataVariables } = getFileData(tableFilePath)
+          const columnMeta = runtime.tables.columnsMetaByFileIdx.get(cellElementMetadata.tablePart.columnsFileIdx).get(columnLetter)
+          tableDataVariables[columnMeta.dataVariableName] = cellValue ?? ''
+        }
+
+        // only consider the raw value if the value was not empty
+        if (cellValue != null && cellValue !== '') {
+          cellValue = cellRawValue
+        }
       }
     }
 
