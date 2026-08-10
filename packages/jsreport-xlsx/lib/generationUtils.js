@@ -246,11 +246,11 @@ function updateDimension (runtime, cellNumbers) {
   }
 }
 
-function updateMergeCells (mergeCellItems, originalCellInfo, updatedStartCell) {
-  const { newValue } = evaluateCellRefsFromExpression(originalCellInfo.ref, (cellRefInfo) => {
+function updateMergeCell (originalRef, updatedStartCell) {
+  const { newValue } = evaluateCellRefsFromExpression(originalRef, (cellRefInfo) => {
     const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
 
-    assertOk(isRange, `cell ref expected to be a range. value: "${originalCellInfo.ref}"`)
+    assertOk(isRange, `cell ref expected to be a range. value: "${originalRef}"`)
 
     const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
     const [newColumnLetter] = getColumnFor(updatedStartCell.letter, columnIncrement)
@@ -266,7 +266,7 @@ function updateMergeCells (mergeCellItems, originalCellInfo, updatedStartCell) {
     return newCellRef
   })
 
-  mergeCellItems.push({ idx: originalCellInfo.idx, ref: newValue })
+  return newValue
 }
 
 function renderDataItems (doc, dataItems, meta, outputFullDocument = true) {
@@ -696,7 +696,7 @@ module.exports.getIncrementWithLoop = getIncrementWithLoop
 module.exports.getParentLoopItem = getParentLoopItem
 module.exports.getCurrentLoopItem = getCurrentLoopItem
 module.exports.updateDimension = updateDimension
-module.exports.updateMergeCells = updateMergeCells
+module.exports.updateMergeCell = updateMergeCell
 module.exports.renderDataItems = renderDataItems
 module.exports.getAttributeFromElementTypeAttributes = getAttributeFromElementTypeAttributes
 module.exports.getNewFormula = getNewFormula

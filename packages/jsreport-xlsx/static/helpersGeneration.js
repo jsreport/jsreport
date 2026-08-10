@@ -30,6 +30,7 @@ function xlsxContext (options) {
   if (contextType === 'global') {
     data = Handlebars.createFrame(options.data)
     data.evalId = jsreport.req.context.__xlsxSharedData.evalId
+    data.dataTemplate = options.hash.dataTemplate === true
   } else if (contextType === 'file') {
     data = Handlebars.createFrame(options.data)
 
@@ -48,19 +49,17 @@ function xlsxContext (options) {
     }
 
     data.xlsxFilePath = targetFilePath
-  } else if (contextType === 'dynamicFile' || contextType === 'dynamicInstances') {
-    // in both types we call the body for each instance of the dynamic file,
-    // in the "dynamicFile" case we expect to insert metadata about the base file
+  } else if (contextType === 'dynamicFile') {
+    // we call the body for each instance of the dynamic file,
+    // we expect to insert metadata about the base file
     // for later usage with xlsxContext "file", and to return the results with a special
     // separator that we will use later to recognize the new files created for each instance
     const dynamicFileMeta = jsreport.req.context.__xlsxSharedData.dynamicFileMap.get(xlsxFilePath)
 
     const targetData = Handlebars.createFrame(options.data)
 
-    if (contextType === 'dynamicFile') {
-      targetData.dynamicFile = {
-        baseXlsxPath: xlsxFilePath
-      }
+    targetData.dynamicFile = {
+      baseXlsxPath: xlsxFilePath
     }
 
     const results = []
@@ -68,17 +67,12 @@ function xlsxContext (options) {
     for (let i = 0; i < dynamicFileMeta.instances.length; i++) {
       const activeInstance = dynamicFileMeta.instances[i]
 
-      if (contextType === 'dynamicFile') {
-        // here we just add the active instance idx,
-        // we expect to apply the file, instance data variables in the xlsxContext "file" call
-        targetData.dynamicFile.activeInstanceIdx = i
-      } else if (contextType === 'dynamicInstances') {
-        // and for this case we apply the file, instance data variables directly,
-        // because usage of this helper is expected to be used independently of the
-        // current file
-        applyFileDataVariables(targetData, xlsxFilePath, i)
-      }
+      // here we just add the active instance idx,
+      // we expect to apply the file, instance data variables in the xlsxContext "file" call
+      targetData.dynamicFile.activeInstanceIdx = i
 
+      // dynamicFile is always called for the xml template, which does not contain async values,
+      // so we can just safely return result
       const result = options.fn(i, {
         data: targetData
       })
@@ -86,7 +80,7 @@ function xlsxContext (options) {
       results.push(result)
     }
 
-    return results.join(contextType === 'dynamicFile' ? '$$$xlsxInstanceFile$$$' : '')
+    return results.join('$$$xlsxInstanceFile$$$')
   }
 
   const context = {}
@@ -95,7 +89,14 @@ function xlsxContext (options) {
     context.data = data
   }
 
-  const result = options.fn(this, context)
+  let result = ''
+
+  if (data.dataTemplate) {
+    // when we are in a data template we dont care about the output
+    options.fn(this, context)
+  } else {
+    result = options.fn(this, context)
+  }
 
   return result
 }
@@ -214,32 +215,38 @@ const __xlsxD = (function () {
 
   // helper to allow ignoring handlebars tags in specific cases
   function raw (options) {
-    return options.fn()
+    const result = options.fn()
+    return result
   }
 
   function staticRange (options) {
-    const startElementIdx = options.hash.start
-    const endElementIdx = options.hash.end
+    const rangeIdx = options.hash.idx
 
-    assertOk(startElementIdx != null, 'start arg is required')
-    assertOk(endElementIdx != null, 'end arg is required')
+    assertOk(rangeIdx != null, 'idx arg is required')
 
-    const { templateItems } = getFileData(options.data.xlsxFilePath)
+    const { helpers: { cellUtils: { parseCellRef } } } = getSharedData()
 
-    for (let elementIdx = startElementIdx; elementIdx <= endElementIdx; elementIdx++) {
-      const elementItem = templateItems.data[elementIdx]
-      const elementItemType = elementItem.type ?? 'row'
+    const { dataRanges, contentManagers: sheetContentManagers } = getFileData(options.data.xlsxFilePath)
+    const sheetDataContentManager = sheetContentManagers.get('sheetData')
+    const dataRange = dataRanges[rangeIdx]
 
-      if (elementItemType === 'row') {
-        const elementItemMeta = templateItems.elementMetaMap.get(elementItem)
+    for (const originalRowNumber of dataRange.items) {
+      const baseRowItem = sheetDataContentManager.parts.get('row').getBase(
+        originalRowNumber.toString()
+      )
 
-        options.fn({
-          rowNumber: elementItem.id,
-          cells: [...elementItemMeta.columnLetterChildrenMap.keys()]
-        })
-      } else {
-        throw new Error(`staticRange helper does not support element item type "${elementItemType}"`)
+      let cellRefs = []
+
+      if (baseRowItem.parts.has('c')) {
+        cellRefs = [
+          ...baseRowItem.parts.get('c')?.keys()
+        ].map((cellRef) => parseCellRef(cellRef).letter)
       }
+
+      options.fn({
+        rowNumber: originalRowNumber,
+        cells: cellRefs
+      })
     }
 
     return ''
@@ -411,25 +418,15 @@ const __xlsxD = (function () {
   loop.dynamicParameters = true
 
   // stores values generated when rendering data template
-  function r (originalRowNumber, options) {
+  async function r (originalRowNumber, options) {
     const Handlebars = require('handlebars')
-    const { helpers: { generationUtils: { getIncrementWithLoop, updateMergeCells } } } = getSharedData()
-    const { runtime, templateItems, mergeCellItems, dataItems } = getFileData(options.data.xlsxFilePath)
+    const { helpers: { generationUtils: { getIncrementWithLoop, updateMergeCell } } } = getSharedData()
+    const { contentManagers: sheetContentManagers, runtime } = getFileData(options.data.xlsxFilePath)
+    const sheetDataContentManager = sheetContentManagers.get('sheetData')
 
     assertOk(originalRowNumber != null, 'originalRowNumber arg is required')
 
-    const rowElementIdx = templateItems.rowNumberElementIdxMap.get(originalRowNumber)
-    const rowElementItem = templateItems.data[rowElementIdx]
-
-    if (rowElementItem == null) {
-      throw new Error(`No element row found at index ${rowElementIdx}`)
-    }
-
-    const elementType = rowElementItem.type ?? 'row'
-
-    if (elementType !== 'row') {
-      throw new Error(`Element at index ${rowElementIdx} is not a row`)
-    }
+    const baseRowItem = sheetDataContentManager.parts.get('row').getBase(originalRowNumber.toString())
 
     const {
       increment: rowIncrement,
@@ -448,9 +445,11 @@ const __xlsxD = (function () {
 
     const newRowNumber = originalRowNumber + rowIncrement
 
-    const newRowItem = { idx: rowElementIdx, r: newRowNumber, cells: [] }
-
-    dataItems.push(newRowItem)
+    sheetDataContentManager.parts.get('row').addInstance(
+      originalRowNumber.toString(),
+      newRowNumber.toString(),
+      {}
+    )
 
     const newData = Handlebars.createFrame(options.data)
 
@@ -465,44 +464,62 @@ const __xlsxD = (function () {
 
     options.fn(this, { ...options, data: newData })
 
-    const mergeStartLetterMap = templateItems.elementMetaMap.get(rowElementItem).mergeStartLetterMap ?? new Map()
+    await Promise.all(newData.cellOutputsMap.values())
+
+    const mergeStartLetterMap = baseRowItem.data.mergeStartLetterMap ?? new Map()
+
+    const mergeCellPartManager = sheetContentManagers.get('mergeCells')?.parts?.get?.('mergeCell')
 
     // we resolve merge cells on the row level, because there can be merge cells definitions
     // that reference cells that does not exists
     // (cell tag not present only empty row tag in xml)
     if (newData.cellOutputsMap.size === 0) {
-      for (const [cellLetter, mergeCellInfo] of mergeStartLetterMap) {
-        updateMergeCells(mergeCellItems, mergeCellInfo, {
-          letter: cellLetter,
-          rowNumber: newRowNumber
-        })
-      }
-    } else {
-      for (const [cellLetter, { originalCellLetter, output }] of newData.cellOutputsMap) {
-        const newCellInfo = {
-          r: cellLetter,
-          output
-        }
-
-        // check if there were merge cells affecting the original cell, if yes,
-        // add new merge cell
-        const mergeCellInfo = mergeStartLetterMap.get(originalCellLetter)
-
-        if (mergeCellInfo) {
-          updateMergeCells(mergeCellItems, mergeCellInfo, {
+      for (const [cellLetter, mergeCellRef] of mergeStartLetterMap) {
+        mergeCellPartManager.addInstance(
+          mergeCellRef,
+          updateMergeCell(mergeCellRef, {
             letter: cellLetter,
             rowNumber: newRowNumber
-          })
+          }),
+          {}
+        )
+      }
+    } else {
+      const rowItem = sheetDataContentManager.parts.get('row').get(newRowNumber.toString())
+
+      for (const [cellLetter, { originalCellLetter, output }] of newData.cellOutputsMap) {
+        // check if there were merge cells affecting the original cell, if yes,
+        // add new merge cell
+        const mergeCellRef = mergeStartLetterMap.get(originalCellLetter)
+
+        if (mergeCellRef) {
+          mergeCellPartManager.addInstance(
+            mergeCellRef,
+            updateMergeCell(mergeCellRef, {
+              letter: cellLetter,
+              rowNumber: newRowNumber
+            }),
+            {}
+          )
         }
 
-        // to minimize the amount of values we store
-        // (considering that there can be a lot of cells in a xlsx)
-        // we only put .oldR if it is different than the generated r
-        if (cellLetter !== originalCellLetter) {
-          newCellInfo.oldR = originalCellLetter
+        const cellData = {}
+
+        if (output != null) {
+          cellData.attributes = new Map()
+          cellData.attributes.set('t', output.type)
+
+          if (output.empty !== true) {
+            cellData.children = [{ name: '#raw', value: output.value }]
+          } else {
+            cellData.children = []
+          }
         }
 
-        newRowItem.cells.push(newCellInfo)
+        const originalCellRef = `${originalCellLetter}${originalRowNumber}`
+        const updatedCellRef = `${cellLetter}${newRowNumber}`
+
+        rowItem.parts.get('c').addInstance(originalCellRef, updatedCellRef, cellData)
       }
     }
 
@@ -510,7 +527,8 @@ const __xlsxD = (function () {
   }
 
   // stores values generated when rendering data template
-  function c (originalCellLetter, options) {
+  async function c (originalCellLetter, options) {
+    const jsreport = require('jsreport-proxy')
     const Handlebars = require('handlebars')
 
     const {
@@ -524,6 +542,8 @@ const __xlsxD = (function () {
     assertOk(cellOutputsMap != null, 'cellOutputsMap needs to exists on internal data')
 
     assertOk(originalCellLetter != null, 'originalCellLetter arg is required')
+
+    const originalCellRef = originalCellLetter + originalRowNumber
 
     const {
       calcChainFilePath,
@@ -540,14 +560,12 @@ const __xlsxD = (function () {
       }
     } = getSharedData()
 
-    const { templateItems, tables, runtime } = getFileData(options.data.xlsxFilePath)
+    const { sheet, tables, contentManagers: sheetContentManagers, runtime } = getFileData(options.data.xlsxFilePath)
+    const sheetDataContentManager = sheetContentManagers.get('sheetData')
 
-    const rowElementItem = templateItems.data[templateItems.rowNumberElementIdxMap.get(originalRowNumber)]
-    const rowElementItemMetadata = templateItems.elementMetaMap.get(rowElementItem)
+    const baseRowItem = sheetDataContentManager.parts.get('row').getBase(originalRowNumber.toString())
 
-    const cellElementMetadata = templateItems.elementMetaMap.get(
-      rowElementItem.children[rowElementItemMetadata.columnLetterChildrenMap.get(originalCellLetter)]
-    )
+    const baseCellItem = baseRowItem.parts.get('c').get(originalCellRef)
 
     const {
       increment: columnIncrement,
@@ -573,8 +591,6 @@ const __xlsxD = (function () {
     const updatedCellRef = `${columnLetter}${rowNumber}`
 
     updateDimension(runtime, { rowNumber, columnNumber })
-
-    const originalCellRef = originalCellLetter + originalRowNumber
 
     // check if the pending not completed loops are done, if so,
     // resolve pending lazy formulas
@@ -667,29 +683,26 @@ const __xlsxD = (function () {
     trackedCell.count += 1
 
     // update calChain if the cell was referenced
-    if (calcChainFilePath != null && cellElementMetadata?.calcChainElementIdx != null) {
-      const { dataItems: calcChainDataItems } = getFileData(calcChainFilePath)
-
-      calcChainDataItems.push({
-        idx: cellElementMetadata.calcChainElementIdx,
-        r: updatedCellRef
-      })
+    if (calcChainFilePath != null && baseCellItem.data?.calcChainEntry) {
+      const { contentManagers: calcChainContentManagers } = getFileData(calcChainFilePath)
+      const calcChainCPartManager = calcChainContentManagers.get('calcChain').parts.get('c')
+      calcChainCPartManager.addInstance([originalCellRef, sheet.id], [updatedCellRef, sheet.id], {})
     }
 
     // update table ref if the cell is part of a table ref
-    if (cellElementMetadata?.tablePart?.ref) {
-      const tablePart = tables[cellElementMetadata.tablePart.idx]
-      const currentRefParts = cellElementMetadata.tablePart.ref.split(':')
-      const isMainRef = tablePart.mainRefParts.join(':') === cellElementMetadata.tablePart.ref
+    if (baseCellItem.data?.tablePart?.ref) {
+      const tablePart = tables[baseCellItem.data.tablePart.idx]
+      const currentRefParts = baseCellItem.data.tablePart.ref.split(':')
+      const isMainRef = tablePart.mainRefParts.join(':') === baseCellItem.data.tablePart.ref
       const isStartOfRange = currentRefParts[0] === originalCellRef
 
-      if (!runtime.trackedTables.has(cellElementMetadata.tablePart.idx)) {
-        runtime.trackedTables.set(cellElementMetadata.tablePart.idx, {
+      if (!runtime.trackedTables.has(baseCellItem.data.tablePart.idx)) {
+        runtime.trackedTables.set(baseCellItem.data.tablePart.idx, {
           instances: []
         })
       }
 
-      const trackedTable = runtime.trackedTables.get(cellElementMetadata.tablePart.idx)
+      const trackedTable = runtime.trackedTables.get(baseCellItem.data.tablePart.idx)
       let tableInstance
 
       if (isMainRef && isStartOfRange) {
@@ -710,11 +723,11 @@ const __xlsxD = (function () {
         tableInstance = trackedTable.instances[trackedTable.instances.length - 1]
       }
 
-      if (!tableInstance.refsParts.has(cellElementMetadata.tablePart.ref)) {
-        tableInstance.refsParts.set(cellElementMetadata.tablePart.ref, { start: null, end: null })
+      if (!tableInstance.refsParts.has(baseCellItem.data.tablePart.ref)) {
+        tableInstance.refsParts.set(baseCellItem.data.tablePart.ref, { start: null, end: null })
       }
 
-      const partsOfCurrentRef = tableInstance.refsParts.get(cellElementMetadata.tablePart.ref)
+      const partsOfCurrentRef = tableInstance.refsParts.get(baseCellItem.data.tablePart.ref)
 
       if (isStartOfRange) {
         partsOfCurrentRef.start = trackedCell.last
@@ -751,7 +764,16 @@ const __xlsxD = (function () {
     let cellValue
     let cellType
 
-    if (cellElementMetadata?.formula != null) {
+    const activeCellOutputExecution = Promise.withResolvers()
+
+    // insert to the output map early (before any possible async processing) to reclaim
+    // its position according to the order of calls in the template
+    cellOutputsMap.set(columnLetter, activeCellOutputExecution.promise.then((output) => {
+      // normalize the map to always have the final output after it is resolved
+      cellOutputsMap.set(columnLetter, output)
+    }))
+
+    if (baseCellItem.data?.formula != null) {
       cellType = 'str'
 
       const {
@@ -762,18 +784,18 @@ const __xlsxD = (function () {
       assertOk(rowPreviousLoopIncrement != null, 'row previousLoopIncrement needs to exists on internal data')
       assertOk(rowCurrentLoopIncrement != null, 'row currentLoopIncrement needs to exists on internal data')
 
-      const originalFormula = cellElementMetadata.formula.value
+      const originalFormula = baseCellItem.data.formula.value
       const originCellIsFromLoop = options.data.currentLoopId != null
 
       const parsedOriginCellRef = parseCellRef(originalCellRef)
 
       cellValue = {}
 
-      if (cellElementMetadata.formula.attributes) {
-        cellValue.attributes = structuredClone(cellElementMetadata.formula.attributes)
+      if (baseCellItem.data.formula.attributes) {
+        cellValue.attributes = structuredClone(baseCellItem.data.formula.attributes)
       }
 
-      if (cellElementMetadata.formula.shared?.type === 'reference') {
+      if (baseCellItem.data.formula.shared?.type === 'reference') {
         // originalFormula is just empty string in this case so it is going to
         // be empty "f"
         cellValue.formula = originalFormula
@@ -813,11 +835,11 @@ const __xlsxD = (function () {
           cellValue.formula = newFormula
         }
 
-        if (cellElementMetadata.formula.shared?.type === 'source') {
-          const { newValue: newRef } = evaluateCellRefsFromExpression(cellElementMetadata.formula.shared.sourceRef, (cellRefInfo) => {
+        if (baseCellItem.data.formula.shared?.type === 'source') {
+          const { newValue: newRef } = evaluateCellRefsFromExpression(baseCellItem.data.formula.shared.sourceRef, (cellRefInfo) => {
             const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
 
-            assertOk(isRange, `cell ref expected to be a range. value: "${cellElementMetadata.formula.shared.sourceRef}`)
+            assertOk(isRange, `cell ref expected to be a range. value: "${baseCellItem.data.formula.shared.sourceRef}`)
 
             const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
             const [newColumnLetter] = getColumnFor(columnNumber, columnIncrement)
@@ -859,11 +881,11 @@ const __xlsxD = (function () {
 
       // if we get to this point the cell contains dynamic parts,
       // we call the body of the cell helper to resolve those values
-      const cellRawValue = options.fn(this, cellTemplateOptions)
+      const cellRawValue = await jsreport.templatingEngines.waitForAsyncHelper(options.fn(this, cellTemplateOptions))
 
       if (newData.cellValue != null) {
         // there will be cellValue set if there was a cell possible to auto detect
-        cellValue = newData.cellValue
+        cellValue = await jsreport.templatingEngines.waitForAsyncHelper(newData.cellValue)
       } else {
         // otherwise we use the text content from the raw value
         const tmpDoc = parseXML(cellRawValue)
@@ -947,7 +969,7 @@ const __xlsxD = (function () {
 
       if (isAutoFitEnabled) {
         const fontSize = getFontSizeFromStyle(
-          cellElementMetadata.styleId,
+          baseCellItem.data.styleId,
           runtime.style.info,
           runtime.style.fontSizeCache
         )
@@ -963,8 +985,8 @@ const __xlsxD = (function () {
 
       if (cellType === 'inlineStr') {
         // update table dynamic column names if the cell has it
-        if (cellElementMetadata?.tablePart?.dynamicColumn) {
-          const trackedTable = runtime.trackedTables.get(cellElementMetadata.tablePart.idx)
+        if (baseCellItem.data?.tablePart?.dynamicColumn) {
+          const trackedTable = runtime.trackedTables.get(baseCellItem.data.tablePart.idx)
           const tableInstance = trackedTable.instances[trackedTable.instances.length - 1]
           tableInstance.columnNames.set(originalCellRef, cellValue ?? '')
         }
@@ -1055,7 +1077,10 @@ const __xlsxD = (function () {
       }
     }
 
-    cellOutputsMap.set(columnLetter, {
+    // we dont care about rejections, because in case of any error either from the
+    // options.fn or some code here, it will be propagated to the main template rendering
+    // from our handlebars async handling
+    activeCellOutputExecution.resolve({
       originalCellLetter,
       output: cellOutput
     })
@@ -1108,9 +1133,11 @@ const __xlsxD = (function () {
   cValue.dynamicParameters = true
 
   // do any last pending processing
-  function lastProcessing (options) {
+  async function lastProcessing (options) {
+    const jsreport = require('jsreport-proxy')
+
     const {
-      idManagers, listManagers, dynamicFileMap,
+      idManagers, dynamicFileMap,
       helpers: {
         dirname, relativeFilename,
         cellUtils: { getColumnFor },
@@ -1118,9 +1145,30 @@ const __xlsxD = (function () {
       }
     } = getSharedData()
 
-    const { relsPath, listManagers: sheetListManagers, dataVariables: sheetDataVariables, tables, runtime } = getFileData(options.data.xlsxFilePath)
+    const { relsPath, contentManagers: sheetContentManagers, dataVariables: sheetDataVariables, tables, runtime } = getFileData(options.data.xlsxFilePath)
 
-    const contextTypesOverrideListManager = listManagers.get('contentTypes.override')
+    // solve any pending formulas that were waiting to complete, this works ok because all previous
+    // lazy formula resolving happens on the sync part of c helper, we can safely try to resolve
+    // one last time here
+    if (runtime.lazyFormulas.data.size > 0) {
+      const targetLazyFormulaIds = [...runtime.lazyFormulas.data.keys()]
+
+      for (const lazyFormulaId of targetLazyFormulaIds) {
+        const lazyFormulaInfo = runtime.lazyFormulas.data.get(lazyFormulaId)
+        const pendingCellRefs = [...lazyFormulaInfo.pendingCellRefs]
+
+        for (const cellRef of pendingCellRefs) {
+          // resolve all the lazy pending formulas, the reason we got until this point is likely
+          // that a formula is referencing a cell that does not have a definition in the sheet
+          tryToResolvePendingLazyFormula(
+            lazyFormulaId, cellRef, runtime.lazyFormulas,
+            runtime.trackedCells, runtime.loops.data
+          )
+        }
+      }
+    }
+
+    await jsreport.templatingEngines.waitForAsyncHelpers()
 
     // update dimension ref
     if (runtime.dimension) {
@@ -1137,8 +1185,27 @@ const __xlsxD = (function () {
       sheetDataVariables.newDimensionRef = newDimensionRef
     }
 
+    // solve auto fit columns
+    if (runtime.autoFit.cols.size > 0) {
+      for (const [colLetter, colSize] of runtime.autoFit.cols) {
+        const colSizeInNumberCharactersMDW = (colSize / 6.5) + 2 // 2 is for padding
+        const colNumber = getColumnFor(colLetter)[1]
+
+        const sheetColPartManager = sheetContentManagers.get('cols').parts.get('col')
+
+        sheetColPartManager.set([colNumber.toString(), colNumber.toString()], {
+          attributes: new Map([
+            ['width', colSizeInNumberCharactersMDW],
+            ['customWidth', '1']
+          ])
+        })
+      }
+    }
+
     // transform the collected table instances to new tables and data variables for the xml template
     if (runtime.trackedTables.size > 0) {
+      const contentTypesOverridePartManager = getFileData('[Content_Types].xml').contentManagers.get('Types').parts.get('Override')
+
       for (const [tableIdx, trackedTable] of runtime.trackedTables) {
         const tablePart = tables[tableIdx]
         const tableFilePath = tablePart.path
@@ -1178,16 +1245,18 @@ const __xlsxD = (function () {
             let newRId
 
             if (relsPath) {
-              const { idManagers: sheetRelIdManagers, listManagers: sheetRelsListManagers } = getFileData(relsPath)
+              const { idManagers: sheetRelIdManagers, contentManagers: sheetRelsContentManagers } = getFileData(relsPath)
               const relationshipIdManager = sheetRelIdManagers.get('relationship')
-              const relationshipListManager = sheetRelsListManagers.get('relationship')
+              const sheetRelPartManager = sheetRelsContentManagers.get('Relationships').parts.get('Relationship')
 
               newRId = relationshipIdManager.generate().id
 
-              relationshipListManager.set(newRId, {
-                Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/table',
-                // the target is relative from the sheet file path to the table file path
-                Target: relativeFilename(dirname(options.data.xlsxFilePath), instanceData.path)
+              sheetRelPartManager.set(newRId, {
+                attributes: new Map([
+                  ['Type', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/table'],
+                  // the target is relative from the sheet file path to the table file path
+                  ['Target', relativeFilename(dirname(options.data.xlsxFilePath), instanceData.path)]
+                ])
               })
             }
 
@@ -1195,17 +1264,19 @@ const __xlsxD = (function () {
               throw new Error(`Failed to generate relationship id for table ${instanceData.path} of sheet ${options.data.xlsxFilePath}`)
             }
 
-            const sheetTablePartListManager = sheetListManagers.get('tablePart')
+            const sheetTablePartPartManager = sheetContentManagers.get('tableParts').parts.get('tablePart')
 
-            sheetTablePartListManager.set(newRId, {})
+            sheetTablePartPartManager.set(newRId, {})
 
             instanceData.dataVariables[tablePart.idVariableName] = newTableId
             instanceData.dataVariables[tablePart.nameVariableName] = `${tablePrefixName}${newTableId}`
           }
 
-          if (!contextTypesOverrideListManager.has(`/${instanceData.path}`)) {
-            contextTypesOverrideListManager.set(`/${instanceData.path}`, {
-              ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml'
+          if (!contentTypesOverridePartManager.has(`/${instanceData.path}`)) {
+            contentTypesOverridePartManager.set(`/${instanceData.path}`, {
+              attributes: new Map([
+                ['ContentType', 'application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml']
+              ])
             })
           }
 
@@ -1226,23 +1297,9 @@ const __xlsxD = (function () {
       }
     }
 
-    // solve any pending formulas that were waiting to complete
-    if (runtime.lazyFormulas.data.size > 0) {
-      const targetLazyFormulaIds = [...runtime.lazyFormulas.data.keys()]
-
-      for (const lazyFormulaId of targetLazyFormulaIds) {
-        const lazyFormulaInfo = runtime.lazyFormulas.data.get(lazyFormulaId)
-        const pendingCellRefs = [...lazyFormulaInfo.pendingCellRefs]
-
-        for (const cellRef of pendingCellRefs) {
-          // resolve all the lazy pending formulas, the reason we got until this point is likely
-          // that a formula is referencing a cell that does not have a definition in the sheet
-          tryToResolvePendingLazyFormula(
-            lazyFormulaId, cellRef, runtime.lazyFormulas,
-            runtime.trackedCells, runtime.loops.data
-          )
-        }
-      }
+    // update count for mergedCells
+    if (sheetContentManagers.has('mergeCells')) {
+      sheetDataVariables.newMergeCellsCount = sheetContentManagers.get('mergeCells').parts.get('mergeCell').size
     }
   }
 
@@ -1258,324 +1315,23 @@ const __xlsxD = (function () {
     return new Handlebars.SafeString(output)
   }
 
-  // produces the final <sheetData> content when rendering xml template
-  function sd (options) {
+  // produce content based on the content manager data when rendering xml template
+  function renderContent (options) {
     const Handlebars = require('handlebars')
+    const contentName = options.hash.name
+    const filePath = options.hash.path ?? options.data.xlsxFilePath
 
-    const {
-      helpers: {
-        parseXML,
-        generationUtils: { renderDataItems, getAttributeFromElementTypeAttributes }
-      }
-    } = getSharedData()
+    assertOk(contentName != null, 'content "name" arg is required')
+    assertOk(filePath != null, 'content "path" is empty')
 
-    const xlsxFilePath = options.data.xlsxFilePath
-    const { templateItems, dataItems } = getFileData(xlsxFilePath)
+    const { contentManagers } = getFileData(filePath)
+    const targetContentManager = contentManagers.get(contentName)
 
-    let rowNumber
+    assertOk(targetContentManager != null, `content "${contentName}" not found`)
 
-    const output = renderDataItems(parseXML('<sheetData/>'), dataItems, {
-      prepareItem: (dataItem) => {
-        const templateItem = templateItems.data[dataItem.idx]
-        const itemType = templateItem.type ?? 'row'
-        let newItem
-
-        if (itemType === 'row') {
-          const templateRowMeta = templateItems.elementMetaMap.get(templateItem)
-          const { children: templateRowChildren, ...templateRowItem } = templateItem
-
-          // clone without children, we are going to take care of them
-          // bellow
-          newItem = structuredClone(templateRowItem)
-
-          newItem.customAttributes = new Map([
-            ['r', dataItem.r]
-          ])
-
-          if (dataItem.cells.length > 0) {
-            const newChildren = []
-
-            for (const cellInfo of dataItem.cells) {
-              const childrenIdx = templateRowMeta.columnLetterChildrenMap.get(cellInfo.oldR ?? cellInfo.r)
-              const newCell = structuredClone(templateRowChildren[childrenIdx] ?? {})
-
-              newCell.type = 'c'
-
-              newCell.customAttributes = new Map([
-                ['r', cellInfo.r]
-              ])
-
-              // when output is different than null it means the cell generated value
-              // therefore we need to set the new children (custom content for cell),
-              // otherwise just leave the information of the element cell as it is
-              if (cellInfo.output != null) {
-                newCell.customAttributes.set('t', cellInfo.output.type)
-
-                if (cellInfo.output.empty !== true) {
-                  newCell.children = [{ type: '#raw', value: cellInfo.output.value }]
-                }
-              }
-
-              newChildren.push(newCell)
-            }
-
-            newItem.children = newChildren
-          }
-        } else {
-          newItem = structuredClone(templateItem)
-        }
-
-        return newItem
-      },
-      getDefaultItemType: (parentItem) => {
-        if (parentItem == null) {
-          return 'row'
-        }
-
-        if (parentItem.type === 'row') {
-          return 'c'
-        }
-      },
-      processAttribute: (origin, itemType, _attrName, _attrValue) => {
-        let attrName
-        let attrValue
-
-        if (origin === 'customAttributes') {
-          attrName = _attrName
-          attrValue = _attrValue
-
-          if (attrName === 'r') {
-            if (itemType === 'row') {
-              rowNumber = attrValue
-            } else if (itemType === 'c') {
-              if (rowNumber == null) {
-                throw new Error(`Cannot set cell "r" attribute when rowNumber is not defined in xlsxFilePath "${xlsxFilePath}"`)
-              }
-
-              // make the new cell ref
-              attrValue = attrValue + rowNumber
-            }
-          }
-        } else {
-          [attrName, attrValue] = getAttributeFromElementTypeAttributes(
-            templateItems.elementTypeAttributesMap,
-            itemType,
-            _attrName,
-            _attrValue
-          )
-        }
-
-        return [attrName, attrValue]
-      }
-    })
+    const output = targetContentManager.render()
 
     return new Handlebars.SafeString(output)
-  }
-
-  // produces the final <mergeCells> content when rendering xml template
-  function mergeCells (options) {
-    const Handlebars = require('handlebars')
-    const xlsxFilePath = options.data.xlsxFilePath
-    const { mergeCellItems } = getFileData(xlsxFilePath)
-    const parts = []
-
-    // sort the merge cell items by idx ASC to preserve the order of the original calcChain elements
-    mergeCellItems.sort((a, b) => a.idx - b.idx)
-
-    for (let idx = 0; idx < mergeCellItems.length; idx++) {
-      const mergeCellInfo = mergeCellItems[idx]
-      const isFirst = idx === 0
-      const isLast = idx === mergeCellItems.length - 1
-
-      if (isFirst) {
-        parts.push(`<mergeCells count="${mergeCellItems.length}">`)
-      }
-
-      parts.push(`<mergeCell ref="${mergeCellInfo.ref}"/>`)
-
-      if (isLast) {
-        parts.push('</mergeCells>')
-      }
-    }
-
-    return new Handlebars.SafeString(parts.join(''))
-  }
-
-  // produce the content of the <calcChain> doc content when rendering xml template
-  function calcChain (options) {
-    const Handlebars = require('handlebars')
-
-    const {
-      helpers: {
-        parseXML,
-        generationUtils: { renderDataItems, getAttributeFromElementTypeAttributes }
-      }
-    } = getSharedData()
-
-    const xlsxFilePath = options.data.xlsxFilePath
-    const { templateItems, dataItems } = getFileData(xlsxFilePath)
-
-    // sort the dataItems by idx ASC to preserve the order of the original calcChain elements
-    dataItems.sort((a, b) => a.idx - b.idx)
-
-    const output = renderDataItems(
-      parseXML('<fragment />'),
-      dataItems,
-      {
-        prepareItem: (dataItem) => {
-          const templateItem = templateItems.data[dataItem.idx]
-          const itemType = templateItem.type ?? 'c'
-          let newItem
-
-          if (itemType === 'c') {
-            newItem = structuredClone(templateItem)
-
-            newItem.customAttributes = new Map([
-              ['r', dataItem.r]
-            ])
-          } else {
-            newItem = structuredClone(templateItem)
-          }
-
-          return newItem
-        },
-        getDefaultItemType: (parentItem) => {
-          if (parentItem == null) {
-            return 'c'
-          }
-        },
-        processAttribute: (origin, itemType, _attrName, _attrValue) => {
-          if (origin !== 'attributes') {
-            return
-          }
-
-          return getAttributeFromElementTypeAttributes(
-            templateItems.elementTypeAttributesMap,
-            itemType,
-            _attrName,
-            _attrValue
-          )
-        }
-      },
-      false
-    )
-
-    return new Handlebars.SafeString(output)
-  }
-
-  // produce the final <cols> content when rendering xml template
-  function cols (options) {
-    const Handlebars = require('handlebars')
-    const xlsxFilePath = options.data.xlsxFilePath
-
-    const {
-      helpers: { parseXML, cellUtils: { getColumnFor } }
-    } = getSharedData()
-
-    const existingColsXml = options.fn(this)
-
-    const doc = parseXML(existingColsXml)
-    const colsEl = doc.documentElement
-
-    const { runtime } = getFileData(xlsxFilePath)
-
-    const existingBaseColEls = Array.from(colsEl.getElementsByTagName('col'))
-
-    for (const [colLetter, colSize] of runtime.autoFit.cols) {
-      const colSizeInNumberCharactersMDW = (colSize / 6.5) + 2 // 2 is for padding
-      const colNumber = getColumnFor(colLetter)[1]
-
-      const existingColEl = existingBaseColEls.find((el) => (
-        el.getAttribute('min') === colNumber.toString() &&
-        el.getAttribute('max') === colNumber.toString()
-      ))
-
-      if (existingColEl != null) {
-        existingColEl.setAttribute('width', colSizeInNumberCharactersMDW)
-        existingColEl.setAttribute('customWidth', '1')
-      } else {
-        const newCol = doc.createElement('col')
-        newCol.setAttribute('min', colNumber.toString())
-        newCol.setAttribute('max', colNumber.toString())
-        newCol.setAttribute('width', colSizeInNumberCharactersMDW)
-        newCol.setAttribute('customWidth', '1')
-        colsEl.appendChild(newCol)
-      }
-    }
-
-    let output
-
-    // return empty if there was no existing cols and also no new cols were generated
-    if (existingBaseColEls.length === 0 && colsEl.childNodes.length === 0) {
-      output = ''
-    } else {
-      output = colsEl.toString()
-    }
-
-    return new Handlebars.SafeString(output)
-  }
-
-  // produce content based on list items when rendering xml template
-  function listRecords (options) {
-    const Handlebars = require('handlebars')
-    const listName = options.hash.name
-    const filePath = options.hash.path
-
-    assertOk(listName != null, 'list "name" arg is required')
-
-    let targetListManager
-
-    if (filePath != null) {
-      const { listManagers } = getFileData(filePath)
-      targetListManager = listManagers.get(listName)
-    } else {
-      const { listManagers } = getSharedData()
-      targetListManager = listManagers.get(listName)
-    }
-
-    assertOk(targetListManager != null, `list "${listName}" not found`)
-
-    const { helpers: { parseXML } } = getSharedData()
-
-    const existingXml = options.fn(this)
-    const tmpDoc = parseXML(`<fragment>${existingXml}</fragment>`)
-    const existingEls = Array.from(tmpDoc.documentElement.childNodes)
-
-    const keyToTemplateElMap = new Map()
-
-    // this reuse any existing element from the template xlsx file
-    for (const existingEl of existingEls) {
-      const keyPropertyValue = existingEl.getAttribute(targetListManager.keyPropertyName)
-
-      if (targetListManager.has(keyPropertyValue)) {
-        keyToTemplateElMap.set(keyPropertyValue, existingEl)
-      }
-    }
-
-    for (const [keyName, record] of targetListManager.all()) {
-      let targetEl
-
-      if (!keyToTemplateElMap.has(keyName)) {
-        targetEl = tmpDoc.createElement(targetListManager.nodeName)
-        tmpDoc.documentElement.appendChild(targetEl)
-      } else {
-        targetEl = keyToTemplateElMap.get(keyName)
-      }
-
-      targetEl.setAttribute(targetListManager.keyPropertyName, keyName)
-
-      for (const [prop, value] of Object.entries(record)) {
-        targetEl.setAttribute(prop, value)
-      }
-    }
-
-    const output = []
-
-    for (const el of Array.from(tmpDoc.documentElement.childNodes)) {
-      output.push(el.toString())
-    }
-
-    return new Handlebars.SafeString(output.join(''))
   }
 
   const helpers = {
@@ -1587,11 +1343,7 @@ const __xlsxD = (function () {
     cValue,
     lastProcessing,
     chartTitleText,
-    sd,
-    mergeCells,
-    calcChain,
-    cols,
-    listRecords
+    renderContent
   }
 
   return {

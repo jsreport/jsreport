@@ -1,9 +1,6 @@
 const path = require('path')
-
-const {
-  getDataHelperCall, getDataHelperBlockEndCall,
-  processOpeningTag, processClosingTag
-} = require('../../utils')
+const { createContentCollectionManager } = require('@jsreport/office')
+const { getDataHelperCall, processOpeningTag } = require('../../utils')
 
 module.exports = ({ files, sharedData, addEndCallback }) => {
   const tableFiles = files.filter(f => isTableFile(f.path))
@@ -34,85 +31,79 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
   })
 
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
-  const defaultNodeName = 'Default'
-  const defaultNameProperty = 'Extension'
+  const contentTypesContentManagers = createContentCollectionManager()
 
-  const defaultEls = Array.from(contentTypesFile.doc.documentElement.childNodes).filter(
-    (el) => el.nodeName === defaultNodeName
-  )
-
-  sharedData.listManagers.set('contentTypes.default', {
-    nodeName: defaultNodeName,
-    keyPropertyName: defaultNameProperty,
-    fromItems () {
-      const items = []
-
-      for (const defaultEl of defaultEls) {
-        const extension = defaultEl.getAttribute(defaultNameProperty)
-
-        items.push([extension, {
-          ContentType: defaultEl.getAttribute('ContentType')
-        }])
-      }
-
-      return items
-    }
+  sharedData.fileDataMap.set(contentTypesFile.path, {
+    contentManagers: contentTypesContentManagers
   })
 
-  const overrideNodeName = 'Override'
-  const overrideNameProperty = 'PartName'
+  contentTypesContentManagers.set('Types', {
+    prepare: (ctx) => {
+      const elements = Array.from(contentTypesFile.doc.documentElement.childNodes)
 
-  const overrideEls = Array.from(contentTypesFile.doc.documentElement.childNodes).filter(
-    (el) => el.nodeName === overrideNodeName
-  )
+      ctx.data.lastElForPart = new Map()
 
-  sharedData.listManagers.set('contentTypes.override', {
-    nodeName: overrideNodeName,
-    keyPropertyName: overrideNameProperty,
-    fromItems () {
-      const items = []
+      return {
+        parts: {
+          Default: {
+            type: 'simpleCollection',
+            idAttrs: ['Extension']
+          },
+          Override: {
+            type: 'simpleCollection',
+            idAttrs: ['PartName']
+          }
+        },
+        elements
+      }
+    },
+    onInit: (elements, ctx) => {
+      const defaultEls = []
+      const overrideEls = []
 
-      for (const overrideEl of overrideEls) {
-        const partName = overrideEl.getAttribute(overrideNameProperty)
-
-        items.push([partName, {
-          ContentType: overrideEl.getAttribute('ContentType')
-        }])
+      for (const element of elements) {
+        if (element.nodeName === 'Default') {
+          defaultEls.push(element)
+        } else if (element.nodeName === 'Override') {
+          overrideEls.push(element)
+        }
       }
 
-      return items
+      ctx.data.lastElForPart.set('Default', defaultEls.at(-1))
+      ctx.data.lastElForPart.set('Override', overrideEls.at(-1))
+
+      if (defaultEls.length > 0 && overrideEls.length > 0) {
+        return
+      }
+
+      if (defaultEls.length === 0) {
+        ctx.addSlot('Default')
+      }
+
+      if (overrideEls.length === 0) {
+        ctx.addSlot('Override')
+      }
+    },
+    onElementPart: (el, ctx) => {
+      if (ctx.data.lastElForPart.get(el.nodeName) === el) {
+        ctx.addSlot(el.nodeName)
+      }
     }
   })
 
   addEndCallback(() => {
-    const startCallForDefault = getDataHelperCall('listRecords', { name: 'contentTypes.default' })
+    const contentCallForTypes = getDataHelperCall('renderContent', { name: 'Types' }, { isBlock: false })
 
-    if (defaultEls.length > 0) {
-      processOpeningTag(contentTypesFile.doc, defaultEls[0], startCallForDefault)
-      processClosingTag(contentTypesFile.doc, defaultEls[defaultEls.length - 1], getDataHelperBlockEndCall())
-    } else {
-      let targetEl
+    // fast way to remove children, iterating all children and using .removeChild is
+    // very slow in big documents
+    contentTypesFile.doc.replaceChild(
+      contentTypesFile.doc.documentElement.cloneNode(),
+      contentTypesFile.doc.documentElement
+    )
 
-      if (overrideEls.length > 0) {
-        targetEl = overrideEls[0]
-      } else {
-        targetEl = contentTypesFile.doc.documentElement.firstChild
-      }
-
-      const fakeEl = processOpeningTag(contentTypesFile.doc, targetEl, startCallForDefault)
-      processClosingTag(contentTypesFile.doc, fakeEl, getDataHelperBlockEndCall())
-    }
-
-    const startCallForOverride = getDataHelperCall('listRecords', { name: 'contentTypes.override' })
-
-    if (overrideEls.length > 0) {
-      processOpeningTag(contentTypesFile.doc, overrideEls[0], startCallForOverride)
-      processClosingTag(contentTypesFile.doc, overrideEls[overrideEls.length - 1], getDataHelperBlockEndCall())
-    } else {
-      const fakeEl = processOpeningTag(contentTypesFile.doc, false, startCallForOverride)
-      contentTypesFile.doc.documentElement.appendChild(fakeEl)
-      processClosingTag(contentTypesFile.doc, fakeEl, getDataHelperBlockEndCall())
-    }
+    contentTypesFile.doc.documentElement.appendChild(
+      processOpeningTag(contentTypesFile.doc, false, contentCallForTypes)
+    )
   })
 }
 

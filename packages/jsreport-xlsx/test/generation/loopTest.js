@@ -581,6 +581,144 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    it(`${mode} loop should generate new rows with content from async helpers`, async () => {
+      const originalItems = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      let items = originalItems
+
+      if (mode === 'dynamic') {
+        items = items.map((item) => {
+          return [item.name, item.lastname, item.age]
+        })
+
+        items.unshift(['Name', 'Lastname', 'Age'])
+      }
+
+      const templateBuf = fs.readFileSync(getTargetXlsxFilename(mode, '-with-async-helper'))
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          helpers: `
+            function isLastnameColumn (rowIndex, columnIndex) {
+              debugger
+              return rowIndex > 0 && columnIndex === 1
+            }
+
+            async function asyncUppercase (text) {
+              return new Promise((resolve) => {
+                setTimeout(() => {
+                  resolve(text.toUpperCase())
+                }, 200)
+              })
+            }
+          `,
+          xlsx: {
+            templateAsset: {
+              content: templateBuf
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+
+      const { sheet: templateSheet } = parseSheetFromXlsxBuf(templateBuf)
+      const { sheet } = parseSheetFromXlsxBuf(result.content)
+
+      should(templateSheet['!ref']).be.ok()
+      should(templateSheet['!ref']).be.not.eql(sheet['!ref'])
+
+      if (mode === 'row') {
+        should(sheet['!ref']).be.eql('C2:E5')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname.toUpperCase())
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname.toUpperCase())
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname.toUpperCase())
+        should(sheet.E5.v).be.eql(items[2].age)
+      } else if (mode === 'block') {
+        should(sheet['!ref']).be.eql('B2:B16')
+
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname.toUpperCase())
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname.toUpperCase())
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname.toUpperCase())
+        should(sheet.E14.v).be.eql(items[2].age)
+      } else if (mode === 'vertical') {
+        should(sheet['!ref']).be.eql('C2:F4')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql(items[0].name)
+        should(sheet.E2.v).be.eql(items[1].name)
+        should(sheet.F2.v).be.eql(items[2].name)
+        should(sheet.C3.v).be.eql('Lastname')
+        should(sheet.D3.v).be.eql(items[0].lastname.toUpperCase())
+        should(sheet.E3.v).be.eql(items[1].lastname.toUpperCase())
+        should(sheet.F3.v).be.eql(items[2].lastname.toUpperCase())
+        should(sheet.C4.v).be.eql('Age')
+        should(sheet.D4.v).be.eql(items[0].age)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[2].age)
+      } else {
+        should(sheet['!ref']).be.eql('C2:E5')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(originalItems[0].name)
+        should(sheet.D3.v).be.eql(originalItems[0].lastname.toUpperCase())
+        should(sheet.E3.v).be.eql(originalItems[0].age.toString())
+        should(sheet.C4.v).be.eql(originalItems[1].name)
+        should(sheet.D4.v).be.eql(originalItems[1].lastname.toUpperCase())
+        should(sheet.E4.v).be.eql(originalItems[1].age.toString())
+        should(sheet.C5.v).be.eql(originalItems[2].name)
+        should(sheet.D5.v).be.eql(originalItems[2].lastname.toUpperCase())
+        should(sheet.E5.v).be.eql(originalItems[2].age.toString())
+      }
+    })
+
     it(`${mode} loop should generate new rows and update existing rows/cells`, async () => {
       const originalItems = [{
         name: 'Alexander',

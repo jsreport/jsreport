@@ -646,6 +646,70 @@ describe('xlsx generation - base', () => {
     should(sheet.A1.v).be.eql('More than 2 users')
   })
 
+  it('async helper as cell content', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        helpers: `
+          async function testing () {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve(3)
+              }, 200)
+            })
+          }
+        `,
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'async-helper-as-cell-content.xlsx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A2.t).be.eql('n')
+    should(sheet.A2.v).be.eql(3)
+  })
+
+  it('async helper as part of cell content', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        helpers: `
+          async function testing () {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve(3)
+              }, 200)
+            })
+          }
+        `,
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'async-helper-as-part-of-cell-content.xlsx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A2.t).be.eql('s')
+    should(sheet.A2.v).be.eql('Value of 3')
+  })
+
   it('work with non existing variable', async () => {
     const result = await reporter.render({
       template: {
