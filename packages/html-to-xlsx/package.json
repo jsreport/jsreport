@@ -44,7 +44,7 @@
     "sax": "1.4.1",
     "should": "13.2.3",
     "standard": "16.0.4",
-    "xlsx": "0.18.5",
+    "xlsx": "npm:@stackline/xlsx@1.0.6",
     "xlsx-coordinates": "1.0.1"
   },
   "engines": {

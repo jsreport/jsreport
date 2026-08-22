@@ -59,7 +59,7 @@
     "sax": "1.4.1",
     "should": "13.2.3",
     "standard": "16.0.4",
-    "xlsx": "0.15.4"
+    "xlsx": "npm:@stackline/xlsx@1.0.6"
   },
   "engines": {
     "node": ">=22.18"
