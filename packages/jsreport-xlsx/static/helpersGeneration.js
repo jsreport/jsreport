@@ -146,7 +146,7 @@ function xlsxColAutofit (options) {
 
 function xlsxChart (options) {
   const jsreport = require('jsreport-proxy')
-  const { runtime } = jsreport.req.context.__xlsxSharedData.fileDataMap.get(options.data.xlsxFilePath)
+  const { prefix: chartPrefix, dataVariables: chartDataVariables, runtime } = jsreport.req.context.__xlsxSharedData.fileDataMap.get(options.data.xlsxFilePath)
 
   if (options.hash.data == null) {
     throw new Error('xlsxChart helper requires data parameter to be set')
@@ -170,8 +170,47 @@ function xlsxChart (options) {
     throw new Error('xlsxChart helper when options parameter is set, it should be an object')
   }
 
-  runtime.configuration.data = options.hash.data
-  runtime.configuration.options = options.hash.options
+  const chartData = options.hash.data
+  const chartOptions = options.hash.options
+
+  chartDataVariables.seriesData = chartData
+
+  if (chartPrefix === 'c') {
+    const targetScaleOptions = []
+
+    if (Array.isArray(chartOptions?.scales?.xAxes)) {
+      targetScaleOptions.push({ type: 'x', axes: chartOptions.scales.xAxes })
+    }
+
+    if (Array.isArray(chartOptions?.scales?.yAxes)) {
+      targetScaleOptions.push({ type: 'y', axes: chartOptions.scales.yAxes })
+    }
+
+    for (const { type, axes } of targetScaleOptions) {
+      for (let idx = 0; idx < axes.length; idx++) {
+        const axisConfig = axes[idx]
+        const axisData = chartDataVariables[`${type}Axi${idx + 1}`]
+
+        if (axisData == null) {
+          continue
+        }
+
+        axisData.hide = axisConfig.display === false ? '1' : '0'
+
+        if (axisConfig.ticks?.max != null) {
+          axisData.max = axisConfig.ticks.max
+        }
+
+        if (axisConfig.ticks?.min != null) {
+          axisData.min = axisConfig.ticks.min
+        }
+
+        if (axisConfig.ticks?.stepSize != null) {
+          axisData.majorUnit = axisConfig.ticks.stepSize
+        }
+      }
+    }
+  }
 
   return ''
 }
@@ -1304,13 +1343,43 @@ const __xlsxD = (function () {
   }
 
   // resolves the chart title content
-  function chartTitleText (options) {
+  function chartTitle (options) {
     const Handlebars = require('handlebars')
-    const { runtime } = getFileData(options.data.xlsxFilePath)
+    const { dataVariables: chartDataVariables } = getFileData(options.data.xlsxFilePath)
 
     const output = options.fn(this)
 
-    runtime.chartTitleTextXml = output
+    chartDataVariables.newChartTitleXml = output
+
+    return new Handlebars.SafeString(output)
+  }
+
+  // produce the chartSeries when rendering xml template
+  function updateChart (seriesData, options) {
+    const Handlebars = require('handlebars')
+
+    const { helpers: { parseXML, chartUtils } } = getSharedData()
+    const { prefix: chartPrefix } = getFileData(options.data.xlsxFilePath)
+
+    const existingXML = options.fn(this)
+    let output
+
+    if (seriesData) {
+      output = []
+
+      const tmpDoc = parseXML(`<fragment>${existingXML}</fragment>`)
+
+      chartUtils.updateChart(tmpDoc, chartPrefix, seriesData)
+
+      for (let idx = 0; idx < tmpDoc.documentElement.childNodes.length; idx++) {
+        const el = tmpDoc.documentElement.childNodes[idx]
+        output.push(el.toString())
+      }
+
+      output = output.join('')
+    } else {
+      output = existingXML
+    }
 
     return new Handlebars.SafeString(output)
   }
@@ -1342,7 +1411,8 @@ const __xlsxD = (function () {
     c,
     cValue,
     lastProcessing,
-    chartTitleText,
+    chartTitle,
+    updateChart,
     renderContent
   }
 

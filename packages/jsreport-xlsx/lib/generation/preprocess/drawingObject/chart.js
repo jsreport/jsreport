@@ -1,6 +1,12 @@
 const path = require('path')
 const { DOMParser } = require('@xmldom/xmldom')
-const { nodeListToArray, findChildNode, getDataHelperCall, serializeXmlAsHandlebarsSafeOutput, recreateNodeWithNewDoc } = require('../../../utils')
+
+const {
+  nodeListToArray, findChildNode, findOrCreateChildNode,
+  getDataHelperCall, getDataHelperBlockEndCall,
+  processOpeningTag, processClosingTag,
+  serializeXmlAsHandlebarsSafeOutput, recreateNodeWithNewDoc
+} = require('../../../utils')
 
 module.exports = function chart ({ files, sharedData, addEndCallback }, sheetContent, drawingEl) {
   const { sheetFilepath, sheetRelsDoc } = sheetContent
@@ -122,17 +128,9 @@ module.exports = function chart ({ files, sharedData, addEndCallback }, sheetCon
     addEndCallback(() => {
       const chartMainTitleTxEl = Array.from(chartMainTitleEl.childNodes).find((el) => el.nodeName === `${graphicDataChartEl.prefix}:tx`)
 
-      const targetTitleText = {
-        name: null,
-        el: null
-      }
-
       // ensuring the cached strings in xlsx are not processed by handlebars, because it will
       // give errors otherwise
       if (graphicDataChartEl.prefix === 'c') {
-        targetTitleText.name = 'c:tx'
-        targetTitleText.el = chartMainTitleTxEl
-
         // it seems only the standard charts "c:" cache data in the chart definition,
         // for the chartex it is not needed that we do something
         const existingChartSeriesElements = Array.from(chartDoc.getElementsByTagName('c:ser'))
@@ -170,6 +168,9 @@ module.exports = function chart ({ files, sharedData, addEndCallback }, sheetCon
                   continue
                 }
 
+                // when the source of the chart is a table that is dynamically generated with
+                // handlebars, then the chart can reference values with handlebars tags coming from
+                // the cells of the dynamic table, we normalize here to avoid processing those handlebars tags
                 if (ptValueEl.textContent.includes('{{') && ptValueEl.textContent.includes('}}')) {
                   ptValueEl.textContent = `{{{{_D t='raw'}}}}${ptValueEl.textContent}{{{{/_D}}}}`
                 }
@@ -177,20 +178,20 @@ module.exports = function chart ({ files, sharedData, addEndCallback }, sheetCon
             }
           }
         }
-      } else if (graphicDataChartEl.prefix === 'cx') {
-        targetTitleText.name = 'cx:txPr'
-        targetTitleText.el = Array.from(chartMainTitleEl.childNodes).find((el) => el.nodeName === 'cx:txPr')
+      } else if (graphicDataChartEl.prefix === 'cx' && chartMainTitleTxEl) {
+        const chartMainTitleTxDataEl = Array.from(chartMainTitleTxEl.childNodes).find((el) => el.nodeName === 'cx:txData')
+        const chartMainTitleTxDataValueEl = Array.from(chartMainTitleTxDataEl?.childNodes ?? []).find((el) => el.nodeName === 'cx:v')
 
-        const chartMainTitleTxDataEl = chartMainTitleTxEl != null ? nodeListToArray(chartMainTitleTxEl.childNodes).find((el) => el.nodeName === 'cx:txData') : undefined
-        const chartMainTitleTxDataValueEl = chartMainTitleTxDataEl != null ? nodeListToArray(chartMainTitleTxDataEl.childNodes).find((el) => el.nodeName === 'cx:v') : undefined
-
+        // chartex stores a cache of the title in another node,
+        // which can contain a copy of the xlsxChart call,
+        // we suppress that content here to avoid evaluating it
         if (chartMainTitleTxDataValueEl?.textContent.startsWith('{{xlsxChart')) {
           chartMainTitleTxDataValueEl.textContent = ''
         }
       }
 
-      const tmpDoc = new DOMParser().parseFromString(`<${targetTitleText.name} />`)
-      const titleChildEls = Array.from(targetTitleText.el.childNodes)
+      const tmpDoc = new DOMParser().parseFromString('<fragment />')
+      const titleChildEls = Array.from(chartMainTitleEl.childNodes)
 
       for (const titleChildEl of titleChildEls) {
         // we recreate the node to avoid getting unwanted xmlns attributes
@@ -198,22 +199,151 @@ module.exports = function chart ({ files, sharedData, addEndCallback }, sheetCon
         tmpDoc.documentElement.appendChild(
           recreateNodeWithNewDoc(titleChildEl, tmpDoc)
         )
-
-        // remove the original node so we dont end with handlebars content in the xml template
-        titleChildEl.parentNode.removeChild(titleChildEl)
       }
 
-      const dataTemplate = getDataHelperCall('chartTitleText', null, {
-        content: serializeXmlAsHandlebarsSafeOutput(tmpDoc)
+      const dataTemplate = getDataHelperCall('chartTitle', null, {
+        content: serializeXmlAsHandlebarsSafeOutput(Array.from(tmpDoc.documentElement.childNodes))
       })
 
-      sharedData.fileDataMap.set(chartPath, {
-        dataTemplate,
-        runtime: {
-          configuration: {},
-          chartTitleTextXml: ''
+      const newChartMainTitleEl = chartMainTitleEl.cloneNode()
+
+      newChartMainTitleEl.appendChild(
+        chartDoc.createTextNode('{{{@newChartTitleXml}}}')
+      )
+
+      // replace original title with the dynamic xml content
+      chartMainTitleEl.parentNode.replaceChild(newChartMainTitleEl, chartMainTitleEl)
+
+      let chartType
+
+      const dataVariables = {}
+
+      if (graphicDataChartEl.prefix === 'cx') {
+        const chartMainSerieEl = chartDoc.getElementsByTagName('cx:plotArea')[0].getElementsByTagName('cx:series')[0]
+        chartType = chartMainSerieEl.getAttribute('layoutId')
+
+        processOpeningTag(chartDoc, chartDoc.documentElement.firstChild, getDataHelperCall('updateChart', null, { valuePart: '@seriesData' }))
+        processClosingTag(chartDoc, chartDoc.documentElement.lastChild, getDataHelperBlockEndCall('updateChart'))
+      } else {
+        const existingChartSeriesEls = Array.from(chartDoc.getElementsByTagName('c:ser'))
+
+        if (existingChartSeriesEls.length === 0) {
+          throw new Error(`Base chart in xlsx must have at least one data serie defined, ref: "${chartPath}"`)
         }
+
+        chartType = existingChartSeriesEls[0].parentNode.localName
+
+        const chartPlotAreaEl = findChildNode('c:plotArea', chartEl)
+
+        const count = {
+          xAxes: 0,
+          yAxes: 0
+        }
+
+        for (let i = 0; i < chartPlotAreaEl.childNodes.length; i++) {
+          const childEl = chartPlotAreaEl.childNodes[i]
+
+          if (childEl.nodeName !== 'c:catAx' && childEl.nodeName !== 'c:valAx') {
+            continue
+          }
+
+          const targetCount = childEl.nodeName === 'c:catAx' ? count.xAxes : count.yAxes
+          const dataVariableName = `${childEl.nodeName === 'c:catAx' ? 'x' : 'y'}Axi${targetCount + 1}`
+          const axeData = {}
+
+          prepareAxis(chartDoc, dataVariableName, axeData, childEl)
+
+          count[childEl.nodeName === 'c:catAx' ? 'xAxes' : 'yAxes']++
+
+          dataVariables[dataVariableName] = axeData
+        }
+
+        // insert the wrapper including the parent of series because a chart serie can
+        // belong to completely different chart types (like the combo chart case)
+        processOpeningTag(chartDoc, existingChartSeriesEls[0].parentNode, getDataHelperCall('updateChart', null, { valuePart: '@seriesData' }))
+        processClosingTag(chartDoc, existingChartSeriesEls[existingChartSeriesEls.length - 1].parentNode, getDataHelperBlockEndCall('updateChart'))
+      }
+
+      sharedData.fileDataMap.set(chartPath, {
+        dataVariables,
+        dataTemplate,
+        type: chartType,
+        prefix: graphicDataChartEl.prefix
       })
     })
+  }
+}
+
+function prepareAxis (chartDoc, dataVariableName, axisData, axisEl) {
+  // wrapper elements are added last to prevent conflicting with the logic of order of elements
+  // in the chart
+  const wrappersToAdd = []
+
+  if (axisEl.nodeName === 'c:valAx') {
+    const scalingEl = findChildNode('c:scaling', axisEl)
+
+    const maxEl = findOrCreateChildNode(chartDoc, [
+      'c:max',
+      ['c:logBase', 'c:orientation']
+    ], scalingEl)
+
+    if (maxEl.hasAttribute('val')) {
+      axisData.max = maxEl.getAttribute('val')
+    }
+
+    maxEl.setAttribute('val', `{{@${dataVariableName}.max}}`)
+
+    wrappersToAdd.push({
+      el: maxEl,
+      startCall: `{{#if @${dataVariableName}.max includeZero=true}}`,
+      endCall: '{{/if}}'
+    })
+
+    const minEl = findOrCreateChildNode(chartDoc, [
+      'c:min',
+      'c:max'
+    ], scalingEl)
+
+    if (minEl.hasAttribute('val')) {
+      axisData.min = minEl.getAttribute('val')
+    }
+
+    minEl.setAttribute('val', `{{@${dataVariableName}.min}}`)
+
+    wrappersToAdd.push({
+      el: minEl,
+      startCall: `{{#if @${dataVariableName}.min includeZero=true}}`,
+      endCall: '{{/if}}'
+    })
+  }
+
+  const deleteEl = findOrCreateChildNode(chartDoc, ['c:delete', 'c:scaling'], axisEl)
+
+  axisData.hide = deleteEl.hasAttribute('val') ? deleteEl.getAttribute('val') : '0'
+
+  deleteEl.setAttribute('val', `{{@${dataVariableName}.hide}}`)
+
+  if (axisEl.nodeName === 'c:valAx') {
+    const majorUnitEl = findOrCreateChildNode(chartDoc, [
+      'c:majorUnit',
+      ['c:crossAx', ['c:crosses', 'c:crossesAt'], 'c:crossBetween']
+    ], axisEl)
+
+    if (majorUnitEl.hasAttribute('val')) {
+      axisData.majorUnit = majorUnitEl.getAttribute('val')
+    }
+
+    majorUnitEl.setAttribute('val', `{{@${dataVariableName}.majorUnit}}`)
+
+    wrappersToAdd.push({
+      el: majorUnitEl,
+      startCall: `{{#if @${dataVariableName}.majorUnit includeZero=true}}`,
+      endCall: '{{/if}}'
+    })
+  }
+
+  for (const { el, startCall, endCall } of wrappersToAdd) {
+    processOpeningTag(chartDoc, el, startCall)
+    processClosingTag(chartDoc, el, endCall)
   }
 }

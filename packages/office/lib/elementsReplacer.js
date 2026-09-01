@@ -5,7 +5,7 @@ module.exports = function createElementsReplacer (getElements, opts) {
   const itemsRegistry = []
   let textRegistry = createTextRegistry()
   const topLevelOrder = []
-  const itemsMatches = new Set()
+  const itemsMatches = new Map()
 
   {
     const elementDataMap = new WeakMap()
@@ -53,8 +53,8 @@ module.exports = function createElementsReplacer (getElements, opts) {
           parentEl,
           registryIdx: idx,
           addSlot,
-          addMatch: () => {
-            itemsMatches.add(idx)
+          addMatch: (matchData) => {
+            itemsMatches.set(idx, matchData)
           },
           addOnFinish: (cb) => {
             finishCbs.push(cb)
@@ -111,7 +111,7 @@ module.exports = function createElementsReplacer (getElements, opts) {
             createElement = false
 
             if (renderOpts.onSlot) {
-              itemChildren = renderOpts.onSlot(currentItem.slot, ctx)
+              itemChildren = renderOpts.onSlot(ctx, currentItem.slot)
             }
           } else {
             fromMainBase = true
@@ -148,12 +148,12 @@ module.exports = function createElementsReplacer (getElements, opts) {
             // only items taken from the template can be matched,
             // otherwise we would be matching already rendered items
             if (renderOpts.onMatch) {
-              const matchResult = renderOpts.onMatch({
+              const matchResult = renderOpts.onMatch(ctx, {
                 name: itemName,
                 getAttribute (attrName) {
                   return baseItem.attributes?.get(attrName)
                 }
-              }, ctx)
+              }, itemsMatches.get(item))
 
               if (matchResult != null) {
                 createElement = false

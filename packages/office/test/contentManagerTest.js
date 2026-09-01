@@ -172,7 +172,7 @@ describe('contentManager', () => {
     const testCollection = createContentCollectionManager()
 
     testCollection.set('calcChain', {
-      prepare: (ctx) => {
+      prepare: () => {
         const elements = Array.from(doc.documentElement.childNodes)
 
         return {

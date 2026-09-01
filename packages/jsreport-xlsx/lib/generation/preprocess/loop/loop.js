@@ -1024,20 +1024,6 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
       }
     }
 
-    // set the corresponding loop hierarchy id for each table part, if any of its cells is part of a loop
-    for (const tablePart of tableParts) {
-      const parsedStartTableCellRef = parseCellRef(tablePart.mainRefParts[0])
-
-      const loopDetectionResult = getParentLoop(dynamicParts.loops, {
-        rowNumber: parsedStartTableCellRef.rowNumber,
-        columnNumber: parsedStartTableCellRef.columnNumber
-      })
-
-      if (loopDetectionResult != null) {
-        tablePart.loopHierarchyId = loopDetectionResult.loopDetected.hierarchyId
-      }
-    }
-
     if (dynamicParts.openLoops.length > 0) {
       const loopInfoCalls = dynamicParts.openLoops.map((l) => `- ${l.type} loop starting at cell ${l.start.cellRef}`)
       throw new Error(`Unable to find end of loop ({{/each}}) for the following loop calls in ${f.path}:\n${loopInfoCalls.join('\n')}`)

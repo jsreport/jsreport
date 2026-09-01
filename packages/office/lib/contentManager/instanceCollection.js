@@ -1,6 +1,6 @@
 
 module.exports = {
-  createPartCollection
+  createPart: createPartCollection
 }
 
 function createPartCollection (idAttrs, itemsStore) {

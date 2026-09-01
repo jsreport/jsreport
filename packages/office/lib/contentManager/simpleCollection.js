@@ -1,6 +1,6 @@
 
 module.exports = {
-  createPartCollection,
+  createPart: createPartCollection,
   onSetup: (baseItems, partCollection) => {
     // for a simple collection the base items should already exists on the
     // collection from the start

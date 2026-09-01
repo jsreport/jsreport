@@ -5,6 +5,16 @@ const simpleCollection = require('./simpleCollection')
 const instanceCollection = require('./instanceCollection')
 
 const partTypeHandlers = new Map([
+  ['singleItem', {
+    createPart: createSinglePart,
+    onSetup: (baseItems, singlePart) => {
+      // for a single part if the base item has data, the single
+      // part should be initialized
+      if (baseItems.size > 0) {
+        singlePart.set({})
+      }
+    }
+  }],
   ['simpleCollection', simpleCollection],
   ['instanceCollection', instanceCollection]
 ])
@@ -69,20 +79,35 @@ function createContentManager (options = {}) {
 
       assert.ok(partDef.type != null, `Part "${partName}" - type must be provided`)
       assert.ok(partTypeHandlers.has(partDef.type), `Part "${partName}" - type "${partDef.type}" is not supported`)
-      assert.ok(Array.isArray(partDef.idAttrs), `Part "${partName}" - idAttrs must be an array`)
-      assert.ok(partDef.idAttrs.length > 0, `Part "${partName}" - idAttrs must have at least one id attribute defined`)
+
+      if (partDef.type !== 'singleItem') {
+        assert.ok(Array.isArray(partDef.idAttrs), `Part "${partName}" - idAttrs must be an array`)
+        assert.ok(partDef.idAttrs.length > 0, `Part "${partName}" - idAttrs must have at least one id attribute defined`)
+      }
 
       const newPartDef = {
-        type: partDef.type,
-        idAttrs: createIdHandler(partDef.idAttrs, ATTRIBUTE_SEPARATOR)
+        type: partDef.type
+      }
+
+      if (partDef.type !== 'singleItem') {
+        newPartDef.idAttrs = createIdHandler(partDef.idAttrs, ATTRIBUTE_SEPARATOR)
       }
 
       partsContainer.set(partName, newPartDef)
 
       if (isTopLevel) {
         baseItems.set(partName, new Map())
+
+        let part
+
+        if (partDef.type !== 'singleItem') {
+          part = createPartCollection(newPartDef, baseItems.get(partName))
+        } else {
+          part = createSinglePart(newPartDef, baseItems.get(partName))
+        }
+
         // ensure the top level parts exists no matter if there are not items in it
-        manager.parts.set(partName, createPartCollection(newPartDef, baseItems.get(partName)))
+        manager.parts.set(partName, part)
       }
 
       if (partDef.parts != null) {
@@ -104,7 +129,9 @@ function createContentManager (options = {}) {
 
     return elements
   }, {
-    onInit: options.onInit,
+    onInit: (els, ctx) => {
+      options.onInit?.(els, ctx)
+    },
     onElement: (el, ctx) => {
       const [baseItemsPartsContainer, partsDefs] = ctx.data.activeData.at(-1)
       const partDef = partsDefs.get(el.nodeName)
@@ -113,7 +140,7 @@ function createContentManager (options = {}) {
         return
       }
 
-      if (!hasValidItem(partDef, el)) {
+      if (!hasValidBaseItem(partDef, el)) {
         return
       }
 
@@ -123,16 +150,23 @@ function createContentManager (options = {}) {
 
       const targetBaseItems = baseItemsPartsContainer.get(el.nodeName)
 
-      const idValue = partDef.idAttrs.getValue(Array.from(partDef.idAttrs).map((attr) => el.getAttribute(attr)))
+      let idValue
+
+      if (partDef.type !== 'singleItem') {
+        idValue = getIdValueFromBaseEl(partDef.idAttrs, el, targetBaseItems.size)
+      } else {
+        idValue = '0'
+      }
 
       const baseItem = {
+        index: targetBaseItems.size,
         data: {},
         parts: new Map()
       }
 
       targetBaseItems.set(idValue, baseItem)
 
-      ctx.addMatch()
+      ctx.addMatch(baseItem)
 
       ctx.partDef = partDef
       ctx.baseItemData = baseItem.data
@@ -150,85 +184,87 @@ function createContentManager (options = {}) {
   })
 
   // call onSetup for the top level parts
-  for (const [partName, partCollection] of manager.parts) {
-    partTypeHandlers.get(partCollection.type).onSetup?.(baseItems.get(partName), partCollection)
+  for (const [partName, part] of manager.parts) {
+    partTypeHandlers.get(part.type).onSetup?.(baseItems.get(partName), part)
   }
 
   manager.render = () => {
     return contentReplacer.render({
-      onMatch: (tItem, ctx) => {
+      onMatch: (ctx, tItem, baseItem) => {
         const partsContainer = ctx ?? manager.parts
-        const partCollection = partsContainer.get(tItem.name)
+        const part = partsContainer.get(tItem.name)
 
-        if (!partCollection) {
+        if (!part) {
           throw new Error(`Part "${tItem.name}" not found for match `)
         }
 
-        const idAttrsArr = Array.from(partCollection.idAttrs)
-        const baseId = partCollection.idAttrs.getValue(idAttrsArr.map((attr) => tItem.getAttribute(attr)))
-        const itemsIds = partCollection.getInstances(baseId)
-
         const output = []
 
-        for (const itemId of itemsIds) {
-          const item = partCollection.get(itemId)
-          const idValues = partCollection.idAttrs.parseValue(itemId)
+        if (part.type === 'singleItem') {
+          const item = part.get()
 
-          let attributes = new Map()
-
-          for (let idx = 0; idx < idAttrsArr.length; idx++) {
-            const idAttr = idAttrsArr[idx]
-            const idValue = idValues[idx]
-            attributes.set(idAttr, idValue)
+          if (item) {
+            output.push({
+              ...item.data,
+              ctx: part.get()?.parts ?? new Map(),
+              extend: true
+            })
           }
+        } else {
+          const idToAttributes = createIdToAttributes(part.idAttrs)
+          const baseId = getIdValueFromBaseEl(part.idAttrs, tItem, baseItem.index)
+          const itemsIds = part.getInstances(baseId)
 
-          const { attributes: elAttributes, ...elRest } = item.data
+          for (const itemId of itemsIds) {
+            const item = part.get(itemId)
+            let attributes = idToAttributes(itemId)
 
-          if (elAttributes != null) {
-            attributes = new Map([...attributes, ...elAttributes])
+            const { attributes: elAttributes, ...elRest } = item.data
+
+            if (elAttributes != null) {
+              attributes = new Map([...attributes, ...elAttributes])
+            }
+
+            output.push({
+              attributes,
+              ...elRest,
+              ctx: part.get(itemId)?.parts ?? new Map(),
+              extend: true
+            })
           }
-
-          output.push({
-            attributes,
-            ...elRest,
-            ctx: partCollection.get(itemId)?.parts ?? new Map(),
-            extend: true
-          })
         }
 
         return output
       },
-      onSlot: (slotName, ctx) => {
+      onSlot: (ctx, slotName) => {
         const partsContainer = ctx ?? manager.parts
-        const partCollection = partsContainer.get(slotName)
+        const part = partsContainer.get(slotName)
 
-        if (!partCollection) {
+        if (!part) {
           throw new Error(`Part "${slotName}" not found for slot `)
         }
 
-        const idAttrsArr = Array.from(partCollection.idAttrs)
-
         const output = []
 
-        for (const newItemId of partCollection.getNewItems()) {
-          const item = partCollection.get(newItemId)
-          const idValues = partCollection.idAttrs.parseValue(newItemId)
-
-          let attributes = new Map()
-
-          for (let idx = 0; idx < idAttrsArr.length; idx++) {
-            const idAttr = idAttrsArr[idx]
-            const idValue = idValues[idx]
-            attributes.set(idAttr, idValue)
+        if (part.type === 'singleItem') {
+          if (part.has()) {
+            output.push({ name: slotName, ...part.get().data })
           }
+        } else {
+          const idToAttributes = createIdToAttributes(part.idAttrs)
 
-          const { attributes: elAttributes, ...elRest } = item.data
+          for (const newItemId of part.getNewItems()) {
+            const item = part.get(newItemId)
+            let attributes = idToAttributes(newItemId)
 
-          if (elAttributes != null) {
-            attributes = new Map([...attributes, ...elAttributes])
+            const { attributes: elAttributes, ...elRest } = item.data
+
+            if (elAttributes != null) {
+              attributes = new Map([...attributes, ...elAttributes])
+            }
+
+            output.push({ name: slotName, attributes, ...elRest })
           }
-
-          output.push({ name: slotName, attributes, ...elRest })
         }
 
         return output
@@ -312,7 +348,7 @@ function createPartCollection (partDef, baseItems) {
     }
   }
 
-  const partCollectionType = partTypeHandlers.get(partDef.type).createPartCollection(
+  const partCollectionType = partTypeHandlers.get(partDef.type).createPart(
     partDef.idAttrs,
     {
       baseItems,
@@ -326,6 +362,25 @@ function createPartCollection (partDef, baseItems) {
   return partCollection
 }
 
+function createSinglePart (partDef, baseItems) {
+  const singleName = '0'
+
+  return {
+    get type () {
+      return partDef.type
+    },
+    get () {
+      return baseItems.get(singleName)
+    },
+    set (data) {
+      baseItems.set(singleName, createPartItem(partDef, baseItems.get(singleName)?.parts, data))
+    },
+    has () {
+      return baseItems.has(singleName)
+    }
+  }
+}
+
 function createPartItem (partDef, baseItemParts, data) {
   const item = {}
 
@@ -336,12 +391,18 @@ function createPartItem (partDef, baseItemParts, data) {
 
     for (const [childPartName, childPartDef] of partDef.parts) {
       const childBaseItems = baseItemParts.get(childPartName) ?? new Map()
-      const partCollection = createPartCollection(childPartDef, childBaseItems)
+      let part
+
+      if (childPartDef.type !== 'singleItem') {
+        part = createPartCollection(childPartDef, childBaseItems)
+      } else {
+        part = createSinglePart(childPartDef, childBaseItems)
+      }
 
       // call onSetup for the child level parts
-      partTypeHandlers.get(partDef.type).onSetup?.(childBaseItems, partCollection)
+      partTypeHandlers.get(childPartDef.type).onSetup?.(childBaseItems, part)
 
-      parts.set(childPartName, partCollection)
+      parts.set(childPartName, part)
     }
 
     item.parts = parts
@@ -350,6 +411,49 @@ function createPartItem (partDef, baseItemParts, data) {
   return item
 }
 
-function hasValidItem (partDef, el) {
-  return Array.from(partDef.idAttrs).every((attr) => el.hasAttribute(attr))
+function hasValidBaseItem (partDef, el) {
+  if (partDef.type === 'singleItem') {
+    return true
+  }
+
+  return Array.from(partDef.idAttrs).every((attr) => {
+    if (attr === '@index') {
+      return true
+    }
+
+    return el.hasAttribute(attr)
+  })
+}
+
+function getIdValueFromBaseEl (idAttrs, el, elIdx) {
+  return idAttrs.getValue(Array.from(idAttrs).map((attr) => {
+    if (attr === '@index') {
+      return elIdx
+    }
+
+    return el.getAttribute(attr)
+  }))
+}
+
+function createIdToAttributes (idAttrs) {
+  const idAttrsArr = Array.from(idAttrs)
+
+  return (id) => {
+    const idValues = idAttrs.parseValue(id)
+
+    const attributes = new Map()
+
+    for (let idx = 0; idx < idAttrsArr.length; idx++) {
+      const idAttr = idAttrsArr[idx]
+
+      if (idAttr === '@index') {
+        continue
+      }
+
+      const idValue = idValues[idx]
+      attributes.set(idAttr, idValue)
+    }
+
+    return attributes
+  }
 }

@@ -9,6 +9,7 @@ const { createIdCollectionManager } = require('./idManager')
 const { parseXML, contentIsXML, isWorksheetFile, getStyleFile, serializeXmlAsHandlebarsSafeOutput } = require('../utils')
 const generationUtils = require('../generationUtils')
 const cellUtils = require('../cellUtils')
+const chartUtils = require('../chartUtils')
 
 module.exports = (reporter) => async (inputs, req) => {
   const { xlsxTemplateContent, options, outputPath } = inputs
@@ -75,7 +76,8 @@ module.exports = (reporter) => async (inputs, req) => {
           return path.posix.relative(baseFilePath, targetFilePath)
         },
         generationUtils,
-        cellUtils
+        cellUtils,
+        chartUtils
       },
       // expose options as a getter fn because we dont want user to be able to alter
       // these values
