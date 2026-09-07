@@ -8,6 +8,9 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 4.3.3
+- update deps to fix audit
+
 ### 4.3.2
 - update deps to fix audit
 

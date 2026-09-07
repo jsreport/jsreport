@@ -7,6 +7,9 @@ See http://jsreport.net/learn/public-templates
 
 ## Changelog
 
+### 4.1.3
+- update deps to fix audit
+
 ### 4.1.2
 - normalize /public-templates access_token as string for security
 - update deps to fix audit

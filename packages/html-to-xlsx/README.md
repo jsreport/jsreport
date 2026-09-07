@@ -130,6 +130,10 @@ main()
 
 ## Changelog
 
+### 1.2.3
+- update deps to fix audit
+- fix broken xlsx when the template only set one side of the margin
+
 ### 1.2.2
 - update deps to fix audit
 

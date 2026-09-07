@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-docx",
-  "version": "4.11.0",
+  "version": "4.11.1",
   "description": "jsreport recipe rendering docx files",
   "keywords": [
     "jsreport",
@@ -33,7 +33,7 @@
     "test": "mocha test --timeout 20000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "4.2.2",
+    "@jsreport/office": "4.3.0",
     "@xmldom/xmldom": "0.8.15",
     "axios": "1.19.0",
     "cheerio": "1.0.0-rc.12",
@@ -51,8 +51,8 @@
     "tinycolor2": "1.4.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.3.2",
-    "@jsreport/jsreport-core": "4.11.1",
+    "@jsreport/jsreport-assets": "4.3.3",
+    "@jsreport/jsreport-core": "4.11.2",
     "@jsreport/jsreport-handlebars": "4.1.1",
     "@jsreport/studio-dev": "4.1.0",
     "handlebars": "4.7.9",

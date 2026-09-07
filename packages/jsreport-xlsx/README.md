@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.8.1
+- update deps to fix audit
+- update charts to work on handlebars execution
+
 ### 4.8.0
 - update deps to fix audit
 - add support for generating tables from loop

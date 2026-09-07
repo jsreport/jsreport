@@ -7,6 +7,9 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.3.4
+- update deps to fix audit
+
 ### 4.3.3
 - update deps to fix audit
 

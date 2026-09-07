@@ -18,6 +18,12 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.4.4
+- fix incorrect "image-size" package name being required
+
+### 4.4.3
+- update deps to fix audit
+
 ### 4.4.2
 - update deps to fix audit
 - mitigate node24 deprecation warnings

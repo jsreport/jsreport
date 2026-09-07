@@ -350,6 +350,9 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.11.2
+- update deps to fix audit
+
 ### 4.11.1
 - update deps to fix audit
 

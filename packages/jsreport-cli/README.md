@@ -7,6 +7,9 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 4.2.3
+- update deps to fix audit
+
 ### 4.2.2
 - update deps to fix audit
 

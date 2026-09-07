@@ -11,7 +11,7 @@ const ThemeManager = require('./themeManager')
 const createTextSearch = require('./textSearch')
 const distPath = path.join(__dirname, '../static/dist')
 const ms = require('ms')
-const { imageSize } = require('image-size')
+const { imageSize } = require('image-size-next')
 
 module.exports = (reporter, definition) => {
   const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../static/diff.css')).toString()

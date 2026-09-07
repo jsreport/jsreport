@@ -9,6 +9,10 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 4.2.2
+- update deps to fix audit
+- improve code helpers to guard against unsafe properties
+
 ### 4.2.1
 - update diff dep to fix npm audit
 

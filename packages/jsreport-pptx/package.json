@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-pptx",
-  "version": "4.6.0",
+  "version": "4.6.1",
   "description": "jsreport recipe rendering pptx files",
   "keywords": [
     "jsreport",
@@ -33,7 +33,7 @@
     "test": "mocha test --timeout 8000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "4.2.2",
+    "@jsreport/office": "4.3.0",
     "@xmldom/xmldom": "0.8.15",
     "axios": "1.19.0",
     "html-entities": "2.4.0",
@@ -43,8 +43,8 @@
     "nanoid": "3.3.18"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.3.2",
-    "@jsreport/jsreport-core": "4.11.1",
+    "@jsreport/jsreport-assets": "4.3.3",
+    "@jsreport/jsreport-core": "4.11.2",
     "@jsreport/jsreport-handlebars": "4.1.1",
     "@jsreport/studio-dev": "4.1.0",
     "handlebars": "4.7.9",

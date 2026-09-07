@@ -5,6 +5,11 @@ Some helpers for officed based jsreport recipes
 
 ## Changelog
 
+### 4.3.0
+- update deps to fix npm audit
+- update charts to work on handlebars execution
+- put common xml handling in shared office api (contentManager)
+
 ### 4.2.2
 - update deps to fix npm audit
 - fix setting maxContentLength, maxBodyLength to unlimited after axios update

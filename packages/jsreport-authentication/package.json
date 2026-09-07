@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-authentication",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "description": "jsreport extension adding user authentication",
   "keywords": [
     "jsreport",
@@ -30,7 +30,7 @@
     "test": "mocha \"./test/*.spec.js\" --timeout 10000 --exit && standard"
   },
   "dependencies": {
-    "body-parser": "1.20.6",
+    "body-parser": "1.20.8",
     "client-sessions": "0.8.0",
     "ejs": "3.1.10",
     "openid-client": "4.9.0",
@@ -41,8 +41,8 @@
     "password-hash": "1.2.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.11.1",
-    "@jsreport/jsreport-express": "4.3.3",
+    "@jsreport/jsreport-core": "4.11.2",
+    "@jsreport/jsreport-express": "4.3.4",
     "@jsreport/studio-dev": "4.1.0",
     "express": "4.22.2",
     "lodash.clonedeep": "4.5.0",

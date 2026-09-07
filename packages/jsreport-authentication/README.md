@@ -7,6 +7,9 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.3.3
+- fix security issue
+
 ### 4.3.2
 - update deps to fix audit
 

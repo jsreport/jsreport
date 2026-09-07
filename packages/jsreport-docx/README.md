@@ -7,6 +7,9 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.11.1
+- update deps to fix audit
+
 ### 4.11.0
 - update deps to fix audit
 - add support for docxImage helper to work without placeholder image
