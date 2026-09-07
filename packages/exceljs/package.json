@@ -81,7 +81,7 @@
     "dayjs": "^1.8.34",
     "fast-csv": "4.3.6",
     "jszip": "3.10.1",
-    "nanoid": "3.3.8",
+    "nanoid": "3.3.18",
     "readable-stream": "^3.6.0",
     "saxes": "^5.0.1",
     "tmp": "0.2.7",

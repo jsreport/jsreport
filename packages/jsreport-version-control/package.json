@@ -35,7 +35,7 @@
     "isbinaryfile": "3.0.3",
     "lodash.omit": "4.5.0",
     "mime-types": "2.1.27",
-    "nanoid": "3.3.8",
+    "nanoid": "3.3.18",
     "node.extend.without.arrays": "1.1.6",
     "p-map": "4.0.0"
   },

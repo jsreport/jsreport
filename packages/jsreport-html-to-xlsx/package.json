@@ -37,7 +37,7 @@
     "@jsreport/html-to-xlsx": "1.2.2",
     "@jsreport/office": "4.2.2",
     "chrome-page-eval": "1.4.0",
-    "nanoid": "3.3.8",
+    "nanoid": "3.3.18",
     "node.extend.without.arrays": "1.1.6",
     "opentype.js": "1.1.0",
     "phantom-page-eval": "2.0.2"
