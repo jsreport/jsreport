@@ -10,26 +10,23 @@ const startLoopRegexp = /{{#each\s+([^{|}]{0,500})(?:\s*(as\s+\|\w+\|))?\s*}}/
 
 module.exports = function generateDataTemplate (
   dataRanges,
-  templateItems,
   dynamicParts,
   parsedCells,
   autofitConfigured
 ) {
   const templateManager = getTemplateManager()
 
-  for (const dataRange of dataRanges) {
+  for (const [dataRangeIdx, dataRange] of dataRanges.entries()) {
     if (dataRange.type === 'static') {
       templateManager.addPart(`${getDataHelperCall(
         'staticRange',
-        { start: dataRange.start, end: dataRange.end },
+        { idx: dataRangeIdx },
         {
           content: '{{> __static_row__ }}'
         }
       )}`)
     } else if (dataRange.type === 'dynamic') {
-      for (let elementIdx = dataRange.start; elementIdx <= dataRange.end; elementIdx++) {
-        const item = templateItems.data[elementIdx]
-        const rowNumber = item.id
+      for (const rowNumber of dataRange.items) {
         const dynamicRow = dynamicParts.rows.get(rowNumber)
 
         const cellTemplateParts = []
