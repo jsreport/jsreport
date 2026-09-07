@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@jsreport/office": "4.2.2",
-    "@xmldom/xmldom": "0.8.13",
+    "@xmldom/xmldom": "0.8.15",
     "axios": "1.19.0",
     "html-entities": "2.4.0",
     "image-size": "2.0.2",
