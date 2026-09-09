@@ -45,7 +45,7 @@
   "devDependencies": {
     "@jsreport/jsreport-core": "4.11.2",
     "@jsreport/jsreport-handlebars": "4.1.1",
-    "@jsreport/studio-dev": "4.1.0",
+    "@jsreport/studio-dev": "4.1.1",
     "cheerio-page-eval": "1.4.0",
     "handlebars": "4.7.9",
     "mocha": "11.7.5",

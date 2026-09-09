@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-fs-store-aws-s3-persistence",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "description": "Make jsreport fs store using aws s3 to store entities",
   "keywords": [
     "jsreport",
@@ -22,8 +22,8 @@
     "test": "standard"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.850.0",
-    "@aws-sdk/client-sqs": "3.848.0",
+    "@aws-sdk/client-s3": "3.1130.0",
+    "@aws-sdk/client-sqs": "3.1130.0",
     "nanoid": "3.3.18"
   },
   "devDependencies": {

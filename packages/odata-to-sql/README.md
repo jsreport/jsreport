@@ -4,6 +4,9 @@ Generate SQL from OData in node.js
 
 ## Changelog
 
+### 0.15.0
+- support dotted projection for queries
+
 ### 0.14.3
 - update deps to fix audit
 

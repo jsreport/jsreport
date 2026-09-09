@@ -52,7 +52,7 @@
     "@jsreport/jsreport-data": "4.2.0",
     "@jsreport/jsreport-handlebars": "4.1.1",
     "@jsreport/jsreport-jsrender": "4.1.0",
-    "@jsreport/studio-dev": "4.1.0",
+    "@jsreport/studio-dev": "4.1.1",
     "cross-env": "7.0.3",
     "handlebars": "4.7.9",
     "mocha": "11.7.5",

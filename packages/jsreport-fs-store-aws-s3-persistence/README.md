@@ -46,6 +46,9 @@ This persistence implementation also guarantees consistency for parallel access 
 
 ## Changelog
 
+### 4.2.2
+- update deps to fix audit
+
 ### 4.2.1
 - update deps to fix audit
 

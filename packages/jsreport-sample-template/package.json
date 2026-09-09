@@ -41,7 +41,7 @@
     "@jsreport/jsreport-pdf-utils": "4.5.6",
     "@jsreport/jsreport-scripts": "4.3.0",
     "@jsreport/jsreport-xlsx": "4.8.1",
-    "@jsreport/studio-dev": "4.1.0",
+    "@jsreport/studio-dev": "4.1.1",
     "handlebars": "4.7.9",
     "mocha": "11.7.5",
     "puppeteer": "25.4.0",
