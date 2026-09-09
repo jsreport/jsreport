@@ -1,5 +1,5 @@
 const fsAsync = require('fs/promises')
-const { imageSize } = require('image-size')
+const { imageSize } = require('image-size-next')
 const ExifReader = require('exifreader')
 const { resolveImageSrc } = require('./imageUtils')
 

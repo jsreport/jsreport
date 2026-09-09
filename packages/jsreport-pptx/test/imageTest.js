@@ -4,7 +4,7 @@ const fs = require('fs')
 const fsAsync = require('fs/promises')
 const jsreport = require('@jsreport/jsreport-core')
 const { DOMParser } = require('@xmldom/xmldom')
-const { imageSize } = require('image-size')
+const { imageSize } = require('image-size-next')
 const { nodeListToArray, pxToEMU, cmToEMU } = require('../lib/utils')
 const { decompressResponse, getImageSize, getImageDataUri } = require('./utils')
 

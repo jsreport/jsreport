@@ -1,5 +1,5 @@
 
-const { imageSize } = require('image-size')
+const { imageSize } = require('image-size-next')
 const axios = require('axios')
 const { nodeListToArray, getDimension, pxToEMU, cmToEMU } = require('../utils')
 

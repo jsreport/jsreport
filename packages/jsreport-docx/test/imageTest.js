@@ -2,7 +2,7 @@ const should = require('should')
 const fs = require('fs')
 const path = require('path')
 const jsreport = require('@jsreport/jsreport-core')
-const { imageSize } = require('image-size')
+const { imageSize } = require('image-size-next')
 const { nodeListToArray, pxToEMU, cmToEMU, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
 const { getDocumentsFromDocxBuf, getImageMeta } = require('./utils')
 
