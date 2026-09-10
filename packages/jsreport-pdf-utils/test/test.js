@@ -2689,4 +2689,42 @@ describe('pdf utils', () => {
       }
     })
   })
+
+  it('add attachment and postprocess pdf/UA should work', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'hello',
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfAccessibility: {
+          pdfUA: true,
+          enabled: true
+        },
+        scripts: [{
+          content: `
+            const jsreport = require('jsreport-proxy')
+            async function afterRender(req, res) {
+              res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('hello'), {
+                name: 'my attachment'
+              }, {
+                pdfAccessibility: {
+                  enabled: true
+                }
+              })     
+
+              res.content = await jsreport.pdfUtils.postprocess(res.content, {
+                pdfAccessibility: {
+                  pdfUA: true,
+                  enabled: true
+                }
+              }) 
+            }
+          `
+        }]
+      }
+    })
+    const external = new External(result.content)
+    external.catalog.properties.get('StructTreeRoot').should.be.ok()
+  })
 })

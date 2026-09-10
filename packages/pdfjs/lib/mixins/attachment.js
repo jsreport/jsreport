@@ -11,6 +11,7 @@ function attachment (buffer, doc, { name, description, creationDate, modificatio
   const fileSpec = new PDF.Object()
   fileSpec.prop('Type', 'Filespec')
   fileSpec.prop('F', new PDF.String(name))
+  fileSpec.prop('UF', new PDF.String(name))
   if (description) {
     fileSpec.prop('Desc', new PDF.String(description))
   }
@@ -40,6 +41,7 @@ function attachment (buffer, doc, { name, description, creationDate, modificatio
 
   const efDictionary = new PDF.Dictionary()
   efDictionary.set('F', streamObject.toReference())
+  efDictionary.set('UF', streamObject.toReference())
   fileSpec.prop('EF', efDictionary)
 
   doc.catalog.properties.get('Names').object.properties.get('EmbeddedFiles').get('Names').push(

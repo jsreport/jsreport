@@ -44,7 +44,7 @@
 		</rdf:Description>
 		<rdf:Description rdf:about=""
 			xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
-			<pdfaid:part>1</pdfaid:part>
+			<pdfaid:part>3</pdfaid:part>
 			<pdfaid:conformance>B</pdfaid:conformance>
 		</rdf:Description>
 		<rdf:Description rdf:about=""

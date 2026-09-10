@@ -30,7 +30,6 @@ async function pdfA (doc) {
     creationDateStr = creationDateStr.slice(0, 22) + ':' + creationDateStr.slice(22)
   }
 
-  doc.catalog.properties.get('Names').object.properties.del('EmbeddedFiles')
   const metadata = new PDF.Stream()
   const finalXml = metadataXml
     .replace('@title', info.properties.get('Title')?.str || '')

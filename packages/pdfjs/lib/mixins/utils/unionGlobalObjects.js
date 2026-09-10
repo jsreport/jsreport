@@ -59,6 +59,14 @@ module.exports = (doc, ext, options) => {
       }
     }
   }
+
+  if (ext.catalog.properties.get('ViewerPreferences')) {
+    doc.catalog.properties.set('ViewerPreferences', ext.catalog.properties.get('ViewerPreferences'))
+  }
+
+  if (ext.catalog.properties.get('Metadata')) {
+    doc.catalog.properties.set('Metadata', ext.catalog.properties.get('Metadata'))
+  }
 }
 
 function unionOutlines (ext, doc) {

@@ -97,9 +97,9 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
       currentBuffer = await document.asBuffer()
     },
 
-    async addAttachment (buf, options) {
+    async addAttachment (buf, options = {}, pdfProcessingOptions = {}) {
       const doc = new Document()
-      doc.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
+      doc.append(new External(currentBuffer), { copyAccessibilityTags: pdfProcessingOptions.pdfAccessibility?.enabled })
       doc.attachment(buf, options)
       currentBuffer = await doc.asBuffer()
     },

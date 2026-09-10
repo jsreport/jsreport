@@ -1035,7 +1035,6 @@ describe('pdfjs', () => {
     const { catalog, trailer } = await validate(buffer)
 
     trailer.get('ID').should.be.ok()
-    catalog.properties.get('Names').object.properties.has('EmbeddedFiles').should.be.false()
     const metadataXml = catalog.properties.get('Metadata').object.content.toString()
     metadataXml.should.containEql('Foo-title')
     metadataXml.should.containEql('Foo-subject')
@@ -1106,7 +1105,6 @@ describe('pdfjs', () => {
 
     const { catalog, trailer } = await validate(buffer)
     trailer.get('ID').should.be.ok()
-    catalog.properties.get('Names').object.properties.has('EmbeddedFiles').should.be.false()
     const metadataXml = catalog.properties.get('Metadata').object.content.toString()
     metadataXml.should.containEql('Foo-title')
     metadataXml.should.containEql('pdfuaid')
@@ -1228,5 +1226,40 @@ describe('pdfjs', () => {
     fs.writeFileSync('out.pdf', pdfBuffer)
     const { texts } = await validate(pdfBuffer)
     texts[0].should.containEql('SALES')
+  })
+
+  it('append should preserve Metadata and ViewerPreferences (pdf/UA)', async () => {
+    let document = new Document()
+    let external = new External(fs.readFileSync(path.join(__dirname, 'invoice.pdf')))
+    document.append(external, {
+      copyAccessibilityTags: true
+    })
+    document.attachment(Buffer.from('first'), {
+      name: 'first.txt'
+    })
+    document.pdfUA()
+
+    let buffer = await document.asBuffer()
+
+    document = new Document()
+    external = new External(buffer)
+    document.append(external, {
+      copyAccessibilityTags: true
+    })
+
+    buffer = await document.asBuffer()
+
+    fs.writeFileSync('out.pdf', buffer)
+
+    const { catalog } = await validate(buffer)
+
+    catalog.properties.get('Metadata').should.be.ok()
+    catalog.properties.get('ViewerPreferences').should.be.ok()
+    catalog.properties.get('MarkInfo').should.be.ok()
+
+    const names = catalog.properties.get('Names').object
+    const embeddedFiles = names.properties.get('EmbeddedFiles')
+    const namesArray = embeddedFiles.get('Names')
+    namesArray[0].toString().should.be.eql('(first.txt)')
   })
 })
