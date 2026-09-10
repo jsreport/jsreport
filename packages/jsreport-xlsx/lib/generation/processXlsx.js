@@ -6,10 +6,10 @@ const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const preprocess = require('./preprocess/preprocess')
 const postprocess = require('./postprocess/postprocess')
 const { createIdCollectionManager } = require('./idManager')
-const { createListCollectionManager } = require('./listManager')
 const { parseXML, contentIsXML, isWorksheetFile, getStyleFile, serializeXmlAsHandlebarsSafeOutput } = require('../utils')
 const generationUtils = require('../generationUtils')
 const cellUtils = require('../cellUtils')
+const chartUtils = require('../chartUtils')
 
 module.exports = (reporter) => async (inputs, req) => {
   const { xlsxTemplateContent, options, outputPath } = inputs
@@ -58,7 +58,6 @@ module.exports = (reporter) => async (inputs, req) => {
         return evalId
       },
       idManagers: createIdCollectionManager(),
-      listManagers: createListCollectionManager(),
       calcChainFilePath: null,
       // dynamic files are xml files that are expected to be processed in iterations
       // and producing more files (instances) from it
@@ -77,7 +76,8 @@ module.exports = (reporter) => async (inputs, req) => {
           return path.posix.relative(baseFilePath, targetFilePath)
         },
         generationUtils,
-        cellUtils
+        cellUtils,
+        chartUtils
       },
       // expose options as a getter fn because we dont want user to be able to alter
       // these values
@@ -102,7 +102,7 @@ module.exports = (reporter) => async (inputs, req) => {
     let dataTemplateToRender = ''
 
     if (dataTemplateParts.length > 0) {
-      dataTemplateToRender = `{{#xlsxContext type="global"}}\n${dataTemplateParts.join('\n')}\n{{/xlsxContext}}`
+      dataTemplateToRender = `{{#xlsxContext type="global" dataTemplate=true}}\n${dataTemplateParts.join('\n')}\n{{/xlsxContext}}`
     }
 
     reporter.logger.debug('Executing template evaluation for xlsx dynamic parts in the generation step', req)
@@ -110,7 +110,9 @@ module.exports = (reporter) => async (inputs, req) => {
     req.context.__xlsxSharedData = sharedData
 
     // execute the data template phase, in this phase we expect to render any dynamic tags of the user,
-    // the values produces from it are store in variables that are going to be used in the xml template phase
+    // the values produces from it are stored in variables that are going to be used in the xml template phase,
+    // the render of this template is not expected to produce any output, all values that we care about are stored in variables.
+    // (async helpers calls from the user are evaluated here just at specific boundaries, the cells itself)
     await reporter.templatingEngines.evaluate({
       engine: req.template.engine,
       content: dataTemplateToRender,
@@ -165,7 +167,7 @@ module.exports = (reporter) => async (inputs, req) => {
     }
 
     // execute the xml template phase, in this phase we expect to produce the final content of the
-    // xml files
+    // xml files (async helpers calls from the user are not here, so we can construct the xml safely)
     const newContent = await reporter.templatingEngines.evaluate({
       engine: req.template.engine,
       content: xmlTemplateToRender,

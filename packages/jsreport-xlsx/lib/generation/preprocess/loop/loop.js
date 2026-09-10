@@ -1,10 +1,10 @@
 const path = require('path')
 const { createIdCollectionManager } = require('../../idManager')
-const { createListCollectionManager } = require('../../listManager')
+const { createContentCollectionManager } = require('@jsreport/office')
 const {
   nodeListToArray, isWorksheetFile, isWorksheetRelsFile,
   getSheetInfo, getCellInfo, getStyleInfo, getStyleFile,
-  processOpeningTag, processClosingTag, getDataHelperCall, getDataHelperBlockEndCall
+  processOpeningTag, getDataHelperCall
 } = require('../../../utils')
 const { parseCellRef, getColumnFor, getPixelWidthOfValue, getFontSizeFromStyle, evaluateCellRefsFromExpression } = require('../../../cellUtils')
 const generateDataTemplate = require('./generateDataTemplate')
@@ -35,41 +35,31 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
     sharedStringsEls = nodeListToArray(sharedStringsDoc.getElementsByTagName('si'))
   }
 
-  const calcChainRefElementIdxMap = new Map()
+  let calcChainContentManagers
 
   if (calcChainDoc != null) {
     sharedData.calcChainFilePath = calcChainFilePath
 
-    const templateItems = createTemplateItems()
+    calcChainContentManagers = createContentCollectionManager()
 
-    for (const calcChainChildEl of Array.from(calcChainDoc.documentElement.childNodes)) {
-      storeElement(
-        templateItems.data, calcChainChildEl, {
-          defaults: calcChainChildEl.nodeName === 'c' ? null : { type: calcChainChildEl.nodeName },
-          idProp: calcChainChildEl.nodeName === 'c' ? 'r' : null,
-          // we store the "r" attribute but just as empty, we just care to keep its
-          // position in attribute list
-          emptyAttrs: calcChainChildEl.nodeName === 'c' ? ['r'] : []
-        },
-        calcChainChildEl.nodeName, templateItems.elementTypeAttributesMap
-      )
+    calcChainContentManagers.set('calcChain', {
+      prepare: () => {
+        const elements = Array.from(calcChainDoc.documentElement.childNodes)
 
-      if (calcChainChildEl.nodeName === 'c') {
-        calcChainRefElementIdxMap.set(
-          `${calcChainChildEl.getAttribute('i')}-${calcChainChildEl.getAttribute('r')}`,
-          templateItems.data.length - 1
-        )
+        return {
+          parts: {
+            c: {
+              type: 'instanceCollection',
+              idAttrs: ['r', 'i']
+            }
+          },
+          elements
+        }
       }
-    }
-
-    // simplify the elements attribute data structure
-    for (const [elementType, elementAttributes] of templateItems.elementTypeAttributesMap) {
-      templateItems.elementTypeAttributesMap.set(elementType, elementAttributes.data)
-    }
+    })
 
     sharedData.fileDataMap.set(calcChainFilePath, {
-      templateItems,
-      dataItems: []
+      contentManagers: calcChainContentManagers
     })
   }
 
@@ -77,17 +67,12 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
   const closeTagRegexp = /}/g
 
   for (const f of files.filter((f) => isWorksheetFile(f.path))) {
-    const sheetListManagers = createListCollectionManager()
+    const sheetContentManagers = createContentCollectionManager()
     const sheetFilepath = f.path
     const sheetFilename = path.posix.basename(sheetFilepath)
     const sheetDoc = f.doc
-    const sheetDataEl = sheetDoc.getElementsByTagName('sheetData')[0]
 
-    let colsEl = sheetDoc.getElementsByTagName('cols')[0]
-
-    if (sheetDataEl == null) {
-      throw new Error(`Could not find sheet data for sheet at ${sheetFilepath}`)
-    }
+    const colsEl = sheetDoc.getElementsByTagName('cols')[0]
 
     const sheetInfo = getSheetInfo(sheetFilepath, workbookSheetsEls, workbookRelsEls)
 
@@ -97,23 +82,17 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
 
     const sheetRelsFile = files.find((file) => isWorksheetRelsFile(sheetFilename, file.path))
     const sheetRelsDoc = sheetRelsFile?.doc
-    let sheetRelsEls
 
     if (sheetRelsDoc) {
-      const relationshipNodeName = 'Relationship'
-      const relationshipNameProperty = 'Id'
-
-      sheetRelsEls = Array.from(
-        sheetRelsDoc.documentElement.childNodes
-      ).filter((n) => n.nodeName === relationshipNodeName)
+      const childrenEls = Array.from(sheetRelsDoc.documentElement.childNodes)
 
       const localIdManagers = createIdCollectionManager()
-      const localListManagers = createListCollectionManager()
+      const localContentManagers = createContentCollectionManager()
 
       localIdManagers.set('relationship', {
         prefix: 'rId',
         fromItems: {
-          getIds: () => sheetRelsEls.map((el) => el.getAttribute(relationshipNameProperty)),
+          getIds: () => childrenEls.filter((el) => el.nodeName === 'Relationship').map((el) => el.getAttribute('Id')),
           getNumberId: (id) => {
             const regExp = /^rId(\d+)$/
             const match = regExp.exec(id)
@@ -127,37 +106,79 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
         }
       })
 
-      localListManagers.set('relationship', {
-        nodeName: relationshipNodeName,
-        keyPropertyName: relationshipNameProperty,
-        fromItems () {
-          const items = []
+      localContentManagers.set('Relationships', {
+        prepare: (ctx) => {
+          ctx.data.lastElForPart = new Map()
 
-          for (const relationshipEl of sheetRelsEls) {
-            const id = relationshipEl.getAttribute(relationshipNameProperty)
-
-            items.push([id, {
-              Type: relationshipEl.getAttribute('Type'),
-              Target: relationshipEl.getAttribute('Target')
-            }])
+          return {
+            parts: {
+              Relationship: {
+                type: 'simpleCollection',
+                idAttrs: ['Id']
+              }
+            },
+            elements: childrenEls
           }
+        },
+        onInit: (elements, ctx) => {
+          const relationshipEls = elements.filter((el) => el.nodeName === 'Relationship')
 
-          return items
+          ctx.data.lastElForPart.set('Relationship', relationshipEls.at(-1))
+
+          if (relationshipEls.length === 0) {
+            ctx.addSlot('Relationship')
+          }
+        },
+        onElementPart: (el, ctx) => {
+          if (ctx.data.lastElForPart.get(el.nodeName) === el) {
+            ctx.addSlot(el.nodeName)
+          }
         }
       })
 
       sharedData.fileDataMap.set(sheetRelsFile.path, {
         idManagers: localIdManagers,
-        listManagers: localListManagers
+        contentManagers: localContentManagers
       })
     }
-
-    const sheetDataChildEls = Array.from(sheetDataEl.childNodes)
-    const lastRowIdx = sheetDataChildEls.filter((n) => n.nodeName === 'row').length - 1
 
     // looking for autofit comments in the sheet
     const autoFitConfigured = findAutoFitConfigured(sheetFilepath, sheetDoc, sheetRelsDoc, files)
     const isAutofitConfigured = autoFitConfigured.length > 0
+
+    if (isAutofitConfigured) {
+      sheetContentManagers.set('cols', {
+        prepare: (ctx) => {
+          const elements = Array.from(colsEl?.childNodes ?? [])
+
+          ctx.data.lastElForPart = new Map()
+
+          return {
+            parts: {
+              col: {
+                type: 'simpleCollection',
+                idAttrs: ['min', 'max']
+              }
+            },
+            elements
+          }
+        },
+        onInit: (elements, ctx) => {
+          const colEls = elements.filter((el) => el.nodeName === 'col')
+
+          ctx.data.lastElForPart.set('col', colEls.at(-1))
+
+          if (colEls.length === 0) {
+            ctx.addSlot('col')
+          }
+        },
+        onElementPart: (el, ctx) => {
+          if (ctx.data.lastElForPart.get(el.nodeName) === el) {
+            ctx.addSlot(el.nodeName)
+          }
+        }
+      })
+    }
 
     const autoFitData = {
       enabledFor: [],
@@ -171,19 +192,36 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
     // stores the merge cell ranges by the row number
     const mergeCellRangesByStartRowNumberMap = new Map()
 
-    for (const [mergeCellIdx, mergeCellEl] of Array.from(mergeCellsEl?.getElementsByTagName('mergeCell') ?? []).entries()) {
-      const ref = mergeCellEl.getAttribute('ref')
-      const startCellRef = ref.split(':')[0]
-      const parsedStartCellRef = parseCellRef(startCellRef)
+    if (mergeCellsEl) {
+      sheetContentManagers.set('mergeCells', {
+        prepare: () => {
+          const elements = Array.from(mergeCellsEl.childNodes)
 
-      let refsByStartLetterMap = mergeCellRangesByStartRowNumberMap.get(parsedStartCellRef.rowNumber)
+          return {
+            parts: {
+              mergeCell: {
+                type: 'instanceCollection',
+                idAttrs: ['ref']
+              }
+            },
+            elements
+          }
+        },
+        onElementPart: (el) => {
+          const ref = el.getAttribute('ref')
+          const startCellRef = ref.split(':')[0]
+          const parsedStartCellRef = parseCellRef(startCellRef)
 
-      if (refsByStartLetterMap == null) {
-        refsByStartLetterMap = new Map()
-        mergeCellRangesByStartRowNumberMap.set(parsedStartCellRef.rowNumber, refsByStartLetterMap)
-      }
+          let refsByStartLetterMap = mergeCellRangesByStartRowNumberMap.get(parsedStartCellRef.rowNumber)
 
-      refsByStartLetterMap.set(parsedStartCellRef.letter, { idx: mergeCellIdx, ref })
+          if (refsByStartLetterMap == null) {
+            refsByStartLetterMap = new Map()
+            mergeCellRangesByStartRowNumberMap.set(parsedStartCellRef.rowNumber, refsByStartLetterMap)
+          }
+
+          refsByStartLetterMap.set(parsedStartCellRef.letter, ref)
+        }
+      })
     }
 
     const dimensionEl = sheetDoc.getElementsByTagName('dimension')[0]
@@ -225,43 +263,60 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
     }
 
     const tableParts = []
-    const tablePartNodeName = 'tablePart'
 
     // check if there are tables, if there are we need to update its refs, and maybe its
     // columns names (if they are dynamic) at runtime
     const tablePartsEl = sheetDoc.getElementsByTagName('tableParts')[0]
 
-    const tablePartEls = Array.from(
-      tablePartsEl?.childNodes ?? []
-    ).filter((n) => n.nodeName === tablePartNodeName)
+    if (tablePartsEl?.childNodes.length > 0) {
+      let tablePartEls = []
 
-    if (tablePartEls.length > 0) {
-      const tablePartNameProperty = 'r:id'
+      sheetContentManagers.set('tableParts', {
+        prepare: (ctx) => {
+          const elements = Array.from(tablePartsEl.childNodes)
 
-      sheetListManagers.set('tablePart', {
-        nodeName: tablePartNodeName,
-        keyPropertyName: tablePartNameProperty,
-        fromItems () {
-          const items = []
+          ctx.data.lastElForPart = new Map()
 
-          for (const tablePartEl of tablePartEls) {
-            const id = tablePartEl.getAttribute(tablePartNameProperty)
-            items.push([id, {}])
+          return {
+            parts: {
+              tablePart: {
+                type: 'simpleCollection',
+                idAttrs: ['r:id']
+              }
+            },
+            elements
           }
+        },
+        onInit: (elements, ctx) => {
+          tablePartEls = elements.filter((el) => el.nodeName === 'tablePart')
 
-          return items
+          ctx.data.lastElForPart.set('tablePart', tablePartEls.at(-1))
+
+          if (tablePartEls.length === 0) {
+            ctx.addSlot('tablePart')
+          }
+        },
+        onElementPart: (el, ctx) => {
+          if (ctx.data.lastElForPart.get(el.nodeName) === el) {
+            ctx.addSlot(el.nodeName)
+          }
         }
       })
 
       for (const tablePartEl of tablePartEls) {
-        const tableRelId = tablePartEl.getAttribute(tablePartNameProperty)
-        const tableRelRecord = sharedData.fileDataMap.get(sheetRelsFile.path).listManagers.get('relationship').get(tableRelId)
+        const tableRelId = tablePartEl.getAttribute('r:id')
 
-        if (tableRelRecord == null) {
-          throw new Error(`Could not find relationship element for table reference in sheet at ${sheetFilepath}`)
+        const tableRelTarget = Array.from(
+          sheetRelsDoc.documentElement.childNodes
+        ).find((n) => (
+          n.nodeName === 'Relationship' && n.getAttribute('Id') === tableRelId
+        ))?.getAttribute('Target')
+
+        if (tableRelTarget == null) {
+          throw new Error(`Could not find relationship target for table reference in sheet at ${sheetFilepath}`)
         }
 
-        const tableFilePath = path.posix.join(path.posix.dirname(sheetFilepath), tableRelRecord.Target)
+        const tableFilePath = path.posix.join(path.posix.dirname(sheetFilepath), tableRelTarget)
         const tableDoc = files.find((file) => file.path === tableFilePath).doc
 
         if (tableDoc == null) {
@@ -345,6 +400,12 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
       }
     }
 
+    const sheetDataEl = sheetDoc.getElementsByTagName('sheetData')[0]
+
+    if (sheetDataEl == null) {
+      throw new Error(`Could not find sheet data for sheet at ${sheetFilepath}`)
+    }
+
     // store information about the cells evaluated at runtime in handlebars,
     // in this preprocess part we only care to initialize the cells that are
     // used in formulas but that does not have a definition in xml
@@ -375,590 +436,539 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
     // are dynamic (contain handlebars tags)
     const dataRanges = []
 
-    // stores information about the row elements of the template sheet (xml nodes),
-    // it saves attributes (with optimization for duplicated values), children
-    // nodes (just cells), and extra metadata that is going to be needed to recreate the nodes
-    // during xml template generation. these elements are the base data that is going to
-    // be used for elements that are generated dynamically as result of handlebars evaluation
-    const templateItems = createTemplateItems()
-
-    // a map to easily get the index of row elements in the templateItems elements
-    // by its row number
-    templateItems.rowNumberElementIdxMap = new Map()
-
     const formulasToValidate = []
-    let rowIdx = -1
 
-    for (const sheetDataChildEl of sheetDataChildEls) {
-      if (sheetDataChildEl.nodeName !== 'row') {
-        // NOTE: for now we ignore non row elements inside sheetData
-        // (according to spec there is not more elements supported on sheetData other than row),
-        // if needed we can add code to replicate those elements
-        // storeElement(templateItems.data, sheetDataChildEl, {
-        //   defaults: { type: sheetDataChildEl.nodeName }
-        // }, sheetDataChildEl.nodeName, templateItems.elementTypeAttributesMap)
+    sheetContentManagers.set('sheetData', {
+      prepare: () => {
+        const elements = Array.from(sheetDataEl.childNodes ?? [])
 
-        // storeDataRange(dataRanges, dynamicParts.openBlocks.length > 0 ? 'dynamic' : 'static', templateItems.data.length - 1)
-        continue
-      }
-
-      const rowEl = sheetDataChildEl
-      rowIdx++
-      const isLastRow = rowIdx === lastRowIdx
-      let rowNumber = rowEl.getAttribute('r')
-
-      if (rowNumber == null || rowNumber === '') {
-        throw new Error('Expected row to contain r attribute defined')
-      }
-
-      rowNumber = parseInt(rowNumber, 10)
-
-      const rowElementItem = storeElement(templateItems.data, rowEl, {
-        idProp: {
-          name: 'r',
-          value: () => rowNumber
-        },
-        // we store the "r" attribute but just as empty, we just care to keep its
-        // position in attribute list
-        emptyAttrs: ['r'],
-        excludeChildren: true
-      }, 'row', templateItems.elementTypeAttributesMap)
-
-      const rowElementIdx = templateItems.data.length - 1
-
-      templateItems.elementMetaMap.set(rowElementItem, {
-        columnLetterChildrenMap: new Map()
-      })
-
-      if (mergeCellRangesByStartRowNumberMap.has(rowNumber)) {
-        const mergeStartLetterMap = mergeCellRangesByStartRowNumberMap.get(rowNumber)
-        templateItems.elementMetaMap.get(rowElementItem).mergeStartLetterMap = mergeStartLetterMap
-      }
-
-      templateItems.rowNumberElementIdxMap.set(rowNumber, rowElementIdx)
-
-      let rowHasDynamicContent = false
-      let rowIsPartOfLoopDefinition = dynamicParts.openLoops.length > 0
-      const rowChildEls = nodeListToArray(rowEl.childNodes)
-
-      if (!cellRefsByRowMap.has(rowNumber)) {
-        cellRefsByRowMap.set(rowNumber, [])
-      }
-
-      for (const openLoop of dynamicParts.openLoops) {
-        openLoop.rows.add(rowNumber)
-      }
-
-      for (const rowChildEl of rowChildEls) {
-        if (rowElementItem.children == null) {
-          rowElementItem.children = []
-        }
-
-        if (rowChildEl.nodeName !== 'c') {
-          // NOTE: for now we ignore non c elements inside row
-          // (according to spec the allowed children of a row are: c, extLst),
-          // if needed we can add code to replicate those elements
-          // storeElement(rowElementItem.children, rowChildEl, {
-          //   defaults: { type: rowChildEl.nodeName }
-          // }, rowChildEl.nodeName, templateItems.elementTypeAttributesMap)
-          continue
-        }
-
-        const cellEl = rowChildEl
-        const cellRef = cellEl.getAttribute('r')
-        const parsedCellRef = parseCellRef(cellRef)
-        const cellMetadata = {}
-
-        cellRefsByRowMap.get(rowNumber).push(cellRef)
-
-        // search if we need to update some calc cell
-        const calcChainElementIdx = calcChainRefElementIdxMap.get(`${sheetInfo.id}-${cellRef}`)
-
-        if (calcChainElementIdx != null) {
-          cellMetadata.calcChainElementIdx = calcChainElementIdx
-        }
-
-        // check if the table needs some update related to table
-        const matchedTablePart = tableParts.reduce((acc, t, tIdx) => {
-          const rangeRef = Array.from(t.refsMeta.keys()).find((refRange) => refRange.split(':').some((ref) => ref === cellRef))
-          const isPartOfDynamicColumnRef = t.dynamicColumnsMeta.has(cellRef)
-
-          if (rangeRef != null || isPartOfDynamicColumnRef) {
-            const result = {
-              idx: tIdx
-            }
-
-            if (rangeRef != null) {
-              result.ref = rangeRef
-            }
-
-            if (isPartOfDynamicColumnRef) {
-              result.dynamicColumn = true
-            }
-
-            return result
-          }
-
-          return acc
-        }, null)
-
-        if (matchedTablePart) {
-          cellMetadata.tablePart = matchedTablePart
-        }
-
-        const styleId = cellEl.getAttribute('s')
-
-        if (isAutofitConfigured && styleId != null) {
-          cellMetadata.styleId = styleId
-        }
-
-        const parsedCellEntry = {
-          // start with the cell as static
-          type: 'static',
-          letter: parsedCellRef.letter,
-          columnNumber: parsedCellRef.columnNumber
-        }
-
-        const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
-
-        parsedCells.set(cellRef, parsedCellEntry)
-
-        let blockPartFound = false
-        let excludeCellItemChildren = false
-        let calculateWidthSize = isAutofitConfigured
-
-        if (
-          (info?.type === 'inlineStr' ||
-          info?.type === 's')
-        ) {
-          const openTags = matchWithGlobalRegExp(info.value, openTagRegexp)
-          const closingTags = matchWithGlobalRegExp(info.value, closeTagRegexp)
-
-          if ((openTags.length > 0 && openTags.length !== closingTags.length)) {
-            // incomplete handlebars tag detected in cell value, throw error
-            throw new Error(`Handlebars Parse error in cell "${cellRef}" of sheet "${sheetInfo.name}". Invalid syntax detected for text: ${info.value}`)
-          }
-
-          if (openTags.length > 0) {
-            // we dont calculate the width size for cells with dynamic content
-            // we are going to take into account these cells at runtime
-            calculateWidthSize = false
-
-            parsedCellEntry.type = 'dynamic'
-            parsedCellEntry.textDetails = info.extra.textDetails
-
-            rowHasDynamicContent = true
-
-            // for these cells we dont store the children as static
-            // because we will do content detection at runtime and determine
-            // the cell content there
-            excludeCellItemChildren = true
-
-            const handlebarsTag = /{{{{0,2}|}}}{0,2}/
-            let remainingToCheck = info.value
-            let lastProcessedIdx
-            let lastCallPart
-
-            do {
-              const match = remainingToCheck.match(handlebarsTag)
-              const currentLoopDetected = dynamicParts.openLoops[dynamicParts.openLoops.length - 1]
-
-              if (match != null) {
-                const partType = match[0].startsWith('{{') ? 'start' : 'end'
-
-                if (lastProcessedIdx == null) {
-                  // initialize variable on first match
-                  lastProcessedIdx = 0
+        return {
+          parts: {
+            row: {
+              type: 'instanceCollection',
+              idAttrs: ['r'],
+              parts: {
+                c: {
+                  type: 'instanceCollection',
+                  idAttrs: ['r']
                 }
+              }
+            }
+          },
+          elements
+        }
+      },
+      onInit: (elements, ctx) => {
+        ctx.data.lastRowEl = elements.filter((n) => n.nodeName === 'row').at(-1)
+      },
+      onElementPart: (el, ctx) => {
+        if (el.nodeName === 'row') {
+          const rowEl = el
+          const isLastRow = ctx.data.lastRowEl === rowEl
+          let rowNumber = el.getAttribute('r')
 
-                const lastPartIdx = match.index + match[0].length
-                const restOfStr = remainingToCheck.slice(match.index + match[0].length)
-                const nextCharacter = restOfStr[0] ?? ''
+          if (rowNumber == null || rowNumber === '') {
+            throw new Error('Expected row to contain r attribute defined')
+          }
 
-                if (partType === 'start' && nextCharacter === '/') {
-                  const block = getLastOpenBlock(dynamicParts)
-                  dynamicParts.openBlocks.pop()
+          rowNumber = parseInt(rowNumber, 10)
 
-                  blockPartFound = true
+          if (mergeCellRangesByStartRowNumberMap.has(rowNumber)) {
+            const mergeStartLetterMap = mergeCellRangesByStartRowNumberMap.get(rowNumber)
+            ctx.baseItemData.mergeStartLetterMap = mergeStartLetterMap
+          }
 
-                  lastCallPart = {
-                    type: 'blockEnd',
-                    bracketCount: match[0].length,
-                    value: remainingToCheck.slice(match.index, match.index + match[0].length),
-                    valueStartIdxInContent: lastProcessedIdx + match.index
+          ctx.data.row = {
+            number: rowNumber,
+            hasDynamicContent: false,
+            isPartOfLoopDefinition: dynamicParts.openLoops.length > 0
+          }
+
+          if (!cellRefsByRowMap.has(rowNumber)) {
+            cellRefsByRowMap.set(rowNumber, [])
+          }
+
+          for (const openLoop of dynamicParts.openLoops) {
+            openLoop.rows.add(rowNumber)
+          }
+
+          ctx.addOnFinish(() => {
+            const loopsToValidate = checkAndGetLoopsToProcess(f.path, dynamicParts.loops, rowNumber, isLastRow)
+
+            for (const currentLoop of loopsToValidate) {
+              if (currentLoop.type === 'dynamic') {
+                const invalidLoop = dynamicParts.loops.find((loop) => {
+                  // skip if it is the same
+                  if (loop.hierarchyId === currentLoop.hierarchyId) {
+                    return false
                   }
 
-                  block.parts.push({ cellRef })
-                } else if (partType === 'start' && nextCharacter === '#') {
-                  blockPartFound = true
-
-                  lastCallPart = {
-                    type: 'blockStart',
-                    bracketCount: match[0].length,
-                    value: remainingToCheck.slice(match.index, match.index + match[0].length),
-                    valueStartIdxInContent: lastProcessedIdx + match.index
+                  if (loop.type === 'vertical' || loop.type === 'dynamic') {
+                    // we are fine detecting just one side
+                    return (
+                      loop.start.columnNumber === currentLoop.start.columnNumber &&
+                      loop.start.rowNumber >= currentLoop.start.rowNumber &&
+                      loop.start.rowNumber <= currentLoop.end.rowNumber
+                    )
+                  } else if (loop.type === 'row' || loop.type === 'block') {
+                    // we are fine detecting just one side in the case of block loops
+                    return (
+                      loop.start.rowNumber >= currentLoop.start.rowNumber &&
+                      loop.start.rowNumber <= currentLoop.end.rowNumber
+                    )
                   }
 
-                  const parentBlock = getLastOpenBlock(dynamicParts)
+                  return false
+                })
 
-                  const newBlock = {
-                    parts: [{ cellRef }],
-                    children: []
-                  }
-
-                  let newBlockIdx
-
-                  if (parentBlock) {
-                    parentBlock.children.push(newBlock)
-                    parentBlock.parts.push({ childrenIdx: parentBlock.children.length - 1 })
-                    newBlockIdx = parentBlock.children.length - 1
+                if (invalidLoop != null) {
+                  if (invalidLoop.type === 'dynamic') {
+                    throw new Error(`Dynamic cells can not have other dynamic cells defined in the same cell. Check Dynamic cell definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
                   } else {
-                    dynamicParts.blocks.push(newBlock)
-                    newBlockIdx = dynamicParts.blocks.length - 1
+                    throw new Error(`Dynamic cells can not be defined in rows that contain ${invalidLoop.type} loops. Check Dynamic cell definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
                   }
-
-                  dynamicParts.openBlocks.push(newBlockIdx)
-                } else if (partType === 'start') {
-                  lastCallPart = null
-                } else if (partType === 'end' && lastCallPart) {
-                  if (lastCallPart.bracketCount !== match[0].length) {
-                    throw new Error(`Handlebars Parse error in cell "${cellRef}" of sheet "${sheetInfo.name}". Mismatched handlebars brackets detected for text: ${info.value}`)
-                  }
-
-                  lastCallPart.value += remainingToCheck.slice(0, match.index + match[0].length)
-
-                  let extractNameEvaluation
-
-                  if (lastCallPart.type === 'blockStart') {
-                    // skip handlebars tag and take into account the "#" character
-                    extractNameEvaluation = {
-                      text: lastCallPart.value.slice(lastCallPart.bracketCount + 1),
-                      regExp: /[ }]/
-                    }
-                  } else if (lastCallPart.type === 'blockEnd') {
-                    // skip handlebars tag and take into account the "/" character
-                    extractNameEvaluation = {
-                      text: lastCallPart.value.slice(lastCallPart.bracketCount + 1),
-                      regExp: /}/
-                    }
-                  }
-
-                  if (extractNameEvaluation) {
-                    const toEvaluate = extractNameEvaluation.text
-                    const endOfBlockNameMatch = toEvaluate.match(extractNameEvaluation.regExp)
-
-                    if (endOfBlockNameMatch == null) {
-                      throw new Error(`Handlebars Parse error in cell "${cellRef}" of sheet "${sheetInfo.name}". Invalid block helper syntax detected for text: ${info.value}`)
-                    }
-
-                    lastCallPart.name = toEvaluate.slice(0, endOfBlockNameMatch.index)
-                  }
-
-                  if (currentLoopDetected != null && lastCallPart.type === 'blockEnd' && lastCallPart.name === 'each') {
-                    // if loop starts and end in same cell and it is not dynamic then
-                    // we don't consider it a loop for our purposes
-                    // (it is just a normal loop that creates strings not rows/cells)
-                    if (
-                      currentLoopDetected.type !== 'dynamic' &&
-                      currentLoopDetected.start.cellRef === cellRef
-                    ) {
-                      // inline loop here, we just remove it
-                      dynamicParts.loops.pop()
-                      dynamicParts.openLoops.pop()
-                    } else {
-                      let targetLoopDetected = currentLoopDetected
-
-                      if (targetLoopDetected.type === 'vertical') {
-                        targetLoopDetected = null
-
-                        for (let openLoopIdx = 0; openLoopIdx < dynamicParts.openLoops.length; openLoopIdx++) {
-                          const openLoop = dynamicParts.openLoops[openLoopIdx]
-
-                          if (openLoop.type === 'vertical' && parsedCellRef.columnNumber === openLoop.start.columnNumber) {
-                            targetLoopDetected = openLoop
-                            dynamicParts.openLoops.splice(openLoopIdx, 1)
-                            break
-                          }
-                        }
-
-                        if (!targetLoopDetected) {
-                          throw new Error(`Unable to match start {{#each}} and end {{/each}} of vertical loop for multiple rows in ${f.path}. both start and end of loop must be on same column`)
-                        }
-                      } else {
-                        dynamicParts.openLoops.pop()
-                      }
-
-                      targetLoopDetected.end = {
-                        cellRef,
-                        rowNumber,
-                        columnNumber: parsedCellRef.columnNumber,
-                        letter: parsedCellRef.letter,
-                        helperCall: lastCallPart.value,
-                        helperCallStartIdx: lastCallPart.valueStartIdxInContent
-                      }
-
-                      // add loop reference to start and end cells, we insert the ref
-                      // on loop end to avoid adding inner loops
-                      for (const currentCellEntry of [
-                        parsedCells.get(targetLoopDetected.start.cellRef),
-                        parsedCellEntry
-                      ]) {
-                        if (currentCellEntry.loops == null) {
-                          currentCellEntry.loops = new Set()
-                        }
-
-                        // this stores references to loops that one of its parts
-                        // are in the cell (either the call for the start or end of loop)
-                        currentCellEntry.loops.add(targetLoopDetected)
-                      }
-
-                      if (
-                        targetLoopDetected.type === 'block' &&
-                        targetLoopDetected.end.rowNumber === targetLoopDetected.start.rowNumber
-                      ) {
-                        targetLoopDetected.type = 'row'
-                      }
-                    }
-                  } else if (lastCallPart.type === 'blockStart' && lastCallPart.name === 'each') {
-                    const isNested = currentLoopDetected != null && currentLoopDetected.type !== 'vertical'
-
-                    const hierarchyIdPrefix = isNested ? `${currentLoopDetected.hierarchyId}#` : ''
-                    const hierarchyIdCounter = isNested ? currentLoopDetected.children.length : dynamicParts.loops.length
-
-                    const hierarchyId = `${hierarchyIdPrefix}${hierarchyIdCounter}`
-
-                    rowIsPartOfLoopDefinition = true
-
-                    const newLoopItem = {
-                      type: 'block',
-                      hierarchyId,
-                      // all the rows that are part between the start and end of the loop
-                      rows: new Set([rowNumber]),
-                      children: [],
-                      start: {
-                        cellRef,
-                        rowNumber,
-                        columnNumber: parsedCellRef.columnNumber,
-                        letter: parsedCellRef.letter,
-                        helperCall: lastCallPart.value,
-                        helperCallStartIdx: lastCallPart.valueStartIdxInContent
-                      }
-                    }
-
-                    if (isNested) {
-                      currentLoopDetected.children.push(newLoopItem)
-                    }
-
-                    dynamicParts.loops.push(newLoopItem)
-                    dynamicParts.openLoops.push(newLoopItem)
-
-                    if (lastCallPart.value.includes('cells=')) {
-                      newLoopItem.type = 'dynamic'
-                    } else if (lastCallPart.value.includes('vertical=')) {
-                      newLoopItem.type = 'vertical'
-                    }
-                  }
-
-                  lastCallPart = null
+                }
+              } else if (currentLoop.type === 'vertical') {
+                if (currentLoop.start.columnNumber !== currentLoop.end.columnNumber) {
+                  throw new Error(`Vertical loops must start {{#each}} and end {{/each}} in the same column. Check Vertical loop definition in ${f.path}, cell ${currentLoop.start.cellRef}, ${currentLoop.end.cellRef}`)
                 }
 
-                lastProcessedIdx += lastPartIdx
-                remainingToCheck = restOfStr
+                const invalidLoop = dynamicParts.loops.find((loop) => {
+                  // skip if it is the same
+                  if (loop.hierarchyId === currentLoop.hierarchyId) {
+                    return false
+                  }
+
+                  if (loop.type === 'vertical' || loop.type === 'dynamic') {
+                    // we are fine detecting just one side
+                    return (
+                      loop.start.columnNumber === currentLoop.start.columnNumber &&
+                      loop.start.rowNumber >= currentLoop.start.rowNumber &&
+                      loop.start.rowNumber <= currentLoop.end.rowNumber
+                    )
+                  } else if (loop.type === 'row' || loop.type === 'block') {
+                    // we are fine detecting just one side in the case of block loops
+                    return (
+                      loop.start.rowNumber >= currentLoop.start.rowNumber &&
+                      loop.start.rowNumber <= currentLoop.end.rowNumber
+                    )
+                  }
+
+                  return false
+                })
+
+                if (invalidLoop != null) {
+                  if (invalidLoop.type === 'vertical') {
+                    throw new Error(`Vertical loops can not have child vertical loops. Check child vertical loop definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+                  } else {
+                    throw new Error(`Vertical loops can not be defined in rows that contain ${invalidLoop.type} loops. Check Vertical loop definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+                  }
+                }
               } else {
-                remainingToCheck = ''
+                if (currentLoop.type === 'row') {
+                  const invalidLoop = dynamicParts.loops.find((loop) => {
+                    if (loop.hierarchyId === currentLoop.hierarchyId) {
+                      return false
+                    }
+
+                    if (loop.type === 'dynamic') {
+                      // we are fine detecting just one side
+                      return (
+                        loop.start.columnNumber === currentLoop.start.columnNumber &&
+                        loop.start.rowNumber >= currentLoop.start.rowNumber &&
+                        loop.start.rowNumber <= currentLoop.end.rowNumber
+                      )
+                    }
+
+                    return false
+                  })
+
+                  if (invalidLoop != null) {
+                    if (invalidLoop.type === 'dynamic') {
+                      throw new Error(`Row loops can not have child dynamic cells. Check child dynamic cell definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+                    }
+                  }
+                }
               }
-            } while (remainingToCheck !== '')
-          }
-        } else if (
-          info?.type === 'str'
-        ) {
-          cellMetadata.formula = {
-            value: info.value
-          }
-
-          if (info.extra.formulaEl.hasAttributes()) {
-            cellMetadata.formula.attributes = new Map()
-
-            const attributeList = Array.from(info.extra.formulaEl.attributes)
-
-            for (const attr of attributeList) {
-              cellMetadata.formula.attributes.set(attr.name, attr.value)
-            }
-          }
-
-          const isSharedFormula = (
-            info.extra.formulaEl.getAttribute('t') === 'shared' &&
-            info.extra.formulaEl.getAttribute('si') != null &&
-            info.extra.formulaEl.getAttribute('si') !== ''
-          )
-
-          if (isSharedFormula) {
-            const ref = info.extra.formulaEl.getAttribute('ref')
-
-            cellMetadata.formula.shared = {
-              type: ref != null && ref !== '' ? 'source' : 'reference'
             }
 
-            if (cellMetadata.formula.shared.type === 'source') {
-              cellMetadata.formula.shared.sourceRef = info.extra.formulaEl.getAttribute('ref')
-            }
-          }
+            const addToDynamicRange = ctx.data.row.hasDynamicContent || ctx.data.row.isPartOfLoopDefinition
 
-          const { cellRefs } = evaluateCellRefsFromExpression(cellMetadata.formula.value)
-
-          // the cell refs used in formula
-          cellMetadata.formula.cellRefs = cellRefs
-
-          formulasToValidate.push(cellMetadata.formula)
-        }
-
-        if (calculateWidthSize) {
-          const fontSize = getFontSizeFromStyle(styleId, styleInfo)
-
-          const currentMaxSize = autoFitData.cols.get(parsedCellRef.letter)
-
-          // for formulas we use the cached result of formula if exists
-          const targetValue = info.type === 'str' ? info.extra.cachedValue : info.value
-
-          if (targetValue != null) {
-            const currentSize = getPixelWidthOfValue(targetValue, fontSize)
-
-            if (currentMaxSize == null || currentSize > currentMaxSize) {
-              autoFitData.cols.set(parsedCellRef.letter, currentSize)
-            }
-          }
-        }
-
-        if (!blockPartFound && dynamicParts.openBlocks.length > 0) {
-          const lastHbOpenBlock = getLastOpenBlock(dynamicParts)
-          lastHbOpenBlock.parts.push({ cellRef })
-        }
-
-        const cellElementItem = storeElement(rowElementItem.children, cellEl, {
-          // we store the "r" attribute but just as empty, we just care to keep its
-          // position in attribute list
-          emptyAttrs: ['r'],
-          excludeChildren: excludeCellItemChildren
-        }, 'c', templateItems.elementTypeAttributesMap)
-
-        if (Object.keys(cellMetadata).length > 0) {
-          templateItems.elementMetaMap.set(cellElementItem, cellMetadata)
-        }
-
-        templateItems.elementMetaMap.get(rowElementItem).columnLetterChildrenMap.set(
-          parsedCellRef.letter,
-          rowElementItem.children.length - 1
-        )
-      }
-
-      const loopsToValidate = checkAndGetLoopsToProcess(f.path, dynamicParts.loops, rowNumber, isLastRow)
-
-      for (const currentLoop of loopsToValidate) {
-        if (currentLoop.type === 'dynamic') {
-          const invalidLoop = dynamicParts.loops.find((loop) => {
-            // skip if it is the same
-            if (loop.hierarchyId === currentLoop.hierarchyId) {
-              return false
+            if (addToDynamicRange) {
+              const dynamicRowEntry = { cellRefs: [...cellRefsByRowMap.get(rowNumber)] }
+              dynamicParts.rows.set(rowNumber, dynamicRowEntry)
             }
 
-            if (loop.type === 'vertical' || loop.type === 'dynamic') {
-              // we are fine detecting just one side
-              return (
-                loop.start.columnNumber === currentLoop.start.columnNumber &&
-                loop.start.rowNumber >= currentLoop.start.rowNumber &&
-                loop.start.rowNumber <= currentLoop.end.rowNumber
-              )
-            } else if (loop.type === 'row' || loop.type === 'block') {
-              // we are fine detecting just one side in the case of block loops
-              return (
-                loop.start.rowNumber >= currentLoop.start.rowNumber &&
-                loop.start.rowNumber <= currentLoop.end.rowNumber
-              )
-            }
-
-            return false
+            storeDataRange(dataRanges, addToDynamicRange ? 'dynamic' : 'static', rowNumber)
           })
-
-          if (invalidLoop != null) {
-            if (invalidLoop.type === 'dynamic') {
-              throw new Error(`Dynamic cells can not have other dynamic cells defined in the same cell. Check Dynamic cell definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
-            } else {
-              throw new Error(`Dynamic cells can not be defined in rows that contain ${invalidLoop.type} loops. Check Dynamic cell definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
-            }
-          }
-        } else if (currentLoop.type === 'vertical') {
-          if (currentLoop.start.columnNumber !== currentLoop.end.columnNumber) {
-            throw new Error(`Vertical loops must start {{#each}} and end {{/each}} in the same column. Check Vertical loop definition in ${f.path}, cell ${currentLoop.start.cellRef}, ${currentLoop.end.cellRef}`)
-          }
-
-          const invalidLoop = dynamicParts.loops.find((loop) => {
-            // skip if it is the same
-            if (loop.hierarchyId === currentLoop.hierarchyId) {
-              return false
-            }
-
-            if (loop.type === 'vertical' || loop.type === 'dynamic') {
-              // we are fine detecting just one side
-              return (
-                loop.start.columnNumber === currentLoop.start.columnNumber &&
-                loop.start.rowNumber >= currentLoop.start.rowNumber &&
-                loop.start.rowNumber <= currentLoop.end.rowNumber
-              )
-            } else if (loop.type === 'row' || loop.type === 'block') {
-              // we are fine detecting just one side in the case of block loops
-              return (
-                loop.start.rowNumber >= currentLoop.start.rowNumber &&
-                loop.start.rowNumber <= currentLoop.end.rowNumber
-              )
-            }
-
-            return false
-          })
-
-          if (invalidLoop != null) {
-            if (invalidLoop.type === 'vertical') {
-              throw new Error(`Vertical loops can not have child vertical loops. Check child vertical loop definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
-            } else {
-              throw new Error(`Vertical loops can not be defined in rows that contain ${invalidLoop.type} loops. Check Vertical loop definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
-            }
-          }
         } else {
-          if (currentLoop.type === 'row') {
-            const invalidLoop = dynamicParts.loops.find((loop) => {
-              if (loop.hierarchyId === currentLoop.hierarchyId) {
-                return false
+          const rowNumber = ctx.data.row.number
+          const cellEl = el
+          const cellRef = cellEl.getAttribute('r')
+          const parsedCellRef = parseCellRef(cellRef)
+          const cellMetadata = {}
+
+          cellRefsByRowMap.get(rowNumber).push(cellRef)
+
+          // search if we need to update some calc cell
+          if (calcChainContentManagers?.get?.('calcChain')?.parts?.get?.('c')?.hasBase([cellRef, sheetInfo.id])) {
+            cellMetadata.calcChainEntry = true
+          }
+
+          // check if the table needs some update related to table
+          const matchedTablePart = tableParts.reduce((acc, t, tIdx) => {
+            const rangeRef = Array.from(t.refsMeta.keys()).find((refRange) => refRange.split(':').some((ref) => ref === cellRef))
+            const isPartOfDynamicColumnRef = t.dynamicColumnsMeta.has(cellRef)
+
+            if (rangeRef != null || isPartOfDynamicColumnRef) {
+              const result = {
+                idx: tIdx
               }
 
-              if (loop.type === 'dynamic') {
-                // we are fine detecting just one side
-                return (
-                  loop.start.columnNumber === currentLoop.start.columnNumber &&
-                  loop.start.rowNumber >= currentLoop.start.rowNumber &&
-                  loop.start.rowNumber <= currentLoop.end.rowNumber
-                )
+              if (rangeRef != null) {
+                result.ref = rangeRef
               }
 
-              return false
-            })
+              if (isPartOfDynamicColumnRef) {
+                result.dynamicColumn = true
+              }
 
-            if (invalidLoop != null) {
-              if (invalidLoop.type === 'dynamic') {
-                throw new Error(`Row loops can not have child dynamic cells. Check child dynamic cell definition in ${f.path}, cell ${invalidLoop.start.cellRef}`)
+              return result
+            }
+
+            return acc
+          }, null)
+
+          if (matchedTablePart) {
+            cellMetadata.tablePart = matchedTablePart
+          }
+
+          const styleId = cellEl.getAttribute('s')
+
+          if (isAutofitConfigured && styleId != null) {
+            cellMetadata.styleId = styleId
+          }
+
+          const parsedCellEntry = {
+            // start with the cell as static
+            type: 'static',
+            letter: parsedCellRef.letter,
+            columnNumber: parsedCellRef.columnNumber
+          }
+
+          const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
+
+          parsedCells.set(cellRef, parsedCellEntry)
+
+          let blockPartFound = false
+          let calculateWidthSize = isAutofitConfigured
+
+          if (
+            (info?.type === 'inlineStr' ||
+            info?.type === 's')
+          ) {
+            const openTags = matchWithGlobalRegExp(info.value, openTagRegexp)
+            const closingTags = matchWithGlobalRegExp(info.value, closeTagRegexp)
+
+            if ((openTags.length > 0 && openTags.length !== closingTags.length)) {
+              // incomplete handlebars tag detected in cell value, throw error
+              throw new Error(`Handlebars Parse error in cell "${cellRef}" of sheet "${sheetInfo.name}". Invalid syntax detected for text: ${info.value}`)
+            }
+
+            if (openTags.length > 0) {
+              // we dont calculate the width size for cells with dynamic content
+              // we are going to take into account these cells at runtime
+              calculateWidthSize = false
+
+              parsedCellEntry.type = 'dynamic'
+              parsedCellEntry.textDetails = info.extra.textDetails
+
+              ctx.data.row.hasDynamicContent = true
+
+              const handlebarsTag = /{{{{0,2}|}}}{0,2}/
+              let remainingToCheck = info.value
+              let lastProcessedIdx
+              let lastCallPart
+
+              do {
+                const match = remainingToCheck.match(handlebarsTag)
+                const currentLoopDetected = dynamicParts.openLoops[dynamicParts.openLoops.length - 1]
+
+                if (match != null) {
+                  const partType = match[0].startsWith('{{') ? 'start' : 'end'
+
+                  if (lastProcessedIdx == null) {
+                    // initialize variable on first match
+                    lastProcessedIdx = 0
+                  }
+
+                  const lastPartIdx = match.index + match[0].length
+                  const restOfStr = remainingToCheck.slice(match.index + match[0].length)
+                  const nextCharacter = restOfStr[0] ?? ''
+
+                  if (partType === 'start' && nextCharacter === '/') {
+                    const block = getLastOpenBlock(dynamicParts)
+                    dynamicParts.openBlocks.pop()
+
+                    blockPartFound = true
+
+                    lastCallPart = {
+                      type: 'blockEnd',
+                      bracketCount: match[0].length,
+                      value: remainingToCheck.slice(match.index, match.index + match[0].length),
+                      valueStartIdxInContent: lastProcessedIdx + match.index
+                    }
+
+                    block.parts.push({ cellRef })
+                  } else if (partType === 'start' && nextCharacter === '#') {
+                    blockPartFound = true
+
+                    lastCallPart = {
+                      type: 'blockStart',
+                      bracketCount: match[0].length,
+                      value: remainingToCheck.slice(match.index, match.index + match[0].length),
+                      valueStartIdxInContent: lastProcessedIdx + match.index
+                    }
+
+                    const parentBlock = getLastOpenBlock(dynamicParts)
+
+                    const newBlock = {
+                      parts: [{ cellRef }],
+                      children: []
+                    }
+
+                    let newBlockIdx
+
+                    if (parentBlock) {
+                      parentBlock.children.push(newBlock)
+                      parentBlock.parts.push({ childrenIdx: parentBlock.children.length - 1 })
+                      newBlockIdx = parentBlock.children.length - 1
+                    } else {
+                      dynamicParts.blocks.push(newBlock)
+                      newBlockIdx = dynamicParts.blocks.length - 1
+                    }
+
+                    dynamicParts.openBlocks.push(newBlockIdx)
+                  } else if (partType === 'start') {
+                    lastCallPart = null
+                  } else if (partType === 'end' && lastCallPart) {
+                    if (lastCallPart.bracketCount !== match[0].length) {
+                      throw new Error(`Handlebars Parse error in cell "${cellRef}" of sheet "${sheetInfo.name}". Mismatched handlebars brackets detected for text: ${info.value}`)
+                    }
+
+                    lastCallPart.value += remainingToCheck.slice(0, match.index + match[0].length)
+
+                    let extractNameEvaluation
+
+                    if (lastCallPart.type === 'blockStart') {
+                      // skip handlebars tag and take into account the "#" character
+                      extractNameEvaluation = {
+                        text: lastCallPart.value.slice(lastCallPart.bracketCount + 1),
+                        regExp: /[ }]/
+                      }
+                    } else if (lastCallPart.type === 'blockEnd') {
+                      // skip handlebars tag and take into account the "/" character
+                      extractNameEvaluation = {
+                        text: lastCallPart.value.slice(lastCallPart.bracketCount + 1),
+                        regExp: /}/
+                      }
+                    }
+
+                    if (extractNameEvaluation) {
+                      const toEvaluate = extractNameEvaluation.text
+                      const endOfBlockNameMatch = toEvaluate.match(extractNameEvaluation.regExp)
+
+                      if (endOfBlockNameMatch == null) {
+                        throw new Error(`Handlebars Parse error in cell "${cellRef}" of sheet "${sheetInfo.name}". Invalid block helper syntax detected for text: ${info.value}`)
+                      }
+
+                      lastCallPart.name = toEvaluate.slice(0, endOfBlockNameMatch.index)
+                    }
+
+                    if (currentLoopDetected != null && lastCallPart.type === 'blockEnd' && lastCallPart.name === 'each') {
+                      // if loop starts and end in same cell and it is not dynamic then
+                      // we don't consider it a loop for our purposes
+                      // (it is just a normal loop that creates strings not rows/cells)
+                      if (
+                        currentLoopDetected.type !== 'dynamic' &&
+                        currentLoopDetected.start.cellRef === cellRef
+                      ) {
+                        // inline loop here, we just remove it
+                        dynamicParts.loops.pop()
+                        dynamicParts.openLoops.pop()
+                      } else {
+                        let targetLoopDetected = currentLoopDetected
+
+                        if (targetLoopDetected.type === 'vertical') {
+                          targetLoopDetected = null
+
+                          for (let openLoopIdx = 0; openLoopIdx < dynamicParts.openLoops.length; openLoopIdx++) {
+                            const openLoop = dynamicParts.openLoops[openLoopIdx]
+
+                            if (openLoop.type === 'vertical' && parsedCellRef.columnNumber === openLoop.start.columnNumber) {
+                              targetLoopDetected = openLoop
+                              dynamicParts.openLoops.splice(openLoopIdx, 1)
+                              break
+                            }
+                          }
+
+                          if (!targetLoopDetected) {
+                            throw new Error(`Unable to match start {{#each}} and end {{/each}} of vertical loop for multiple rows in ${f.path}. both start and end of loop must be on same column`)
+                          }
+                        } else {
+                          dynamicParts.openLoops.pop()
+                        }
+
+                        targetLoopDetected.end = {
+                          cellRef,
+                          rowNumber,
+                          columnNumber: parsedCellRef.columnNumber,
+                          letter: parsedCellRef.letter,
+                          helperCall: lastCallPart.value,
+                          helperCallStartIdx: lastCallPart.valueStartIdxInContent
+                        }
+
+                        // add loop reference to start and end cells, we insert the ref
+                        // on loop end to avoid adding inner loops
+                        for (const currentCellEntry of [
+                          parsedCells.get(targetLoopDetected.start.cellRef),
+                          parsedCellEntry
+                        ]) {
+                          if (currentCellEntry.loops == null) {
+                            currentCellEntry.loops = new Set()
+                          }
+
+                          // this stores references to loops that one of its parts
+                          // are in the cell (either the call for the start or end of loop)
+                          currentCellEntry.loops.add(targetLoopDetected)
+                        }
+
+                        if (
+                          targetLoopDetected.type === 'block' &&
+                          targetLoopDetected.end.rowNumber === targetLoopDetected.start.rowNumber
+                        ) {
+                          targetLoopDetected.type = 'row'
+                        }
+                      }
+                    } else if (lastCallPart.type === 'blockStart' && lastCallPart.name === 'each') {
+                      const isNested = currentLoopDetected != null && currentLoopDetected.type !== 'vertical'
+
+                      const hierarchyIdPrefix = isNested ? `${currentLoopDetected.hierarchyId}#` : ''
+                      const hierarchyIdCounter = isNested ? currentLoopDetected.children.length : dynamicParts.loops.length
+
+                      const hierarchyId = `${hierarchyIdPrefix}${hierarchyIdCounter}`
+
+                      ctx.data.row.isPartOfLoopDefinition = true
+
+                      const newLoopItem = {
+                        type: 'block',
+                        hierarchyId,
+                        // all the rows that are part between the start and end of the loop
+                        rows: new Set([rowNumber]),
+                        children: [],
+                        start: {
+                          cellRef,
+                          rowNumber,
+                          columnNumber: parsedCellRef.columnNumber,
+                          letter: parsedCellRef.letter,
+                          helperCall: lastCallPart.value,
+                          helperCallStartIdx: lastCallPart.valueStartIdxInContent
+                        }
+                      }
+
+                      if (isNested) {
+                        currentLoopDetected.children.push(newLoopItem)
+                      }
+
+                      dynamicParts.loops.push(newLoopItem)
+                      dynamicParts.openLoops.push(newLoopItem)
+
+                      if (lastCallPart.value.includes('cells=')) {
+                        newLoopItem.type = 'dynamic'
+                      } else if (lastCallPart.value.includes('vertical=')) {
+                        newLoopItem.type = 'vertical'
+                      }
+                    }
+
+                    lastCallPart = null
+                  }
+
+                  lastProcessedIdx += lastPartIdx
+                  remainingToCheck = restOfStr
+                } else {
+                  remainingToCheck = ''
+                }
+              } while (remainingToCheck !== '')
+            }
+          } else if (
+            info?.type === 'str'
+          ) {
+            cellMetadata.formula = {
+              value: info.value
+            }
+
+            if (info.extra.formulaEl.hasAttributes()) {
+              cellMetadata.formula.attributes = new Map()
+
+              const attributeList = Array.from(info.extra.formulaEl.attributes)
+
+              for (const attr of attributeList) {
+                cellMetadata.formula.attributes.set(attr.name, attr.value)
+              }
+            }
+
+            const isSharedFormula = (
+              info.extra.formulaEl.getAttribute('t') === 'shared' &&
+              info.extra.formulaEl.getAttribute('si') != null &&
+              info.extra.formulaEl.getAttribute('si') !== ''
+            )
+
+            if (isSharedFormula) {
+              const ref = info.extra.formulaEl.getAttribute('ref')
+
+              cellMetadata.formula.shared = {
+                type: ref != null && ref !== '' ? 'source' : 'reference'
+              }
+
+              if (cellMetadata.formula.shared.type === 'source') {
+                cellMetadata.formula.shared.sourceRef = info.extra.formulaEl.getAttribute('ref')
+              }
+            }
+
+            const { cellRefs } = evaluateCellRefsFromExpression(cellMetadata.formula.value)
+
+            // the cell refs used in formula
+            cellMetadata.formula.cellRefs = cellRefs
+
+            formulasToValidate.push(cellMetadata.formula)
+          }
+
+          if (calculateWidthSize) {
+            const fontSize = getFontSizeFromStyle(styleId, styleInfo)
+
+            const currentMaxSize = autoFitData.cols.get(parsedCellRef.letter)
+
+            // for formulas we use the cached result of formula if exists
+            const targetValue = info.type === 'str' ? info.extra.cachedValue : info.value
+
+            if (targetValue != null) {
+              const currentSize = getPixelWidthOfValue(targetValue, fontSize)
+
+              if (currentMaxSize == null || currentSize > currentMaxSize) {
+                autoFitData.cols.set(parsedCellRef.letter, currentSize)
               }
             }
           }
+
+          if (!blockPartFound && dynamicParts.openBlocks.length > 0) {
+            const lastHbOpenBlock = getLastOpenBlock(dynamicParts)
+            lastHbOpenBlock.parts.push({ cellRef })
+          }
+
+          Object.assign(ctx.baseItemData, cellMetadata)
         }
       }
-
-      const addToDynamicRange = rowHasDynamicContent || rowIsPartOfLoopDefinition
-
-      if (addToDynamicRange) {
-        const dynamicRowEntry = { cellRefs: [...cellRefsByRowMap.get(rowNumber)] }
-        dynamicParts.rows.set(rowNumber, dynamicRowEntry)
-      }
-
-      storeDataRange(dataRanges, addToDynamicRange ? 'dynamic' : 'static', templateItems.data.length - 1)
-    }
+    })
 
     for (const formula of formulasToValidate) {
       for (const cellRefInfo of formula.cellRefs) {
@@ -1014,33 +1024,13 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
       }
     }
 
-    // set the corresponding loop hierarchy id for each table part, if any of its cells is part of a loop
-    for (const tablePart of tableParts) {
-      const parsedStartTableCellRef = parseCellRef(tablePart.mainRefParts[0])
-
-      const loopDetectionResult = getParentLoop(dynamicParts.loops, {
-        rowNumber: parsedStartTableCellRef.rowNumber,
-        columnNumber: parsedStartTableCellRef.columnNumber
-      })
-
-      if (loopDetectionResult != null) {
-        tablePart.loopHierarchyId = loopDetectionResult.loopDetected.hierarchyId
-      }
-    }
-
     if (dynamicParts.openLoops.length > 0) {
       const loopInfoCalls = dynamicParts.openLoops.map((l) => `- ${l.type} loop starting at cell ${l.start.cellRef}`)
       throw new Error(`Unable to find end of loop ({{/each}}) for the following loop calls in ${f.path}:\n${loopInfoCalls.join('\n')}`)
     }
 
-    // simplify the elements attribute data structure
-    for (const [elementType, elementAttributes] of templateItems.elementTypeAttributesMap) {
-      templateItems.elementTypeAttributesMap.set(elementType, elementAttributes.data)
-    }
-
     const dataTemplate = generateDataTemplate(
       dataRanges,
-      templateItems,
       dynamicParts,
       parsedCells,
       autoFitConfigured
@@ -1052,11 +1042,11 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
         name: sheetInfo.name
       },
       relsPath: sheetRelsFile?.path,
-      listManagers: sheetListManagers,
+      contentManagers: sheetContentManagers,
       dataVariables: {},
+      dataRanges,
       tables: tableParts,
       dataTemplate,
-      templateItems,
       runtime: {
         style: {
           info: styleInfo,
@@ -1079,9 +1069,7 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
           data: new Map()
         },
         trackedTables: new Map()
-      },
-      mergeCellItems: [],
-      dataItems: []
+      }
     })
 
     addEndCallback(() => {
@@ -1098,53 +1086,69 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
 
       // replacing <mergeCells> with a helper call that will generate the final merge cells definitions
       if (mergeCellsEl) {
-        mergeCellsEl.parentNode.replaceChild(
-          processOpeningTag(
-            sheetDoc,
-            false,
-            getDataHelperCall('mergeCells', null, { isBlock: false })
-          ),
-          mergeCellsEl
+        const newMergeCellsEl = mergeCellsEl.cloneNode()
+        newMergeCellsEl.setAttribute('count', '{{@newMergeCellsCount}}')
+
+        const parentEl = mergeCellsEl.parentNode
+
+        // fast way to remove children, iterating all children and using .removeChild is
+        // very slow in big documents
+        parentEl.replaceChild(newMergeCellsEl, mergeCellsEl)
+
+        newMergeCellsEl.appendChild(
+          processOpeningTag(sheetDoc, false, getDataHelperCall('renderContent', {
+            name: 'mergeCells'
+          }, { isBlock: false }))
         )
       }
 
       // update calcChainDoc if needed
       if (calcChainDoc) {
-        const cloneWithoutChildren = calcChainDoc.documentElement.cloneNode()
-
         // fast way to remove children, iterating all children and using .removeChild is
         // very slow in big documents
-        calcChainDoc.replaceChild(cloneWithoutChildren, calcChainDoc.documentElement)
+        calcChainDoc.replaceChild(
+          calcChainDoc.documentElement.cloneNode(),
+          calcChainDoc.documentElement
+        )
 
         calcChainDoc.documentElement.appendChild(
-          processOpeningTag(
-            calcChainDoc,
-            false,
-            getDataHelperCall('calcChain', null, { isBlock: false })
-          )
+          processOpeningTag(calcChainDoc, false, getDataHelperCall('renderContent', {
+            name: 'calcChain'
+          }, { isBlock: false }))
         )
       }
 
       // update sheet relationships
       if (sheetRelsFile) {
-        const startCallForRelationship = getDataHelperCall('listRecords', { name: 'relationship', path: sheetRelsFile.path })
+        // fast way to remove children, iterating all children and using .removeChild is
+        // very slow in big documents
+        sheetRelsFile.doc.replaceChild(
+          sheetRelsFile.doc.documentElement.cloneNode(),
+          sheetRelsFile.doc.documentElement
+        )
 
-        if (sheetRelsEls.length > 0) {
-          processOpeningTag(sheetRelsDoc, sheetRelsEls[0], startCallForRelationship)
-          processClosingTag(sheetRelsDoc, sheetRelsEls[sheetRelsEls.length - 1], getDataHelperBlockEndCall())
-        } else {
-          const fakeEl = processOpeningTag(sheetRelsDoc, false, startCallForRelationship)
-          sheetRelsDoc.documentElement.appendChild(fakeEl)
-          processClosingTag(sheetRelsDoc, fakeEl, getDataHelperBlockEndCall())
-        }
+        sheetRelsFile.doc.documentElement.appendChild(
+          processOpeningTag(sheetRelsFile.doc, false, getDataHelperCall('renderContent', {
+            name: 'Relationships'
+          }, { isBlock: false }))
+        )
       }
 
       // update tablePart in sheet
-      if (tablePartEls.length > 0) {
-        tablePartsEl.setAttribute('count', '{{@newTablePartsCount}}')
-        const startCallForTablePart = getDataHelperCall('listRecords', { name: 'tablePart', path: sheetFilepath })
-        processOpeningTag(sheetDoc, tablePartEls[0], startCallForTablePart)
-        processClosingTag(sheetDoc, tablePartEls[tablePartEls.length - 1], getDataHelperBlockEndCall())
+      if (tablePartsEl != null) {
+        const newTablePartsEl = tablePartsEl.cloneNode()
+        newTablePartsEl.setAttribute('count', '{{@newTablePartsCount}}')
+
+        const parentEl = tablePartsEl.parentNode
+        // fast way to remove children, iterating all children and using .removeChild is
+        // very slow in big documents
+        parentEl.replaceChild(newTablePartsEl, tablePartsEl)
+
+        newTablePartsEl.appendChild(
+          processOpeningTag(sheetDoc, false, getDataHelperCall('renderContent', {
+            name: 'tableParts'
+          }, { isBlock: false }))
+        )
       }
 
       // update table document
@@ -1176,14 +1180,33 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
       // if autofit is configured, we are going to customize the cols so
       // we need to wrap it in helper
       if (isAutofitConfigured) {
+        let targetColsEl = colsEl
+
         // if there is no <cols> we initialize it
-        if (colsEl == null) {
-          colsEl = sheetDoc.createElement('cols')
-          sheetDataEl.parentNode.insertBefore(colsEl, sheetDataEl)
+        if (targetColsEl == null) {
+          targetColsEl = sheetDoc.createElement('cols')
+          sheetDataEl.parentNode.insertBefore(targetColsEl, sheetDataEl)
         }
 
-        processOpeningTag(sheetDoc, colsEl, getDataHelperCall('cols'))
-        processClosingTag(sheetDoc, colsEl, '{{/_D}}')
+        if (targetColsEl.childNodes.length > 0) {
+          const parentOfColsEl = targetColsEl.parentNode
+          const newColsEl = targetColsEl.cloneNode()
+
+          // fast way to remove children, iterating all children and using .removeChild is
+          // very slow in big documents
+          parentOfColsEl.replaceChild(
+            newColsEl,
+            targetColsEl
+          )
+
+          targetColsEl = newColsEl
+        }
+
+        targetColsEl.appendChild(
+          processOpeningTag(sheetDoc, false, getDataHelperCall('renderContent', {
+            name: 'cols'
+          }, { isBlock: false }))
+        )
 
         // remove {{xlsxColAutofit}} calls and remove comments and shapes from
         // their respective documents if needed
@@ -1216,29 +1239,23 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
         }
       }
 
+      const newSheetDataEl = sheetDataEl.cloneNode()
+
       // replacing sheetData with a helper call that will re-create the final row and cell tags
+      newSheetDataEl.appendChild(
+        processOpeningTag(sheetDoc, false, getDataHelperCall('renderContent', {
+          name: 'sheetData'
+        }, { isBlock: false }))
+      )
+
+      // fast way to remove children, iterating all children and using .removeChild is
+      // very slow in big documents
       sheetDataEl.parentNode.replaceChild(
-        processOpeningTag(
-          sheetDoc,
-          false,
-          getDataHelperCall('sd', null, { isBlock: false })
-        ),
+        newSheetDataEl,
         sheetDataEl
       )
     })
   }
-}
-
-function createTemplateItems () {
-  const templateItems = {
-    data: [],
-    // the idea is that on this map we can store metadata for any element on the template
-    // (even children elements)
-    elementMetaMap: new WeakMap(),
-    elementTypeAttributesMap: new Map()
-  }
-
-  return templateItems
 }
 
 function getParentLoop (loopsDetected, cellNumbers) {
@@ -1384,146 +1401,19 @@ function matchWithGlobalRegExp (str, regexp) {
   return a
 }
 
-function storeDataRange (dataRanges, type, idx) {
+function storeDataRange (dataRanges, type, rowNumber) {
   let lastRange = dataRanges[dataRanges.length - 1]
 
   if (lastRange == null || lastRange.type !== type) {
     lastRange = {
       type,
-      start: idx
+      items: new Set()
     }
 
     dataRanges.push(lastRange)
   }
 
-  lastRange.end = idx
-}
-
-function storeElement (elements, baseElement, baseMeta, baseElementType, elementTypeAttributes) {
-  const pending = [{ container: elements, type: baseElementType, meta: baseMeta, element: baseElement }]
-  let baseNewElement
-
-  while (pending.length > 0) {
-    const { container, type, meta, element } = pending.shift()
-
-    const newElement = processElement(container, element, meta, type, elementTypeAttributes)
-
-    if (baseNewElement == null) {
-      baseNewElement = newElement
-    }
-
-    const excludeChildren = meta?.excludeChildren ?? false
-
-    if (excludeChildren) {
-      continue
-    }
-
-    const childEls = nodeListToArray(element.childNodes ?? []).filter((node) => {
-      // we only care about element, text and comment nodes
-      return node.nodeType === 1 || node.nodeType === 3 || node.nodeType === 8
-    })
-
-    if (childEls.length > 0) {
-      newElement.children = []
-
-      pending.unshift(...childEls.map((childEl) => ({
-        container: newElement.children,
-        type: childEl.nodeName,
-        meta: {
-          defaults: { type: childEl.nodeName }
-        },
-        element: childEl
-      })))
-    }
-  }
-
-  return baseNewElement
-}
-
-function processElement (elements, element, meta, elementType, elementTypeAttributes) {
-  const newElementDefaults = meta?.defaults || {}
-  const excludeAttrs = meta?.excludeAttrs || []
-  const emptyAttrs = meta?.emptyAttrs || []
-
-  const elementMetadata = {
-    ...newElementDefaults
-  }
-
-  elements.push(elementMetadata)
-
-  if (elementType === '#text' || elementType === '#comment') {
-    elementMetadata.value = element.nodeValue
-  }
-
-  let idPropName
-  let getIdPropValue
-
-  if (meta.idProp) {
-    if (typeof meta.idProp === 'string') {
-      idPropName = meta.idProp
-      getIdPropValue = (_value) => _value
-    } else {
-      idPropName = meta.idProp.name
-      getIdPropValue = meta.idProp.value
-    }
-  }
-
-  const attributesList = nodeListToArray(element.attributes ?? [])
-
-  for (const attr of attributesList) {
-    if (idPropName === attr.name) {
-      elementMetadata.id = getIdPropValue(attr.value)
-    }
-
-    if (excludeAttrs.includes(attr.name)) {
-      continue
-    }
-
-    if (elementMetadata.attributes == null) {
-      elementMetadata.attributes = new Map()
-    }
-
-    let elementAttributes = elementTypeAttributes.get(elementType)
-
-    if (elementAttributes == null) {
-      elementAttributes = {
-        nameIndexMap: new Map(),
-        data: []
-      }
-
-      elementTypeAttributes.set(elementType, elementAttributes)
-    }
-
-    const attributeIndexes = []
-    let [attributeNameIdx, valueIndexMap] = elementAttributes.nameIndexMap.get(attr.name) ?? []
-    let attributeValues
-
-    if (attributeNameIdx == null) {
-      attributeNameIdx = elementAttributes.data.length
-      attributeValues = []
-      valueIndexMap = new Map()
-      elementAttributes.nameIndexMap.set(attr.name, [attributeNameIdx, valueIndexMap])
-      elementAttributes.data.push([attr.name, attributeValues])
-    } else {
-      attributeValues = elementAttributes.data[attributeNameIdx][1]
-    }
-
-    attributeIndexes.push(attributeNameIdx)
-
-    let valueIdx = valueIndexMap.get(emptyAttrs.includes(attr.name) ? '' : attr.value)
-
-    if (valueIdx == null) {
-      valueIdx = attributeValues.length
-      valueIndexMap.set(attr.value, valueIdx)
-      attributeValues.push(attr.value)
-    }
-
-    attributeIndexes.push(valueIdx)
-
-    elementMetadata.attributes.set(attributeIndexes[0], attributeIndexes[1])
-  }
-
-  return elementMetadata
+  lastRange.items.add(rowNumber)
 }
 
 function getLastOpenBlock (dynamicParts) {
