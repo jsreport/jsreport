@@ -4,6 +4,7 @@ ARG TARGETPLATFORM
 ARG UID=2500
 ARG GID=2500
 
+USER root
 RUN npm install jsreport@4.14.2
 RUN npm cache clean -f && rm -rf /tmp/*
 
@@ -12,3 +13,4 @@ COPY ./packages/jsreport/docker/default/run.sh run.sh
 RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
+USER jsreport:jsreport
