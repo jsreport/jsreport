@@ -1,7 +1,7 @@
+const os = require('os')
 const createContainersManager = require('./containersManager')
 const createServersChecker = require('./serversChecker')
 const Allocate = require('./allocate')
-const ip = require('ip')
 
 module.exports = (reporter, {
   discriminatorPath,
@@ -17,7 +17,7 @@ module.exports = (reporter, {
   numberOfWorkers,
   customContainersPoolFactory
 }, workerOptions, workerSystemOptions) => {
-  reporter.options.ip = reporter.options.ip || ip.address()
+  reporter.options.ip = reporter.options.ip || getLocalIpV4Address()
 
   const serversChecker = createServersChecker(reporter, {
     ip: reporter.options.ip,
@@ -93,4 +93,16 @@ module.exports = (reporter, {
     workerOptions,
     workerSystemOptions
   }
+}
+
+function getLocalIpV4Address () {
+  const addresses = Object.values(os.networkInterfaces()).flatMap(addresses => addresses ?? [])
+
+  const ip = addresses.find((address) => address.family === 'IPv4' && !address.internal)?.address
+
+  if (ip == null) {
+    throw new Error('Could not find and IP v4 address')
+  }
+
+  return ip
 }
