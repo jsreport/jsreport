@@ -74,8 +74,14 @@ module.exports = (reporter, definition) => {
 
   reporter.initializeListeners.add('docker-workers', async () => {
     for (let i = 0; i < definition.options.numberOfWorkers; i++) {
-      await fs.mkdir(`${definition.options.container.sharedTempHostBindMountRootPath}/${definition.options.container.namePrefix}${i + 1}/autocleanup`, { recursive: true })
-      reporter.addPathToWatchForAutoCleanup(`${definition.options.container.sharedTempHostBindMountRootPath}/${definition.options.container.namePrefix}${i + 1}/autocleanup`)
+      // we use `sharedTempRewriteRootPathTo` because the file operation is executed in the
+      // context of the app that has docker-workers as dep.
+      // if this app is a container then the `sharedTempRewriteRootPathTo` will contain the valid path
+      // inside it, if not then this value already fallback to the
+      // `sharedTempHostBindMountRootPath` when not specified
+      const targetContainerWorkerPath = `${definition.options.container.sharedTempRewriteRootPathTo}/${definition.options.container.namePrefix}${i + 1}/autocleanup`
+      await fs.mkdir(targetContainerWorkerPath, { recursive: true })
+      reporter.addPathToWatchForAutoCleanup(targetContainerWorkerPath)
     }
   })
 

@@ -165,7 +165,7 @@ async function _sendToWorker (url, _data, { executeMain, reporter, timeout, time
           const parsedResponseData = serializator.parse(responseData)
           if (parsedResponseData.output.type === 'stream') {
             // change from container path to the host path
-            parsedResponseData.output.filePath = parsedResponseData.output.filePath.replace('/tmp/jsreport', `${sharedTempRewriteRootPathTo}/${containerId}/`)
+            parsedResponseData.output.filePath = parsedResponseData.output.filePath.replace('/tmp/jsreport', `${sharedTempRewriteRootPathTo}/${containerId}`)
           }
 
           return parsedResponseData
