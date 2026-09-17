@@ -12732,7 +12732,7 @@ is-zip@^1.0.0:
   resolved "https://registry.yarnpkg.com/is-zip/-/is-zip-1.0.0.tgz#47b0a8ff4d38a76431ccfd99a8e15a4c86ba2325"
   integrity sha512-aym/dLqHZVMW/+bbNrA/eTeWTyW4fE6koLSoFSsM2GF3/pho7aPCcmHFWFLvzHu7MDuf67domYn36GDwU/cJkQ==
 
-is@^3.1.0, is@^3.2.1:
+is@^3.1.0:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/is/-/is-3.3.2.tgz#dfc285f4937f08564675f2f17cc6ac6cd2113ace"
   integrity sha512-a2xr4E3s1PjDS8ORcGgXpWx6V+liNs+O3JRD2mb9aeugD7rtkkZ0zgLdYgw0tWsKhsdiezGYptSiMlVazCBTuQ==
@@ -15158,14 +15158,6 @@ node.extend.without.arrays@1.1.6:
   integrity sha512-JVBwlBvT+TENStCFuiKHaqNMmZQPvx5f4PsxUM7ntpWaw4oU7IK7ZzaToifB2Pj4ltQ+ONYY2ehRPp7qhdjStg==
   dependencies:
     is "^3.1.0"
-
-node.extend@2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/node.extend/-/node.extend-2.0.2.tgz#b4404525494acc99740f3703c496b7d5182cc6cc"
-  integrity sha512-pDT4Dchl94/+kkgdwyS2PauDFjZG0Hk0IcHIB+LkW27HLDtdoeMxHTxZh39DYbPP8UflWXWj9JcdDozF+YDOpQ==
-  dependencies:
-    has "^1.0.3"
-    is "^3.2.1"
 
 nopt@1.0.10:
   version "1.0.10"

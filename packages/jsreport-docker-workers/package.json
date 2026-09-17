@@ -22,8 +22,7 @@
     "fs-extra": "9.1.0",
     "listener-collection": "2.1.0",
     "lodash.get": "4.4.2",
-    "lodash.omit": "4.5.0",
-    "node.extend": "2.0.2"
+    "lodash.omit": "4.5.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "4.3.3",
