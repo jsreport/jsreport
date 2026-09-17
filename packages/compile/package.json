@@ -28,7 +28,7 @@
     "@bjrmatos/pkg": "5.8.3",
     "acorn": "5.7.4",
     "bubleify": "0.7.0",
-    "debug": "4.3.2",
+    "debug": "4.4.3",
     "lockfile": "1.0.4",
     "mkdirp": "0.5.5",
     "object-assign": "4.1.1",
