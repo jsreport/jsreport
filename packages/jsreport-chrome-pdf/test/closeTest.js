@@ -3,6 +3,7 @@ const EventEmitter = require('events')
 const { killBrowser } = require('../lib/killBrowser')
 const proxy = require('../lib/proxy')
 
+// no process can have this pid, so the process group kill fails and the fallback is observed
 const FAKE_PID = 2147483647
 
 function fakeBrowser ({ closeHangs = false, exitsOnKill = true } = {}) {
@@ -32,6 +33,7 @@ function fakeBrowser ({ closeHangs = false, exitsOnKill = true } = {}) {
     close: () => {
       browser.closeCalls++
 
+      // a close of a live browser can hang mid-render; a close of an exited one returns
       if (closeHangs && !exited()) {
         return new Promise(() => {})
       }
@@ -134,6 +136,7 @@ describe('chrome close', () => {
     let launchImpl
 
     before(() => {
+      // the strategies are exercised without chrome, so the conversion is replaced through the require cache
       delete require.cache[poolPath]
       delete require.cache[dedicatedPath]
       require.cache[conversionPath] = {
@@ -169,7 +172,7 @@ describe('chrome close', () => {
       return strategy({
         reporter: { getReportTimeout: () => 1000 },
         puppeteer: { launch: (launchOptions) => launchImpl(launchOptions) },
-        options
+        options: { killOnClose: true, ...options }
       })
     }
 
@@ -183,6 +186,7 @@ describe('chrome close', () => {
       })
     }
 
+    // a render that stays in flight until the test ends it
     function renderInFlight (execute) {
       let end
       const inFlight = new Promise((resolve) => { end = resolve })
@@ -201,6 +205,14 @@ describe('chrome close', () => {
     async function untilLaunched () {
       while (browsers.length === 0) {
         await new Promise((resolve) => setImmediate(resolve))
+      }
+    }
+
+    function gracefulLaunch () {
+      launchImpl = async () => {
+        const browser = fakeBrowser()
+        browsers.push(browser)
+        return browser
       }
     }
 
@@ -253,6 +265,18 @@ describe('chrome close', () => {
         await rendering
       })
 
+      it('should close pooled browsers gracefully without killOnClose', async () => {
+        gracefulLaunch()
+
+        const execute = createStrategy(chromePoolStrategy, { numberOfWorkers: 1, killOnClose: false })
+
+        await render(execute)
+        await execute.kill()
+
+        browsers[0].closeCalls.should.be.eql(1)
+        browsers[0].proc.signals.should.be.eql([])
+      })
+
       it('should replace the browser of a timed out render and serve the next render', async () => {
         timeoutOnFirstRender()
 
@@ -274,10 +298,27 @@ describe('chrome close', () => {
 
         await render(execute).should.be.rejectedWith(/timed out/)
 
+        // the recycle of the killed browser is in flight
         await execute.kill()
 
         browsers.should.have.length(1)
         browsers[0].proc.signals.should.be.eql(['SIGKILL'])
+      })
+
+      it('should replace the browser of a timed out render without killOnClose', async () => {
+        gracefulLaunch()
+        timeoutOnFirstRender()
+
+        const execute = createStrategy(chromePoolStrategy, { numberOfWorkers: 1, killOnClose: false })
+
+        await render(execute).should.be.rejectedWith(/timed out/)
+
+        const result = await render(execute)
+
+        result.type.should.be.eql('pdf')
+        browsers.should.have.length(2)
+        browsers[0].closeCalls.should.be.eql(1)
+        browsers[0].proc.signals.should.be.eql([])
       })
 
       it('should not keep a slot busy when the browser launch fails', async () => {
@@ -311,6 +352,22 @@ describe('chrome close', () => {
         await execute.kill()
 
         browsers[0].proc.signals.should.be.eql(['SIGKILL'])
+
+        end()
+        await rendering
+      })
+
+      it('should close the browser of a render in flight gracefully without killOnClose', async () => {
+        gracefulLaunch()
+
+        const execute = createStrategy(dedicatedProcessStrategy, { killOnClose: false })
+        const { rendering, end } = renderInFlight(execute)
+
+        await untilLaunched()
+        await execute.kill()
+
+        browsers[0].closeCalls.should.be.eql(1)
+        browsers[0].proc.signals.should.be.eql([])
 
         end()
         await rendering

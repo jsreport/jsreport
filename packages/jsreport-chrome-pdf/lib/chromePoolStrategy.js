@@ -5,7 +5,7 @@ const { killBrowser } = require('./killBrowser')
 module.exports = ({ reporter, puppeteer, options }) => {
   const pool = []
   const tasksQueue = []
-  const { numberOfWorkers } = options
+  const { numberOfWorkers, killOnClose } = options
   let closing = false
 
   if (numberOfWorkers < 1) {
@@ -86,7 +86,9 @@ module.exports = ({ reporter, puppeteer, options }) => {
       }
 
       if ((crashError || timeoutError) && browserInfo) {
-        recycleBrowser(puppeteer, browserInfo, launchOptions, { isClosing: () => closing }).catch(() => {}).then(() => {
+        // A render queued while the slot recycles is served only from here.
+        // Without this flush, with one browser in the pool, it waited forever.
+        recycleBrowser(puppeteer, browserInfo, launchOptions, { killOnClose, isClosing: () => closing }).catch(() => {}).then(() => {
           tryFlushTasksQueue(puppeteer, pool, tasksQueue)
         })
       } else if (page && !page.isClosed()) {
@@ -97,12 +99,20 @@ module.exports = ({ reporter, puppeteer, options }) => {
     }
   }
 
+  // Runs when the worker is closing. The worker thread is terminated 5 s after
+  // that (advanced-workers closeTimeout), so with killOnClose every browser is
+  // killed in parallel, inside that time. See killBrowser.js.
   execute.kill = async () => {
     closing = true
 
     await Promise.all(pool.map(async (browserInfo) => {
       if (browserInfo.recycling) {
-        await Promise.race([browserInfo.recycling, new Promise((resolve) => setTimeout(resolve, 4000).unref())])
+        // A recycle in flight has already sent SIGKILL and waits for the exit;
+        // that exit has to be reaped by this thread, so the wait is for the
+        // recycle, inside the budget. The recycle launches nothing now.
+        await (killOnClose
+          ? Promise.race([browserInfo.recycling, new Promise((resolve) => setTimeout(resolve, 4000).unref())])
+          : browserInfo.recycling)
       }
 
       if (!browserInfo.instance) {
@@ -111,8 +121,15 @@ module.exports = ({ reporter, puppeteer, options }) => {
 
       const instance = browserInfo.instance
 
-      browserInfo.instance = null
-      await killBrowser(instance)
+      if (killOnClose) {
+        browserInfo.instance = null
+        await killBrowser(instance)
+        return
+      }
+
+      const pages = await instance.pages()
+      await Promise.all(pages.map(page => page.close()))
+      await instance.close()
     }))
   }
 
@@ -139,6 +156,9 @@ async function allocateBrowser (puppeteer, pool, tasksQueue, options) {
     try {
       await createBrowser(puppeteer, browserInfo, launchOptions)
     } catch (e) {
+      // The slot was pushed busy and without an instance. Left in the pool it
+      // is never picked again (isBusy stays true), and with numberOfWorkers 1
+      // every later render of this worker waits in tasksQueue forever.
       const index = pool.indexOf(browserInfo)
 
       if (index !== -1) {
@@ -185,7 +205,7 @@ async function allocateBrowser (puppeteer, pool, tasksQueue, options) {
   }
 }
 
-async function recycleBrowser (puppeteer, browserInfo, launchOptions, { isClosing } = {}) {
+async function recycleBrowser (puppeteer, browserInfo, launchOptions, { killOnClose, isClosing } = {}) {
   browserInfo.isBusy = true
 
   let resolveRecycling
@@ -196,9 +216,20 @@ async function recycleBrowser (puppeteer, browserInfo, launchOptions, { isClosin
 
   try {
     if (browserInfo.instance) {
-      const instance = browserInfo.instance
-      browserInfo.instance = null
-      await killBrowser(instance)
+      if (killOnClose) {
+        // The render crashed or timed out in this browser, so nothing in it is
+        // worth a graceful close, and the graceful close is what can hang here.
+        const instance = browserInfo.instance
+        browserInfo.instance = null
+        await killBrowser(instance)
+      } else {
+        try {
+          const pages = await browserInfo.instance.pages()
+          await Promise.all(pages.map(page => page.close()))
+        } finally {
+          await browserInfo.instance.close()
+        }
+      }
     }
 
     // clean the property before trying to get new instance, this let us
@@ -206,12 +237,14 @@ async function recycleBrowser (puppeteer, browserInfo, launchOptions, { isClosin
     // created during recycling
     browserInfo.instance = null
 
-    if (isClosing()) {
+    if (killOnClose && isClosing()) {
+      // A browser launched now would belong to a thread that is ending.
       return
     }
 
     await createBrowser(puppeteer, browserInfo, launchOptions)
   } finally {
+    // A throw before this point used to leave the slot busy forever.
     browserInfo.recycling = null
 
     if (resolveRecycling) {

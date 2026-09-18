@@ -2,7 +2,8 @@ const conversion = require('./conversion')
 const url = require('url')
 const { killBrowser } = require('./killBrowser')
 
-module.exports = ({ reporter, puppeteer }) => {
+module.exports = ({ reporter, puppeteer, options }) => {
+  const { killOnClose } = options
   let openedBrowsers = []
   const execute = async ({ strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess, onOutput, res }) => {
     let browser
@@ -50,7 +51,16 @@ module.exports = ({ reporter, puppeteer }) => {
     } finally {
       if (browser) {
         try {
-          await killBrowser(browser, { gracefulMs: 5000 })
+          if (killOnClose) {
+            // A bounded close: browser.close() alone awaits the process exit
+            // with no timeout, and a page that timed out may never exit on
+            // Browser.close.
+            await killBrowser(browser, { gracefulMs: 5000 })
+          } else {
+            const pages = await browser.pages()
+            await Promise.all(pages.map(page => page.close()))
+            await browser.close()
+          }
         } finally {
           openedBrowsers = openedBrowsers.filter(b => b !== browser)
         }
@@ -59,7 +69,20 @@ module.exports = ({ reporter, puppeteer }) => {
   }
 
   execute.kill = async () => {
-    await Promise.all(openedBrowsers.map((browser) => killBrowser(browser).catch(() => {})))
+    if (killOnClose) {
+      await Promise.all(openedBrowsers.map((browser) => killBrowser(browser).catch(() => {})))
+      return
+    }
+
+    for (const browser of openedBrowsers) {
+      try {
+        const pages = await browser.pages()
+        await Promise.all(pages.map(page => page.close()))
+        await browser.close()
+      } catch (e) {
+
+      }
+    }
   }
 
   return execute
