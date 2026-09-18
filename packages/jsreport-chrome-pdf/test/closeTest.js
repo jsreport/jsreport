@@ -3,7 +3,6 @@ const EventEmitter = require('events')
 const { killBrowser } = require('../lib/killBrowser')
 const proxy = require('../lib/proxy')
 
-// no process can have this pid, so the process group kill fails and the fallback is observed
 const FAKE_PID = 2147483647
 
 function fakeBrowser ({ closeHangs = false, exitsOnKill = true } = {}) {
@@ -33,7 +32,6 @@ function fakeBrowser ({ closeHangs = false, exitsOnKill = true } = {}) {
     close: () => {
       browser.closeCalls++
 
-      // a close of a live browser can hang mid-render; a close of an exited one returns
       if (closeHangs && !exited()) {
         return new Promise(() => {})
       }
@@ -136,7 +134,6 @@ describe('chrome close', () => {
     let launchImpl
 
     before(() => {
-      // the strategies are exercised without chrome, so the conversion is replaced through the require cache
       delete require.cache[poolPath]
       delete require.cache[dedicatedPath]
       require.cache[conversionPath] = {
@@ -186,7 +183,6 @@ describe('chrome close', () => {
       })
     }
 
-    // a render that stays in flight until the test ends it
     function renderInFlight (execute) {
       let end
       const inFlight = new Promise((resolve) => { end = resolve })
@@ -298,7 +294,6 @@ describe('chrome close', () => {
 
         await render(execute).should.be.rejectedWith(/timed out/)
 
-        // the recycle of the killed browser is in flight
         await execute.kill()
 
         browsers.should.have.length(1)

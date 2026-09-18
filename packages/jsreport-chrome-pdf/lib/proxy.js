@@ -64,10 +64,6 @@ module.exports = {
     return initPromise
   },
   close: () => {
-    // The server starts on the first jsreport:// resource (init), so most
-    // workers close without one. server.close() on undefined threw here, and
-    // the throw was synchronous, so the worker's close listener rejected before
-    // the browsers were closed and the worker exited on top of them.
     if (!server) {
       return Promise.resolve()
     }

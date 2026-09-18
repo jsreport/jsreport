@@ -34,9 +34,6 @@ module.exports = function (reporter, definition) {
     `
   })
 
-  // Each call is started inside a promise, so a synchronous throw from either
-  // becomes a settled rejection instead of ending the listener, and with it the
-  // worker, before the browsers are closed.
   reporter.closeListeners.add('chrome', () => Promise.allSettled([
     Promise.resolve().then(() => lazyRecipe.kill()),
     Promise.resolve().then(() => proxy.close())

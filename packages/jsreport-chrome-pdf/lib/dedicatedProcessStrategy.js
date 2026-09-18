@@ -52,9 +52,6 @@ module.exports = ({ reporter, puppeteer, options }) => {
       if (browser) {
         try {
           if (killOnClose) {
-            // A bounded close: browser.close() alone awaits the process exit
-            // with no timeout, and a page that timed out may never exit on
-            // Browser.close.
             await killBrowser(browser, { gracefulMs: 5000 })
           } else {
             const pages = await browser.pages()

@@ -86,8 +86,6 @@ module.exports = ({ reporter, puppeteer, options }) => {
       }
 
       if ((crashError || timeoutError) && browserInfo) {
-        // A render queued while the slot recycles is served only from here.
-        // Without this flush, with one browser in the pool, it waited forever.
         recycleBrowser(puppeteer, browserInfo, launchOptions, { killOnClose, isClosing: () => closing }).catch(() => {}).then(() => {
           tryFlushTasksQueue(puppeteer, pool, tasksQueue)
         })
@@ -99,17 +97,11 @@ module.exports = ({ reporter, puppeteer, options }) => {
     }
   }
 
-  // Runs when the worker is closing. The worker thread is terminated 5 s after
-  // that (advanced-workers closeTimeout), so with killOnClose every browser is
-  // killed in parallel, inside that time. See killBrowser.js.
   execute.kill = async () => {
     closing = true
 
     await Promise.all(pool.map(async (browserInfo) => {
       if (browserInfo.recycling) {
-        // A recycle in flight has already sent SIGKILL and waits for the exit;
-        // that exit has to be reaped by this thread, so the wait is for the
-        // recycle, inside the budget. The recycle launches nothing now.
         await (killOnClose
           ? Promise.race([browserInfo.recycling, new Promise((resolve) => setTimeout(resolve, 4000).unref())])
           : browserInfo.recycling)
@@ -156,9 +148,6 @@ async function allocateBrowser (puppeteer, pool, tasksQueue, options) {
     try {
       await createBrowser(puppeteer, browserInfo, launchOptions)
     } catch (e) {
-      // The slot was pushed busy and without an instance. Left in the pool it
-      // is never picked again (isBusy stays true), and with numberOfWorkers 1
-      // every later render of this worker waits in tasksQueue forever.
       const index = pool.indexOf(browserInfo)
 
       if (index !== -1) {
@@ -217,8 +206,6 @@ async function recycleBrowser (puppeteer, browserInfo, launchOptions, { killOnCl
   try {
     if (browserInfo.instance) {
       if (killOnClose) {
-        // The render crashed or timed out in this browser, so nothing in it is
-        // worth a graceful close, and the graceful close is what can hang here.
         const instance = browserInfo.instance
         browserInfo.instance = null
         await killBrowser(instance)
@@ -238,13 +225,11 @@ async function recycleBrowser (puppeteer, browserInfo, launchOptions, { killOnCl
     browserInfo.instance = null
 
     if (killOnClose && isClosing()) {
-      // A browser launched now would belong to a thread that is ending.
       return
     }
 
     await createBrowser(puppeteer, browserInfo, launchOptions)
   } finally {
-    // A throw before this point used to leave the slot busy forever.
     browserInfo.recycling = null
 
     if (resolveRecycling) {
