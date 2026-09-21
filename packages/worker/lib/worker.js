@@ -263,8 +263,8 @@ module.exports = (options = {}) => {
       this.server = app.listen(options.httpPort)
     },
     async close () {
-      this.server.close()
-      await workersManager.close()
+      this.server?.close?.()
+      await workersManager?.close?.()
     }
   })
 }

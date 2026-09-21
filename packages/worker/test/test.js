@@ -33,6 +33,7 @@ describe('worker', () => {
       })).init()
 
     worker = Worker({
+      rootDirectory: '/app',
       overwriteExtensionPaths: false,
       httpPort: 3000,
       tempDirectory: workerTempDirectory,
@@ -62,8 +63,8 @@ describe('worker', () => {
   })
 
   afterEach(async () => {
-    await reporter.close()
-    await worker.close()
+    await reporter?.close?.()
+    await worker?.close?.()
   })
 
   it('should be able to render basic template', async () => {
@@ -139,6 +140,7 @@ describe('worker with small timeout', () => {
       })).init()
 
     worker = Worker({
+      rootDirectory: '/app',
       overwriteExtensionPaths: false,
       httpPort: 3000,
       tempDirectory: workerTempDirectory,
@@ -167,8 +169,8 @@ describe('worker with small timeout', () => {
   })
 
   afterEach(async () => {
-    await reporter.close()
-    await worker.close()
+    await reporter?.close?.()
+    await worker?.close?.()
   })
 
   it('should not hang when main action hangs', async () => {
