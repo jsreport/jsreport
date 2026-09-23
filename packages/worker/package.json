@@ -12,6 +12,8 @@
   "dependencies": {
     "@jsreport/advanced-workers": "2.2.1",
     "@jsreport/jsreport-assets": "4.3.3",
+    "@jsreport/jsreport-authentication": "4.3.3",
+    "@jsreport/jsreport-authorization": "4.2.0",
     "@jsreport/jsreport-base": "4.1.0",
     "@jsreport/jsreport-browser-client": "4.2.0",
     "@jsreport/jsreport-child-templates": "4.2.0",
