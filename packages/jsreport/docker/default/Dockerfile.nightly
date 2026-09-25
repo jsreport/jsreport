@@ -44,7 +44,8 @@ RUN apk update --no-cache && \
     chromium@edge \
     nss \
     freetype \
-    harfbuzz \
+    harfbuzz@edge \
+    harfbuzz-subset@edge \
     ttf-freefont@edge \
     # just for now as we npm install from git
     libcurl@edge \
