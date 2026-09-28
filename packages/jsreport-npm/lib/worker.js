@@ -10,8 +10,10 @@ function exists (p) {
   return fs.access(p).then(() => true).catch(() => false)
 }
 
-module.exports = (reporter, definition) => {
+module.exports = async (reporter, definition) => {
   const rootPrefix = path.join(reporter.options.tempDirectory, 'npm')
+
+  await fs.mkdir(rootPrefix, { recursive: true })
 
   let helpersScript
 
