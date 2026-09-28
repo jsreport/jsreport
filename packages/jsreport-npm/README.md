@@ -7,6 +7,9 @@ See https://jsreport.net/learn/npm
 
 ## Changelog
 
+### 4.1.1
+- create temp directory in the worker to fix issue with containers that map temp directories in a custom way (like with docker workers)
+
 ### 4.1.0
 - minimum node.js version is now `22.18.0`
 

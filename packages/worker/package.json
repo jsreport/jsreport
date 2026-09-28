@@ -27,7 +27,7 @@
     "@jsreport/jsreport-html-to-xlsx": "4.4.3",
     "@jsreport/jsreport-jsrender": "4.1.0",
     "@jsreport/jsreport-localization": "4.1.0",
-    "@jsreport/jsreport-npm": "4.1.0",
+    "@jsreport/jsreport-npm": "4.1.1",
     "@jsreport/jsreport-pdf-utils": "4.5.6",
     "@jsreport/jsreport-pptx": "4.6.1",
     "@jsreport/jsreport-reports": "4.3.0",
