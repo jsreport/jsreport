@@ -50,7 +50,7 @@
     "puppeteer": "25.4.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-docker-workers": "4.0.4",
+    "@jsreport/jsreport-docker-workers": "4.0.5",
     "mocha": "11.7.5",
     "should": "13.2.3",
     "standard": "16.0.4",

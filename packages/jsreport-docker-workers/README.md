@@ -7,6 +7,9 @@ See https://jsreport.net/learn/docker-workers
 
 ## Changelog
 
+### 4.0.5
+- fix handleRemoteHttpResponse function signature
+
 ### 4.0.4
 - remove node.extend dep
 
