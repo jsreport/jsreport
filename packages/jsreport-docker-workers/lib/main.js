@@ -51,7 +51,7 @@ module.exports = (reporter, definition) => {
       try {
         const reqBody = typeof req.body === 'string' ? serializator.parse(req.body) : req.body
         const result = await reporter.dockerManager.executeWorker(reqBody)
-        await reporter.dockerManager.handleRemoteHttpResponse(reqBody, result, res)
+        await reporter.dockerManager.handleRemoteHttpResponse(reqBody, res, result)
       } catch (e) {
         next(e)
       }
@@ -64,7 +64,7 @@ module.exports = (reporter, definition) => {
         try {
           const reqBody = serializator.parse(req.body)
           const result = await reporter.dockerManager.executeWorker(reqBody)
-          await reporter.dockerManager.handleRemoteHttpResponse(reqBody, result, res)
+          await reporter.dockerManager.handleRemoteHttpResponse(reqBody, res, result)
         } catch (e) {
           next(e)
         }
@@ -103,7 +103,7 @@ module.exports = (reporter, definition) => {
       }
     }
 
-    reporter.dockerManager.handleRemoteHttpResponse = async function handleRemoteHttpResponse (reqBody, workerResult, res) {
+    reporter.dockerManager.handleRemoteHttpResponse = async function handleRemoteHttpResponse (reqBody, res, workerResult) {
       if (reqBody.actionName === 'render') {
         // sending local response serialized as multipart to the original remote server
         // the response output can be buffer or stream, but we always send it as stream output
