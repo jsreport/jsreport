@@ -34,5 +34,8 @@ module.exports = function (reporter, definition) {
     `
   })
 
-  reporter.closeListeners.add('chrome', () => Promise.allSettled([lazyRecipe.kill(), proxy.close()]))
+  reporter.closeListeners.add('chrome', () => Promise.allSettled([
+    Promise.resolve().then(() => lazyRecipe.kill()),
+    Promise.resolve().then(() => proxy.close())
+  ]))
 }

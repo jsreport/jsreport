@@ -27,6 +27,16 @@ chrome-image
 }
 ```
 
+## Options
+
+`chrome.killOnClose` (default `false`). A worker closes on a report timeout, on a cancelled request and on shutdown, and the `chrome-pool` strategy recycles a browser after a crash or a timeout. With the option set, the browser process is killed and its exit is awaited, instead of a graceful close. A graceful close of a browser that is mid-render can take longer than the worker is allowed to close, and the browser then outlives the worker. Set the option when jsreport serves requests that are cancelled or that time out.
+
+```js
+{
+  chrome: { strategy: 'chrome-pool', numberOfWorkers: 2, killOnClose: true }
+}
+```
+
 ## Changelog
 
 ### 4.4.1

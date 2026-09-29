@@ -64,7 +64,15 @@ module.exports = {
     return initPromise
   },
   close: () => {
-    return server.close()
+    if (!server) {
+      return Promise.resolve()
+    }
+
+    const current = server
+    server = null
+    initPromise = null
+
+    return new Promise((resolve) => current.close(() => resolve()))
   },
   makeUrl: (url, timeout) => {
     return `http://localhost:${server.address().port}/?url=${encodeURIComponent(url)}&timeout=${timeout}`

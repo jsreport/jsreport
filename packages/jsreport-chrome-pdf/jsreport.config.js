@@ -5,6 +5,10 @@ const chromeSchema = {
     allowLocalFilesAccess: { type: 'boolean' },
     strategy: { type: 'string' },
     numberOfWorkers: { type: 'number' },
+    killOnClose: {
+      type: 'boolean',
+      description: 'Kill the browser process, and wait for its exit, when a worker closes (a report timeout, a cancelled request, a shutdown) and when the chrome-pool strategy recycles a browser after a crash or a timeout, instead of a graceful close that can outlive the worker. Defaults to false.'
+    },
     puppeteerInstance: {
       description: 'Specifies a custom instance of puppeteer to use. you can pass here the export of require("puppeteer")'
     },
