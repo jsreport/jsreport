@@ -33,7 +33,7 @@
     "@jsreport/jsreport-reports": "4.3.0",
     "@jsreport/jsreport-scripts": "4.3.0",
     "@jsreport/jsreport-static-pdf": "4.2.0",
-    "@jsreport/jsreport-studio": "4.4.4",
+    "@jsreport/jsreport-studio": "4.4.5",
     "@jsreport/jsreport-text": "4.1.0",
     "@jsreport/jsreport-version-control": "4.2.2",
     "@jsreport/jsreport-xlsx": "4.8.1",

@@ -18,6 +18,10 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.4.5
+- fix clicking group by tag throwing error in console
+- update deps to fix audit
+
 ### 4.4.4
 - fix incorrect "image-size" package name being required
 
