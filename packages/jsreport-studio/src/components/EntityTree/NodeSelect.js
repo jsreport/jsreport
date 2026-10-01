@@ -5,7 +5,7 @@ import { checkIsGroupNode } from '../../helpers/checkEntityTreeNodes'
 
 const NodeSelect = ({ id, node }) => {
   const { selectable, selectionMode } = useContext(EntityTreeContext)
-  const isSelected = useContextSelector(EntityTreeSelectedContext, (ctx) => ctx[0][node.data._id] === true)
+  const isSelected = useContextSelector(EntityTreeSelectedContext, (ctx) => ctx[0][node.data?._id] === true)
   const selectDispatch = useContextSelector(EntityTreeSelectedContext, (ctx) => ctx[1])
   let currentSelectionModeInfo = selectionMode != null ? selectionMode : 'multiple'
 
