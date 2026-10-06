@@ -141,6 +141,26 @@ function collectionTests (store, isInternal, runTransactions) {
     res[0].phantom.header.should.be.eql('original')
   })
 
+  it('update _id', async () => {
+    const colName = !isInternal ? 'templates' : 'internalTemplates'
+
+    const t1 = await getCollection(colName).insert({
+      name: 'test',
+      engine: 'none',
+      recipe: 'html',
+      content: 'original'
+    })
+
+    const set = {
+      _id: 'a new id'
+    }
+
+    await getCollection(colName).update({ _id: t1._id }, { $set: set })
+
+    const res = await getCollection(colName).findOne({})
+    res._id.should.be.eql(set._id)
+  })
+
   it('update should use clones', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 

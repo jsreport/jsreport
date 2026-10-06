@@ -233,12 +233,54 @@ module.exports = (client, options, db) => {
 
       const updateOpts = addSessionToOpts(opts)
 
-      const res = await db.collection(getCollectionName(options.prefix, entitySet)).updateMany(q, u, updateOpts)
+      let targetReplace
+
+      if (u.$set?._id != null) {
+        // operation is trying to update _id, in mongodb the _id field is immutable so in
+        // order to allow the operation we need to clone the document with new _id and
+        // then remove the old one
+        const queryOpts = addSessionToOpts({})
+
+        queryOpts.projection = {
+          _id: 1
+        }
+
+        const targetEntities = await db.collection(getCollectionName(options.prefix, entitySet)).find(q, queryOpts).toArray()
+
+        // get all fields without the _id for the clone
+        queryOpts.projection._id = 0
+
+        for (const target of targetEntities) {
+          if (target._id.toString() !== u.$set._id.toString()) {
+            if (targetReplace == null) {
+              targetReplace = []
+            }
+
+            const fullEntity = await db.collection(getCollectionName(options.prefix, entitySet)).findOne(q, queryOpts)
+            targetReplace.push({ ...fullEntity, _id: u.$set._id })
+          }
+        }
+      }
+
+      let updatedCount
+
+      if (targetReplace != null && targetReplace.length > 0) {
+        const insertOpts = addSessionToOpts({})
+        // cloning entity using the _id provided
+        await db.collection(getCollectionName(options.prefix, entitySet)).insertMany(targetReplace, insertOpts)
+        const removeOpts = addSessionToOpts({})
+        // removing the entities with old _id
+        await db.collection(getCollectionName(options.prefix, entitySet)).deleteMany(q, removeOpts)
+        updatedCount = targetReplace.length
+      } else {
+        const res = await db.collection(getCollectionName(options.prefix, entitySet)).updateMany(q, u, updateOpts)
+        updatedCount = res.upsertedCount || res.matchedCount
+      }
 
       _convertBufferAndIds(q)
       _convertBufferAndIds(u)
 
-      return res.upsertedCount || res.matchedCount
+      return updatedCount
     },
 
     async remove (entitySet, q, opts = {}) {
