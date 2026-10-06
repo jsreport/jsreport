@@ -258,6 +258,68 @@ describe('advanced workers', () => {
     await Promise.all(promises)
   })
 
+  it('should reject allocate when queue is full and rejectWhenQueueFull is set', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'simple.js'),
+      numberOfWorkers: 1,
+      maxQueueSize: 1
+    })
+
+    await workers.init()
+    const worker = await workers.allocate()
+    const queued = workers.allocate({}, { rejectWhenQueueFull: true })
+
+    await workers.allocate({}, { rejectWhenQueueFull: true }).should.be.rejectedWith({ code: 'WORKER_QUEUE_FULL' })
+
+    await worker.release()
+    await (await queued).release()
+  })
+
+  it('should reject allocate immediately when maxQueueSize is 0 and all workers are busy', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'simple.js'),
+      numberOfWorkers: 1,
+      maxQueueSize: 0
+    })
+
+    await workers.init()
+    const worker = await workers.allocate({}, { rejectWhenQueueFull: true })
+    await workers.allocate({}, { rejectWhenQueueFull: true }).should.be.rejectedWith({ code: 'WORKER_QUEUE_FULL' })
+    await worker.release()
+  })
+
+  it('should queue when maxQueueSize is reached but rejectWhenQueueFull is not set', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'simple.js'),
+      numberOfWorkers: 1,
+      maxQueueSize: 0
+    })
+
+    await workers.init()
+    const worker = await workers.allocate()
+    const queued = workers.allocate()
+    await worker.release()
+    await (await queued).release()
+  })
+
+  it('should queue without limit when maxQueueSize is not set', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'simple.js'),
+      numberOfWorkers: 1
+    })
+
+    await workers.init()
+    const worker = await workers.allocate()
+    const queued = [
+      workers.allocate({}, { rejectWhenQueueFull: true }),
+      workers.allocate({}, { rejectWhenQueueFull: true })
+    ]
+    await worker.release()
+    for (const q of queued) {
+      await (await q).release()
+    }
+  })
+
   it('should reboot after worker OOM', async () => {
     workers = Workers({
     }, {

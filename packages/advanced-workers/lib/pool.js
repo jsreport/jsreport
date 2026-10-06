@@ -1,7 +1,8 @@
 module.exports = ({
   createWorker,
   numberOfWorkers,
-  initTimeout
+  initTimeout,
+  maxQueueSize
 }) => {
   return {
     init () {
@@ -77,6 +78,12 @@ module.exports = ({
             }
           }
         }
+      }
+
+      if (opts && opts.rejectWhenQueueFull && maxQueueSize != null && this.tasksQueue.length >= maxQueueSize) {
+        const error = new Error('Too many requests, all workers are busy')
+        error.code = 'WORKER_QUEUE_FULL'
+        throw error
       }
 
       let timeoutId

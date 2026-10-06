@@ -80,7 +80,7 @@ module.exports = (app, reporter, exposedOptions) => {
       req.socket.removeListener('close', onReqClose)
     }
 
-    reporter.render(renderRequest, { abortEmitter, onReqReady }).then((renderResponse) => {
+    reporter.render(renderRequest, { abortEmitter, onReqReady, rejectWhenQueueFull: true }).then((renderResponse) => {
       cleanupAfterRender()
 
       return Promise.all([renderResponse.output.getStream(), renderResponse.output.getSize()]).then(([resStream, resSize]) => ({
