@@ -5,7 +5,7 @@ const { killBrowser } = require('./killBrowser')
 module.exports = ({ reporter, puppeteer, options }) => {
   const pool = []
   const tasksQueue = []
-  const { numberOfWorkers, killOnClose } = options
+  const { numberOfWorkers } = options
   let closing = false
 
   if (numberOfWorkers < 1) {
@@ -86,7 +86,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
       }
 
       if ((crashError || timeoutError) && browserInfo) {
-        recycleBrowser(puppeteer, browserInfo, launchOptions, { killOnClose, isClosing: () => closing }).catch(() => {}).then(() => {
+        recycleBrowser(puppeteer, browserInfo, launchOptions, { isClosing: () => closing }).catch(() => {}).then(() => {
           tryFlushTasksQueue(puppeteer, pool, tasksQueue)
         })
       } else if (page && !page.isClosed()) {
@@ -102,9 +102,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
 
     await Promise.all(pool.map(async (browserInfo) => {
       if (browserInfo.recycling) {
-        await (killOnClose
-          ? Promise.race([browserInfo.recycling, new Promise((resolve) => setTimeout(resolve, 4000).unref())])
-          : browserInfo.recycling)
+        await Promise.race([browserInfo.recycling, new Promise((resolve) => setTimeout(resolve, 4000).unref())])
       }
 
       if (!browserInfo.instance) {
@@ -113,15 +111,8 @@ module.exports = ({ reporter, puppeteer, options }) => {
 
       const instance = browserInfo.instance
 
-      if (killOnClose) {
-        browserInfo.instance = null
-        await killBrowser(instance)
-        return
-      }
-
-      const pages = await instance.pages()
-      await Promise.all(pages.map(page => page.close()))
-      await instance.close()
+      browserInfo.instance = null
+      await killBrowser(instance)
     }))
   }
 
@@ -194,7 +185,7 @@ async function allocateBrowser (puppeteer, pool, tasksQueue, options) {
   }
 }
 
-async function recycleBrowser (puppeteer, browserInfo, launchOptions, { killOnClose, isClosing } = {}) {
+async function recycleBrowser (puppeteer, browserInfo, launchOptions, { isClosing } = {}) {
   browserInfo.isBusy = true
 
   let resolveRecycling
@@ -205,18 +196,9 @@ async function recycleBrowser (puppeteer, browserInfo, launchOptions, { killOnCl
 
   try {
     if (browserInfo.instance) {
-      if (killOnClose) {
-        const instance = browserInfo.instance
-        browserInfo.instance = null
-        await killBrowser(instance)
-      } else {
-        try {
-          const pages = await browserInfo.instance.pages()
-          await Promise.all(pages.map(page => page.close()))
-        } finally {
-          await browserInfo.instance.close()
-        }
-      }
+      const instance = browserInfo.instance
+      browserInfo.instance = null
+      await killBrowser(instance)
     }
 
     // clean the property before trying to get new instance, this let us
@@ -224,7 +206,7 @@ async function recycleBrowser (puppeteer, browserInfo, launchOptions, { killOnCl
     // created during recycling
     browserInfo.instance = null
 
-    if (killOnClose && isClosing()) {
+    if (isClosing()) {
       return
     }
 

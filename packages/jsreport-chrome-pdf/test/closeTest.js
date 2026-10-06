@@ -169,7 +169,7 @@ describe('chrome close', () => {
       return strategy({
         reporter: { getReportTimeout: () => 1000 },
         puppeteer: { launch: (launchOptions) => launchImpl(launchOptions) },
-        options: { killOnClose: true, ...options }
+        options
       })
     }
 
@@ -201,14 +201,6 @@ describe('chrome close', () => {
     async function untilLaunched () {
       while (browsers.length === 0) {
         await new Promise((resolve) => setImmediate(resolve))
-      }
-    }
-
-    function gracefulLaunch () {
-      launchImpl = async () => {
-        const browser = fakeBrowser()
-        browsers.push(browser)
-        return browser
       }
     }
 
@@ -261,18 +253,6 @@ describe('chrome close', () => {
         await rendering
       })
 
-      it('should close pooled browsers gracefully without killOnClose', async () => {
-        gracefulLaunch()
-
-        const execute = createStrategy(chromePoolStrategy, { numberOfWorkers: 1, killOnClose: false })
-
-        await render(execute)
-        await execute.kill()
-
-        browsers[0].closeCalls.should.be.eql(1)
-        browsers[0].proc.signals.should.be.eql([])
-      })
-
       it('should replace the browser of a timed out render and serve the next render', async () => {
         timeoutOnFirstRender()
 
@@ -298,22 +278,6 @@ describe('chrome close', () => {
 
         browsers.should.have.length(1)
         browsers[0].proc.signals.should.be.eql(['SIGKILL'])
-      })
-
-      it('should replace the browser of a timed out render without killOnClose', async () => {
-        gracefulLaunch()
-        timeoutOnFirstRender()
-
-        const execute = createStrategy(chromePoolStrategy, { numberOfWorkers: 1, killOnClose: false })
-
-        await render(execute).should.be.rejectedWith(/timed out/)
-
-        const result = await render(execute)
-
-        result.type.should.be.eql('pdf')
-        browsers.should.have.length(2)
-        browsers[0].closeCalls.should.be.eql(1)
-        browsers[0].proc.signals.should.be.eql([])
       })
 
       it('should not keep a slot busy when the browser launch fails', async () => {
@@ -347,22 +311,6 @@ describe('chrome close', () => {
         await execute.kill()
 
         browsers[0].proc.signals.should.be.eql(['SIGKILL'])
-
-        end()
-        await rendering
-      })
-
-      it('should close the browser of a render in flight gracefully without killOnClose', async () => {
-        gracefulLaunch()
-
-        const execute = createStrategy(dedicatedProcessStrategy, { killOnClose: false })
-        const { rendering, end } = renderInFlight(execute)
-
-        await untilLaunched()
-        await execute.kill()
-
-        browsers[0].closeCalls.should.be.eql(1)
-        browsers[0].proc.signals.should.be.eql([])
 
         end()
         await rendering
