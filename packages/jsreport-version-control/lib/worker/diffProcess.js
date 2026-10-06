@@ -20,6 +20,12 @@ module.exports = async function scriptDiffProcessing ({ commitToDiff, versions, 
   const diff = []
 
   for (const c of commitToDiff.changes) {
+    if (documentModel.entitySets[c.entitySet] == null) {
+      // skip changes for non-existing entitySets
+      // (this can happen after deprecating and removing old entitySets)
+      continue
+    }
+
     let state
 
     const change = {

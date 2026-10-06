@@ -31,6 +31,12 @@ async function applyPatches (versions, documentModel, reporter, req) {
     }
 
     for (const c of changes) {
+      if (documentModel.entitySets[c.entitySet] == null) {
+        // skip changes for non-existing entitySets
+        // (this can happen after deprecating and removing old entitySets)
+        continue
+      }
+
       if (c.operation === 'insert') {
         state.push({
           entityId: c.entityId,
@@ -60,6 +66,12 @@ async function applyPatches (versions, documentModel, reporter, req) {
 }
 
 function applyPatch (doc, patch, entitySet, documentModel) {
+  if (documentModel.entitySets[entitySet] == null) {
+    // skip patch for non-existing entitySets
+    // (this can happen after deprecating and removing old entitySets)
+    return
+  }
+
   patch.documentProperties.forEach((p) => {
     const prevVal = deepGet(doc, p.path) || ''
     if (p.type === 'bigfile') {
