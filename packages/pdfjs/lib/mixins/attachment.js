@@ -1,3 +1,4 @@
+
 const PDF = require('../object')
 const zlib = require('zlib')
 const { createHash } = require('crypto')
@@ -7,9 +8,10 @@ module.exports = (doc) => {
   doc.attachment = (buffer, options) => doc.finalizers.push(() => attachment(buffer, doc, options))
 }
 
-function attachment (buffer, doc, { name, description, creationDate, modificationDate }) {
+function attachment (buffer, doc, { name, description, creationDate, modificationDate = new Date(), mimeType = 'application/octet-stream', afRelationship = 'Unspecified' }) {
   const fileSpec = new PDF.Object()
   fileSpec.prop('Type', 'Filespec')
+  fileSpec.prop('AFRelationship', afRelationship)
   fileSpec.prop('F', new PDF.String(name))
   fileSpec.prop('UF', new PDF.String(name))
   if (description) {
@@ -20,6 +22,7 @@ function attachment (buffer, doc, { name, description, creationDate, modificatio
   const embeddedFile = new PDF.Stream(streamObject)
   embeddedFile.object.prop('Filter', 'FlateDecode')
   embeddedFile.object.prop('Type', 'EmbeddedFile')
+  embeddedFile.object.prop('Subtype', mimeType)
   embeddedFile.content = zlib.deflateSync(buffer)
   embeddedFile.object.prop('Length', embeddedFile.content.length)
 
@@ -43,6 +46,11 @@ function attachment (buffer, doc, { name, description, creationDate, modificatio
   efDictionary.set('F', streamObject.toReference())
   efDictionary.set('UF', streamObject.toReference())
   fileSpec.prop('EF', efDictionary)
+
+  if (!doc.catalog.properties.has('AF')) {
+    doc.catalog.prop('AF', new PDF.Array())
+  }
+  doc.catalog.properties.get('AF').push(fileSpec.toReference())
 
   doc.catalog.properties.get('Names').object.properties.get('EmbeddedFiles').get('Names').push(
     new PDF.String(name),

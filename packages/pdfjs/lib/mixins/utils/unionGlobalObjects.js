@@ -22,6 +22,15 @@ module.exports = (doc, ext, options) => {
     embeddedFilesDictionary.set('Names', new PDF.Array([...embeddedFilesDictionary.get('Names'), ...ext.catalog.properties.get('Names').object.properties.get('EmbeddedFiles').get('Names')]))
   }
 
+  if (ext.catalog.properties.get('AF')) {
+    const associatedFiles = doc.catalog.properties.get('AF') || new PDF.Array()
+    doc.catalog.prop('AF', new PDF.Array([...associatedFiles, ...ext.catalog.properties.get('AF')]))
+  }
+
+  if (!doc.catalog.properties.has('OutputIntents') && ext.catalog.properties.get('OutputIntents')) {
+    doc.catalog.properties.set('OutputIntents', ext.catalog.properties.get('OutputIntents'))
+  }
+
   unionOutlines(ext, doc)
 
   if (options.copyAccessibilityTags) {

@@ -2706,7 +2706,9 @@ describe('pdf utils', () => {
             const jsreport = require('jsreport-proxy')
             async function afterRender(req, res) {
               res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('hello'), {
-                name: 'my attachment'
+                name: 'my attachment',
+                mimeType: 'text/plain',
+                afRelationship: 'Supplement'
               }, {
                 pdfAccessibility: {
                   enabled: true
@@ -2726,5 +2728,14 @@ describe('pdf utils', () => {
     })
     const external = new External(result.content)
     external.catalog.properties.get('StructTreeRoot').should.be.ok()
+    const catalog = external.catalog.properties
+    catalog.get('OutputIntents').should.be.ok()
+    catalog.get('AF').should.have.length(1)
+    const fileSpec = catalog.get('Names').object.properties.get('EmbeddedFiles').get('Names')[1].object
+    catalog.get('AF')[0].object.should.be.equal(fileSpec)
+    fileSpec.properties.get('AFRelationship').name.should.be.eql('Supplement')
+    fileSpec.properties.get('EF').get('F').object.properties.get('Subtype').toString().should.be.eql('/text#2fplain')
+    const metadata = Buffer.from(catalog.get('Metadata').object.content.getDecompressed()).toString('utf8')
+    metadata.match(/<pdfaExtension:schemas>/g).should.have.length(1)
   })
 })

@@ -22,12 +22,8 @@ class PDFName {
       name = name.substr(1)
     }
 
-    // delimiter characters are not allowed
-    if (name.match(/[()<>[\]{}/%]/)) {
-      throw new Error('A Name mustn\'t contain delimiter characters:' + name)
-    }
-
-    name = name.toString()
+    // Escape delimiters so names such as MIME types survive serialization and parsing.
+    name = name.toString().replace(/[()<>[\]{}/%]/g, (c) => '#' + intToHex(c.charCodeAt(0)))
 
     // Beginning with PDF 1.2, any character except null (character code 0)
     // may be included in a name by writing its 2-digit hexadecimal code,

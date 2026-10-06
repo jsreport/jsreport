@@ -125,16 +125,6 @@
                             </rdf:Seq>
                         </pdfaSchema:property>
                     </rdf:li>
-                </rdf:Bag>
-            </pdfaExtension:schemas>
-        </rdf:Description>
-        <rdf:Description rdf:about=""
-            xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"
-            xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#"
-            xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#"
-            xmlns:pdfuaid="http://www.aiim.org/pdfua/ns/id/">
-            <pdfaExtension:schemas>
-                <rdf:Bag>
                     <rdf:li rdf:parseType="Resource">
                         <pdfaSchema:schema>PDF/UA Universal Accessibility Schema</pdfaSchema:schema>
                         <pdfaSchema:namespaceURI>http://www.aiim.org/pdfua/ns/id/</pdfaSchema:namespaceURI>
@@ -152,6 +142,12 @@
                     </rdf:li>
                 </rdf:Bag>
             </pdfaExtension:schemas>
+        </rdf:Description>
+        <rdf:Description rdf:about=""
+            xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"
+            xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#"
+            xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#"
+            xmlns:pdfuaid="http://www.aiim.org/pdfua/ns/id/">
             <pdfuaid:part>1</pdfuaid:part>
         </rdf:Description>
     </rdf:RDF>
