@@ -18,7 +18,14 @@ describe('common store tests', () => {
     }
 
     // we can start the container with:
-    // docker run -p 1521:1521 -e ORACLE_PWD=oracle -v ${PWD}/oracle-setup:/docker-entrypoint-initdb.d/startup pvargacl/oracle-xe-18.4.0:latest
+    // docker run -p 1521:1521 --name oracle-18 -e ORACLE_PWD=oracle -v ${PWD}/oracle-setup:/docker-entrypoint-initdb.d/startup pvargacl/oracle-xe-18.4.0:latest
+    // and for the first time, connect to the container with:
+    // docker exec -it oracle-18 sqlplus sys@XE as sysdba
+    // it will ask for password, and then connect to the REPL, there we
+    // create user jsreport by executing the following in the REPL:
+    // ALTER SESSION SET CONTAINER = XEPDB1;
+    // CREATE USER jsreport IDENTIFIED BY "jsreport" DEFAULT TABLESPACE users TEMPORARY TABLESPACE temp QUOTA UNLIMITED ON users;
+    // GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE PROCEDURE, CREATE VIEW, CREATE ANY INDEX TO jsreport;
     const dockerOpts = {
       user: 'jsreport',
       password: 'jsreport',

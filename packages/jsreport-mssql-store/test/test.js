@@ -28,9 +28,11 @@ describe('common store tests', () => {
     }
 
     // we can start the container with:
-    // docker run -d --name sql_server -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=reallyStrongPwd123' -p 1433:1433 mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04
-    // and for the first time, connect to the container with docker exec -it 32e4109ef651 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P reallyStrongPwd123
+    // docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=reallyStrongPwd123" -e "MSSQL_PID=Evaluation" -p 1433:1433  --name sql_server --hostname sql2025 -d mcr.microsoft.com/mssql/server:2025-latest
+    // and for the first time, connect to the container with:
+    // docker exec -it sql_server /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P reallyStrongPwd123 -C
     // and create the database in the REPL console with > CREATE DATABASE jsreport; and in other line > GO
+    // then connect again and run "ALTER DATABASE jsreport SET READ_COMMITTED_SNAPSHOT ON;" and in other line > GO
     const dockerOpts = {
       user: 'sa',
       password: 'reallyStrongPwd123',
