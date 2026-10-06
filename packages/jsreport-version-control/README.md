@@ -9,6 +9,9 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 4.2.3
+- ignore patches for entitySets that no longer exists
+
 ### 4.2.2
 - update deps to fix audit
 - improve code helpers to guard against unsafe properties

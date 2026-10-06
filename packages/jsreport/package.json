@@ -74,7 +74,7 @@
     "@jsreport/jsreport-studio-theme-dark": "4.1.0",
     "@jsreport/jsreport-tags": "4.1.0",
     "@jsreport/jsreport-text": "4.1.0",
-    "@jsreport/jsreport-version-control": "4.2.2",
+    "@jsreport/jsreport-version-control": "4.2.3",
     "@jsreport/jsreport-xlsx": "4.8.1",
     "handlebars": "4.7.9",
     "puppeteer": "25.4.0",
