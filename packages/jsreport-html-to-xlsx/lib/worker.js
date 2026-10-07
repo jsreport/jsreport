@@ -28,6 +28,8 @@ module.exports = (reporter, definition) => {
     path: path.join(__dirname, './tmpHandler.js')
   })
 
+  reporter.closeListeners.add('html-to-xlsx', () => require('./htmlToXlsxProcess').kill())
+
   let htmlToXlsxHelpers
 
   reporter.initializeListeners.add('html-to-xlsx', async () => {

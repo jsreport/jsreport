@@ -10,6 +10,7 @@ const defaultFontPath = path.join(__dirname, '../static/Calibri 400.ttf')
 const addRowsToBrowserFn = require('fs').readFileSync(path.join(__dirname, '../static/addRowsToBrowser.js')).toString()
 
 const conversions = {}
+const chromeBrowsers = require('./chromeBrowsers')(htmlEngines.chrome)
 
 module.exports = async function scriptHtmlToXlsxProcessing (inputs) {
   const { timeout, tmpDir, htmlEngine, html, xlsxTemplateContent, chromeOptions, phantomOptions, cheerioOptions, conversionOptions } = inputs
@@ -17,7 +18,7 @@ module.exports = async function scriptHtmlToXlsxProcessing (inputs) {
 
   try {
     if (htmlEngines.chrome && conversions.chrome == null && htmlEngine === 'chrome') {
-      const chromeEval = chromePageEval({ ...chromeOptions.eval, puppeteer: htmlEngines.chrome })
+      const chromeEval = chromePageEval({ ...chromeOptions.eval, puppeteer: chromeBrowsers })
 
       conversions.chrome = htmlToXlsx({
         timeout,
@@ -73,6 +74,8 @@ module.exports = async function scriptHtmlToXlsxProcessing (inputs) {
     throw e
   }
 }
+
+module.exports.kill = () => chromeBrowsers.kill()
 
 function browserBasedEval (tmpDir, extractImplementation) {
   return async function pageEval ({ html, uuid, ...restOptions }) {
