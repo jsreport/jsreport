@@ -1204,6 +1204,18 @@ describe('reporter', () => {
     should(fs.readFileSync(result.pathToFile).toString()).be.eql('testing')
   })
 
+  it('should not create temp file using writeTempFile when using path outside temp directory', async () => {
+    reporter = core({
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
+    })
+
+    await reporter.init()
+
+    return should(
+      reporter.writeTempFile((uuid) => path.join(__dirname, 'tmp', `something-${uuid}.txt`), 'testing')
+    ).be.rejectedWith('No valid filename')
+  })
+
   it('should throw error when try to use writeTempFile but instance is not initialized', async () => {
     reporter = core({
       rootDirectory: path.join(__dirname, 'extensions/validExtensions')
@@ -1314,6 +1326,16 @@ describe('reporter', () => {
 
     should(fs.existsSync(result.pathToFile)).be.eql(true)
     should(result.content.toString()).be.eql('testing')
+  })
+
+  it('should not read temp file using readTempFile when using path outside temp directory', async () => {
+    reporter = core({
+      rootDirectory: path.join(__dirname, 'extensions/validExtensions')
+    })
+
+    await reporter.init()
+
+    return should(reporter.readTempFile(__filename)).be.rejectedWith('No valid filename')
   })
 
   it('should throw error when try to use readTempFile but instance is not initialized', async () => {

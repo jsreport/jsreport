@@ -65,7 +65,7 @@ module.exports = (reporter) => (proxy, req) => {
     proxy[fnName] = (...args) => {
       if (shouldLimitCreation) {
         // limiting the number of temp files to avoid breaking server, otherwise I see no
-        // reason why having more than 1000 calls per req should be valid usecase
+        // reason why having more than 1000 calls per req should be valid use case
         const counter = reporter.runningRequests.keyValueStore.get('tmp-file-counter', req) || 0
 
         if (counter > 1000) {
