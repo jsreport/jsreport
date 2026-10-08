@@ -16,7 +16,6 @@ const BasicStrategy = require('passport-http').BasicStrategy
 const BearerStrategy = require('passport-http-bearer').Strategy
 const { Issuer, Strategy: OpenIdStrategy, custom: openidCustom } = require('openid-client')
 const sessions = require('client-sessions')
-const url = require('url')
 const bodyParser = require('body-parser')
 const UsersRepository = require('./usersRepository')
 const { shouldDelegateTokenAuth, hasBearerSchema, authenticateToken } = require('./externalAuthentication.js')
@@ -492,9 +491,8 @@ function configureRoutes (reporter, app, admin, definition) {
   const supportsAuthorizationServer = (authorizationServerAuth !== false)
 
   app.use((req, res, next) => {
-    const publicRoute = reporter.authentication.publicRoutes.find((r) => req.url.startsWith(r))
-    const pathname = new url.URL(req.url, `${req.protocol}://${req.hostname}`).pathname
-    req.isPublic = publicRoute || pathname.endsWith('.js') || pathname.endsWith('.css')
+    const isPublicRoute = reporter.authentication.publicRoutes.find((r) => req.url.startsWith(r)) != null
+    req.isPublic = isPublicRoute
     next()
   })
 
@@ -557,8 +555,8 @@ function configureRoutes (reporter, app, admin, definition) {
 
 function Authentication (reporter, admin) {
   this.publicRoutes = [
-    '/?studio=embed', '/css', '/img', '/js', '/lib', '/html-templates',
-    '/api/recipe', '/api/engine', '/api/settings', '/favicon.ico']
+    '/api/recipe', '/api/engine', '/api/settings', '/favicon.ico'
+  ]
 
   this.usersRepository = UsersRepository(reporter, admin)
 

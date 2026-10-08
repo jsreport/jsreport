@@ -631,6 +631,8 @@ module.exports = (reporter, definition) => {
 
   reporter.initializeListeners.insert({ before: 'express' }, 'studio', async () => {
     if (reporter.express) {
+      reporter.emit('export-public-route', '/studio/assets')
+
       reporter.express.exposeOptionsToApi(definition.name, {
         customLogo: customLogoPathOrBuffer != null,
         theme: definition.options.theme.name,

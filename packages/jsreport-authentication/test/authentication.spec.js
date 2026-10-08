@@ -92,6 +92,12 @@ describe('authentication', () => {
       .expect(200)
   })
 
+  it('should 401 when calling api/report with route param with extension', () => {
+    return request(reporter.express.app).post('/api/report/foo.js')
+      .send({ template: { content: 'foo', engine: 'none', recipe: 'html' } })
+      .expect(401)
+  })
+
   it('should 401 when calling api without auth header', () => {
     return request(reporter.express.app).get('/api/version')
       .expect(401)
