@@ -45,6 +45,18 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
 
     const chrome = Object.assign({}, imageExecution ? req.template.chromeImage : req.template.chrome)
 
+    if (reporter.options.trustUserCode !== true && chrome.url != null && chrome.url !== '') {
+      try {
+        if (typeof chrome.url !== 'string') throw new Error('URL must be a string')
+        const url = new URL(chrome.url)
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+          throw new Error('Only HTTP and HTTPS URLs are allowed when trustUserCode is false')
+        }
+      } catch (e) {
+        throw reporter.createError(`Invalid ${imageExecution ? 'chromeImage' : 'chrome'}.url: ${e.message}`, { weak: true, statusCode: 400 })
+      }
+    }
+
     if (!imageExecution) {
       if (chrome.headerTemplate) {
         chrome.headerTemplate = await renderHeaderOrFooter('header', reporter, req, chrome.headerTemplate)

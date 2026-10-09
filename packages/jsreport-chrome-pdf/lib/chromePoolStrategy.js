@@ -20,12 +20,14 @@ module.exports = ({ reporter, puppeteer, options }) => {
     let timeoutError = false
 
     let htmlUrl
+    let trustedHtmlFileUrl
 
     if (conversionOptions.url) {
       htmlUrl = conversionOptions.url
     } else {
       const { pathToFile } = await res.output.writeToTempFile((uuid) => `${uuid}-${imageExecution ? 'chrome-image' : 'chrome-pdf'}.html`)
       htmlUrl = url.pathToFileURL(pathToFile)
+      trustedHtmlFileUrl = htmlUrl.href
     }
 
     try {
@@ -48,6 +50,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
           return browserInfo.instance
         },
         htmlUrl,
+        trustedHtmlFileUrl,
         strategy,
         req,
         timeout: reporter.getReportTimeout(req),

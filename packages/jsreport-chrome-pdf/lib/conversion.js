@@ -1,7 +1,7 @@
 const get = require('lodash.get')
 const hasOwn = require('has-own-deep')
 
-module.exports = async ({ reporter, getBrowser, htmlUrl, content, strategy, timeout, req, imageExecution, allowLocalFilesAccess, useEvaluateInsteadOfEvaluateOnNewDocument, options }) => {
+module.exports = async ({ reporter, getBrowser, htmlUrl, trustedHtmlFileUrl, content, strategy, timeout, req, imageExecution, allowLocalFilesAccess, useEvaluateInsteadOfEvaluateOnNewDocument, options }) => {
   const optionsToUse = Object.assign({}, options)
   optionsToUse.timeout = timeout
 
@@ -120,11 +120,11 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, content, strategy, time
         detail = ` (redirect from: ${trimUrl(r.redirectChain().slice(-1)[0].url())})`
       }
 
-      const isRelativeToHtmlUrl = r.url().lastIndexOf(htmlUrl, 0) === 0
+      const isGeneratedHtml = trustedHtmlFileUrl != null && r.url() === trustedHtmlFileUrl
 
       if (
         !allowLocalFilesAccess &&
-        !isRelativeToHtmlUrl &&
+        !isGeneratedHtml &&
         // potentially dangerous request to local file
         r.url().lastIndexOf('file://', 0) === 0
       ) {

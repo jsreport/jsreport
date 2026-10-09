@@ -1,5 +1,6 @@
 process.env.debug = 'jsreport'
 const path = require('path')
+const { pathToFileURL } = require('url')
 const fs = require('fs')
 const JsReport = require('@jsreport/jsreport-core')
 const should = require('should')
@@ -41,6 +42,7 @@ describe('chrome pdf', () => {
     })
 
     common('connect', false, () => ({ browserWSEndpoint: browser.wsEndpoint() }))
+    commonLocalFilesAllowed('connect', false, () => ({ browserWSEndpoint: browser.wsEndpoint() }))
   })
 })
 
@@ -61,6 +63,19 @@ describe('chrome image', () => {
     describe('chrome pdf with small timeout', () => {
       commonTimeout('chrome-pool', true)
     })
+  })
+  describe('connect strategy', () => {
+    let browser
+    beforeEach(async () => {
+      browser = await puppeteer.launch({ args: ['--no-sandbox'] })
+    })
+
+    afterEach(async () => {
+      if (browser) await browser.close()
+    })
+
+    common('connect', true, () => ({ browserWSEndpoint: browser.wsEndpoint() }))
+    commonLocalFilesAllowed('connect', true, () => ({ browserWSEndpoint: browser.wsEndpoint() }))
   })
 })
 
@@ -97,6 +112,35 @@ function common (strategy, imageExecution, connectOptions = () => ({})) {
 
     if (reporter) {
       await reporter.close()
+    }
+  })
+
+  it('should reject non-HTTP URLs when trustUserCode is disabled', async () => {
+    for (const url of [pathToFileURL(__filename).href, 'data:text/html,x', 'javascript:alert(1)', 'chrome://crash']) {
+      await reporter.render({
+        template: {
+          content: 'x',
+          recipe,
+          engine: 'none',
+          [imageExecution ? 'chromeImage' : 'chrome']: { url }
+        }
+      }).should.be.rejectedWith(/Only HTTP and HTTPS/)
+    }
+  })
+
+  it('should render using a local HTTP URL when trustUserCode is disabled', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'x',
+        recipe,
+        engine: 'none',
+        [imageExecution ? 'chromeImage' : 'chrome']: { url: 'http://127.0.0.1:8080' }
+      }
+    })
+    res.content.length.should.be.above(0)
+    if (!imageExecution) {
+      const pdf = await parsePdf(res.content)
+      pdf.pages[0].text.should.containEql('ok')
     }
   })
 
@@ -457,7 +501,7 @@ function common (strategy, imageExecution, connectOptions = () => ({})) {
         content: ' ',
         engine: 'none',
         recipe,
-        chrome: {
+        [imageExecution ? 'chromeImage' : 'chrome']: {
           url: 'https://jsreport.net'
         }
       }
@@ -472,22 +516,25 @@ function common (strategy, imageExecution, connectOptions = () => ({})) {
     }
   })
 
-  it('should handle page.on(error) and reject', (done) => {
-    const handleRejection = () => {
-      process.off('unhandledRejection', handleRejection)
-      done(new Error('Rejection should be handled!'))
+  it('should handle page.on(error) and reject in trusted mode', async () => {
+    const trustedReporter = JsReport({ trustUserCode: true }).use(require('../')({
+      strategy,
+      launchOptions: { args: ['--no-sandbox'] },
+      connectOptions: connectOptions()
+    }))
+    try {
+      await trustedReporter.init()
+      await trustedReporter.render({
+        template: {
+          content: 'content',
+          recipe,
+          [imageExecution ? 'chromeImage' : 'chrome']: { url: 'chrome://crash' },
+          engine: 'none'
+        }
+      }).should.be.rejected()
+    } finally {
+      await trustedReporter.close()
     }
-
-    process.on('unhandledRejection', handleRejection)
-
-    reporter.render({
-      template: {
-        content: 'content',
-        recipe,
-        [imageExecution ? 'chromeImage' : 'chrome']: { url: 'chrome://crash' },
-        engine: 'none'
-      }
-    }).catch(() => done())
   })
 
   it('should inject jsreport api into browser page context', async () => {
@@ -731,7 +778,7 @@ function commonTimeout (strategy, imageExecution) {
   })
 }
 
-function commonLocalFilesAllowed (strategy, imageExecution) {
+function commonLocalFilesAllowed (strategy, imageExecution, connectOptions = () => ({})) {
   let reporter
   const recipe = imageExecution ? 'chrome-image' : 'chrome-pdf'
 
@@ -741,6 +788,7 @@ function commonLocalFilesAllowed (strategy, imageExecution) {
     })
     reporter.use(require('../')({
       strategy,
+      connectOptions: connectOptions(),
       launchOptions: {
         args: ['--no-sandbox']
       }
@@ -752,6 +800,24 @@ function commonLocalFilesAllowed (strategy, imageExecution) {
   afterEach(async () => {
     if (reporter) {
       await reporter.close()
+    }
+  })
+
+  it('should render using file and data URLs when trustUserCode is enabled', async () => {
+    for (const url of [pathToFileURL(__filename).href, 'data:text/html,<h1>trusted</h1>']) {
+      const res = await reporter.render({
+        template: {
+          content: 'x',
+          recipe,
+          engine: 'none',
+          [imageExecution ? 'chromeImage' : 'chrome']: { url }
+        }
+      })
+      res.content.length.should.be.above(0)
+      if (!imageExecution) {
+        const pdf = await parsePdf(res.content)
+        pdf.pages.map(page => page.text).join(' ').should.containEql(url.startsWith('file:') ? 'process.env.debug' : 'trusted')
+      }
     }
   })
 
