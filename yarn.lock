@@ -11779,10 +11779,10 @@ image-q@^4.0.0:
   dependencies:
     "@types/node" "16.9.1"
 
-image-size-next@2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/image-size-next/-/image-size-next-2.1.1.tgz#99fdf188c9bdeb9aabb409b3dd94f9f87ea22ca4"
-  integrity sha512-n+DFjUct+G9mxZck+lvzqrTsqBJvSHMs6iEo//W5iAgRV7oUbrh1JWmKgAEpmyRB5lw6plIQizS1wK1dvrsvAw==
+image-size@2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/image-size/-/image-size-2.0.4.tgz#bbc1933173e4ee1adbbdf9d4958ded15fdb710e3"
+  integrity sha512-QRUkFFsRV/6fuESxb9Vkq+a0LkSrgKXuc2NEqfikiXxxN/G3tjWt5EVUlMaImRBZRZK/jRBEbYvpPYZL8t08Zw==
 
 immediate@~3.0.5:
   version "3.0.6"
