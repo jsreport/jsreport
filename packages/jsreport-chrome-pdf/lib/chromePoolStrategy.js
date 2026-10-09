@@ -1,5 +1,5 @@
 const conversion = require('./conversion')
-const url = require('url')
+const preparePageSource = require('./preparePageSource')
 const { killBrowser } = require('./killBrowser')
 
 module.exports = ({ reporter, puppeteer, options }) => {
@@ -19,16 +19,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
     let crashError = false
     let timeoutError = false
 
-    let htmlUrl
-    let trustedHtmlFileUrl
-
-    if (conversionOptions.url) {
-      htmlUrl = conversionOptions.url
-    } else {
-      const { pathToFile } = await res.output.writeToTempFile((uuid) => `${uuid}-${imageExecution ? 'chrome-image' : 'chrome-pdf'}.html`)
-      htmlUrl = url.pathToFileURL(pathToFile)
-      trustedHtmlFileUrl = htmlUrl.href
-    }
+    const pageSource = await preparePageSource(reporter, imageExecution, allowLocalFilesAccess, conversionOptions, res)
 
     try {
       const result = await conversion({
@@ -49,8 +40,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
 
           return browserInfo.instance
         },
-        htmlUrl,
-        trustedHtmlFileUrl,
+        pageSource,
         strategy,
         req,
         timeout: reporter.getReportTimeout(req),

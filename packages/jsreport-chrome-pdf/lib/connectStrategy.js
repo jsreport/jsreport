@@ -1,4 +1,5 @@
 const conversion = require('./conversion')
+const preparePageSource = require('./preparePageSource')
 
 module.exports = ({ reporter, puppeteer, options }) => {
   let openedBrowsers = []
@@ -8,13 +9,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
     let browser
     let page
 
-    let htmlUrl
-    let content
-    if (conversionOptions.url) {
-      htmlUrl = conversionOptions.url
-    } else {
-      content = (await res.output.getBuffer()).toString()
-    }
+    const pageSource = await preparePageSource(reporter, imageExecution, allowLocalFilesAccess, conversionOptions, res, true)
 
     try {
       const result = await conversion({
@@ -31,8 +26,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
             })
           }
         },
-        htmlUrl,
-        content,
+        pageSource,
         strategy,
         req,
         timeout: reporter.getReportTimeout(req),

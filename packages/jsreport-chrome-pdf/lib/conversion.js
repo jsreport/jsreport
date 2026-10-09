@@ -1,7 +1,7 @@
 const get = require('lodash.get')
 const hasOwn = require('has-own-deep')
 
-module.exports = async ({ reporter, getBrowser, htmlUrl, trustedHtmlFileUrl, content, strategy, timeout, req, imageExecution, allowLocalFilesAccess, useEvaluateInsteadOfEvaluateOnNewDocument, options }) => {
+module.exports = async ({ reporter, getBrowser, pageSource, strategy, timeout, req, imageExecution, allowLocalFilesAccess, useEvaluateInsteadOfEvaluateOnNewDocument, options }) => {
   const optionsToUse = Object.assign({}, options)
   optionsToUse.timeout = timeout
 
@@ -120,11 +120,11 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, trustedHtmlFileUrl, con
         detail = ` (redirect from: ${trimUrl(r.redirectChain().slice(-1)[0].url())})`
       }
 
-      const isGeneratedHtml = trustedHtmlFileUrl != null && r.url() === trustedHtmlFileUrl
+      const isTrustedUrl = pageSource.type === 'trustedFile' && r.url() === pageSource.value
 
       if (
         !allowLocalFilesAccess &&
-        !isGeneratedHtml &&
+        !isTrustedUrl &&
         // potentially dangerous request to local file
         r.url().lastIndexOf('file://', 0) === 0
       ) {
@@ -188,7 +188,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, trustedHtmlFileUrl, con
     })
 
     if (optionsToUse.waitForNetworkIdle === true) {
-      reporter.logger.debug('Chrome will wait for network iddle before printing', req)
+      reporter.logger.debug('Chrome will wait for network idle before printing', req)
     }
 
     // this is the same as sending timeout options to the page.goto
@@ -243,17 +243,16 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, trustedHtmlFileUrl, con
       return
     }
 
-    if (content != null) {
-      await page.setContent(content, optionsToUse.waitForNetworkIdle === true
-        ? { waitUntil: 'networkidle0' }
-        : { })
+    const pageOpts = {}
+
+    if (optionsToUse.waitForNetworkIdle === true) {
+      pageOpts.waitUntil = 'networkidle0'
+    }
+
+    if (pageSource.type === 'inline') {
+      await page.setContent(pageSource.value, pageOpts)
     } else {
-      await page.goto(
-        htmlUrl,
-        optionsToUse.waitForNetworkIdle === true
-          ? { waitUntil: 'networkidle0' }
-          : { }
-      )
+      await page.goto(pageSource.value, pageOpts)
     }
 
     if (executionInfo.error) {

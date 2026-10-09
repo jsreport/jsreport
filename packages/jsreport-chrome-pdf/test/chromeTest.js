@@ -149,7 +149,7 @@ function common (strategy, imageExecution, connectOptions = () => ({})) {
       template: {
         content: `
           <script>
-            document.write(window.location='file:///${__filename.replace(/\\/g, '/')}')
+            document.write(window.location='${pathToFileURL(__filename).href}')
           </script>
           `,
         recipe,
@@ -160,8 +160,8 @@ function common (strategy, imageExecution, connectOptions = () => ({})) {
     const res = await reporter.render(request)
     const str = JSON.stringify(res.meta.logs)
     const ok = str.includes('ERR_ACCESS_DENIED') || str.includes('Not allowed to load local resource')
-    if (ok === false) {
-      console.log(str)
+
+    if (!ok) {
       throw new Error(str)
     }
   })
@@ -171,7 +171,7 @@ function common (strategy, imageExecution, connectOptions = () => ({})) {
       template: {
         content: `
           <script>
-            document.write(window.location='file:///${__filename.replace(/\\/g, '/')}')
+            document.write(window.location='${pathToFileURL(__filename).href}')
           </script>
           `,
         recipe,
@@ -826,7 +826,7 @@ function commonLocalFilesAllowed (strategy, imageExecution, connectOptions = () 
       template: {
         content: `
           <script>
-            document.write(window.location='${__filename.replace(/\\/g, '/')}')
+            document.write(window.location='${pathToFileURL(__filename).href}')
           </script>
           `,
         recipe,
@@ -843,7 +843,7 @@ function commonLocalFilesAllowed (strategy, imageExecution, connectOptions = () 
       template: {
         content: `
           <script>
-            document.write(window.location='file:///${__filename.replace(/\\/g, '/')}')
+            document.write(window.location='${pathToFileURL(__filename).href}')
           </script>
           `,
         recipe,
