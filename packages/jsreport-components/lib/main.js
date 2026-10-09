@@ -27,6 +27,15 @@ module.exports = function (reporter, definition) {
           statusCode: 400
         })
       }
+
+      const validEngines = reporter.extensionsManager.engines.map((r) => r.name)
+
+      if (!validEngines.includes(doc.engine)) {
+        throw reporter.createError('Component engine must be a valid registered engine', {
+          weak: true,
+          statusCode: 400
+        })
+      }
     })
 
     reporter.documentStore.collection('components').beforeUpdateListeners.add('components', (q, u) => {
@@ -35,6 +44,15 @@ module.exports = function (reporter, definition) {
           throw reporter.createError('Component must contain engine', {
             statusCode: 400,
             weak: true
+          })
+        }
+
+        const validEngines = reporter.extensionsManager.engines.map((r) => r.name)
+
+        if (!validEngines.includes(u.$set.engine)) {
+          throw reporter.createError('Component engine must be a valid registered engine', {
+            weak: true,
+            statusCode: 400
           })
         }
       }

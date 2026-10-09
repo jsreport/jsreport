@@ -1,4 +1,4 @@
-require('should')
+const should = require('should')
 const Reporter = require('@jsreport/jsreport-core')
 
 describe('components', function () {
@@ -60,6 +60,38 @@ function common (options) {
     await reporter.documentStore.collection('components').update({ name: 'c1' }, {
       $set: { name: 'c2' }
     })
+  })
+
+  it('should throw when inserting or updating with invalid engine', async () => {
+    const a1 = should(reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: 'foo',
+      engine: '../../foo.js'
+    })).be.rejectedWith(/Component engine must be a valid registered engine/)
+
+    const a2 = should(reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: 'foo',
+      engine: 'invalid'
+    })).be.rejectedWith(/Component engine must be a valid registered engine/)
+
+    await Promise.all([a1, a2])
+
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: 'foo',
+      engine: 'none'
+    })
+
+    const a3 = should(reporter.documentStore.collection('components').update({ name: 'c1' }, {
+      $set: { engine: '../../foo.js' }
+    })).be.rejectedWith(/Component engine must be a valid registered engine/)
+
+    const a4 = should(reporter.documentStore.collection('components').update({ name: 'c1' }, {
+      $set: { engine: 'invalid' }
+    })).be.rejectedWith(/Component engine must be a valid registered engine/)
+
+    await Promise.all([a3, a4])
   })
 
   it('should evaluate nested components using handlebars', async () => {
