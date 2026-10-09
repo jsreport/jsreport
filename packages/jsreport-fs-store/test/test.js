@@ -563,6 +563,11 @@ describe('provider', () => {
       content.should.be.eql('foo')
     })
 
+    it('should throw when invalid file extension is returned from resolveFileExtension', async () => {
+      resolveFileExtension = () => '../../foo.js'
+      return should(store.collection('templates').insert({ name: 'test', content: 'foo' })).be.rejectedWith(/Got invalid file extension/)
+    })
+
     it('should not be duplicated in the config file', async () => {
       await store.collection('templates').insert({ name: 'test', content: 'foo' })
       const config = JSON.parse((await fsPromises.readFile(path.join(tmpData, 'test', 'config.json'))).toString())
@@ -941,7 +946,7 @@ describe('cluster', () => {
         persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         logger: store1.options.logger,
         createError: m => new Error(m),
-        resolveFileExtension: () => null
+        resolveFileExtension: store1.resolveFileExtension.bind(store1)
       })
     )
 
@@ -953,7 +958,7 @@ describe('cluster', () => {
         persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         logger: store2.options.logger,
         createError: m => new Error(m),
-        resolveFileExtension: () => null
+        resolveFileExtension: store2.resolveFileExtension.bind(store2)
       })
     )
 

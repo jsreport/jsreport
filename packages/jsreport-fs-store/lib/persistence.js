@@ -156,11 +156,20 @@ async function persistToPath (fs, resolveFileExtension, model, docPath, doc, ori
   const entityType = model.entitySets[doc.$entitySet].entityType
   await Promise.all(entityType.documentProperties.map(async (prop) => {
     const fileExtension = resolveFileExtension(doc, doc.$entitySet, prop.path)
+
     let value = deepGet(doc, prop.path)
 
     if (value == null) {
       deepDelete(doc, prop.path)
       return
+    }
+
+    if (
+      fileExtension == null ||
+      typeof fileExtension !== 'string' ||
+      !/^[a-z0-9]+$/i.test(fileExtension)
+    ) {
+      throw new Error(`Got invalid file extension "${fileExtension}" while resolving document`)
     }
 
     value = value || ''
@@ -170,7 +179,7 @@ async function persistToPath (fs, resolveFileExtension, model, docPath, doc, ori
     }
 
     const pathFragments = prop.path.split('.')
-    await fs.writeFile(fs.path.join(docPath, pathFragments[pathFragments.length - 1] + '.' + fileExtension), value)
+    await fs.writeFile(`${fs.path.join(docPath, pathFragments[pathFragments.length - 1])}.${fileExtension}`, value)
 
     deepDelete(doc, prop.path)
   }))
