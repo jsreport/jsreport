@@ -47,7 +47,19 @@ function asyncHelpers (hbs) {
   const _template = handlebars.VM.template
   handlebars.wrapHelperResult = (p) => p
   handlebars.template = function (spec) {
-    spec.main_d = (prog, props, container, depth, data, blockParams, depths) => async (context) => {
+    const renderSpec = { ...spec }
+
+    // The runtime attaches decorators to program functions; keep cached functions untouched.
+    for (const key of Object.keys(renderSpec)) {
+      if ((key === 'main' || /^\d+$/.test(key)) && typeof renderSpec[key] === 'function') {
+        const program = renderSpec[key]
+        renderSpec[key] = function (...args) {
+          return program.apply(this, args)
+        }
+      }
+    }
+
+    renderSpec.main_d = (prog, props, container, depth, data, blockParams, depths) => async (context) => {
       const originalFn = container.fn
       container.fn = (...args) => {
         const rf = originalFn(...args)
@@ -58,11 +70,11 @@ function asyncHelpers (hbs) {
       }
 
       // here I've changed the last param from `depths` to `[context]`. This was needed to make the ../gotoparent working
-      const v = spec.main(container, context, container.helpers, container.partials, data, blockParams, [context])
+      const v = renderSpec.main(container, context, container.helpers, container.partials, data, blockParams, [context])
       // result can be actually SafeString
       return v.then((r) => r.toString())
     }
-    return _template(spec, handlebars)
+    return _template(renderSpec, handlebars)
   }
 
   handlebars.compile = function (template, options) {
