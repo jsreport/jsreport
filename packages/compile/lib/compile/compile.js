@@ -349,7 +349,6 @@ async function compileExe (label, config, options) {
   filesToIgnore.push('**/node_modules/buble/dist/buble.es.js')
   filesToIgnore.push('**/node_modules/async/dist/async.min.js')
   filesToIgnore.push('**/node_modules/pako/dist/**')
-  filesToIgnore.push('**/node_modules/ajv/dist/**')
   filesToIgnore.push('**/node_modules/handlebars/{bin,lib,print-script}')
   filesToIgnore.push('!**/node_modules/handlebars/lib/index.js')
   filesToIgnore.push('**/node_modules/handlebars/dist/**')

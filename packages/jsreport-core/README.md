@@ -350,6 +350,11 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.11.3
+- update ajv to fix audit
+- throw error when temp file helpers try to work with files outside temp directory
+- update debug to latest
+
 ### 4.11.2
 - update deps to fix audit
 

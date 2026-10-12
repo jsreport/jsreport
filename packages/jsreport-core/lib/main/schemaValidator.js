@@ -5,6 +5,7 @@ const unsetValue = require('unset-value')
 const ms = require('ms')
 const bytes = require('bytes')
 const Ajv = require('ajv')
+const addFormats = require('ajv-formats')
 
 const validatorCollection = new WeakMap()
 
@@ -17,14 +18,24 @@ class SchemaValidator {
     this.schemaVersion = 'http://json-schema.org/draft-07/schema#'
 
     const validator = new Ajv({
+      // only needed because we are allowing to declare special `defaultNotInitialized`
+      // in schemas, this value is not used for validation itself it is more like a signal
+      // that the default value is handled at runtime
+      strictSchema: false,
+      // allow Infinity to be passed for some options we use
+      strictNumbers: false,
+      strictTypes: true,
+      allowUnionTypes: true,
       useDefaults: true,
-      coerceTypes: true,
-      format: 'full'
+      coerceTypes: true
     })
+
+    addFormats(validator)
 
     const stringDateFormatValidate = validator.compile({ type: 'string', format: 'date-time' })
 
-    validator.addKeyword('$jsreport-constantOrArray', {
+    validator.addKeyword({
+      keyword: '$jsreport-constantOrArray',
       type: 'string',
       modifying: true,
       compile: (sch) => {
@@ -32,9 +43,8 @@ class SchemaValidator {
           throw new Error('$jsreport-constantOrArray json schema keyword should contain an array')
         }
 
-        return (data, dataPath, parentData, parentDataProperty) => {
+        return (data, { parentData, parentDataProperty }) => {
           if (sch.indexOf(data) !== -1) {
-            parentData[parentDataProperty] = data
             return true
           }
 
@@ -44,14 +54,15 @@ class SchemaValidator {
       }
     })
 
-    validator.addKeyword('$jsreport-stringToDate', {
+    validator.addKeyword({
+      keyword: '$jsreport-stringToDate',
       modifying: true,
       compile: (sch) => {
         if (sch !== true) {
           return () => true
         }
 
-        return (data, dataPath, parentData, parentDataProperty) => {
+        return (data, { parentData, parentDataProperty }) => {
           if (!stringDateFormatValidate(data)) {
             return false
           }
@@ -59,7 +70,7 @@ class SchemaValidator {
           const newData = new Date(data)
 
           // tests that date instance is not invalid
-          if (Object.prototype.toString.call(newData) !== '[object Date]') {
+          if (isNaN(newData)) {
             return false
           }
 
@@ -70,7 +81,8 @@ class SchemaValidator {
       }
     })
 
-    validator.addKeyword('$jsreport-acceptsDate', {
+    validator.addKeyword({
+      keyword: '$jsreport-acceptsDate',
       compile: (sch) => {
         if (sch !== true) {
           return () => true
@@ -86,7 +98,8 @@ class SchemaValidator {
       }
     })
 
-    validator.addKeyword('$jsreport-acceptsBuffer', {
+    validator.addKeyword({
+      keyword: '$jsreport-acceptsBuffer',
       compile: (sch) => {
         if (sch !== true) {
           return () => true
@@ -98,14 +111,15 @@ class SchemaValidator {
       }
     })
 
-    validator.addKeyword('$jsreport-acceptsDuration', {
+    validator.addKeyword({
+      keyword: '$jsreport-acceptsDuration',
       modifying: true,
       compile: (sch) => {
         if (sch !== true) {
           return () => true
         }
 
-        return (data, dataPath, parentData, parentDataProperty) => {
+        return (data, { parentData, parentDataProperty }) => {
           if (typeof data !== 'string' && typeof data !== 'number') {
             return false
           }
@@ -127,14 +141,15 @@ class SchemaValidator {
       }
     })
 
-    validator.addKeyword('$jsreport-acceptsSize', {
+    validator.addKeyword({
+      keyword: '$jsreport-acceptsSize',
       modifying: true,
       compile: (sch) => {
         if (sch !== true) {
           return () => true
         }
 
-        return (data, dataPath, parentData, parentDataProperty) => {
+        return (data, { parentData, parentDataProperty }) => {
           if (typeof data !== 'string' && typeof data !== 'number') {
             return false
           }
@@ -159,6 +174,8 @@ class SchemaValidator {
     let rootValidate
 
     if (options.rootSchema != null) {
+      const ignoredRootValidators = new Map()
+
       rootValidate = validator.compile(addDefaultsAndValidateRootSchema(
         validator,
         options.rootSchema,
@@ -171,6 +188,8 @@ class SchemaValidator {
           schema,
           this.schemaVersion
         ))
+
+        ignoredRootValidators.clear()
       }
 
       this.getRootSchema = () => rootValidate && rootValidate.schema
@@ -179,16 +198,22 @@ class SchemaValidator {
         let validateFn
 
         if (ignore.length > 0) {
-          const newRootSchema = extend(true, {}, this.getRootSchema())
+          const ignoreCacheKey = JSON.stringify(ignore)
+          validateFn = ignoredRootValidators.get(ignoreCacheKey)
 
-          ignore.forEach((prop) => {
-            if (hasOwn(newRootSchema, prop)) {
-              set(newRootSchema, prop, true)
-              unsetValue(newRootSchema, prop)
-            }
-          })
+          if (validateFn == null) {
+            const newRootSchema = extend(true, {}, this.getRootSchema())
 
-          validateFn = validator.compile(newRootSchema)
+            ignore.forEach((prop) => {
+              if (hasOwn(newRootSchema, prop)) {
+                set(newRootSchema, prop, true)
+                unsetValue(newRootSchema, prop)
+              }
+            })
+
+            validateFn = validator.compile(newRootSchema)
+            ignoredRootValidators.set(ignoreCacheKey, validateFn)
+          }
         } else {
           validateFn = rootValidate
         }
@@ -239,7 +264,8 @@ function addDefaultsAndValidateRootSchema (validator, _rootSchema, schemaVersion
   let rootSchema = _rootSchema
 
   if (
-    typeof schema === 'object' &&
+    rootSchema != null &&
+    typeof rootSchema === 'object' &&
     !Array.isArray(rootSchema) &&
     rootSchema.$schema == null
   ) {
