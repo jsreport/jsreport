@@ -35,12 +35,8 @@ class ChangePasswordModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     this.state = {};
   }
   async changePassword() {
-    const {
-      entity
-    } = this.props.options;
-    const {
-      close
-    } = this.props;
+    const entity = this.props.options.entity;
+    const close = this.props.close;
     try {
       const data = {
         newPassword: this.newPassword1Ref.current.value
@@ -74,9 +70,7 @@ class ChangePasswordModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     return needsOldPassword;
   }
   render() {
-    const {
-      entity
-    } = this.props.options;
+    const entity = this.props.options.entity;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, this.needsOldPassword(entity) ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "form-group"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "old password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
@@ -134,12 +128,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function UserGroupsInfo(props) {
-  const {
-    user
-  } = props;
-  const {
-    usersGroups: groups
-  } = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getReferences();
+  const user = props.user;
+  const _Studio$getReferences = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getReferences(),
+    groups = _Studio$getReferences.usersGroups;
   const groupsForUser = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     return groups.filter(g => {
       const users = g.users || [];
@@ -153,9 +144,7 @@ function UserGroupsInfo(props) {
   }))));
 }
 function GroupsDisplay(_ref) {
-  let {
-    groups
-  } = _ref;
+  let groups = _ref.groups;
   const handleOpenGroupTab = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function handleOpenGroupTab(groupId) {
     jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openTab({
       _id: groupId
@@ -205,10 +194,9 @@ class UserEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }
   }
   render() {
-    const {
-      entity,
-      onUpdate
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      onUpdate = _this$props.onUpdate;
     const userIcon = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveEntityTreeIconStyle(entity);
     const isAdmin = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().authentication.isUserAdmin(entity);
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -572,10 +560,9 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().initializeListeners.unshi
         return true;
       }
       const isGroup = userInfo.isGroup === true || userInfo.__entitySet === 'usersGroups';
-      const {
-        users,
-        usersGroups: groups
-      } = jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().getReferences();
+      const _Studio$getReferences = jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().getReferences(),
+        users = _Studio$getReferences.users,
+        groups = _Studio$getReferences.usersGroups;
       const validateUserInfoProps = (data, props) => {
         let currentProp;
         for (const targetProp of props) {

@@ -18,6 +18,10 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 4.2.2
+- update chokidar to fix audit
+- validate the resolved file extension for document properties
+
 ### 4.2.1
 - update deps to fix audit
 

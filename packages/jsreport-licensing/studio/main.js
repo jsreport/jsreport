@@ -121,9 +121,7 @@ function renderLicenseType(licensingInfo) {
   }
 }
 function PaymentNote(_ref) {
-  let {
-    paymentType
-  } = _ref;
+  let paymentType = _ref.paymentType;
   if (paymentType === 'gumroad') {
     return /*#__PURE__*/React.createElement("p", null, "You can find further information about payments in the ", /*#__PURE__*/React.createElement("a", {
       href: "https://gumroad.com/library",

@@ -131,13 +131,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(19);
+/* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(21);
 /* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_list__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
 /* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(lodash_debounce__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(20);
+/* harmony import */ var _ScheduleEditor_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(22);
 
 
 
@@ -296,13 +296,10 @@ class ScheduleEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "state"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "start"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("th", null, "finish"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("tbody", null, items));
   }
   render() {
-    const {
-      entity
-    } = this.props;
-    let {
-      count,
-      nextRun
-    } = this.state;
+    const entity = this.props.entity;
+    let _this$state = this.state,
+      count = _this$state.count,
+      nextRun = _this$state.nextRun;
     nextRun = nextRun || entity.nextRun;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "block custom-editor"
@@ -569,14 +566,12 @@ module.exports = freeGlobal;
 /* 11 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var isObject = __webpack_require__(2),
-    isSymbol = __webpack_require__(12);
+var baseTrim = __webpack_require__(12),
+    isObject = __webpack_require__(2),
+    isSymbol = __webpack_require__(14);
 
 /** Used as references for various `Number` constants. */
 var NAN = 0 / 0;
-
-/** Used to match leading and trailing whitespace. */
-var reTrim = /^\s+|\s+$/g;
 
 /** Used to detect bad signed hexadecimal string values. */
 var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
@@ -627,7 +622,7 @@ function toNumber(value) {
   if (typeof value != 'string') {
     return value === 0 ? value : +value;
   }
-  value = value.replace(reTrim, '');
+  value = baseTrim(value);
   var isBinary = reIsBinary.test(value);
   return (isBinary || reIsOctal.test(value))
     ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
@@ -641,8 +636,58 @@ module.exports = toNumber;
 /* 12 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var baseGetTag = __webpack_require__(13),
-    isObjectLike = __webpack_require__(16);
+var trimmedEndIndex = __webpack_require__(13);
+
+/** Used to match leading whitespace. */
+var reTrimStart = /^\s+/;
+
+/**
+ * The base implementation of `_.trim`.
+ *
+ * @private
+ * @param {string} string The string to trim.
+ * @returns {string} Returns the trimmed string.
+ */
+function baseTrim(string) {
+  return string
+    ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, '')
+    : string;
+}
+
+module.exports = baseTrim;
+
+
+/***/ }),
+/* 13 */
+/***/ ((module) => {
+
+/** Used to match a single whitespace character. */
+var reWhitespace = /\s/;
+
+/**
+ * Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
+ * character of `string`.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {number} Returns the index of the last non-whitespace character.
+ */
+function trimmedEndIndex(string) {
+  var index = string.length;
+
+  while (index-- && reWhitespace.test(string.charAt(index))) {}
+  return index;
+}
+
+module.exports = trimmedEndIndex;
+
+
+/***/ }),
+/* 14 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var baseGetTag = __webpack_require__(15),
+    isObjectLike = __webpack_require__(18);
 
 /** `Object#toString` result references. */
 var symbolTag = '[object Symbol]';
@@ -673,12 +718,12 @@ module.exports = isSymbol;
 
 
 /***/ }),
-/* 13 */
+/* 15 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var Symbol = __webpack_require__(4),
-    getRawTag = __webpack_require__(14),
-    objectToString = __webpack_require__(15);
+    getRawTag = __webpack_require__(16),
+    objectToString = __webpack_require__(17);
 
 /** `Object#toString` result references. */
 var nullTag = '[object Null]',
@@ -707,7 +752,7 @@ module.exports = baseGetTag;
 
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var Symbol = __webpack_require__(4);
@@ -759,7 +804,7 @@ module.exports = getRawTag;
 
 
 /***/ }),
-/* 15 */
+/* 17 */
 /***/ ((module) => {
 
 /** Used for built-in method references. */
@@ -787,7 +832,7 @@ module.exports = objectToString;
 
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ ((module) => {
 
 /**
@@ -822,7 +867,7 @@ module.exports = isObjectLike;
 
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ ((module) => {
 
 var DEFAULT_INTERVAL = ['*'];
@@ -1114,15 +1159,15 @@ var CronBuilder = (function() {
 module.exports = CronBuilder;
 
 /***/ }),
-/* 18 */,
-/* 19 */
+/* 20 */,
+/* 21 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = Studio.libraries['react-list'];
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1134,7 +1179,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"listContainer":"x-scheduling-ScheduleEditor-listContainer","state":"x-scheduling-ScheduleEditor-state","error":"x-scheduling-ScheduleEditor-error","cancelled":"x-scheduling-ScheduleEditor-cancelled","success":"x-scheduling-ScheduleEditor-success"});
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1142,19 +1187,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(22);
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(24);
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
 /* harmony import */ var ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(ordinal_number_suffix__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var cron_builder__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(17);
+/* harmony import */ var cron_builder__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(19);
 /* harmony import */ var cron_builder__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(cron_builder__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var cronstrue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6);
 /* harmony import */ var cronstrue__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(cronstrue__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _HourTimePicker__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(23);
+/* harmony import */ var _HourTimePicker__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(25);
 
 
 
@@ -1320,11 +1365,10 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }
   }
   removeInvalidTemplateReferences() {
-    const {
-      entity,
-      entities,
-      onChange
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      entities = _this$props.entities,
+      onChange = _this$props.onChange;
     if (!entity.templateShortid) {
       return;
     }
@@ -1337,9 +1381,7 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }
   }
   onUseExpressionChange(checked) {
-    const {
-      entity
-    } = this.props;
+    const entity = this.props.entity;
     let resetCron = false;
     let uiCronInfo;
     if (!checked) {
@@ -1358,17 +1400,15 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
   }
   onCronBuilderChange(stateToSet, resetCron) {
     const cronExp = new (cron_builder__WEBPACK_IMPORTED_MODULE_3___default())();
-    const {
-      onChange,
-      entity
-    } = this.props;
-    let {
-      selectedPeriod,
-      selectedHour,
-      selectedMinute,
-      selectedDay,
-      selectedMonth
-    } = this.state;
+    const _this$props2 = this.props,
+      onChange = _this$props2.onChange,
+      entity = _this$props2.entity;
+    let _this$state = this.state,
+      selectedPeriod = _this$state.selectedPeriod,
+      selectedHour = _this$state.selectedHour,
+      selectedMinute = _this$state.selectedMinute,
+      selectedDay = _this$state.selectedDay,
+      selectedMonth = _this$state.selectedMonth;
     let cron = false;
     if (stateToSet && stateToSet.selectedPeriod !== undefined) {
       selectedPeriod = stateToSet.selectedPeriod;
@@ -1526,23 +1566,21 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     this.setState(newState);
   }
   render() {
-    const {
-      useExpression,
-      showHour,
-      showMinute,
-      showDay,
-      showMonth,
-      selectedPeriod,
-      selectedHour,
-      selectedMinute,
-      selectedDay,
-      selectedMonth,
-      days
-    } = this.state;
-    const {
-      entity,
-      onChange
-    } = this.props;
+    const _this$state2 = this.state,
+      useExpression = _this$state2.useExpression,
+      showHour = _this$state2.showHour,
+      showMinute = _this$state2.showMinute,
+      showDay = _this$state2.showDay,
+      showMonth = _this$state2.showMonth,
+      selectedPeriod = _this$state2.selectedPeriod,
+      selectedHour = _this$state2.selectedHour,
+      selectedMinute = _this$state2.selectedMinute,
+      selectedDay = _this$state2.selectedDay,
+      selectedMonth = _this$state2.selectedMonth,
+      days = _this$state2.days;
+    const _this$props3 = this.props,
+      entity = _this$props3.entity,
+      onChange = _this$props3.onChange;
     let cronDescription = '';
     if (entity.cron) {
       try {
@@ -1707,14 +1745,14 @@ class ScheduleProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ScheduleProperties);
 
 /***/ }),
-/* 22 */
+/* 24 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = Studio.runtime['helpers/extends'];
 
 /***/ }),
-/* 23 */
+/* 25 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1726,7 +1764,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _HourTimeSelect__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(24);
+/* harmony import */ var _HourTimeSelect__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(26);
 
 
 
@@ -1745,13 +1783,10 @@ class HourTimePicker extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     this.props.onChange(val);
   }
   render() {
-    const {
-      editing
-    } = this.state;
-    const {
-      type,
-      value
-    } = this.props;
+    const editing = this.state.editing;
+    const _this$props = this.props,
+      type = _this$props.type,
+      value = _this$props.value;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       style: {
         display: 'inline-block'
@@ -1783,7 +1818,7 @@ class HourTimePicker extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (HourTimePicker);
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1793,7 +1828,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(25);
+/* harmony import */ var _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(27);
 
 
 class HourTimeSelectItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1805,10 +1840,9 @@ class HourTimeSelectItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     this.props.onClick(this.props.value);
   }
   render() {
-    const {
-      value,
-      active
-    } = this.props;
+    const _this$props = this.props,
+      value = _this$props.value,
+      active = _this$props.active;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].item + ' ' + (active ? _HourTimeSelect_css__WEBPACK_IMPORTED_MODULE_1__["default"].itemSelected : ''),
       onClick: this.handleClick
@@ -1827,9 +1861,8 @@ class HourTimeSelect extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     this.props.onSelect(value);
   }
   render() {
-    const {
-      type = 'hour'
-    } = this.props;
+    const _this$props$type = this.props.type,
+      type = _this$props$type === void 0 ? 'hour' : _this$props$type;
     const title = `Time: ${type[0].toUpperCase() + type.slice(1)}`;
     let maxItems;
     const columnLimit = 6;
@@ -1877,7 +1910,7 @@ class HourTimeSelect extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (HourTimeSelect);
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1889,7 +1922,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"container":"x-scheduling-HourTimeSelect-container","title":"x-scheduling-HourTimeSelect-title","list":"x-scheduling-HourTimeSelect-list","item":"x-scheduling-HourTimeSelect-item","itemSelected":"x-scheduling-HourTimeSelect-itemSelected"});
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2012,8 +2045,8 @@ var __webpack_exports__ = {};
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ScheduleEditor_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
-/* harmony import */ var _ScheduleProperties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(21);
-/* harmony import */ var _DownloadButton_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(26);
+/* harmony import */ var _ScheduleProperties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(23);
+/* harmony import */ var _DownloadButton_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(28);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_3__);
 

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.6.2
+- update moment, axios to fix audit
+- get back to image-size (from image-size-next), audit issues for it are solved
+
 ### 4.6.1
 - update deps to fix audit
 

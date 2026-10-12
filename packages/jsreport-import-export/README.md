@@ -7,6 +7,9 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 4.1.4
+- update axios, multer to fix audit
+
 ### 4.1.3
 - update deps to fix audit
 

@@ -29,6 +29,10 @@ chrome-image
 
 ## Changelog
 
+### 4.4.2
+- fix chrome URL local file access bypass when trustUserCode is disabled
+- ensure kill of Chrome browsers when a worker closes
+
 ### 4.4.1
 - fix getting real object values in latest puppeteer (`24.42.0`)
 

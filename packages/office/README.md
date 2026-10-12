@@ -5,6 +5,9 @@ Some helpers for officed based jsreport recipes
 
 ## Changelog
 
+### 4.3.1
+- update axios to fix audit
+
 ### 4.3.0
 - update deps to fix npm audit
 - update charts to work on handlebars execution

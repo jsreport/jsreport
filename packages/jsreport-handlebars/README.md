@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/handlebars
 
 ## Changelog
 
+### 4.1.2
+- update handlebars to fix audit
+- fix memory leak when our async helpers implementation using handlebars JavaScriptCompiler is used
+
 ### 4.1.1
 - update handlebars to fix audit
 

@@ -3,6 +3,9 @@ jsreport extension for enterprise license verification
 
 ## Changelog
 
+### 4.1.4
+- update axios to fix audit
+
 ### 4.1.3
 - update deps to fix audit
 

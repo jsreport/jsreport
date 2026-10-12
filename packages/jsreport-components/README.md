@@ -7,6 +7,9 @@ See https://jsreport.net/learn/components
 
 ## Changelog
 
+### 4.1.1
+- validate the insert/update of `.engine` component property
+
 ### 4.1.0
 - studio: highlight components in template source and allow ctrl+click to open them
 - minimum node.js version is now `22.18.0`

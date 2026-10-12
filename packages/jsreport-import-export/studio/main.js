@@ -21,25 +21,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
-/* harmony import */ var filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var filesaver_js_npm__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
+/* harmony import */ var filesaver_js_npm__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(filesaver_js_npm__WEBPACK_IMPORTED_MODULE_3__);
 
 
 
-const useEntitiesSelector = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().createUseEntitiesSelector();
+
+const useEntitiesSelector = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().createUseEntitiesSelector();
 function ExportModal(props) {
-  const {
-    options
-  } = props;
+  const options = props.options;
   const references = useEntitiesSelector(entities => entities);
-  const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const entityTreeRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const exportableReferences = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
-    const exportableEntitySets = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().extensions)['import-export'].options.exportableEntitySets;
+  const _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+    _useState2 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState, 2),
+    processing = _useState2[0],
+    setProcessing = _useState2[1];
+  const entityTreeRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
+  const exportableReferences = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)(() => {
+    const exportableEntitySets = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().extensions)['import-export'].options.exportableEntitySets;
     return Object.keys(references).reduce((acu, entitySetName) => {
       if (exportableEntitySets.indexOf(entitySetName) !== -1) {
         acu[entitySetName] = references[entitySetName];
@@ -47,7 +51,7 @@ function ExportModal(props) {
       return acu;
     }, {});
   }, [references]);
-  const initialSelected = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+  const initialSelected = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)(() => {
     const selections = {};
     Object.keys(exportableReferences).forEach(k => {
       Object.keys(exportableReferences[k]).forEach(e => {
@@ -67,51 +71,51 @@ function ExportModal(props) {
     });
     return selections;
   }, []);
-  const download = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
+  const download = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(async () => {
     if (processing) {
       return;
     }
     setProcessing(true);
     try {
       const selected = entityTreeRef.current.selected;
-      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('api/export', {
+      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('api/export', {
         data: {
           selection: Object.keys(selected).filter(k => selected[k] === true)
         },
         responseType: 'blob'
       }, true);
-      filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2___default().saveAs(response, 'export.jsrexport');
+      filesaver_js_npm__WEBPACK_IMPORTED_MODULE_3___default().saveAs(response, 'export.jsrexport');
       setProcessing(false);
     } catch (e) {
       setProcessing(false);
       alert('Unable to prepare export ' + e.message + ' ' + e.stack);
     }
   }, [processing]);
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     className: "form-group"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
     className: "fa fa-download"
-  }), " Export objects")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  }), " Export objects")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     style: {
       height: '30rem',
       overflow: 'auto'
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.EntityTree, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.EntityTree, {
     ref: entityTreeRef,
     entities: exportableReferences,
     selectable: true,
     initialSelected: initialSelected
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
     className: "button-bar"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("a", {
     className: `button confirmation ${processing ? 'disabled' : ''}`,
     onClick: () => download()
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
     className: "fa fa-circle-o-notch fa-spin",
     style: {
       display: processing ? 'inline-block' : 'none'
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
     style: {
       display: processing ? 'none' : 'inline'
     }
@@ -123,17 +127,23 @@ function ExportModal(props) {
 /* 4 */
 /***/ ((module) => {
 
-module.exports = Studio.libraries['filesaver.js-npm'];
+module.exports = Studio.runtime['helpers/slicedToArray'];
 
 /***/ }),
 /* 5 */
+/***/ ((module) => {
+
+module.exports = Studio.libraries['filesaver.js-npm'];
+
+/***/ }),
+/* 6 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
@@ -159,9 +169,7 @@ class ImportFinishedModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     });
   }
   render() {
-    const {
-      log
-    } = this.props.options;
+    const log = this.props.options.log;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
       className: "fa fa-info-circle"
     }), " Import finished"), log != null && log !== '' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
@@ -255,9 +263,7 @@ class ImportModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (this.state.processing) {
       return;
     }
-    const {
-      retryWithContinueOnFail
-    } = this.state;
+    const retryWithContinueOnFail = this.state.retryWithContinueOnFail;
     try {
       this.setState({
         status: '1',
@@ -475,7 +481,7 @@ class ImportModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImportModal);
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ ((module) => {
 
 module.exports = Studio.runtime['helpers/extends'];
@@ -554,7 +560,7 @@ var __webpack_exports__ = {};
 (() => {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ExportModal_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
-/* harmony import */ var _ImportModal_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
+/* harmony import */ var _ImportModal_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
 
@@ -579,14 +585,12 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addToolbarComponent(props
   className: "fa fa-upload"
 }), "Import"), 'settings');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addEntityTreeContextMenuItemsResolver(_ref => {
-  let {
-    node,
-    entity,
-    editSelection,
-    isRoot,
-    isGroupEntity,
-    getAllEntitiesInHierarchy
-  } = _ref;
+  let node = _ref.node,
+    entity = _ref.entity,
+    editSelection = _ref.editSelection,
+    isRoot = _ref.isRoot,
+    isGroupEntity = _ref.isGroupEntity,
+    getAllEntitiesInHierarchy = _ref.getAllEntitiesInHierarchy;
   if (editSelection != null) {
     return;
   }
@@ -639,11 +643,9 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addEntityTreeContextMenuI
 jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().entityTreeDropResolvers.push({
   type: (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().dragAndDropNativeTypes).FILE,
   async handler(_ref2) {
-    let {
-      draggedItem,
-      dragOverContext,
-      dropComplete
-    } = _ref2;
+    let draggedItem = _ref2.draggedItem,
+      dragOverContext = _ref2.dragOverContext,
+      dropComplete = _ref2.dropComplete;
     const files = draggedItem.files;
     const targetInfo = {
       shortid: null

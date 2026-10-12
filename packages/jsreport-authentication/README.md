@@ -7,6 +7,11 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.3.4
+- update openid-client to latest v5 to fix audit
+- check only against the whitelist of publicRoutes and not on extension suffixes
+- reject tab/newline/CR in returnUrl
+
 ### 4.3.3
 - fix security issue
 

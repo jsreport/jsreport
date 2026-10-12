@@ -14,6 +14,12 @@ module.exports = Studio;
 
 /***/ }),
 /* 2 */
+/***/ ((module) => {
+
+module.exports = Studio.runtime['helpers/slicedToArray'];
+
+/***/ }),
+/* 3 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -25,8 +31,8 @@ const PDF_UTILS_TAB_TITLE = 'PDF_UTILS_TAB_TITLE';
 const PDF_UTILS_TAB_EDITOR = 'PDF_UTILS_TAB_EDITOR';
 
 /***/ }),
-/* 3 */,
-/* 4 */
+/* 4 */,
+/* 5 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -44,10 +50,9 @@ class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     return entity.pdfSign.passwordFilled ? 'pdf sign password filled' : 'pdf sign';
   }
   render() {
-    const {
-      entity,
-      onChange
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      onChange = _this$props.onChange;
     const pdfSign = entity.pdfSign || {};
     const changePdfSign = change => onChange({
       ...entity,
@@ -76,7 +81,7 @@ class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Properties);
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -87,7 +92,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
 
 
 
@@ -138,11 +143,10 @@ class TemplatePdfUtilsProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Comp
     });
   }
   removeInvalidTemplateReferences() {
-    const {
-      entity,
-      entities,
-      onChange
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      entities = _this$props.entities,
+      onChange = _this$props.onChange;
     if (!entity.pdfOperations) {
       return;
     }
@@ -167,11 +171,10 @@ class TemplatePdfUtilsProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Comp
     }
   }
   removeInvalidAssetReferences() {
-    const {
-      entity,
-      entities,
-      onChange
-    } = this.props;
+    const _this$props2 = this.props,
+      entity = _this$props2.entity,
+      entities = _this$props2.entities,
+      onChange = _this$props2.onChange;
     if (!entity.pdfSign) {
       return;
     }
@@ -199,7 +202,7 @@ class TemplatePdfUtilsProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Comp
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TemplatePdfUtilsProperties);
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -212,23 +215,25 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (props => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, props.entity.name + ' pdf utils ' + (props.entity.__isDirty ? '*' : '')));
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _AddHeaderFooterModal__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
-/* harmony import */ var _AddTOCModal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(10);
-/* harmony import */ var _AddCoverModal__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11);
-/* harmony import */ var _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(13);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _AddHeaderFooterModal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(10);
+/* harmony import */ var _AddTOCModal__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11);
+/* harmony import */ var _AddCoverModal__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(12);
+/* harmony import */ var _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(14);
 
 
 
@@ -236,14 +241,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().EntityRefSelect);
-const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().sharedComponents);
+
+const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().EntityRefSelect);
+const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().sharedComponents);
 const AdvancedMergeModal = props => {
-  const {
-    operation: initialOperation,
-    update
-  } = props.options;
-  const [operation, setOperation] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(initialOperation);
+  const _props$options = props.options,
+    initialOperation = _props$options.operation,
+    update = _props$options.update;
+  const _useState = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(initialOperation),
+    _useState2 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_1___default()(_useState, 2),
+    operation = _useState2[0],
+    setOperation = _useState2[1];
   const updateOperation = op => {
     update(op);
     setOperation({
@@ -251,9 +259,9 @@ const AdvancedMergeModal = props => {
       ...op
     });
   };
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", null, "advanced merge configuration"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h2", null, "advanced merge configuration"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
     className: "form-group"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h3", null, "Merge whole document"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "render specified template and merge the result into the current pdf. The first page of the template output will be merged into the first page of the current pdf, the second page to the second one and so on. When the option is deselected, the first page of the template output will be merged to all pages of the current pdf."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h3", null, "Merge whole document"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", null, "render specified template and merge the result into the current pdf. The first page of the template output will be merged into the first page of the current pdf, the second page to the second one and so on. When the option is deselected, the first page of the template output will be merged to all pages of the current pdf."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
     type: "checkbox",
     disabled: operation.renderForEveryPage,
     checked: operation.mergeWholeDocument === true,
@@ -261,12 +269,12 @@ const AdvancedMergeModal = props => {
       mergeWholeDocument: v.target.checked,
       renderForEveryPage: false
     })
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
     style: {
       marginTop: '1rem'
     },
     className: "form-group"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h3", null, "Render for every page (deprecated)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "if true, the operation invokes rendering of the specified template for every pdf page (slow), otherwise it is invoked just once and the single output is merged"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h3", null, "Render for every page (deprecated)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", null, "if true, the operation invokes rendering of the specified template for every pdf page (slow), otherwise it is invoked just once and the single output is merged"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
     type: "checkbox",
     disabled: operation.mergeWholeDocument,
     checked: operation.renderForEveryPage === true,
@@ -274,25 +282,25 @@ const AdvancedMergeModal = props => {
       renderForEveryPage: v.target.checked,
       mergeWholeDocument: false
     })
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
     style: {
       marginTop: '1rem'
     },
     className: "form-group"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h3", null, "Merge to front"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "if true, the pdf produced by the operation is merged to the front layer, otherwise it is merged to the background"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h3", null, "Merge to front"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", null, "if true, the pdf produced by the operation is merged to the front layer, otherwise it is merged to the background"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
     type: "checkbox",
     checked: operation.mergeToFront === true,
     onChange: v => updateOperation({
       mergeToFront: v.target.checked
     })
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
     className: "button-bar"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
     className: "button confirmation",
     onClick: () => props.close()
   }, "ok")));
 };
-class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
+class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_2__.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -301,31 +309,25 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     };
   }
   addHeaderFooter() {
-    const {
-      entity
-    } = this.props;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_AddHeaderFooterModal__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    const entity = this.props.entity;
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().openModal(_AddHeaderFooterModal__WEBPACK_IMPORTED_MODULE_4__["default"], {
       entity
     });
   }
   addTOC() {
-    const {
-      entity
-    } = this.props;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_AddTOCModal__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    const entity = this.props.entity;
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().openModal(_AddTOCModal__WEBPACK_IMPORTED_MODULE_5__["default"], {
       entity
     });
   }
   addCover() {
-    const {
-      entity
-    } = this.props;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_AddCoverModal__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    const entity = this.props.entity;
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().openModal(_AddCoverModal__WEBPACK_IMPORTED_MODULE_6__["default"], {
       entity
     });
   }
   addOperation(entity) {
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: [...(entity.pdfOperations || []), {
         type: 'merge',
         mergeWholeDocument: true
@@ -333,7 +335,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }));
   }
   updateOperation(entity, index, update) {
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: entity.pdfOperations.map((o, i) => i === index ? Object.assign({}, o, update) : o)
     }));
   }
@@ -352,9 +354,9 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (keys.length === 0 || keys.every(k => pdfMeta[k] == null)) {
       const newEntity = Object.assign({}, entity);
       newEntity.pdfMeta = null;
-      return jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(newEntity);
+      return jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(newEntity);
     }
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
       pdfMeta
     }));
   }
@@ -373,9 +375,9 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (keys.length === 0 || keys.every(k => pdfPassword[k] == null || pdfPassword[k] === false)) {
       const newEntity = Object.assign({}, entity);
       newEntity.pdfPassword = null;
-      return jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(newEntity);
+      return jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(newEntity);
     }
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
       pdfPassword
     }));
   }
@@ -394,14 +396,14 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     if (keys.length === 0 || keys.every(k => pdfSign[k] == null)) {
       const newEntity = Object.assign({}, entity);
       newEntity.pdfSign = null;
-      return jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(newEntity);
+      return jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(newEntity);
     }
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
       pdfSign
     }));
   }
   removeOperation(entity, index) {
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: entity.pdfOperations.filter((a, i) => i !== index)
     }));
   }
@@ -436,7 +438,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const tmp = pdfOperations[index + 1];
     pdfOperations[index + 1] = pdfOperations[index];
     pdfOperations[index] = tmp;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: pdfOperations
     }));
   }
@@ -445,18 +447,18 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     const tmp = pdfOperations[index - 1];
     pdfOperations[index - 1] = pdfOperations[index];
     pdfOperations[index] = tmp;
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
       pdfOperations: pdfOperations
     }));
   }
   renderOperation(entity, operation, index) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tr", {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("tr", {
       key: index
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", {
       style: {
         minWidth: '170px'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(EntityRefSelect, {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement(EntityRefSelect, {
       headingLabel: "Select template",
       newLabel: "New template",
       filter: references => {
@@ -469,7 +471,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       onChange: selected => this.updateOperation(entity, index, {
         templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null
       }),
-      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(sharedComponents.NewTemplateModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
+      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement(sharedComponents.NewTemplateModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
         options: {
           ...modalProps.options,
           defaults: {
@@ -478,58 +480,58 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
           activateNewTab: false
         }
       }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("select", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("select", {
       value: operation.type,
       onChange: v => this.updateOperation(entity, index, {
         type: v.target.value
       })
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("option", {
       value: "merge"
-    }, "merge"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
+    }, "merge"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("option", {
       value: "append"
-    }, "append"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
+    }, "append"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("option", {
       value: "prepend"
-    }, "prepend"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, operation.type === 'merge' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
-      onClick: () => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(AdvancedMergeModal, {
+    }, "prepend"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", null, operation.type === 'merge' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
+      onClick: () => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().openModal(AdvancedMergeModal, {
         operation: entity.pdfOperations[index],
         update: o => this.updateOperation(entity, index, o)
       })
-    }, "advanced")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, "advanced")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: operation.enabled !== false,
       onChange: v => this.updateOperation(entity, index, {
         enabled: v.target.checked
       })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
       className: "button",
       style: {
         backgroundColor: '#c6c6c6'
       },
       onClick: () => this.removeOperation(entity, index)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("i", {
       className: "fa fa-times"
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, entity.pdfOperations[index - 1] ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", null, entity.pdfOperations[index - 1] ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
       className: "button",
       style: {
         backgroundColor: '#c6c6c6'
       },
       onClick: () => this.moveUp(entity, index)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("i", {
       className: "fa fa-arrow-up"
-    })) : ''), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, entity.pdfOperations[index + 1] ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+    })) : ''), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", null, entity.pdfOperations[index + 1] ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
       className: "button",
       style: {
         backgroundColor: '#c6c6c6'
       },
       onClick: () => this.moveDown(entity, index)
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("i", {
       className: "fa fa-arrow-down"
     })) : ''));
   }
   renderOperations(entity) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("table", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].operationTable
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Template"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Operation"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Advanced"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Enabled"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tbody", null, (entity.pdfOperations || []).map((o, i) => this.renderOperation(entity, o, i))));
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("table", {
+      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].operationTable
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null, "Template"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null, "Operation"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null, "Advanced"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null, "Enabled"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("tbody", null, (entity.pdfOperations || []).map((o, i) => this.renderOperation(entity, o, i))));
   }
   renderCustomMetadata(entity) {
     const existingCustomMetadata = this.getExistingCustomMetadata(entity);
@@ -542,47 +544,47 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }, []);
     let body = null;
     if (customMetadataList.length > 0) {
-      body = customMetadataList.map((item, idx) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tr", {
+      body = customMetadataList.map((item, idx) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("tr", {
         key: item.key
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", {
         style: {
           textAlign: 'center',
           paddingLeft: '5px',
           paddingRight: '10px'
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, item.key)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, item.key)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", {
         style: {
           textAlign: 'center',
           paddingLeft: '5px'
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
         type: "text",
         value: item.value,
         onChange: v => this.updateCustomMetadata(entity, item.key, v.target.value)
-      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("td", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
         className: "button",
         style: {
           backgroundColor: '#c6c6c6'
         },
         onClick: () => this.removeCustomMetadata(entity, item.key)
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("i", {
         className: "fa fa-times"
       })))));
     }
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("table", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].operationTable
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Key"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null, "Value"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("th", null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("tbody", null, body));
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("table", {
+      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].operationTable
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null, "Key"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null, "Value"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("th", null))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("tbody", null, body));
   }
   renderCustomMetadataCreate(entity, customMetadataCreate) {
     const existingCustomMetadata = this.getExistingCustomMetadata(entity);
     let el;
     if (customMetadataCreate == null) {
-      el = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      el = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
         style: {
           marginTop: '1rem',
           minHeight: '160px'
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
         className: "button confirmation",
         onClick: () => {
           const newKeyPrefix = 'key';
@@ -602,13 +604,13 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       }, "Add custom metadata"));
     } else {
       const saveDisabled = customMetadataCreate.key === '' || customMetadataCreate.value === '';
-      el = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      el = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
         style: {
           marginTop: '1rem'
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("hr", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("hr", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
         className: "form-group"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Key"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Key"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
         type: "text",
         value: customMetadataCreate.key,
         onChange: v => this.setState({
@@ -617,9 +619,9 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
             key: v.target.value
           }
         })
-      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
         className: "form-group"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Value"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Value"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
         type: "text",
         value: customMetadataCreate.value,
         onChange: v => this.setState({
@@ -628,11 +630,11 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
             value: v.target.value
           }
         })
-      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
         style: {
           marginTop: '1rem'
         }
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
         className: `button confirmation ${saveDisabled ? 'disabled' : ''}`,
         disabled: saveDisabled,
         onClick: () => {
@@ -641,7 +643,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
             customMetadataCreate: null
           });
         }
-      }, existingCustomMetadata[customMetadataCreate.key] == null || customMetadataCreate.key === '' ? 'Add' : 'Update'), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+      }, existingCustomMetadata[customMetadataCreate.key] == null || customMetadataCreate.key === '' ? 'Add' : 'Update'), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
         className: "button confirmation",
         onClick: () => this.setState({
           customMetadataCreate: null
@@ -651,193 +653,190 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     return el;
   }
   render() {
-    const {
-      activeTab,
-      customMetadataCreate
-    } = this.state;
-    const {
-      entity
-    } = this.props;
+    const _this$state = this.state,
+      activeTab = _this$state.activeTab,
+      customMetadataCreate = _this$state.customMetadataCreate;
+    const entity = this.props.entity;
     const pdfMeta = entity.pdfMeta || {};
     const pdfA = entity.pdfA || {};
     const pdfAccessibility = entity.pdfAccessibility || {};
     const pdfPassword = entity.pdfPassword || {};
     const pdfSign = entity.pdfSign || {};
     const pdfCompression = entity.pdfCompression || {};
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "block custom-editor",
       style: {
         overflowX: 'auto'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("i", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("i", {
       className: "fa fa-file-pdf-o"
-    }), " pdf utils configuration"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
+    }), " pdf utils configuration"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h2", {
       style: {
         marginTop: '0.2rem'
       }
-    }, "quick actions"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "quick actions"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem',
         marginBottom: '0.8rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
       className: "button confirmation",
       style: {
         marginLeft: 0
       },
       onClick: () => this.addHeaderFooter()
-    }, "Add header/footer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+    }, "Add header/footer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
       className: "button confirmation",
       onClick: () => this.addTOC()
-    }, "Add Table of Contents"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+    }, "Add Table of Contents"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
       className: "button confirmation",
       onClick: () => this.addCover()
-    }, "Add cover page"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].separator
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabContainer
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("ul", {
-      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitles
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
+    }, "Add cover page"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].separator
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabContainer
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("ul", {
+      className: _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabTitles
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabTitle} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`,
       onClick: () => this.setState({
         activeTab: 'operations'
       })
-    }, "operations"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'meta' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
+    }, "operations"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabTitle} ${activeTab === 'meta' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`,
       onClick: () => this.setState({
         activeTab: 'meta'
       })
-    }, "meta"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'password' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
+    }, "meta"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabTitle} ${activeTab === 'password' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`,
       onClick: () => this.setState({
         activeTab: 'password'
       })
-    }, "password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'sign' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
+    }, "password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabTitle} ${activeTab === 'sign' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`,
       onClick: () => this.setState({
         activeTab: 'sign'
       })
-    }, "sign"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'pdfA' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
+    }, "sign"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabTitle} ${activeTab === 'pdfA' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`,
       onClick: () => this.setState({
         activeTab: 'pdfA'
       })
-    }, "pdfA"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
+    }, "pdfA"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabTitle} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`,
       onClick: () => this.setState({
         activeTab: 'pdfAccessibility'
       })
-    }, "pdf accessibility"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabTitle} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`,
+    }, "pdf accessibility"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabTitle} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`,
       onClick: () => this.setState({
         activeTab: 'pdfCompression'
       })
-    }, "compression")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
+    }, "compression")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabPanel} ${activeTab === 'operations' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", {
       style: {
         marginTop: '1rem'
       }
-    }, "Use merge/append operations to add dynamic headers or concatenate multiple pdf reports into one. See more docs and examples ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("a", {
+    }, "Use merge/append operations to add dynamic headers or concatenate multiple pdf reports into one. See more docs and examples ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("a", {
       href: "https://jsreport.net/learn/pdf-utils"
-    }, "here"), "."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "here"), "."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem'
       }
-    }, this.renderOperations(entity)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, this.renderOperations(entity)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("button", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("button", {
       className: "button confirmation",
       onClick: () => this.addOperation(entity)
-    }, "Add operation"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'meta' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
+    }, "Add operation"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabPanel} ${activeTab === 'meta' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", {
       style: {
         marginTop: '1rem'
       }
-    }, "Add General metadata information to the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "Add General metadata information to the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem',
         paddingBottom: '0.5rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Title"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Title"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "text",
       value: pdfMeta.title || '',
       onChange: v => this.updateMeta(entity, {
         title: v.target.value
       })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Author"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Author"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "text",
       value: pdfMeta.author || '',
       onChange: v => this.updateMeta(entity, {
         author: v.target.value
       })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Subject"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Subject"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "text",
       value: pdfMeta.subject || '',
       onChange: v => this.updateMeta(entity, {
         subject: v.target.value
       })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Keywords"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Keywords"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "text",
       value: pdfMeta.keywords || '',
       onChange: v => this.updateMeta(entity, {
         keywords: v.target.value
       })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Creator"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Creator"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "text",
       value: pdfMeta.creator || '',
       onChange: v => this.updateMeta(entity, {
         creator: v.target.value
       })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Producer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Producer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "text",
       value: pdfMeta.producer || '',
       onChange: v => this.updateMeta(entity, {
         producer: v.target.value
       })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Language"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Language"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "text",
       value: pdfMeta.language || '',
       onChange: v => this.updateMeta(entity, {
         language: v.target.value
       })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "Add Custom metadata for the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", null, "Add Custom metadata for the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem'
       }
-    }, this.renderCustomMetadata(entity)), this.renderCustomMetadataCreate(entity, customMetadataCreate)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'password' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, this.renderCustomMetadata(entity)), this.renderCustomMetadataCreate(entity, customMetadataCreate)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabPanel} ${activeTab === 'password' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem'
       }
-    }, "Add encryption and access privileges to the final PDF. You can specify either user password, owner password or both passwords. Behavior differs according to passwords you provides:", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("ul", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "When only user password is provided, users with user password are able to decrypt the file and have full access to the document."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "When only owner password is provided, users are able to decrypt and open the document without providing any password, but the access is limited to those operations explicitly permitted. Users with owner password have full access to the document."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "When both passwords are provided, users with user password are able to decrypt the file but only have limited access to the file according to permission settings. Users with owner password have full access to the document."))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "Add encryption and access privileges to the final PDF. You can specify either user password, owner password or both passwords. Behavior differs according to passwords you provides:", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("ul", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", null, "When only user password is provided, users with user password are able to decrypt the file and have full access to the document."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", null, "When only owner password is provided, users are able to decrypt and open the document without providing any password, but the access is limited to those operations explicitly permitted. Users with owner password have full access to the document."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", null, "When both passwords are provided, users with user password are able to decrypt the file but only have limited access to the file according to permission settings. Users with owner password have full access to the document."))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem',
         paddingBottom: '0.5rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", null, "Encryption"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h2", null, "Encryption"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "password-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "User Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "User Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "password",
       autoComplete: "off",
       title: "Users will be prompted to enter the password to decrypt the file when opening it",
@@ -846,10 +845,10 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       onChange: v => this.updatePassword(entity, {
         password: v.target.value
       })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", null, "Access privileges"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "To set access privileges for the PDF, you need to provide an owner password and permission settings."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h2", null, "Access privileges"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", null, "To set access privileges for the PDF, you need to provide an owner password and permission settings."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "owner-password-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Owner Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Owner Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "password",
       autoComplete: "off",
       title: "Users with the owner password will always have full access to the PDF (no matter the permission settings)",
@@ -858,106 +857,106 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       onChange: v => this.updatePassword(entity, {
         ownerPassword: v.target.value
       })
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "printing-permission-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Printing permission"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("select", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Printing permission"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("select", {
       value: pdfPassword.printing || '-1',
       title: "Whether printing the file is allowed, and in which resolution the printing can be done",
       onChange: v => this.updatePassword(entity, {
         printing: v.target.value === '-1' ? null : v.target.value
       })
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("option", {
       key: "-1",
       value: "-1"
-    }, "Not allowed"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
+    }, "Not allowed"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("option", {
       key: "lowResolution",
       value: "lowResolution",
       title: "Allows the printing in degraded resolution"
-    }, "Low Resolution"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("option", {
+    }, "Low Resolution"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("option", {
       key: "highResolution",
       value: "highResolution",
       title: "Allows the printing in the best resolution"
-    }, "High Resolution"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "High Resolution"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "modify-permission-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", {
       title: "Whether modifying the file is allowed"
-    }, "Modify permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, "Modify permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfPassword.modifying === true,
       onChange: v => this.updatePassword(entity, {
         modifying: v.target.checked
       })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "copy-permission-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", {
       title: "Whether copying text or graphics from the file is allowed"
-    }, "Copy permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, "Copy permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfPassword.copying === true,
       onChange: v => this.updatePassword(entity, {
         copying: v.target.checked
       })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "annotation-permission-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", {
       title: "Whether annotating, form filling the file is allowed"
-    }, "Annotation permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, "Annotation permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfPassword.annotating === true,
       onChange: v => this.updatePassword(entity, {
         annotating: v.target.checked
       })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "fillingForms-permission-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", {
       title: "Whether form filling and signing the file is allowed"
-    }, "Filling Forms permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, "Filling Forms permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfPassword.fillingForms === true,
       onChange: v => this.updatePassword(entity, {
         fillingForms: v.target.checked
       })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "contentAccessibility-permission-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", {
       title: "Whether copying text from the file for accessibility is allowed"
-    }, "Content Accessibility permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, "Content Accessibility permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfPassword.contentAccessibility === true,
       onChange: v => this.updatePassword(entity, {
         contentAccessibility: v.target.checked
       })
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       key: "documentAssembly-permission-field",
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", {
       title: "Whether assembling document is allowed"
-    }, "Assembling Document permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, "Assembling Document permission", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfPassword.documentAssembly === true,
       onChange: v => this.updatePassword(entity, {
         documentAssembly: v.target.checked
       })
-    })))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'sign' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
+    })))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabPanel} ${activeTab === 'sign' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", {
       style: {
         marginTop: '1rem'
       }
-    }, "Add a digital signature to the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "Add a digital signature to the final PDF."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem',
         paddingBottom: '0.5rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Select certificate (asset)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(EntityRefSelect, {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Select certificate (asset)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement(EntityRefSelect, {
       headingLabel: "Select certificate",
       newLabel: "New certificate asset",
       value: pdfSign.certificateAssetShortid || '',
@@ -967,7 +966,7 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       filter: references => ({
         data: references.assets
       }),
-      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(sharedComponents.NewAssetModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
+      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement(sharedComponents.NewAssetModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
         options: {
           ...modalProps.options,
           defaults: {
@@ -976,164 +975,164 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
           activateNewTab: false
         }
       }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Sign Reason filled to pdf"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Sign Reason filled to pdf"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "text",
       placeholder: "signed...",
       value: pdfSign.reason,
       onChange: v => this.updateSign(entity, {
         reason: v.target.value
       })
-    })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'pdfA' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
+    })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabPanel} ${activeTab === 'pdfA' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", {
       style: {
         marginTop: '1rem'
       }
-    }, "Produce output complying with PDF/A-1B standard (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "Produce output complying with PDF/A-1B standard (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem',
         paddingBottom: '0.5rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfA.enabled === true,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfA: {
           enabled: v.target.checked
         }
       }))
-    }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
+    }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabPanel} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h2", {
       style: {
         marginTop: '1rem'
       }
-    }, "copy tags during operations (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "copy tags during operations (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem',
         paddingBottom: '0.5rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfAccessibility.enabled === true,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfAccessibility: {
           ...entity.pdfAccessibility,
           enabled: v.target.checked
         }
       }))
-    })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
+    })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h2", {
       style: {
         marginTop: '1rem'
       }
-    }, "pdf/UA (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "tasks for the template developer:", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("ul", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "html img needs to have the alt attribute"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "the pdf utils meta needs to have filled language"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "\"copy tags\" needs to be selected"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "pdf/UA (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("p", null, "tasks for the template developer:", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("ul", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", null, "html img needs to have the alt attribute"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", null, "the pdf utils meta needs to have filled language"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("li", null, "\"copy tags\" needs to be selected"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem',
         paddingBottom: '0.5rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfAccessibility.pdfUA === true,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfAccessibility: {
           ...entity.pdfAccessibility,
           pdfUA: v.target.checked
         }
       }))
-    }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
-      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
+    }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
+      className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].tabPanel} ${activeTab === 'pdfCompression' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_7__["default"].active : ''}`
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("h2", {
       style: {
         marginTop: '1rem'
       }
-    }, "compression (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "compression (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       style: {
         marginTop: '1rem',
         paddingBottom: '0.5rem'
       }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfCompression.enabled === true,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfCompression: {
           ...entity.pdfCompression,
           enabled: v.target.checked
         }
       }))
-    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "remove accessibility"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "remove accessibility"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfCompression.removeAccessibility !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfCompression: {
           ...entity.pdfCompression,
           removeAccessibility: v.target.checked
         }
       }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "recompress streams"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "recompress streams"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfCompression.recompressStreams !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfCompression: {
           ...entity.pdfCompression,
           recompressStreams: v.target.checked
         }
       }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "use object streams"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "use object streams"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfCompression.useObjectStreams !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfCompression: {
           ...entity.pdfCompression,
           useObjectStreams: v.target.checked
         }
       }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "remove effects"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "remove effects"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfCompression.removeEffects !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfCompression: {
           ...entity.pdfCompression,
           removeEffects: v.target.checked
         }
       }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "convert images to jpeg"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "convert images to jpeg"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "checkbox",
       checked: pdfCompression.convertImagesToJpeg !== false,
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfCompression: {
           ...entity.pdfCompression,
           convertImagesToJpeg: v.target.checked
         }
       }))
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("div", {
       className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "JPEG quality"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("label", null, "JPEG quality"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_2___default().createElement("input", {
       type: "number",
       min: "0",
       max: "100",
       placeholder: "60",
       value: pdfCompression.jpegQuality || '',
-      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity(Object.assign({}, entity, {
         pdfCompression: {
           ...entity.pdfCompression,
           jpegQuality: parseInt(v.target.value, 10)
@@ -1145,49 +1144,60 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PdfUtilsEditor);
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ ((module) => {
 
 module.exports = Studio.runtime['helpers/extends'];
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 const Content = props => {
-  const {
-    close,
-    options
-  } = props;
-  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [templateName, setTemplateName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('header-footer');
-  const [pageMargin, setPageMargin] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('2cm');
-  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const {
-    entity: mainTemplate
-  } = options;
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  const close = props.close,
+    options = props.options;
+  const _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+    _useState2 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState, 2),
+    error = _useState2[0],
+    setError = _useState2[1];
+  const _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+    _useState4 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState3, 2),
+    processing = _useState4[0],
+    setProcessing = _useState4[1];
+  const _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('header-footer'),
+    _useState6 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState5, 2),
+    templateName = _useState6[0],
+    setTemplateName = _useState6[1];
+  const _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('2cm'),
+    _useState8 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState7, 2),
+    pageMargin = _useState8[0],
+    setPageMargin = _useState8[1];
+  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
+  const mainTemplate = options.entity;
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     nameInputRef.current && nameInputRef.current.focus();
   }, []);
-  const handleSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
+  const handleSave = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(async () => {
     if (processing) {
       return;
     }
     setError(null);
     setProcessing(true);
     try {
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('/studio/validate-entity-name', {
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('/studio/validate-entity-name', {
         data: {
           name: templateName,
           entitySet: 'templates',
@@ -1201,7 +1211,7 @@ const Content = props => {
     }
     let newHeaderFooterTemplate;
     try {
-      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('/odata/templates', {
+      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('/odata/templates', {
         data: {
           name: templateName,
           content: getDefaultHeaderFooterContent(),
@@ -1215,7 +1225,7 @@ const Content = props => {
       }, true);
       response.__entitySet = 'templates';
       newHeaderFooterTemplate = Object.assign({}, response);
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().addExistingEntity(newHeaderFooterTemplate);
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addExistingEntity(newHeaderFooterTemplate);
     } catch (e) {
       setProcessing(false);
       setError(`Add new template "${templateName}" error: ${e.message}`);
@@ -1236,17 +1246,17 @@ const Content = props => {
           marginBottom: pageMargin
         };
       }
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity({
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity({
         _id: mainTemplate._id,
         ...updateChanges
       });
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().saveEntity(mainTemplate._id);
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().saveEntity(mainTemplate._id);
     } catch (e) {
       setProcessing(false);
       setError(`Update template "${mainTemplate.name}" error: ${e.message}`);
       return;
     }
-    await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openTab(newHeaderFooterTemplate);
+    await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openTab(newHeaderFooterTemplate);
     close();
   }, [processing, templateName, mainTemplate]);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", null, "Add header/footer")), /*#__PURE__*/React.createElement("div", {
@@ -1285,7 +1295,7 @@ const Content = props => {
     onClick: () => handleSave()
   }, "Ok")));
 };
-class AddHeaderFooterModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+class AddHeaderFooterModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
   render() {
     return /*#__PURE__*/React.createElement(Content, this.props);
   }
@@ -1365,42 +1375,50 @@ function getTotalPages (pages) {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddHeaderFooterModal);
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 const Content = props => {
-  const {
-    close,
-    options
-  } = props;
-  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [templateName, setTemplateName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('toc');
-  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const {
-    entity: mainTemplate
-  } = options;
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  const close = props.close,
+    options = props.options;
+  const _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+    _useState2 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState, 2),
+    error = _useState2[0],
+    setError = _useState2[1];
+  const _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+    _useState4 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState3, 2),
+    processing = _useState4[0],
+    setProcessing = _useState4[1];
+  const _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('toc'),
+    _useState6 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState5, 2),
+    templateName = _useState6[0],
+    setTemplateName = _useState6[1];
+  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
+  const mainTemplate = options.entity;
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     nameInputRef.current && nameInputRef.current.focus();
   }, []);
-  const handleSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
+  const handleSave = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(async () => {
     if (processing) {
       return;
     }
     setError(null);
     setProcessing(true);
     try {
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('/studio/validate-entity-name', {
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('/studio/validate-entity-name', {
         data: {
           name: templateName,
           entitySet: 'templates',
@@ -1414,7 +1432,7 @@ const Content = props => {
     }
     let newTOCTemplate;
     try {
-      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('/odata/templates', {
+      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('/odata/templates', {
         data: {
           name: templateName,
           content: getDefaultTOCContent(),
@@ -1434,7 +1452,7 @@ const Content = props => {
       }, true);
       response.__entitySet = 'templates';
       newTOCTemplate = Object.assign({}, response);
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().addExistingEntity(newTOCTemplate);
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addExistingEntity(newTOCTemplate);
     } catch (e) {
       setProcessing(false);
       setError(`Add new template "${templateName}" error: ${e.message}`);
@@ -1450,17 +1468,17 @@ const Content = props => {
       };
       updateChanges.content = `${getDefaultTOCContentForMainTemplate()}\n${mainTemplate.content || ''}`;
       updateChanges.helpers = `${getDefaultTOCHelpersForMainTemplate()}\n${mainTemplate.helpers || ''}`;
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updateEntity({
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity({
         _id: mainTemplate._id,
         ...updateChanges
       });
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().saveEntity(mainTemplate._id);
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().saveEntity(mainTemplate._id);
     } catch (e) {
       setProcessing(false);
       setError(`Update template "${mainTemplate.name}" error: ${e.message}`);
       return;
     }
-    await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openTab(newTOCTemplate);
+    await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openTab(newTOCTemplate);
     close();
   }, [processing, templateName, mainTemplate]);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", null, "Add Table of Contents")), /*#__PURE__*/React.createElement("div", {
@@ -1492,7 +1510,7 @@ const Content = props => {
     onClick: () => handleSave()
   }, "Ok")));
 };
-class AddTOCModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+class AddTOCModal extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
   render() {
     return /*#__PURE__*/React.createElement(Content, this.props);
   }
@@ -1700,37 +1718,45 @@ function level(chapters, opts) {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddTOCModal);
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _getCoverImgContent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _getCoverImgContent__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(13);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_3__);
+
 
 
 
 const Content = props => {
-  const {
-    close,
-    options
-  } = props;
-  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [templateName, setTemplateName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('cover');
-  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const {
-    entity: mainTemplate
-  } = options;
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  const close = props.close,
+    options = props.options;
+  const _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+    _useState2 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState, 2),
+    error = _useState2[0],
+    setError = _useState2[1];
+  const _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+    _useState4 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState3, 2),
+    processing = _useState4[0],
+    setProcessing = _useState4[1];
+  const _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('cover'),
+    _useState6 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState5, 2),
+    templateName = _useState6[0],
+    setTemplateName = _useState6[1];
+  const nameInputRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
+  const mainTemplate = options.entity;
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     nameInputRef.current && nameInputRef.current.focus();
   }, []);
-  const handleSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
+  const handleSave = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(async () => {
     if (processing) {
       return;
     }
@@ -1738,7 +1764,7 @@ const Content = props => {
     setProcessing(true);
     const newCoverAssetName = 'cover.jpg';
     try {
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('/studio/validate-entity-name', {
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().api.post('/studio/validate-entity-name', {
         data: {
           name: newCoverAssetName,
           entitySet: 'assets',
@@ -1751,7 +1777,7 @@ const Content = props => {
       return;
     }
     try {
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('/studio/validate-entity-name', {
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().api.post('/studio/validate-entity-name', {
         data: {
           name: templateName,
           entitySet: 'templates',
@@ -1765,10 +1791,10 @@ const Content = props => {
     }
     let newCoverAsset;
     try {
-      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('/odata/assets', {
+      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().api.post('/odata/assets', {
         data: {
           name: newCoverAssetName,
-          content: (0,_getCoverImgContent__WEBPACK_IMPORTED_MODULE_1__["default"])(),
+          content: (0,_getCoverImgContent__WEBPACK_IMPORTED_MODULE_2__["default"])(),
           folder: mainTemplate.folder != null ? {
             shortid: mainTemplate.folder.shortid
           } : null
@@ -1776,7 +1802,7 @@ const Content = props => {
       }, true);
       response.__entitySet = 'assets';
       newCoverAsset = Object.assign({}, response);
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addExistingEntity(newCoverAsset);
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().addExistingEntity(newCoverAsset);
     } catch (e) {
       setProcessing(false);
       setError(`Add new asset "${newCoverAssetName}" error: ${e.message}`);
@@ -1784,7 +1810,7 @@ const Content = props => {
     }
     let newCoverTemplate;
     try {
-      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().api.post('/odata/templates', {
+      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().api.post('/odata/templates', {
         data: {
           name: templateName,
           content: getDefaultCoverContent(),
@@ -1803,7 +1829,7 @@ const Content = props => {
       }, true);
       response.__entitySet = 'templates';
       newCoverTemplate = Object.assign({}, response);
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addExistingEntity(newCoverTemplate);
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().addExistingEntity(newCoverTemplate);
     } catch (e) {
       setProcessing(false);
       setError(`Add new template "${templateName}" error: ${e.message}`);
@@ -1816,17 +1842,17 @@ const Content = props => {
           templateShortid: newCoverTemplate.shortid
         }]
       };
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity({
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().updateEntity({
         _id: mainTemplate._id,
         ...updateChanges
       });
-      await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().saveEntity(mainTemplate._id);
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().saveEntity(mainTemplate._id);
     } catch (e) {
       setProcessing(false);
       setError(`Update template "${mainTemplate.name}" error: ${e.message}`);
       return;
     }
-    await jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openTab(newCoverTemplate);
+    await jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default().openTab(newCoverTemplate);
     close();
   }, [processing, templateName, mainTemplate]);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", null, "Add Cover")), /*#__PURE__*/React.createElement("div", {
@@ -1858,7 +1884,7 @@ const Content = props => {
     onClick: () => handleSave()
   }, "Ok")));
 };
-class AddCover extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+class AddCover extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
   render() {
     return /*#__PURE__*/React.createElement(Content, this.props);
   }
@@ -1973,7 +1999,7 @@ function getDefaultCoverContent() {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddCover);
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -1985,7 +2011,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -1996,7 +2022,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"separator":"x-pdf-utils-PdfUtilsEditor-separator","operationTable":"x-pdf-utils-PdfUtilsEditor-operationTable","customMetadataTable":"x-pdf-utils-PdfUtilsEditor-customMetadataTable","tabContainer":"x-pdf-utils-PdfUtilsEditor-tabContainer","tabTitles":"x-pdf-utils-PdfUtilsEditor-tabTitles","tabTitle":"x-pdf-utils-PdfUtilsEditor-tabTitle","active":"x-pdf-utils-PdfUtilsEditor-active","tabPanel":"x-pdf-utils-PdfUtilsEditor-tabPanel"});
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -2156,12 +2182,12 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _AssetProperties__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var _TemplatePdfUtilsProperties_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var _PdfUtilsTitle_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
-/* harmony import */ var _PdfUtilsEditor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(7);
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2);
-/* harmony import */ var _FooterStyleProblemModal_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(14);
+/* harmony import */ var _AssetProperties__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
+/* harmony import */ var _TemplatePdfUtilsProperties_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
+/* harmony import */ var _PdfUtilsTitle_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
+/* harmony import */ var _PdfUtilsEditor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(3);
+/* harmony import */ var _FooterStyleProblemModal_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(15);
 
 
 

@@ -7,6 +7,9 @@ See https://jsreport.net/learn/scheduling
 
 ## Changelog
 
+### 4.2.1
+- update moment to fix audit
+
 ### 4.2.0
 - minimum node.js version is now `22.18.0`
 

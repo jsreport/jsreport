@@ -604,7 +604,7 @@ class Transport extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1_
     }
     _port() {
         if (this.opts.port &&
-            ((this.opts.secure && Number(this.opts.port !== 443)) ||
+            ((this.opts.secure && Number(this.opts.port) !== 443) ||
                 (!this.opts.secure && Number(this.opts.port) !== 80))) {
             return ":" + this.opts.port;
         }
@@ -629,8 +629,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   NodeWebSocket: () => (/* reexport safe */ _transports_websocket_node_js__WEBPACK_IMPORTED_MODULE_8__.WS),
 /* harmony export */   NodeXHR: () => (/* reexport safe */ _transports_polling_xhr_node_js__WEBPACK_IMPORTED_MODULE_7__.XHR),
 /* harmony export */   Socket: () => (/* reexport safe */ _socket_js__WEBPACK_IMPORTED_MODULE_0__.Socket),
-/* harmony export */   SocketWithUpgrade: () => (/* reexport safe */ _socket_js__WEBPACK_IMPORTED_MODULE_0__.SocketWithUpgrade),
-/* harmony export */   SocketWithoutUpgrade: () => (/* reexport safe */ _socket_js__WEBPACK_IMPORTED_MODULE_0__.SocketWithoutUpgrade),
 /* harmony export */   Transport: () => (/* reexport safe */ _transport_js__WEBPACK_IMPORTED_MODULE_1__.Transport),
 /* harmony export */   TransportError: () => (/* reexport safe */ _transport_js__WEBPACK_IMPORTED_MODULE_1__.TransportError),
 /* harmony export */   WebSocket: () => (/* reexport safe */ _transports_websocket_node_js__WEBPACK_IMPORTED_MODULE_8__.WS),
@@ -652,7 +650,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _transports_polling_xhr_node_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(8);
 /* harmony import */ var _transports_websocket_node_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(9);
 /* harmony import */ var _transports_webtransport_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(11);
-
 
 
 const protocol = _socket_js__WEBPACK_IMPORTED_MODULE_0__.Socket.protocol;
@@ -678,6 +675,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Decoder: () => (/* binding */ Decoder),
 /* harmony export */   Encoder: () => (/* binding */ Encoder),
 /* harmony export */   PacketType: () => (/* binding */ PacketType),
+/* harmony export */   isPacketValid: () => (/* binding */ isPacketValid),
 /* harmony export */   protocol: () => (/* binding */ protocol)
 /* harmony export */ });
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
@@ -690,11 +688,11 @@ __webpack_require__.r(__webpack_exports__);
  * These strings must not be used as event names, as they have a special meaning.
  */
 const RESERVED_EVENTS = [
-    "connect",
-    "connect_error",
-    "disconnect",
-    "disconnecting",
-    "newListener",
+    "connect", // used on the client side
+    "connect_error", // used on the client side
+    "disconnect", // used on both sides
+    "disconnecting", // used on the server side
+    "newListener", // used by the Node.js EventEmitter
     "removeListener", // used by the Node.js EventEmitter
 ];
 /**
@@ -785,10 +783,6 @@ class Encoder {
         return buffers; // write all the buffers
     }
 }
-// see https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
-function isObject(value) {
-    return Object.prototype.toString.call(value) === "[object Object]";
-}
 /**
  * A socket.io Decoder instance
  *
@@ -797,12 +791,13 @@ function isObject(value) {
 class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__.Emitter {
     /**
      * Decoder constructor
-     *
-     * @param {function} reviver - custom reviver to pass down to JSON.stringify
      */
-    constructor(reviver) {
+    constructor(opts) {
         super();
-        this.reviver = reviver;
+        this.opts = Object.assign({
+            reviver: undefined,
+            maxAttachments: 10,
+        }, typeof opts === "function" ? { reviver: opts } : opts);
     }
     /**
      * Decodes an encoded packet string into packet JSON.
@@ -821,10 +816,6 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__.
                 packet.type = isBinaryEvent ? PacketType.EVENT : PacketType.ACK;
                 // binary packet's json
                 this.reconstructor = new BinaryReconstructor(packet);
-                // no attachments, labeled binary but no binary data to follow
-                if (packet.attachments === 0) {
-                    super.emitReserved("decoded", packet);
-                }
             }
             else {
                 // non-binary full packet
@@ -873,7 +864,14 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__.
             if (buf != Number(buf) || str.charAt(i) !== "-") {
                 throw new Error("Illegal attachments");
             }
-            p.attachments = Number(buf);
+            const n = Number(buf);
+            if (!isInteger(n) || n < 1) {
+                throw new Error("Illegal attachments");
+            }
+            else if (n > this.opts.maxAttachments) {
+                throw new Error("too many attachments");
+            }
+            p.attachments = n;
         }
         // look up namespace (if any)
         if ("/" === str.charAt(i + 1)) {
@@ -919,7 +917,7 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__.
     }
     tryParse(str) {
         try {
-            return JSON.parse(str, this.reviver);
+            return JSON.parse(str, this.opts.reviver);
         }
         catch (e) {
             return false;
@@ -993,6 +991,47 @@ class BinaryReconstructor {
         this.reconPack = null;
         this.buffers = [];
     }
+}
+function isNamespaceValid(nsp) {
+    return typeof nsp === "string";
+}
+// see https://caniuse.com/mdn-javascript_builtins_number_isinteger
+const isInteger = Number.isInteger ||
+    function (value) {
+        return (typeof value === "number" &&
+            isFinite(value) &&
+            Math.floor(value) === value);
+    };
+function isAckIdValid(id) {
+    return id === undefined || isInteger(id);
+}
+// see https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
+function isObject(value) {
+    return Object.prototype.toString.call(value) === "[object Object]";
+}
+function isDataValid(type, payload) {
+    switch (type) {
+        case PacketType.CONNECT:
+            return payload === undefined || isObject(payload);
+        case PacketType.DISCONNECT:
+            return payload === undefined;
+        case PacketType.EVENT:
+            return (Array.isArray(payload) &&
+                (typeof payload[0] === "number" ||
+                    (typeof payload[0] === "string" &&
+                        RESERVED_EVENTS.indexOf(payload[0]) === -1)));
+        case PacketType.ACK:
+            return Array.isArray(payload);
+        case PacketType.CONNECT_ERROR:
+            return typeof payload === "string" || isObject(payload);
+        default:
+            return false;
+    }
+}
+function isPacketValid(packet) {
+    return (isNamespaceValid(packet.nsp) &&
+        isAckIdValid(packet.id) &&
+        isDataValid(packet.type, packet.data));
 }
 
 
@@ -1068,8 +1107,8 @@ class BaseXHR extends _polling_js__WEBPACK_IMPORTED_MODULE_0__.Polling {
     /**
      * Sends data.
      *
-     * @param {String} data to send.
-     * @param {Function} called upon flush.
+     * @param {String} data - data to send.
+     * @param {Function} fn - called upon flush.
      * @private
      */
     doWrite(data, fn) {
@@ -2819,9 +2858,7 @@ function on(obj, ev, fn) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Socket: () => (/* binding */ Socket),
-/* harmony export */   SocketWithUpgrade: () => (/* binding */ SocketWithUpgrade),
-/* harmony export */   SocketWithoutUpgrade: () => (/* binding */ SocketWithoutUpgrade)
+/* harmony export */   Socket: () => (/* binding */ Socket)
 /* harmony export */ });
 /* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
@@ -2849,39 +2886,29 @@ if (withEventListeners) {
 }
 /**
  * This class provides a WebSocket-like interface to connect to an Engine.IO server. The connection will be established
- * with one of the available low-level transports, like HTTP long-polling, WebSocket or WebTransport.
+ * with one of the available low-level transports, like HTTP long-polling, WebSocket, or WebTransport.
  *
- * This class comes without upgrade mechanism, which means that it will keep the first low-level transport that
- * successfully establishes the connection.
- *
- * In order to allow tree-shaking, there are no transports included, that's why the `transports` option is mandatory.
+ * This class comes with an upgrade mechanism, which means that once the connection is established with the first
+ * low-level transport, it will try to upgrade to a better transport.
  *
  * @example
- * import { SocketWithoutUpgrade, WebSocket } from "engine.io-client";
+ * import { Socket } from "engine.io-client";
  *
- * const socket = new SocketWithoutUpgrade({
- *   transports: [WebSocket]
- * });
+ * const socket = new Socket();
  *
  * socket.on("open", () => {
  *   socket.send("hello");
  * });
  *
- * @see SocketWithUpgrade
- * @see Socket
  */
-class SocketWithoutUpgrade extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.Emitter {
-    /**
-     * Socket constructor.
-     *
-     * @param {String|Object} uri - uri or options
-     * @param {Object} opts - options
-     */
-    constructor(uri, opts) {
+class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__.Emitter {
+    constructor(uri, opts = {}) {
+        var _a, _b;
         super();
         this.binaryType = _globals_node_js__WEBPACK_IMPORTED_MODULE_6__.defaultBinaryType;
         this.writeBuffer = [];
         this._prevBufferLen = 0;
+        this._upgrades = [];
         this._pingInterval = -1;
         this._pingTimeout = -1;
         this._maxPayload = -1;
@@ -2925,13 +2952,26 @@ class SocketWithoutUpgrade extends _socket_io_component_emitter__WEBPACK_IMPORTE
                     : this.secure
                         ? "443"
                         : "80");
-        this.transports = [];
-        this._transportsByName = {};
-        opts.transports.forEach((t) => {
-            const transportName = t.prototype.name;
-            this.transports.push(transportName);
-            this._transportsByName[transportName] = t;
-        });
+        if (opts.transportImplementations && opts.transports) {
+            throw new Error("specifying both 'transportImplementations' and 'transports' options is not supported");
+        }
+        if (opts.transportImplementations ||
+            (((_a = opts.transports) === null || _a === void 0 ? void 0 : _a.length) && typeof opts.transports[0] === "function")) {
+            // 'transports' option as an array of transport implementations is kept for backward compatibility
+            this.transports = [];
+            this._transportsByName = Object.create(null);
+            ((_b = opts.transportImplementations) !== null && _b !== void 0 ? _b : opts.transports).forEach((t) => {
+                const transportName = t.prototype.name;
+                this.transports.push(transportName);
+                this._transportsByName[transportName] = t;
+            });
+        }
+        else {
+            this.transports = opts.transports
+                ? [...opts.transports]
+                : ["polling", "websocket", "webtransport"];
+            this._transportsByName = _transports_index_js__WEBPACK_IMPORTED_MODULE_0__.transports;
+        }
         this.opts = Object.assign({
             path: "/engine.io",
             agent: false,
@@ -3020,7 +3060,7 @@ class SocketWithoutUpgrade extends _socket_io_component_emitter__WEBPACK_IMPORTE
             return;
         }
         const transportName = this.opts.rememberUpgrade &&
-            SocketWithoutUpgrade.priorWebsocketSuccess &&
+            Socket.priorWebsocketSuccess &&
             this.transports.indexOf("websocket") !== -1
             ? "websocket"
             : this.transports[0];
@@ -3048,16 +3088,121 @@ class SocketWithoutUpgrade extends _socket_io_component_emitter__WEBPACK_IMPORTE
             .on("close", (reason) => this._onClose("transport close", reason));
     }
     /**
+     * Probes a transport.
+     *
+     * @param {String} name - transport name
+     * @private
+     */
+    _probe(name) {
+        let transport = this.createTransport(name);
+        let failed = false;
+        Socket.priorWebsocketSuccess = false;
+        const onTransportOpen = () => {
+            if (failed)
+                return;
+            transport.send([{ type: "ping", data: "probe" }]);
+            transport.once("packet", (msg) => {
+                if (failed)
+                    return;
+                if ("pong" === msg.type && "probe" === msg.data) {
+                    this.upgrading = true;
+                    this.emitReserved("upgrading", transport);
+                    if (!transport)
+                        return;
+                    Socket.priorWebsocketSuccess = "websocket" === transport.name;
+                    this.transport.pause(() => {
+                        if (failed)
+                            return;
+                        if ("closed" === this.readyState)
+                            return;
+                        cleanup();
+                        this.setTransport(transport);
+                        transport.send([{ type: "upgrade" }]);
+                        this.emitReserved("upgrade", transport);
+                        transport = null;
+                        this.upgrading = false;
+                        this.flush();
+                    });
+                }
+                else {
+                    const err = new Error("probe error");
+                    // @ts-ignore
+                    err.transport = transport.name;
+                    this.emitReserved("upgradeError", err);
+                }
+            });
+        };
+        function freezeTransport() {
+            if (failed)
+                return;
+            // Any callback called by transport should be ignored since now
+            failed = true;
+            cleanup();
+            transport.close();
+            transport = null;
+        }
+        // Handle any error that happens while probing
+        const onerror = (err) => {
+            const error = new Error("probe error: " + err);
+            // @ts-ignore
+            error.transport = transport.name;
+            freezeTransport();
+            this.emitReserved("upgradeError", error);
+        };
+        function onTransportClose() {
+            onerror("transport closed");
+        }
+        // When the socket is closed while we're probing
+        function onclose() {
+            onerror("socket closed");
+        }
+        // When the socket is upgraded while we're probing
+        function onupgrade(to) {
+            if (transport && to.name !== transport.name) {
+                freezeTransport();
+            }
+        }
+        // Remove all listeners on the transport and on self
+        const cleanup = () => {
+            transport.removeListener("open", onTransportOpen);
+            transport.removeListener("error", onerror);
+            transport.removeListener("close", onTransportClose);
+            this.off("close", onclose);
+            this.off("upgrading", onupgrade);
+        };
+        transport.once("open", onTransportOpen);
+        transport.once("error", onerror);
+        transport.once("close", onTransportClose);
+        this.once("close", onclose);
+        this.once("upgrading", onupgrade);
+        if (this._upgrades.indexOf("webtransport") !== -1 &&
+            name !== "webtransport") {
+            // favor WebTransport
+            this.setTimeoutFn(() => {
+                if (!failed) {
+                    transport.open();
+                }
+            }, 200);
+        }
+        else {
+            transport.open();
+        }
+    }
+    /**
      * Called when connection is deemed open.
      *
      * @private
      */
     onOpen() {
         this.readyState = "open";
-        SocketWithoutUpgrade.priorWebsocketSuccess =
-            "websocket" === this.transport.name;
+        Socket.priorWebsocketSuccess = "websocket" === this.transport.name;
         this.emitReserved("open");
         this.flush();
+        if ("open" === this.readyState && this.opts.upgrade) {
+            for (let i = 0; i < this._upgrades.length; i++) {
+                this._probe(this._upgrades[i]);
+            }
+        }
     }
     /**
      * Handles a packet.
@@ -3106,6 +3251,7 @@ class SocketWithoutUpgrade extends _socket_io_component_emitter__WEBPACK_IMPORTE
         this.emitReserved("handshake", data);
         this.id = data.sid;
         this.transport.query.sid = data.sid;
+        this._upgrades = this._filterUpgrades(data.upgrades);
         this._pingInterval = data.pingInterval;
         this._pingTimeout = data.pingTimeout;
         this._maxPayload = data.maxPayload;
@@ -3241,7 +3387,7 @@ class SocketWithoutUpgrade extends _socket_io_component_emitter__WEBPACK_IMPORTE
     /**
      * Sends a packet.
      *
-     * @param {String} type: packet type.
+     * @param {String} type - packet type.
      * @param {String} data.
      * @param {Object} options.
      * @param {Function} fn - callback function.
@@ -3317,7 +3463,7 @@ class SocketWithoutUpgrade extends _socket_io_component_emitter__WEBPACK_IMPORTE
      * @private
      */
     _onError(err) {
-        SocketWithoutUpgrade.priorWebsocketSuccess = false;
+        Socket.priorWebsocketSuccess = false;
         if (this.opts.tryAllTransports &&
             this.transports.length > 1 &&
             this.readyState === "opening") {
@@ -3367,150 +3513,6 @@ class SocketWithoutUpgrade extends _socket_io_component_emitter__WEBPACK_IMPORTE
             this._prevBufferLen = 0;
         }
     }
-}
-SocketWithoutUpgrade.protocol = engine_io_parser__WEBPACK_IMPORTED_MODULE_5__.protocol;
-/**
- * This class provides a WebSocket-like interface to connect to an Engine.IO server. The connection will be established
- * with one of the available low-level transports, like HTTP long-polling, WebSocket or WebTransport.
- *
- * This class comes with an upgrade mechanism, which means that once the connection is established with the first
- * low-level transport, it will try to upgrade to a better transport.
- *
- * In order to allow tree-shaking, there are no transports included, that's why the `transports` option is mandatory.
- *
- * @example
- * import { SocketWithUpgrade, WebSocket } from "engine.io-client";
- *
- * const socket = new SocketWithUpgrade({
- *   transports: [WebSocket]
- * });
- *
- * socket.on("open", () => {
- *   socket.send("hello");
- * });
- *
- * @see SocketWithoutUpgrade
- * @see Socket
- */
-class SocketWithUpgrade extends SocketWithoutUpgrade {
-    constructor() {
-        super(...arguments);
-        this._upgrades = [];
-    }
-    onOpen() {
-        super.onOpen();
-        if ("open" === this.readyState && this.opts.upgrade) {
-            for (let i = 0; i < this._upgrades.length; i++) {
-                this._probe(this._upgrades[i]);
-            }
-        }
-    }
-    /**
-     * Probes a transport.
-     *
-     * @param {String} name - transport name
-     * @private
-     */
-    _probe(name) {
-        let transport = this.createTransport(name);
-        let failed = false;
-        SocketWithoutUpgrade.priorWebsocketSuccess = false;
-        const onTransportOpen = () => {
-            if (failed)
-                return;
-            transport.send([{ type: "ping", data: "probe" }]);
-            transport.once("packet", (msg) => {
-                if (failed)
-                    return;
-                if ("pong" === msg.type && "probe" === msg.data) {
-                    this.upgrading = true;
-                    this.emitReserved("upgrading", transport);
-                    if (!transport)
-                        return;
-                    SocketWithoutUpgrade.priorWebsocketSuccess =
-                        "websocket" === transport.name;
-                    this.transport.pause(() => {
-                        if (failed)
-                            return;
-                        if ("closed" === this.readyState)
-                            return;
-                        cleanup();
-                        this.setTransport(transport);
-                        transport.send([{ type: "upgrade" }]);
-                        this.emitReserved("upgrade", transport);
-                        transport = null;
-                        this.upgrading = false;
-                        this.flush();
-                    });
-                }
-                else {
-                    const err = new Error("probe error");
-                    // @ts-ignore
-                    err.transport = transport.name;
-                    this.emitReserved("upgradeError", err);
-                }
-            });
-        };
-        function freezeTransport() {
-            if (failed)
-                return;
-            // Any callback called by transport should be ignored since now
-            failed = true;
-            cleanup();
-            transport.close();
-            transport = null;
-        }
-        // Handle any error that happens while probing
-        const onerror = (err) => {
-            const error = new Error("probe error: " + err);
-            // @ts-ignore
-            error.transport = transport.name;
-            freezeTransport();
-            this.emitReserved("upgradeError", error);
-        };
-        function onTransportClose() {
-            onerror("transport closed");
-        }
-        // When the socket is closed while we're probing
-        function onclose() {
-            onerror("socket closed");
-        }
-        // When the socket is upgraded while we're probing
-        function onupgrade(to) {
-            if (transport && to.name !== transport.name) {
-                freezeTransport();
-            }
-        }
-        // Remove all listeners on the transport and on self
-        const cleanup = () => {
-            transport.removeListener("open", onTransportOpen);
-            transport.removeListener("error", onerror);
-            transport.removeListener("close", onTransportClose);
-            this.off("close", onclose);
-            this.off("upgrading", onupgrade);
-        };
-        transport.once("open", onTransportOpen);
-        transport.once("error", onerror);
-        transport.once("close", onTransportClose);
-        this.once("close", onclose);
-        this.once("upgrading", onupgrade);
-        if (this._upgrades.indexOf("webtransport") !== -1 &&
-            name !== "webtransport") {
-            // favor WebTransport
-            this.setTimeoutFn(() => {
-                if (!failed) {
-                    transport.open();
-                }
-            }, 200);
-        }
-        else {
-            transport.open();
-        }
-    }
-    onHandshake(data) {
-        this._upgrades = this._filterUpgrades(data.upgrades);
-        super.onHandshake(data);
-    }
     /**
      * Filters upgrades, returning only those matching client transports.
      *
@@ -3526,37 +3528,7 @@ class SocketWithUpgrade extends SocketWithoutUpgrade {
         return filteredUpgrades;
     }
 }
-/**
- * This class provides a WebSocket-like interface to connect to an Engine.IO server. The connection will be established
- * with one of the available low-level transports, like HTTP long-polling, WebSocket or WebTransport.
- *
- * This class comes with an upgrade mechanism, which means that once the connection is established with the first
- * low-level transport, it will try to upgrade to a better transport.
- *
- * @example
- * import { Socket } from "engine.io-client";
- *
- * const socket = new Socket();
- *
- * socket.on("open", () => {
- *   socket.send("hello");
- * });
- *
- * @see SocketWithoutUpgrade
- * @see SocketWithUpgrade
- */
-class Socket extends SocketWithUpgrade {
-    constructor(uri, opts = {}) {
-        const o = typeof uri === "object" ? uri : opts;
-        if (!o.transports ||
-            (o.transports && typeof o.transports[0] === "string")) {
-            o.transports = (o.transports || ["polling", "websocket", "webtransport"])
-                .map((transportName) => _transports_index_js__WEBPACK_IMPORTED_MODULE_0__.transports[transportName])
-                .filter((t) => !!t);
-        }
-        super(uri, o);
-    }
-}
+Socket.protocol = engine_io_parser__WEBPACK_IMPORTED_MODULE_5__.protocol;
 
 
 /***/ }),
@@ -4425,7 +4397,7 @@ function deconstructPacket(packet) {
     pack.attachments = buffers.length; // number of binary 'attachments'
     return { packet: pack, buffers: buffers };
 }
-function _deconstructPacket(data, buffers) {
+function _deconstructPacket(data, buffers, toJSON) {
     if (!data)
         return data;
     if ((0,_is_binary_js__WEBPACK_IMPORTED_MODULE_0__.isBinary)(data)) {
@@ -4441,6 +4413,9 @@ function _deconstructPacket(data, buffers) {
         return newData;
     }
     else if (typeof data === "object" && !(data instanceof Date)) {
+        if (data.toJSON && typeof data.toJSON === "function" && !toJSON) {
+            return _deconstructPacket(data.toJSON(), buffers, true);
+        }
         const newData = {};
         for (const key in data) {
             if (Object.prototype.hasOwnProperty.call(data, key)) {

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.4.4
+- update @jsreport/html-to-xlsx, @jsreport/office to fix audit
+- ensure kill of Chrome browsers when a worker closes
+
 ### 4.4.3
 - update deps to fix audit
 

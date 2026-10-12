@@ -60,10 +60,9 @@ class HtmlToXlsxProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component 
     this.removeInvalidXlsxTemplateReferences();
   }
   removeInvalidXlsxTemplateReferences() {
-    const {
-      entity,
-      entities
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      entities = _this$props.entities;
     if (!entity.htmlToXlsx) {
       return;
     }
@@ -75,9 +74,7 @@ class HtmlToXlsxProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component 
     }
   }
   removeInvalidHtmlEngine() {
-    const {
-      entity
-    } = this.props;
+    const entity = this.props.entity;
     if (!entity.htmlToXlsx || !entity.htmlToXlsx.htmlEngine) {
       return;
     }
@@ -90,9 +87,7 @@ class HtmlToXlsxProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component 
     }
   }
   applyDefaultsToEntity(props) {
-    const {
-      entity
-    } = props;
+    const entity = props.entity;
     const htmlEngines = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().extensions)['html-to-xlsx'].options.htmlEngines;
     let entityNeedsDefault = false;
     if (entity.__isNew || entity.htmlToXlsx == null || entity.htmlToXlsx.htmlEngine == null) {
@@ -105,10 +100,8 @@ class HtmlToXlsxProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component 
     }
   }
   changeHtmlToXlsx(props, change) {
-    const {
-      entity,
-      onChange
-    } = props;
+    const entity = props.entity,
+      onChange = props.onChange;
     const htmlToXlsx = entity.htmlToXlsx || {};
     onChange({
       ...entity,
@@ -119,9 +112,7 @@ class HtmlToXlsxProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component 
     });
   }
   render() {
-    const {
-      entity
-    } = this.props;
+    const entity = this.props.entity;
     const htmlToXlsx = entity.htmlToXlsx || {};
     const htmlEngines = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().extensions)['html-to-xlsx'].options.htmlEngines;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {

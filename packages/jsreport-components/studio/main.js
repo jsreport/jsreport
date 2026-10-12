@@ -97,10 +97,9 @@ class NewComponentModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     });
   }
   render() {
-    const {
-      error,
-      processing
-    } = this.state;
+    const _this$state = this.state,
+      error = _this$state.error,
+      processing = _this$state.processing;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "form-group"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "New component")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -156,10 +155,9 @@ __webpack_require__.r(__webpack_exports__);
 
 class ComponentProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   renderEngines() {
-    const {
-      entity,
-      onChange
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      onChange = _this$props.onChange;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
       value: entity.engine,
       onChange: v => onChange({
@@ -202,9 +200,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const FramePreview = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().sharedComponents).FramePreview;
 const ComponentPreview = props => {
-  const {
-    data
-  } = props;
+  const data = props.data;
   const src = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     if (data.type == null && data.content == null) {
       return null;
@@ -240,23 +236,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
+/* harmony import */ var _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 const PreviewComponentToolbar = props => {
-  const [isRunning, setIsRunning] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const stopPreviewRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+    _useState2 = _babel_runtime_helpers_slicedToArray__WEBPACK_IMPORTED_MODULE_0___default()(_useState, 2),
+    isRunning = _useState2[0],
+    setIsRunning = _useState2[1];
+  const stopPreviewRef = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
   const entity = props.tab != null && props.tab.entity != null ? props.tab.entity : undefined;
-  const previewComponent = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function previewComponent(componentShortid, componentName) {
+  const previewComponent = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function previewComponent(componentShortid, componentName) {
     if (isRunning) {
       return;
     }
     setIsRunning(true);
-    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().startProgress();
-    const previewId = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().preview({
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().startProgress();
+    const previewId = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().preview({
       type: 'component',
       data: {}
     });
@@ -274,12 +276,12 @@ const PreviewComponentToolbar = props => {
     }
     if (entity.data && entity.data.shortid) {
       // try to fill request.data from the active open tab with sample data
-      const dataDetails = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getAllEntities().filter(d => d.shortid === entity.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isDirty || d.__isNew));
+      const dataDetails = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().getAllEntities().filter(d => d.shortid === entity.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isDirty || d.__isNew));
       if (dataDetails.length > 0) {
         componentPayload.data = dataDetails[0].dataJson ? JSON.parse(dataDetails[0].dataJson) : {};
       }
     }
-    const componentUrl = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().resolveUrl('/api/component');
+    const componentUrl = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl('/api/component');
     const previewController = new AbortController();
     stopPreviewRef.current = () => {
       previewController.abort();
@@ -312,10 +314,8 @@ const PreviewComponentToolbar = props => {
         content
       }));
     }).then(_ref => {
-      let {
-        status,
-        content
-      } = _ref;
+      let status = _ref.status,
+        content = _ref.content;
       if (status !== 200) {
         let notOkError;
         if (typeof content !== 'string' && content.message && content.stack) {
@@ -327,9 +327,9 @@ const PreviewComponentToolbar = props => {
         throw notOkError;
       }
       setIsRunning(false);
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().stopProgress();
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().stopProgress();
       stopPreviewRef.current = null;
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updatePreview(previewId, {
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updatePreview(previewId, {
         data: {
           type: 'text/html',
           content
@@ -338,9 +338,9 @@ const PreviewComponentToolbar = props => {
       });
     }).catch(err => {
       setIsRunning(false);
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().stopProgress();
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().stopProgress();
       stopPreviewRef.current = null;
-      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updatePreview(previewId, {
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updatePreview(previewId, {
         data: {
           type: 'text/plain',
           content: `Component${componentName != null ? ` "${componentName}"` : ''} preview failed.\n\n${err.message}\n${err.stack || ''}`
@@ -349,12 +349,12 @@ const PreviewComponentToolbar = props => {
       });
     });
   }, [entity, isRunning]);
-  const stopPreviewComponent = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function stopPreviewComponent() {
+  const stopPreviewComponent = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function stopPreviewComponent() {
     if (stopPreviewRef.current != null) {
       stopPreviewRef.current();
     }
   });
-  const handleEarlyShortcut = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function handleEarlyShortcut(e) {
+  const handleEarlyShortcut = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function handleEarlyShortcut(e) {
     if (e.which === 120 && entity && entity.__entitySet === 'components') {
       e.preventDefault();
       e.stopPropagation();
@@ -366,7 +366,7 @@ const PreviewComponentToolbar = props => {
       return false;
     }
   }, [previewComponent, isRunning, entity]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     window.addEventListener('keydown', handleEarlyShortcut, true);
     return () => {
       window.removeEventListener('keydown', handleEarlyShortcut, true);
@@ -390,6 +390,12 @@ const PreviewComponentToolbar = props => {
   }), "Component");
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PreviewComponentToolbar);
+
+/***/ }),
+/* 7 */
+/***/ ((module) => {
+
+module.exports = Studio.runtime['helpers/slicedToArray'];
 
 /***/ })
 /******/ 	]);
@@ -494,9 +500,7 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addPropertiesComponent(_C
 jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addToolbarComponent(_PreviewComponentToolbar__WEBPACK_IMPORTED_MODULE_3__["default"]);
 jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addPreviewComponent('component', _ComponentPreview__WEBPACK_IMPORTED_MODULE_2__["default"]);
 jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().textEditorInitializeListeners.push(_ref => {
-  let {
-    monaco
-  } = _ref;
+  let monaco = _ref.monaco;
   registerHandlebarsLanguage(monaco);
 });
 
@@ -519,11 +523,10 @@ function registerHandlebarsLanguage(monaco) {
           const path = match[2];
           const entityPath = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityPath(jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().getActiveEntity());
           const parentPath = `/${entityPath.split('/').slice(1, -1).join('/')}`;
-          const {
-            entity: targetEntity
-          } = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityFromPath(path, 'components', {
-            currentPath: parentPath
-          });
+          const _Studio$resolveEntity = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityFromPath(path, 'components', {
+              currentPath: parentPath
+            }),
+            targetEntity = _Studio$resolveEntity.entity;
           if ((targetEntity === null || targetEntity === void 0 ? void 0 : targetEntity.__entitySet) !== 'components') {
             continue;
           }
@@ -550,11 +553,10 @@ function registerHandlebarsLanguage(monaco) {
       }
       const entityPath = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityPath(jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().getActiveEntity());
       const parentPath = `/${entityPath.split('/').slice(1, -1).join('/')}`;
-      const {
-        entity: targetEntity
-      } = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityFromPath(url.path.slice(1), 'components', {
-        currentPath: parentPath
-      });
+      const _Studio$resolveEntity2 = jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().resolveEntityFromPath(url.path.slice(1), 'components', {
+          currentPath: parentPath
+        }),
+        targetEntity = _Studio$resolveEntity2.entity;
       if (!targetEntity) {
         return false;
       }

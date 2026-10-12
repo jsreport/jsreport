@@ -405,9 +405,8 @@ const getTextFromApi = path => {
   return new Promise((resolve, reject) => {
     const request = superagent__WEBPACK_IMPORTED_MODULE_3___default().get(jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveUrl(path));
     request.end(function (err) {
-      let {
-        text
-      } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      let _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+        text = _ref.text;
       return err ? reject(new Error(text || err.toString())) : resolve(text);
     });
   });
@@ -428,9 +427,7 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     this.previewLoadFinish = this.previewLoadFinish.bind(this);
   }
   async componentDidMount() {
-    const {
-      entity
-    } = this.props;
+    const entity = this.props.entity;
     if (!entity) {
       return this.setState({
         initialLoading: false
@@ -452,9 +449,7 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     });
   }
   async componentDidUpdate(prevProps) {
-    const {
-      entity
-    } = this.props;
+    const entity = this.props.entity;
     if (!entity) {
       return;
     }
@@ -550,12 +545,8 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     return true;
   }
   preview(entity) {
-    const {
-      previewOpen
-    } = this.state;
-    const {
-      onPreview
-    } = this.props;
+    const previewOpen = this.state.previewOpen;
+    const onPreview = this.props.onPreview;
     const lazyPreview = this.getLazyPreviewStatus(entity);
     const previewEnabled = this.getPreviewEnabledStatus(entity);
     if (!lazyPreview || !previewEnabled) {
@@ -618,20 +609,18 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }), " Upload")));
   }
   renderEditorToolbar() {
-    const {
-      link,
-      previewLoading,
-      previewOpen,
-      codeActive
-    } = this.state;
-    const {
-      entity,
-      codeEntity,
-      displayName,
-      icon,
-      onDownload,
-      onUpload
-    } = this.props;
+    const _this$state = this.state,
+      link = _this$state.link,
+      previewLoading = _this$state.previewLoading,
+      previewOpen = _this$state.previewOpen,
+      codeActive = _this$state.codeActive;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      codeEntity = _this$props.codeEntity,
+      displayName = _this$props.displayName,
+      icon = _this$props.icon,
+      onDownload = _this$props.onDownload,
+      onUpload = _this$props.onUpload;
     const lazyPreview = this.getLazyPreviewStatus(entity);
     const previewEnabled = this.getPreviewEnabledStatus(entity);
     const embeddingCode = this.getEmbeddingCode(entity);
@@ -750,16 +739,13 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }), " linked to file:"), " ", link)));
   }
   renderEditorContent() {
-    const {
-      entity,
-      codeEntity,
-      emptyMessage,
-      getPreviewContent,
-      onUpdate
-    } = this.props;
-    const {
-      codeActive
-    } = this.state;
+    const _this$props2 = this.props,
+      entity = _this$props2.entity,
+      codeEntity = _this$props2.codeEntity,
+      emptyMessage = _this$props2.emptyMessage,
+      getPreviewContent = _this$props2.getPreviewContent,
+      onUpdate = _this$props2.onUpdate;
+    const codeActive = this.state.codeActive;
     if (codeEntity != null && codeActive) {
       const helpersEditor = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__.TextEditor, {
         key: codeEntity._id + '_helpers',
@@ -897,9 +883,7 @@ class AssetEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     });
   }
   render() {
-    const {
-      initialLoading
-    } = this.state;
+    const initialLoading = this.state.initialLoading;
     if (initialLoading) {
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null);
     }
@@ -1148,12 +1132,11 @@ class NewAssetModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }
   }
   render() {
-    const {
-      isLink,
-      isSharedHelper,
-      scope,
-      error
-    } = this.state;
+    const _this$state = this.state,
+      isLink = _this$state.isLink,
+      isSharedHelper = _this$state.isSharedHelper,
+      scope = _this$state.scope,
+      error = _this$state.error;
     const currentScopeValue = scope != null ? scope : 'global';
     const currentScopeOption = _scopeOptions__WEBPACK_IMPORTED_MODULE_1__["default"].find(opt => opt.value === currentScopeValue);
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -1273,10 +1256,9 @@ class AssetProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     this.normalizeScope();
   }
   normalizeScope() {
-    const {
-      entity,
-      onChange
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      onChange = _this$props.onChange;
     if (entity.isSharedHelper === true && entity.sharedHelpersScope == null) {
       onChange({
         _id: entity._id,
@@ -1286,10 +1268,9 @@ class AssetProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }
   }
   render() {
-    const {
-      entity,
-      onChange
-    } = this.props;
+    const _this$props2 = this.props,
+      entity = _this$props2.entity,
+      onChange = _this$props2.onChange;
     const currentScopeValue = entity.sharedHelpersScope != null ? entity.sharedHelpersScope : 'global';
     const currentScopeOption = _scopeOptions__WEBPACK_IMPORTED_MODULE_1__["default"].find(opt => opt.value === currentScopeValue);
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().extensions).assets.options.allowAssetsLinkedToFiles !== false ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -1458,11 +1439,9 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().entityTreeIconResolvers.p
 jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().entityTreeDropResolvers.push({
   type: (jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().dragAndDropNativeTypes).FILE,
   async handler(_ref) {
-    let {
-      draggedItem,
-      dragOverContext,
-      dropComplete
-    } = _ref;
+    let draggedItem = _ref.draggedItem,
+      dragOverContext = _ref.dragOverContext,
+      dropComplete = _ref.dropComplete;
     const files = draggedItem.files;
     const targetInfo = {
       shortid: null

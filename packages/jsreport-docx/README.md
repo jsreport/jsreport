@@ -7,6 +7,10 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.11.2
+- update moment, axios to fix audit
+- get back to image-size (from image-size-next), audit issues for it are solved
+
 ### 4.11.1
 - update deps to fix audit
 

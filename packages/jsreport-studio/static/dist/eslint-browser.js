@@ -40,11 +40,11 @@ const eslintScope = __webpack_require__(2),
   Traverser = __webpack_require__(197),
   createReportTranslator = __webpack_require__(198),
   Rules = __webpack_require__(201),
-  timing = __webpack_require__(487),
-  ConfigCommentParser = __webpack_require__(488),
+  timing = __webpack_require__(493),
+  ConfigCommentParser = __webpack_require__(494),
   astUtils = __webpack_require__(111),
-  pkg = __webpack_require__(501),
-  SourceCodeFixer = __webpack_require__(502);
+  pkg = __webpack_require__(507),
+  SourceCodeFixer = __webpack_require__(508);
 const debug = __webpack_require__(106)("eslint:linter");
 const MAX_AUTOFIX_PASSES = 10;
 const DEFAULT_PARSER_NAME = "espree";
@@ -90,10 +90,8 @@ function addDeclaredGlobals(globalScope, configGlobals, commentDirectives) {
     sourceComment: null,
     value: ConfigOps.normalizeConfigGlobal(value)
   })), lodash.mapValues(commentDirectives.enabledGlobals, _ref => {
-    let {
-      comment,
-      value
-    } = _ref;
+    let comment = _ref.comment,
+      value = _ref.value;
     return {
       sourceComment: comment,
       value: ConfigOps.normalizeConfigGlobal(value)
@@ -825,9 +823,7 @@ module.exports = class Linter {
       debug("An error occurred while traversing");
       debug("Filename:", options.filename);
       if (err.currentNode) {
-        const {
-          line
-        } = err.currentNode.loc.start;
+        const line = err.currentNode.loc.start.line;
         debug("Line:", line);
         err.message += `:${line}`;
       }
@@ -4077,6 +4073,9 @@ var g = typeof globalThis === 'undefined' ? __webpack_require__.g : globalThis;
 var typedArrays = availableTypedArrays();
 var $slice = callBound('String.prototype.slice');
 
+/** @import { BoundSet, BoundSlice, Cache, Getter } from './types' */
+/** @import { TypedArrayName } from '.' */
+
 /** @type {<T = unknown>(array: readonly T[], value: unknown) => number} */
 var $indexOf = callBound('Array.prototype.indexOf', true) || function indexOf(array, value) {
   for (var i = 0; i < array.length; i += 1) {
@@ -4087,8 +4086,7 @@ var $indexOf = callBound('Array.prototype.indexOf', true) || function indexOf(ar
   return -1;
 };
 
-/** @typedef {import('./types').Getter} Getter */
-/** @type {import('./types').Cache} */
+/** @type {Cache} */
 var cache = {
   __proto__: null
 };
@@ -4104,8 +4102,11 @@ if (hasToStringTag && gOPD && getProto) {
         // @ts-expect-error TS won't narrow inside a closure
         descriptor = gOPD(superProto, Symbol.toStringTag);
       }
-      // @ts-expect-error TODO: fix
-      cache['$' + typedArray] = callBind(descriptor.get);
+      if (descriptor && descriptor.get) {
+        var bound = callBind(descriptor.get);
+        cache[(/** @type {`$${TypedArrayName}`} */
+        '$' + typedArray)] = bound;
+      }
     }
   });
 } else {
@@ -4113,54 +4114,60 @@ if (hasToStringTag && gOPD && getProto) {
     var arr = new g[typedArray]();
     var fn = arr.slice || arr.set;
     if (fn) {
-      cache[(/** @type {`$${import('.').TypedArrayName}`} */'$' + typedArray)] = /** @type {import('./types').BoundSlice | import('./types').BoundSet} */
+      var bound = /** @type {typeof BoundSlice | typeof BoundSet} */
       // @ts-expect-error TODO FIXME
       callBind(fn);
+      cache[(/** @type {`$${TypedArrayName}`} */
+      '$' + typedArray)] = bound;
     }
   });
 }
 
-/** @type {(value: object) => false | import('.').TypedArrayName} */
-var tryTypedArrays = function tryAllTypedArrays(value) {
-  /** @type {ReturnType<typeof tryAllTypedArrays>} */var found = false;
-  forEach(/** @type {Record<`\$${import('.').TypedArrayName}`, Getter>} */cache, /** @type {(getter: Getter, name: `\$${import('.').TypedArrayName}`) => void} */
+/** @type {(value: object) => false | TypedArrayName} */
+function tryTypedArrays(value) {
+  /** @type {ReturnType<typeof tryTypedArrays>} */var found = false;
+  forEach(/** @type {Record<`$${TypedArrayName}`, Getter>} */cache, /** @param {Getter} getter @param {`$${TypedArrayName}`} typedArray */
   function (getter, typedArray) {
     if (!found) {
       try {
         // @ts-expect-error a throw is fine here
         if ('$' + getter(value) === typedArray) {
-          found = /** @type {import('.').TypedArrayName} */$slice(typedArray, 1);
+          found = /** @type {TypedArrayName} */$slice(typedArray, 1);
         }
       } catch (e) {/**/}
     }
   });
   return found;
-};
+}
 
-/** @type {(value: object) => false | import('.').TypedArrayName} */
-var trySlices = function tryAllSlices(value) {
-  /** @type {ReturnType<typeof tryAllSlices>} */var found = false;
-  forEach(/** @type {Record<`\$${import('.').TypedArrayName}`, Getter>} */cache, /** @type {(getter: Getter, name: `\$${import('.').TypedArrayName}`) => void} */function (getter, name) {
+/** @type {(value: object) => false | TypedArrayName} */
+function trySlices(value) {
+  /** @type {ReturnType<typeof trySlices>} */var found = false;
+  forEach(/** @type {Record<`$${TypedArrayName}`, Getter>} */cache, /** @param {Getter} getter @param {`$${TypedArrayName}`} name */function (getter, name) {
     if (!found) {
       try {
         // @ts-expect-error a throw is fine here
         getter(value);
-        found = /** @type {import('.').TypedArrayName} */$slice(name, 1);
+        found = /** @type {TypedArrayName} */$slice(name, 1);
       } catch (e) {/**/}
     }
   });
   return found;
-};
+}
 
-/** @type {import('.')} */
-module.exports = function whichTypedArray(value) {
+/** @type {(tag: unknown) => tag is typeof typedArrays[number]} */
+function isTATag(tag) {
+  return $indexOf(typedArrays, tag) > -1;
+}
+
+/** @type {(value: unknown) => ReturnType<typeof import('.')>} */
+function whichTypedArray(value) {
   if (!value || typeof value !== 'object') {
     return false;
   }
   if (!hasToStringTag) {
-    /** @type {string} */
     var tag = $slice($toString(value), 8, -1);
-    if ($indexOf(typedArrays, tag) > -1) {
+    if (isTATag(tag)) {
       return tag;
     }
     if (tag !== 'Object') {
@@ -4173,7 +4180,8 @@ module.exports = function whichTypedArray(value) {
     return null;
   } // unknown engine
   return tryTypedArrays(value);
-};
+}
+module.exports = whichTypedArray;
 
 /***/ }),
 /* 50 */
@@ -4417,8 +4425,8 @@ var callBindBasic = __webpack_require__(37);
 var applyBind = __webpack_require__(58);
 module.exports = function callBind(originalFunction) {
   var func = callBindBasic(arguments);
-  var adjustedLength = originalFunction.length - (arguments.length - 1);
-  return setFunctionLength(func, 1 + (adjustedLength > 0 ? adjustedLength : 0), true);
+  var adjustedLength = 1 + originalFunction.length - (arguments.length - 1);
+  return setFunctionLength(func, adjustedLength > 0 ? adjustedLength : 0, true);
 };
 if ($defineProperty) {
   $defineProperty(module.exports, 'apply', {
@@ -28727,9 +28735,7 @@ function localstorage() {
   }
 }
 module.exports = __webpack_require__(107)(exports);
-const {
-  formatters
-} = module.exports;
+const formatters = module.exports.formatters;
 
 /**
  * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
@@ -31611,6 +31617,7 @@ function Minimatch(pattern, options) {
     pattern = pattern.split(path.sep).join('/');
   }
   this.options = options;
+  this.maxGlobstarRecursion = options.maxGlobstarRecursion !== undefined ? options.maxGlobstarRecursion : 200;
   this.set = [];
   this.pattern = pattern;
   this.regexp = null;
@@ -31827,6 +31834,9 @@ function parse(pattern, isSub) {
           re += c;
           continue;
         }
+
+        // coalesce consecutive non-globstar * characters
+        if (c === '*' && stateChar === '*') continue;
 
         // if we already have a stateChar, then it means
         // that there was something like ** or +? in there.
@@ -32184,14 +32194,139 @@ Minimatch.prototype.match = function match(f, partial) {
 // out of pattern, then that's fine, as long as all
 // the parts match.
 Minimatch.prototype.matchOne = function (file, pattern, partial) {
-  var options = this.options;
-  this.debug('matchOne', {
-    'this': this,
-    file: file,
-    pattern: pattern
-  });
-  this.debug('matchOne', file.length, pattern.length);
-  for (var fi = 0, pi = 0, fl = file.length, pl = pattern.length; fi < fl && pi < pl; fi++, pi++) {
+  if (pattern.indexOf(GLOBSTAR) !== -1) {
+    return this._matchGlobstar(file, pattern, partial, 0, 0);
+  }
+  return this._matchOne(file, pattern, partial, 0, 0);
+};
+Minimatch.prototype._matchGlobstar = function (file, pattern, partial, fileIndex, patternIndex) {
+  var i;
+
+  // find first globstar from patternIndex
+  var firstgs = -1;
+  for (i = patternIndex; i < pattern.length; i++) {
+    if (pattern[i] === GLOBSTAR) {
+      firstgs = i;
+      break;
+    }
+  }
+
+  // find last globstar
+  var lastgs = -1;
+  for (i = pattern.length - 1; i >= 0; i--) {
+    if (pattern[i] === GLOBSTAR) {
+      lastgs = i;
+      break;
+    }
+  }
+  var head = pattern.slice(patternIndex, firstgs);
+  var body = partial ? pattern.slice(firstgs + 1) : pattern.slice(firstgs + 1, lastgs);
+  var tail = partial ? [] : pattern.slice(lastgs + 1);
+
+  // check the head
+  if (head.length) {
+    var fileHead = file.slice(fileIndex, fileIndex + head.length);
+    if (!this._matchOne(fileHead, head, partial, 0, 0)) {
+      return false;
+    }
+    fileIndex += head.length;
+  }
+
+  // check the tail
+  var fileTailMatch = 0;
+  if (tail.length) {
+    if (tail.length + fileIndex > file.length) return false;
+    var tailStart = file.length - tail.length;
+    if (this._matchOne(file, tail, partial, tailStart, 0)) {
+      fileTailMatch = tail.length;
+    } else {
+      // affordance for stuff like a/**/* matching a/b/
+      if (file[file.length - 1] !== '' || fileIndex + tail.length === file.length) {
+        return false;
+      }
+      tailStart--;
+      if (!this._matchOne(file, tail, partial, tailStart, 0)) {
+        return false;
+      }
+      fileTailMatch = tail.length + 1;
+    }
+  }
+
+  // if body is empty (single ** between head and tail)
+  if (!body.length) {
+    var sawSome = !!fileTailMatch;
+    for (i = fileIndex; i < file.length - fileTailMatch; i++) {
+      var f = String(file[i]);
+      sawSome = true;
+      if (f === '.' || f === '..' || !this.options.dot && f.charAt(0) === '.') {
+        return false;
+      }
+    }
+    return partial || sawSome;
+  }
+
+  // split body into segments at each GLOBSTAR
+  var bodySegments = [[[], 0]];
+  var currentBody = bodySegments[0];
+  var nonGsParts = 0;
+  var nonGsPartsSums = [0];
+  for (var bi = 0; bi < body.length; bi++) {
+    var b = body[bi];
+    if (b === GLOBSTAR) {
+      nonGsPartsSums.push(nonGsParts);
+      currentBody = [[], 0];
+      bodySegments.push(currentBody);
+    } else {
+      currentBody[0].push(b);
+      nonGsParts++;
+    }
+  }
+  var idx = bodySegments.length - 1;
+  var fileLength = file.length - fileTailMatch;
+  for (var si = 0; si < bodySegments.length; si++) {
+    bodySegments[si][1] = fileLength - (nonGsPartsSums[idx--] + bodySegments[si][0].length);
+  }
+  return !!this._matchGlobStarBodySections(file, bodySegments, fileIndex, 0, partial, 0, !!fileTailMatch);
+};
+
+// return false for "nope, not matching"
+// return null for "not matching, cannot keep trying"
+Minimatch.prototype._matchGlobStarBodySections = function (file, bodySegments, fileIndex, bodyIndex, partial, globStarDepth, sawTail) {
+  var bs = bodySegments[bodyIndex];
+  if (!bs) {
+    // just make sure there are no bad dots
+    for (var i = fileIndex; i < file.length; i++) {
+      sawTail = true;
+      var f = file[i];
+      if (f === '.' || f === '..' || !this.options.dot && f.charAt(0) === '.') {
+        return false;
+      }
+    }
+    return sawTail;
+  }
+  var body = bs[0];
+  var after = bs[1];
+  while (fileIndex <= after) {
+    var m = this._matchOne(file.slice(0, fileIndex + body.length), body, partial, fileIndex, 0);
+    // if limit exceeded, no match. intentional false negative,
+    // acceptable break in correctness for security.
+    if (m && globStarDepth < this.maxGlobstarRecursion) {
+      var sub = this._matchGlobStarBodySections(file, bodySegments, fileIndex + body.length, bodyIndex + 1, partial, globStarDepth + 1, sawTail);
+      if (sub !== false) {
+        return sub;
+      }
+    }
+    var f = file[fileIndex];
+    if (f === '.' || f === '..' || !this.options.dot && f.charAt(0) === '.') {
+      return false;
+    }
+    fileIndex++;
+  }
+  return partial || null;
+};
+Minimatch.prototype._matchOne = function (file, pattern, partial, fileIndex, patternIndex) {
+  var fi, pi, fl, pl;
+  for (fi = fileIndex, pi = patternIndex, fl = file.length, pl = pattern.length; fi < fl && pi < pl; fi++, pi++) {
     this.debug('matchOne loop');
     var p = pattern[pi];
     var f = file[fi];
@@ -32200,83 +32335,7 @@ Minimatch.prototype.matchOne = function (file, pattern, partial) {
     // should be impossible.
     // some invalid regexp stuff in the set.
     /* istanbul ignore if */
-    if (p === false) return false;
-    if (p === GLOBSTAR) {
-      this.debug('GLOBSTAR', [pattern, p, f]);
-
-      // "**"
-      // a/**/b/**/c would match the following:
-      // a/b/x/y/z/c
-      // a/x/y/z/b/c
-      // a/b/x/b/x/c
-      // a/b/c
-      // To do this, take the rest of the pattern after
-      // the **, and see if it would match the file remainder.
-      // If so, return success.
-      // If not, the ** "swallows" a segment, and try again.
-      // This is recursively awful.
-      //
-      // a/**/b/**/c matching a/b/x/y/z/c
-      // - a matches a
-      // - doublestar
-      //   - matchOne(b/x/y/z/c, b/**/c)
-      //     - b matches b
-      //     - doublestar
-      //       - matchOne(x/y/z/c, c) -> no
-      //       - matchOne(y/z/c, c) -> no
-      //       - matchOne(z/c, c) -> no
-      //       - matchOne(c, c) yes, hit
-      var fr = fi;
-      var pr = pi + 1;
-      if (pr === pl) {
-        this.debug('** at the end');
-        // a ** at the end will just swallow the rest.
-        // We have found a match.
-        // however, it will not swallow /.x, unless
-        // options.dot is set.
-        // . and .. are *never* matched by **, for explosively
-        // exponential reasons.
-        for (; fi < fl; fi++) {
-          if (file[fi] === '.' || file[fi] === '..' || !options.dot && file[fi].charAt(0) === '.') return false;
-        }
-        return true;
-      }
-
-      // ok, let's see if we can swallow whatever we can.
-      while (fr < fl) {
-        var swallowee = file[fr];
-        this.debug('\nglobstar while', file, fr, pattern, pr, swallowee);
-
-        // XXX remove this slice.  Just pass the start index.
-        if (this.matchOne(file.slice(fr), pattern.slice(pr), partial)) {
-          this.debug('globstar found match!', fr, fl, swallowee);
-          // found a match.
-          return true;
-        } else {
-          // can't swallow "." or ".." ever.
-          // can only swallow ".foo" when explicitly asked.
-          if (swallowee === '.' || swallowee === '..' || !options.dot && swallowee.charAt(0) === '.') {
-            this.debug('dot detected!', file, fr, pattern, pr);
-            break;
-          }
-
-          // ** swallows a segment, and continue.
-          this.debug('globstar swallow a segment, and continue');
-          fr++;
-        }
-      }
-
-      // no match was found.
-      // However, in partial mode, we can't say this is necessarily over.
-      // If there's more *pattern* left, then
-      /* istanbul ignore if */
-      if (partial) {
-        // ran out of file
-        this.debug('\n>>> no match, partial?', file, fr, pattern, pr);
-        if (fr === fl) return true;
-      }
-      return false;
-    }
+    if (p === false || p === GLOBSTAR) return false;
 
     // something other than **
     // non-magic patterns just have to match exactly
@@ -32291,17 +32350,6 @@ Minimatch.prototype.matchOne = function (file, pattern, partial) {
     }
     if (!hit) return false;
   }
-
-  // Note: ending in / means that we'll get a final ""
-  // at the end of the pattern.  This can only match a
-  // corresponding "" at the end of the file.
-  // If the file ends in /, then it can only match a
-  // a pattern that ends in /, unless the pattern just
-  // doesn't have any more for it. But, a/b/ should *not*
-  // match "a/b/*", even though "" matches against the
-  // [^/]*? pattern, except in partial mode, where it might
-  // simply not be reached yet.
-  // However, a/b/ should still satisfy a/*
 
   // now either we fell off the end of the pattern, or we're done.
   if (fi === fl && pi === pl) {
@@ -32815,6 +32863,39 @@ var escOpen = '\0OPEN' + Math.random() + '\0';
 var escClose = '\0CLOSE' + Math.random() + '\0';
 var escComma = '\0COMMA' + Math.random() + '\0';
 var escPeriod = '\0PERIOD' + Math.random() + '\0';
+var EXPANSION_MAX = 100000;
+
+// `EXPANSION_MAX` caps the *number* of expansions, but not their length. An
+// input like `'{a,b}'.repeat(1500)` stays under that count - its output is
+// truncated to 100k results - while making every result ~1500 characters
+// long. The result set, and the intermediate arrays built while combining
+// brace sets, then grow large enough to exhaust memory and crash the process
+// (CVE-2026-14257). `EXPANSION_MAX_LENGTH` bounds the total number of
+// characters the accumulator may hold at any point, so memory stays flat no
+// matter how many brace groups are chained. The limit sits well above any
+// realistic expansion (100k results hitting `EXPANSION_MAX` measure ~1M
+// characters) so legitimate input is unaffected.
+var EXPANSION_MAX_LENGTH = 4000000;
+
+// `expand` recurses once per level of brace *nesting* - both when expanding a
+// set's comma members and when re-wrapping a set whose body is a single part.
+// The CVE-2026-14257 fix made the *tail* iterative (recursion on `m.post`, one
+// level per chained group), which left nesting depth unbounded: about 3,100
+// levels of `{{{...a,b...}}}` - only ~6KB of input - exhausted the native stack
+// and crashed the process. `EXPANSION_MAX_DEPTH` bounds how deep the parser
+// will follow nesting. It sits far above any realistic pattern and well below
+// the depth at which the stack runs out.
+var EXPANSION_MAX_DEPTH = 1000;
+
+// Bash keeps a quirk where a brace group followed by a comma set still expands
+// (`{a},b}`). The parser implements it by rewriting the string and restarting
+// the scan, absorbing one `}` per pass. `n` trailing braces therefore cost `n`
+// full passes over a string that itself grows by one `escClose` sentinel each
+// time - quadratic in `n`, with a ~26x constant from the sentinel's length.
+// 128KB of `'{a}' + '}'.repeat(n) + ',z}'` blocked the event loop for 27
+// seconds to produce two results. `EXPANSION_MAX_REWRITES` bounds how many
+// times the scan may restart. Real `{a},b}` input needs a handful.
+var EXPANSION_MAX_REWRITES = 1000;
 function numeric(str) {
   return parseInt(str, 10) == str ? parseInt(str, 10) : str.charCodeAt(0);
 }
@@ -32825,29 +32906,56 @@ function unescapeBraces(str) {
   return str.split(escSlash).join('\\').split(escOpen).join('{').split(escClose).join('}').split(escComma).join(',').split(escPeriod).join('.');
 }
 
+// Like `target.push(...items)` but doesn't overflow the stack
+function pushAll(target, items) {
+  for (var i = 0; i < items.length; i++) {
+    target.push(items[i]);
+  }
+}
+
 // Basically just str.split(","), but handling cases
 // where we have nested braced sections, which should be
 // treated as individual members, like {a,{b,c},d}
 function parseCommaParts(str) {
-  if (!str) return [''];
   var parts = [];
-  var m = balanced('{', '}', str);
-  if (!m) return str.split(',');
-  var pre = m.pre;
-  var body = m.body;
-  var post = m.post;
-  var p = pre.split(',');
-  p[p.length - 1] += '{' + body + '}';
-  var postParts = parseCommaParts(post);
-  if (post.length) {
-    p[p.length - 1] += postParts.shift();
-    p.push.apply(p, postParts);
+
+  // Walk the brace groups iteratively. Recursing on `post` once per group let a
+  // chain of them exhaust the stack - the parsing-side counterpart to
+  // the `expand` overflow fixed for CVE-2026-14257, and not something `max` or
+  // `maxLength` can bound, since it happens before expansion.
+  //
+  // The part the next chunk continues
+  var carry = '';
+  for (;;) {
+    var m = balanced('{', '}', str);
+    if (!m) {
+      var tail = str.split(',');
+      tail[0] = carry + tail[0];
+      pushAll(parts, tail);
+      return parts;
+    }
+    var pre = m.pre;
+    var body = m.body;
+    var post = m.post;
+    var p = pre.split(',');
+    p[0] = carry + p[0];
+    p[p.length - 1] += '{' + body + '}';
+    if (!post.length) {
+      pushAll(parts, p);
+      return parts;
+    }
+    carry = p.pop();
+    pushAll(parts, p);
+    str = post;
   }
-  parts.push.apply(parts, p);
-  return parts;
 }
-function expandTop(str) {
+function expandTop(str, options) {
   if (!str) return [];
+  options = options || {};
+  var max = options.max == null ? EXPANSION_MAX : options.max;
+  var maxLength = options.maxLength == null ? EXPANSION_MAX_LENGTH : options.maxLength;
+  var maxDepth = options.maxDepth == null ? EXPANSION_MAX_DEPTH : options.maxDepth;
+  var maxRewrites = options.maxRewrites == null ? EXPANSION_MAX_REWRITES : options.maxRewrites;
 
   // I don't know why Bash 4.3 does this, but it does.
   // Anything starting with {} will have the first two bytes preserved
@@ -32858,7 +32966,7 @@ function expandTop(str) {
   if (str.substr(0, 2) === '{}') {
     str = '\\{\\}' + str.substr(2);
   }
-  return expand(escapeBraces(str), true).map(unescapeBraces);
+  return expand(escapeBraces(str), max, maxLength, maxDepth, 0, maxRewrites, true).map(unescapeBraces);
 }
 function identity(e) {
   return e;
@@ -32875,88 +32983,224 @@ function lte(i, y) {
 function gte(i, y) {
   return i >= y;
 }
-function expand(str, isTop) {
-  var expansions = [];
-  var m = balanced('{', '}', str);
-  if (!m || /\$$/.test(m.pre)) return [str];
-  var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
-  var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
-  var isSequence = isNumericSequence || isAlphaSequence;
-  var isOptions = m.body.indexOf(',') >= 0;
-  if (!isSequence && !isOptions) {
-    // {a},b}
-    if (m.post.match(/,(?!,).*\}/)) {
-      str = m.pre + '{' + m.body + escClose + m.post;
-      return expand(str);
+
+// Build `{ acc[a] + pre + values[v] }` for every combination, capping the
+// number of results at `max` and the total number of characters at `maxLength`.
+// This is the one place output grows, so bounding it here keeps the single
+// accumulator - and therefore memory - flat regardless of how many brace groups
+// are combined (CVE-2026-14257).
+//
+// `base[a]` is the length of the part of `acc[a]` that predates the current
+// empty-drop baseline (see `expand`). The matching baselines for the results
+// are appended to `outBase`, which the caller carries forward alongside them.
+function combine(acc, base, pre, values, max, maxLength, dropEmpties, outBase) {
+  var out = [];
+  var length = 0;
+  for (var a = 0; a < acc.length; a++) {
+    for (var v = 0; v < values.length; v++) {
+      if (out.length >= max) return out;
+      var expansion = acc[a] + pre + values[v];
+      // Bash drops empty results at the top level. Skip them before they count
+      // against `max`, so `max` bounds the number of *kept* results. "Empty"
+      // means "adds nothing past the baseline", not "empty overall".
+      if (dropEmpties && expansion.length === base[a]) continue;
+      if (length + expansion.length > maxLength) return out;
+      out.push(expansion);
+      outBase.push(base[a]);
+      length += expansion.length;
     }
-    return [str];
   }
-  var n;
-  if (isSequence) {
-    n = m.body.split(/\.\./);
-  } else {
-    n = parseCommaParts(m.body);
-    if (n.length === 1) {
-      // x{{a,b}}y ==> x{a}y x{b}y
-      n = expand(n[0], false).map(embrace);
-      if (n.length === 1) {
-        var post = m.post.length ? expand(m.post, false) : [''];
-        return post.map(function (p) {
-          return m.pre + n[0] + p;
-        });
+  return out;
+}
+
+// The expansion values of a single numeric (`1..5`) or alphabetic (`a..e..2`)
+// sequence body.
+function expandSequence(body, isAlphaSequence, max, maxLength) {
+  var n = body.split(/\.\./);
+  var N = [];
+  // A sequence body always splits into two or three parts, but the compiler
+  // can't know that.
+  /* c8 ignore start */
+  if (n[0] === undefined || n[1] === undefined) {
+    return N;
+  }
+  /* c8 ignore stop */
+  var x = numeric(n[0]);
+  var y = numeric(n[1]);
+  var width = Math.max(n[0].length, n[1].length);
+  var incr = n.length === 3 && n[2] !== undefined ? Math.max(Math.abs(numeric(n[2])), 1) : 1;
+  var test = lte;
+  var reverse = y < x;
+  if (reverse) {
+    incr *= -1;
+    test = gte;
+  }
+  var pad = n.some(isPadded);
+  var length = 0;
+  for (var i = x; test(i, y) && N.length < max; i += incr) {
+    var c;
+    if (isAlphaSequence) {
+      c = String.fromCharCode(i);
+      if (c === '\\') {
+        c = '';
       }
-    }
-  }
-
-  // at this point, n is the parts, and we know it's not a comma set
-  // with a single entry.
-
-  // no need to expand pre, since it is guaranteed to be free of brace-sets
-  var pre = m.pre;
-  var post = m.post.length ? expand(m.post, false) : [''];
-  var N;
-  if (isSequence) {
-    var x = numeric(n[0]);
-    var y = numeric(n[1]);
-    var width = Math.max(n[0].length, n[1].length);
-    var incr = n.length == 3 ? Math.abs(numeric(n[2])) : 1;
-    var test = lte;
-    var reverse = y < x;
-    if (reverse) {
-      incr *= -1;
-      test = gte;
-    }
-    var pad = n.some(isPadded);
-    N = [];
-    for (var i = x; test(i, y); i += incr) {
-      var c;
-      if (isAlphaSequence) {
-        c = String.fromCharCode(i);
-        if (c === '\\') c = '';
-      } else {
-        c = String(i);
-        if (pad) {
-          var need = width - c.length;
-          if (need > 0) {
-            var z = new Array(need + 1).join('0');
-            if (i < 0) c = '-' + z + c.slice(1);else c = z + c;
+    } else {
+      c = String(i);
+      if (pad) {
+        var need = width - c.length;
+        if (need > 0) {
+          var z = new Array(need + 1).join('0');
+          if (i < 0) {
+            c = '-' + z + c.slice(1);
+          } else {
+            c = z + c;
           }
         }
       }
-      N.push(c);
     }
-  } else {
-    N = concatMap(n, function (el) {
-      return expand(el, false);
-    });
+    if (length + c.length > maxLength) break;
+    N.push(c);
+    length += c.length;
   }
-  for (var j = 0; j < N.length; j++) {
-    for (var k = 0; k < post.length; k++) {
-      var expansion = pre + N[j] + post[k];
-      if (!isTop || isSequence || expansion) expansions.push(expansion);
+  return N;
+}
+function expand(str, max, maxLength, maxDepth, depth, maxRewrites, isTop) {
+  // Too deeply nested to keep following: treat the rest as literal, the same
+  // way a group that cannot expand is already handled. Truncating rather than
+  // throwing keeps expansion total, matching `max` and `maxLength`.
+  if (depth > maxDepth) {
+    return [str];
+  }
+
+  // Consume the string's top-level brace groups left to right, threading a
+  // running set of combined prefixes (`acc`). Expanding the tail iteratively -
+  // rather than recursing on `m.post` once per group - keeps the native stack
+  // depth constant, so deeply chained input (`'{a,b}'.repeat(3000)`) can no
+  // longer overflow the stack, and leaves a single accumulator whose size
+  // `maxLength` bounds directly (CVE-2026-14257).
+  var acc = [''];
+
+  // Bash drops empty results, but only when the *first* group of the run is a
+  // comma set - a sequence like `{a..\}` may legitimately yield ''. The drop
+  // is on the final strings, so it is applied to whichever `combine` produces
+  // them (the one with no brace set left in the tail).
+  //
+  // The old implementation recursed on `m.post`, so the drop tested only the
+  // expansion of the current call's substring. The `{a},b}` rewrite below turns
+  // `isTop` back on part-way through a string, starting a fresh such run, so
+  // the drop must ignore whatever `acc` already holds from earlier groups.
+  // `accBase[a]` records how much of `acc[a]` predates the current run;
+  // `combine` treats an expansion as empty when it adds nothing past that.
+  var accBase = [0];
+  // How many times the `{a},b}` rewrite below has restarted the scan. Each pass
+  // re-reads the whole string, so leaving this unbounded is quadratic.
+  var rewrites = 0;
+  var dropEmpties = false;
+  var firstGroup = true;
+  var nextBase;
+  for (;;) {
+    var m = balanced('{', '}', str);
+
+    // No brace set left: the rest of the string is literal.
+    if (!m) {
+      return combine(acc, accBase, str, [''], max, maxLength, dropEmpties, []);
     }
+
+    // no need to expand pre, since it is guaranteed to be free of brace-sets
+    var pre = m.pre;
+
+    // For compatibility reasons, `${` is not eligible for brace expansion, and
+    // on the 1.x line it suppresses expansion of the rest of the string too:
+    // the whole remainder is literal. The 2.x and 5.x lines instead keep
+    // expanding the tail, which is what bash does, but changing that here would
+    // be a breaking change for 1.x consumers. Routed through `combine` so the
+    // result is still bounded by `max` and `maxLength`.
+    if (/\$$/.test(pre)) {
+      return combine(acc, accBase, str, [''], max, maxLength, dropEmpties, []);
+    }
+    var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
+    var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
+    var isSequence = isNumericSequence || isAlphaSequence;
+    var isOptions = m.body.indexOf(',') >= 0;
+    if (!isSequence && !isOptions) {
+      // {a},b}
+      if (rewrites < maxRewrites && m.post.match(/,(?!,).*\}/)) {
+        rewrites++;
+        str = m.pre + '{' + m.body + escClose + m.post;
+        // The rewritten string is expanded as if it were a fresh top-level one,
+        // so start a new empty-drop run: anchor the baseline at what `acc`
+        // holds now, and let the next expanding group decide whether to drop.
+        isTop = true;
+        firstGroup = true;
+        dropEmpties = false;
+        accBase = [];
+        for (var b = 0; b < acc.length; b++) {
+          accBase.push(acc[b].length);
+        }
+        continue;
+      }
+      // Nothing here expands, so the whole remaining string is literal.
+      return combine(acc, accBase, pre + '{' + m.body + '}' + m.post, [''], max, maxLength, dropEmpties, []);
+    }
+    if (firstGroup) {
+      dropEmpties = isTop && !isSequence;
+      firstGroup = false;
+    }
+    var values;
+    if (isSequence) {
+      values = expandSequence(m.body, isAlphaSequence, max, maxLength);
+    } else {
+      var n = parseCommaParts(m.body);
+      if (n.length === 1 && n[0] !== undefined) {
+        // x{{a,b}}y ==> x{a}y x{b}y
+        n = expand(n[0], max, maxLength, maxDepth, depth + 1, maxRewrites, false).map(embrace);
+        //XXX is this necessary? Can't seem to hit it in tests.
+        /* c8 ignore start */
+        if (n.length === 1) {
+          nextBase = [];
+          acc = combine(acc, accBase, pre + n[0], [''], max, maxLength, dropEmpties && !m.post.length, nextBase);
+          accBase = nextBase;
+          if (!m.post.length) break;
+          str = m.post;
+          continue;
+        }
+        /* c8 ignore stop */
+      }
+
+      // Values that `combine` is going to drop as empty produce no result, so
+      // they must not count against `max` - otherwise `{a,,b}` with `max: 2`
+      // would stop at `['a', '']` and yield one result instead of two. Skipping
+      // them outright keeps `values` bounded while leaving `max` a bound on
+      // *kept* results. A value is dropped when it adds nothing past the
+      // baseline, which is what `combine` tests.
+      var dropsEmpties = dropEmpties && !m.post.length && !pre;
+      for (var d = 0; dropsEmpties && d < acc.length; d++) {
+        if (acc[d].length !== accBase[d]) {
+          dropsEmpties = false;
+        }
+      }
+      values = [];
+      var valuesLength = 0;
+      outer: for (var j = 0; j < n.length; j++) {
+        var expanded = expand(n[j], max, maxLength, maxDepth, depth + 1, maxRewrites, false);
+        for (var k = 0; k < expanded.length; k++) {
+          var v = expanded[k];
+          if (dropsEmpties && !v) continue;
+          if (values.length >= max || valuesLength + v.length > maxLength) {
+            break outer;
+          }
+          values.push(v);
+          valuesLength += v.length;
+        }
+      }
+    }
+    nextBase = [];
+    acc = combine(acc, accBase, pre, values, max, maxLength, dropEmpties && !m.post.length, nextBase);
+    accBase = nextBase;
+    if (!m.post.length) break;
+    str = m.post;
   }
-  return expansions;
+  return acc;
 }
 
 /***/ }),
@@ -33818,6 +34062,10 @@ function compile(schema, root, localRefs, baseId) {
     defaults = [],
     defaultsHash = {},
     customRules = [];
+  function patternCode(i, patterns) {
+    var regExpCode = opts.regExp ? 'regExp' : 'new RegExp';
+    return 'var pattern' + i + ' = ' + regExpCode + '(' + util.toQuotedString(patterns[i]) + ');';
+  }
   root = root || {
     schema: schema,
     refVal: refVal,
@@ -33886,8 +34134,8 @@ function compile(schema, root, localRefs, baseId) {
     // console.log('\n\n\n *** \n', JSON.stringify(sourceCode));
     var validate;
     try {
-      var makeValidate = new Function('self', 'RULES', 'formats', 'root', 'refVal', 'defaults', 'customRules', 'equal', 'ucs2length', 'ValidationError', sourceCode);
-      validate = makeValidate(self, RULES, formats, root, refVal, defaults, customRules, equal, ucs2length, ValidationError);
+      var makeValidate = new Function('self', 'RULES', 'formats', 'root', 'refVal', 'defaults', 'customRules', 'equal', 'ucs2length', 'ValidationError', 'regExp', sourceCode);
+      validate = makeValidate(self, RULES, formats, root, refVal, defaults, customRules, equal, ucs2length, ValidationError, opts.regExp);
       refVal[0] = validate;
     } catch (e) {
       self.logger.error('Error compiling schema, function code:', sourceCode);
@@ -34084,9 +34332,6 @@ function compIndex(schema, root, baseId) {
     if (c.schema == schema && c.root == root && c.baseId == baseId) return i;
   }
   return -1;
-}
-function patternCode(i, patterns) {
-  return 'var pattern' + i + ' = new RegExp(' + util.toQuotedString(patterns[i]) + ');';
 }
 function defaultCode(i) {
   return 'var default' + i + ' = defaults[' + i + '];';
@@ -36700,7 +36945,7 @@ var RELATIVE_JSON_POINTER = /^(?:0|[1-9][0-9]*)(?:#|(?:\/(?:[^~/]|~0|~1)*)*)$/;
 module.exports = formats;
 function formats(mode) {
   mode = mode == 'full' ? 'full' : 'fast';
-  return util.copy(formats[mode]);
+  return util.copy(formats[mode], Object.create(null));
 }
 formats.fast = {
   // date: http://tools.ietf.org/html/rfc3339#section-5.6
@@ -38710,6 +38955,7 @@ module.exports = function generate_pattern(it, $keyword, $ruleType) {
   var $errSchemaPath = it.errSchemaPath + '/' + $keyword;
   var $breakOnError = !it.opts.allErrors;
   var $data = 'data' + ($dataLvl || '');
+  var $valid = 'valid' + $lvl;
   var $isData = it.opts.$data && $schema && $schema.$data,
     $schemaValue;
   if ($isData) {
@@ -38718,12 +38964,21 @@ module.exports = function generate_pattern(it, $keyword, $ruleType) {
   } else {
     $schemaValue = $schema;
   }
-  var $regexp = $isData ? '(new RegExp(' + $schemaValue + '))' : it.usePattern($schema);
-  out += 'if ( ';
+  var $regExpCode = it.opts.regExp ? 'regExp' : 'new RegExp';
   if ($isData) {
-    out += ' (' + $schemaValue + ' !== undefined && typeof ' + $schemaValue + ' != \'string\') || ';
+    out += ' var ' + $valid + ' = true; try { ' + $valid + ' = ' + $regExpCode + '(' + $schemaValue + ').test(' + $data + '); } catch(e) { ' + $valid + ' = false; } if ( ';
+    if ($isData) {
+      out += ' (' + $schemaValue + ' !== undefined && typeof ' + $schemaValue + ' != \'string\') || ';
+    }
+    out += ' !' + $valid + ') {';
+  } else {
+    var $regexp = it.usePattern($schema);
+    out += ' if ( ';
+    if ($isData) {
+      out += ' (' + $schemaValue + ' !== undefined && typeof ' + $schemaValue + ' != \'string\') || ';
+    }
+    out += ' !' + $regexp + '.test(' + $data + ') ) {';
   }
-  out += ' !' + $regexp + '.test(' + $data + ') ) {   ';
   var $$outStack = $$outStack || [];
   $$outStack.push(out);
   out = ''; /* istanbul ignore else */
@@ -41508,12 +41763,10 @@ module.exports = NodeEventGenerator;
 }(this, function () {
   "use strict";
 
-  function e(t) {
-    return (e = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (e) {
-      return typeof e;
-    } : function (e) {
-      return e && "function" == typeof Symbol && e.constructor === Symbol && e !== Symbol.prototype ? "symbol" : typeof e;
-    })(t);
+  function e(e, t) {
+    (null == t || t > e.length) && (t = e.length);
+    for (var r = 0, n = Array(t); r < t; r++) n[r] = e[r];
+    return n;
   }
   function t(e, t) {
     return function (e) {
@@ -41544,30 +41797,32 @@ module.exports = NodeEventGenerator;
         }
         return s;
       }
-    }(e, t) || n(e, t) || function () {
+    }(e, t) || o(e, t) || function () {
       throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
     }();
   }
-  function r(e) {
-    return function (e) {
-      if (Array.isArray(e)) return o(e);
-    }(e) || function (e) {
+  function r(t) {
+    return function (t) {
+      if (Array.isArray(t)) return e(t);
+    }(t) || function (e) {
       if ("undefined" != typeof Symbol && null != e[Symbol.iterator] || null != e["@@iterator"]) return Array.from(e);
-    }(e) || n(e) || function () {
+    }(t) || o(t) || function () {
       throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
     }();
   }
-  function n(e, t) {
-    if (e) {
-      if ("string" == typeof e) return o(e, t);
-      var r = Object.prototype.toString.call(e).slice(8, -1);
-      return "Object" === r && e.constructor && (r = e.constructor.name), "Map" === r || "Set" === r ? Array.from(e) : "Arguments" === r || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(r) ? o(e, t) : void 0;
-    }
+  function n(e) {
+    return (n = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (e) {
+      return typeof e;
+    } : function (e) {
+      return e && "function" == typeof Symbol && e.constructor === Symbol && e !== Symbol.prototype ? "symbol" : typeof e;
+    })(e);
   }
-  function o(e, t) {
-    (null == t || t > e.length) && (t = e.length);
-    for (var r = 0, n = new Array(t); r < t; r++) n[r] = e[r];
-    return n;
+  function o(t, r) {
+    if (t) {
+      if ("string" == typeof t) return e(t, r);
+      var n = {}.toString.call(t).slice(8, -1);
+      return "Object" === n && t.constructor && (n = t.constructor.name), "Map" === n || "Set" === n ? Array.from(t) : "Arguments" === n || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n) ? e(t, r) : void 0;
+    }
   }
   "undefined" != typeof globalThis ? globalThis : "undefined" != typeof window ? window : "undefined" != typeof __webpack_require__.g ? __webpack_require__.g : "undefined" != typeof self && self;
   function a(e, t) {
@@ -41598,11 +41853,11 @@ module.exports = NodeEventGenerator;
         function h(e, t) {
           return (e === r.ObjectExpression || e === r.ObjectPattern) && "properties" === t;
         }
-        function y(e, t) {
+        function d(e, t) {
           for (var r = e.length - 1; r >= 0; --r) if (e[r].node === t) return !0;
           return !1;
         }
-        function d(e, t) {
+        function y(e, t) {
           return new f().traverse(e, t);
         }
         function m(e, t) {
@@ -41805,7 +42060,7 @@ module.exports = NodeEventGenerator;
         }, f.prototype.__initialize = function (e, t) {
           this.visitor = t, this.root = e, this.__worklist = [], this.__leavelist = [], this.__current = null, this.__state = null, this.__fallback = null, "iteration" === t.fallback ? this.__fallback = Object.keys : "function" == typeof t.fallback && (this.__fallback = t.fallback), this.__keys = o, t.keys && (this.__keys = Object.assign(Object.create(this.__keys), t.keys));
         }, f.prototype.traverse = function (e, t) {
-          var r, n, o, s, u, l, f, d, m, x, v, g;
+          var r, n, o, s, u, l, f, y, m, x, v, g;
           for (this.__initialize(e, t), g = {}, r = this.__worklist, n = this.__leavelist, r.push(new c(e, null, null, null)), n.push(new c(null, null, null, null)); r.length;) if ((o = r.pop()) !== g) {
             if (o.node) {
               if (l = this.__execute(t.enter, o), this.__state === a || l === a) return;
@@ -41814,22 +42069,22 @@ module.exports = NodeEventGenerator;
                 if (!this.__fallback) throw new Error("Unknown node type " + u + ".");
                 x = this.__fallback(s);
               }
-              for (d = x.length; (d -= 1) >= 0;) if (v = s[f = x[d]]) if (Array.isArray(v)) {
-                for (m = v.length; (m -= 1) >= 0;) if (v[m] && !y(n, v[m])) {
-                  if (h(u, x[d])) o = new c(v[m], [f, m], "Property", null);else {
+              for (y = x.length; (y -= 1) >= 0;) if (v = s[f = x[y]]) if (Array.isArray(v)) {
+                for (m = v.length; (m -= 1) >= 0;) if (v[m] && !d(n, v[m])) {
+                  if (h(u, x[y])) o = new c(v[m], [f, m], "Property", null);else {
                     if (!p(v[m])) continue;
                     o = new c(v[m], [f, m], null, null);
                   }
                   r.push(o);
                 }
               } else if (p(v)) {
-                if (y(n, v)) continue;
+                if (d(n, v)) continue;
                 r.push(new c(v, f, null, null));
               }
             }
           } else if (o = n.pop(), l = this.__execute(t.leave, o), this.__state === a || l === a) return;
         }, f.prototype.replace = function (e, t) {
-          var r, n, o, u, f, y, d, m, x, v, g, A, E;
+          var r, n, o, u, f, d, y, m, x, v, g, A, E;
           function b(e) {
             var t, n, o, a;
             if (e.ref.remove()) for (n = e.ref.key, a = e.ref.parent, t = r.length; t--;) if ((o = r[t]).ref && o.ref.parent === a) {
@@ -41837,28 +42092,28 @@ module.exports = NodeEventGenerator;
               --o.ref.key;
             }
           }
-          for (this.__initialize(e, t), g = {}, r = this.__worklist, n = this.__leavelist, y = new c(e, null, null, new l(A = {
+          for (this.__initialize(e, t), g = {}, r = this.__worklist, n = this.__leavelist, d = new c(e, null, null, new l(A = {
             root: e
-          }, "root")), r.push(y), n.push(y); r.length;) if ((y = r.pop()) !== g) {
-            if (void 0 !== (f = this.__execute(t.enter, y)) && f !== a && f !== i && f !== s && (y.ref.replace(f), y.node = f), this.__state !== s && f !== s || (b(y), y.node = null), this.__state === a || f === a) return A.root;
-            if ((o = y.node) && (r.push(g), n.push(y), this.__state !== i && f !== i)) {
-              if (u = o.type || y.wrap, !(x = this.__keys[u])) {
+          }, "root")), r.push(d), n.push(d); r.length;) if ((d = r.pop()) !== g) {
+            if (void 0 !== (f = this.__execute(t.enter, d)) && f !== a && f !== i && f !== s && (d.ref.replace(f), d.node = f), this.__state !== s && f !== s || (b(d), d.node = null), this.__state === a || f === a) return A.root;
+            if ((o = d.node) && (r.push(g), n.push(d), this.__state !== i && f !== i)) {
+              if (u = o.type || d.wrap, !(x = this.__keys[u])) {
                 if (!this.__fallback) throw new Error("Unknown node type " + u + ".");
                 x = this.__fallback(o);
               }
-              for (d = x.length; (d -= 1) >= 0;) if (v = o[E = x[d]]) if (Array.isArray(v)) {
+              for (y = x.length; (y -= 1) >= 0;) if (v = o[E = x[y]]) if (Array.isArray(v)) {
                 for (m = v.length; (m -= 1) >= 0;) if (v[m]) {
-                  if (h(u, x[d])) y = new c(v[m], [E, m], "Property", new l(v, m));else {
+                  if (h(u, x[y])) d = new c(v[m], [E, m], "Property", new l(v, m));else {
                     if (!p(v[m])) continue;
-                    y = new c(v[m], [E, m], null, new l(v, m));
+                    d = new c(v[m], [E, m], null, new l(v, m));
                   }
-                  r.push(y);
+                  r.push(d);
                 }
               } else p(v) && r.push(new c(v, E, null, new l(o, E)));
             }
-          } else if (y = n.pop(), void 0 !== (f = this.__execute(t.leave, y)) && f !== a && f !== i && f !== s && y.ref.replace(f), this.__state !== s && f !== s || b(y), this.__state === a || f === a) return A.root;
+          } else if (d = n.pop(), void 0 !== (f = this.__execute(t.leave, d)) && f !== a && f !== i && f !== s && d.ref.replace(f), this.__state !== s && f !== s || b(d), this.__state === a || f === a) return A.root;
           return A.root;
-        }, t.Syntax = r, t.traverse = d, t.replace = function (e, t) {
+        }, t.Syntax = r, t.traverse = y, t.replace = function (e, t) {
           return new f().replace(e, t);
         }, t.attachComments = function (e, t, r) {
           var o,
@@ -41875,12 +42130,12 @@ module.exports = NodeEventGenerator;
             return e;
           }
           for (i = 0, a = t.length; i < a; i += 1) l.push(m(u(t[i]), r));
-          return s = 0, d(e, {
+          return s = 0, y(e, {
             enter: function (e) {
               for (var t; s < l.length && !((t = l[s]).extendedRange[1] > e.range[0]);) t.extendedRange[1] === e.range[0] ? (e.leadingComments || (e.leadingComments = []), e.leadingComments.push(t), l.splice(s, 1)) : s += 1;
               return s === l.length ? n.Break : l[s].extendedRange[0] > e.range[1] ? n.Skip : void 0;
             }
-          }), s = 0, d(e, {
+          }), s = 0, y(e, {
             leave: function (e) {
               for (var t; s < l.length && (t = l[s], !(e.range[1] < t.extendedRange[0]));) e.range[1] === t.extendedRange[0] ? (e.trailingComments || (e.trailingComments = []), e.trailingComments.push(t), l.splice(s, 1)) : s += 1;
               return s === l.length ? n.Break : l[s].extendedRange[0] > e.range[1] ? n.Skip : void 0;
@@ -41970,35 +42225,35 @@ module.exports = NodeEventGenerator;
               i,
               s = {},
               u = {
-                start: me
+                start: Ae
               },
-              l = me,
-              c = fe(" ", !1),
+              l = Ae,
+              c = ye(" ", !1),
               f = /^[^ [\],():#!=><~+.]/,
-              p = pe([" ", "[", "]", ",", "(", ")", ":", "#", "!", "=", ">", "<", "~", "+", "."], !0, !1),
-              h = fe(">", !1),
-              y = fe("~", !1),
-              d = fe("+", !1),
-              m = fe(",", !1),
+              p = me([" ", "[", "]", ",", "(", ")", ":", "#", "!", "=", ">", "<", "~", "+", "."], !0, !1),
+              h = ye(">", !1),
+              d = ye("~", !1),
+              y = ye("+", !1),
+              m = ye(",", !1),
               x = function (e, t) {
                 return [e].concat(t.map(function (e) {
                   return e[3];
                 }));
               },
-              v = fe("!", !1),
-              g = fe("*", !1),
-              A = fe("#", !1),
-              E = fe("[", !1),
-              b = fe("]", !1),
+              v = ye("!", !1),
+              g = ye("*", !1),
+              A = ye("#", !1),
+              E = ye("[", !1),
+              b = ye("]", !1),
               S = /^[><!]/,
-              _ = pe([">", "<", "!"], !1, !1),
-              C = fe("=", !1),
-              w = function (e) {
+              _ = me([">", "<", "!"], !1, !1),
+              C = ye("=", !1),
+              P = function (e) {
                 return (e || "") + "=";
               },
-              P = /^[><]/,
-              k = pe([">", "<"], !1, !1),
-              D = fe(".", !1),
+              w = /^[><]/,
+              k = me([">", "<"], !1, !1),
+              D = ye(".", !1),
               I = function (e, t, r) {
                 return {
                   type: "attribute",
@@ -42007,10 +42262,10 @@ module.exports = NodeEventGenerator;
                   value: r
                 };
               },
-              j = fe('"', !1),
+              j = ye('"', !1),
               T = /^[^\\"]/,
-              F = pe(["\\", '"'], !0, !1),
-              R = fe("\\", !1),
+              F = me(["\\", '"'], !0, !1),
+              R = ye("\\", !1),
               O = {
                 type: "any"
               },
@@ -42041,48 +42296,57 @@ module.exports = NodeEventGenerator;
                 };
                 var t;
               },
-              B = fe("'", !1),
+              B = ye("'", !1),
               U = /^[^\\']/,
-              K = pe(["\\", "'"], !0, !1),
+              K = me(["\\", "'"], !0, !1),
               N = /^[0-9]/,
-              W = pe([["0", "9"]], !1, !1),
-              q = fe("type(", !1),
+              W = me([["0", "9"]], !1, !1),
+              q = ye("type(", !1),
               V = /^[^ )]/,
-              G = pe([" ", ")"], !0, !1),
-              z = fe(")", !1),
+              G = me([" ", ")"], !0, !1),
+              z = ye(")", !1),
               H = /^[imsu]/,
-              Y = pe(["i", "m", "s", "u"], !1, !1),
-              $ = fe("/", !1),
-              J = /^[^\/]/,
-              Q = pe(["/"], !0, !1),
-              X = fe(":not(", !1),
-              Z = fe(":matches(", !1),
-              ee = fe(":has(", !1),
-              te = fe(":first-child", !1),
-              re = fe(":last-child", !1),
-              ne = fe(":nth-child(", !1),
-              oe = fe(":nth-last-child(", !1),
-              ae = fe(":", !1),
-              ie = 0,
-              se = [{
+              Y = me(["i", "m", "s", "u"], !1, !1),
+              $ = ye("/", !1),
+              J = /^[^\]\\]/,
+              Q = me(["]", "\\"], !0, !1),
+              X = /^[^\/\\[]/,
+              Z = me(["/", "\\", "["], !0, !1),
+              ee = ye(":not(", !1),
+              te = ye(":matches(", !1),
+              re = function (e) {
+                return {
+                  type: "matches",
+                  selectors: e
+                };
+              },
+              ne = ye(":is(", !1),
+              oe = ye(":has(", !1),
+              ae = ye(":first-child", !1),
+              ie = ye(":last-child", !1),
+              se = ye(":nth-child(", !1),
+              ue = ye(":nth-last-child(", !1),
+              le = ye(":", !1),
+              ce = 0,
+              fe = [{
                 line: 1,
                 column: 1
               }],
-              ue = 0,
-              le = [],
-              ce = {};
+              pe = 0,
+              he = [],
+              de = {};
             if ("startRule" in r) {
               if (!(r.startRule in u)) throw new Error("Can't start parsing from rule \"" + r.startRule + '".');
               l = u[r.startRule];
             }
-            function fe(e, t) {
+            function ye(e, t) {
               return {
                 type: "literal",
                 text: e,
                 ignoreCase: t
               };
             }
-            function pe(e, t, r) {
+            function me(e, t, r) {
               return {
                 type: "class",
                 parts: e,
@@ -42090,20 +42354,20 @@ module.exports = NodeEventGenerator;
                 ignoreCase: r
               };
             }
-            function he(e) {
+            function xe(e) {
               var r,
-                n = se[e];
+                n = fe[e];
               if (n) return n;
-              for (r = e - 1; !se[r];) r--;
+              for (r = e - 1; !fe[r];) r--;
               for (n = {
-                line: (n = se[r]).line,
+                line: (n = fe[r]).line,
                 column: n.column
               }; r < e;) 10 === t.charCodeAt(r) ? (n.line++, n.column = 1) : n.column++, r++;
-              return se[e] = n, n;
+              return fe[e] = n, n;
             }
-            function ye(e, t) {
-              var r = he(e),
-                n = he(t);
+            function ve(e, t) {
+              var r = xe(e),
+                n = xe(t);
               return {
                 start: {
                   offset: e,
@@ -42117,61 +42381,61 @@ module.exports = NodeEventGenerator;
                 }
               };
             }
-            function de(e) {
-              ie < ue || (ie > ue && (ue = ie, le = []), le.push(e));
+            function ge(e) {
+              ce < pe || (ce > pe && (pe = ce, he = []), he.push(e));
             }
-            function me() {
+            function Ae() {
               var e,
                 t,
                 r,
                 n,
-                o = 32 * ie + 0,
-                a = ce[o];
-              return a ? (ie = a.nextPos, a.result) : (e = ie, (t = xe()) !== s && (r = Ae()) !== s && xe() !== s ? e = t = 1 === (n = r).length ? n[0] : {
+                o = 36 * ce + 0,
+                a = de[o];
+              return a ? (ce = a.nextPos, a.result) : (e = ce, (t = Ee()) !== s && (r = _e()) !== s && Ee() !== s ? e = t = 1 === (n = r).length ? n[0] : {
                 type: "matches",
                 selectors: n
-              } : (ie = e, e = s), e === s && (e = ie, (t = xe()) !== s && (t = void 0), e = t), ce[o] = {
-                nextPos: ie,
+              } : (ce = e, e = s), e === s && (e = ce, (t = Ee()) !== s && (t = void 0), e = t), de[o] = {
+                nextPos: ce,
                 result: e
               }, e);
             }
-            function xe() {
+            function Ee() {
               var e,
                 r,
-                n = 32 * ie + 1,
-                o = ce[n];
-              if (o) return ie = o.nextPos, o.result;
-              for (e = [], 32 === t.charCodeAt(ie) ? (r = " ", ie++) : (r = s, de(c)); r !== s;) e.push(r), 32 === t.charCodeAt(ie) ? (r = " ", ie++) : (r = s, de(c));
-              return ce[n] = {
-                nextPos: ie,
+                n = 36 * ce + 1,
+                o = de[n];
+              if (o) return ce = o.nextPos, o.result;
+              for (e = [], 32 === t.charCodeAt(ce) ? (r = " ", ce++) : (r = s, ge(c)); r !== s;) e.push(r), 32 === t.charCodeAt(ce) ? (r = " ", ce++) : (r = s, ge(c));
+              return de[n] = {
+                nextPos: ce,
                 result: e
               }, e;
             }
-            function ve() {
+            function be() {
               var e,
                 r,
                 n,
-                o = 32 * ie + 2,
-                a = ce[o];
-              if (a) return ie = a.nextPos, a.result;
-              if (r = [], f.test(t.charAt(ie)) ? (n = t.charAt(ie), ie++) : (n = s, de(p)), n !== s) for (; n !== s;) r.push(n), f.test(t.charAt(ie)) ? (n = t.charAt(ie), ie++) : (n = s, de(p));else r = s;
-              return r !== s && (r = r.join("")), e = r, ce[o] = {
-                nextPos: ie,
+                o = 36 * ce + 2,
+                a = de[o];
+              if (a) return ce = a.nextPos, a.result;
+              if (r = [], f.test(t.charAt(ce)) ? (n = t.charAt(ce), ce++) : (n = s, ge(p)), n !== s) for (; n !== s;) r.push(n), f.test(t.charAt(ce)) ? (n = t.charAt(ce), ce++) : (n = s, ge(p));else r = s;
+              return r !== s && (r = r.join("")), e = r, de[o] = {
+                nextPos: ce,
                 result: e
               }, e;
             }
-            function ge() {
+            function Se() {
               var e,
                 r,
                 n,
-                o = 32 * ie + 3,
-                a = ce[o];
-              return a ? (ie = a.nextPos, a.result) : (e = ie, (r = xe()) !== s ? (62 === t.charCodeAt(ie) ? (n = ">", ie++) : (n = s, de(h)), n !== s && xe() !== s ? e = r = "child" : (ie = e, e = s)) : (ie = e, e = s), e === s && (e = ie, (r = xe()) !== s ? (126 === t.charCodeAt(ie) ? (n = "~", ie++) : (n = s, de(y)), n !== s && xe() !== s ? e = r = "sibling" : (ie = e, e = s)) : (ie = e, e = s), e === s && (e = ie, (r = xe()) !== s ? (43 === t.charCodeAt(ie) ? (n = "+", ie++) : (n = s, de(d)), n !== s && xe() !== s ? e = r = "adjacent" : (ie = e, e = s)) : (ie = e, e = s), e === s && (e = ie, 32 === t.charCodeAt(ie) ? (r = " ", ie++) : (r = s, de(c)), r !== s && (n = xe()) !== s ? e = r = "descendant" : (ie = e, e = s)))), ce[o] = {
-                nextPos: ie,
+                o = 36 * ce + 3,
+                a = de[o];
+              return a ? (ce = a.nextPos, a.result) : (e = ce, (r = Ee()) !== s ? (62 === t.charCodeAt(ce) ? (n = ">", ce++) : (n = s, ge(h)), n !== s && Ee() !== s ? e = r = "child" : (ce = e, e = s)) : (ce = e, e = s), e === s && (e = ce, (r = Ee()) !== s ? (126 === t.charCodeAt(ce) ? (n = "~", ce++) : (n = s, ge(d)), n !== s && Ee() !== s ? e = r = "sibling" : (ce = e, e = s)) : (ce = e, e = s), e === s && (e = ce, (r = Ee()) !== s ? (43 === t.charCodeAt(ce) ? (n = "+", ce++) : (n = s, ge(y)), n !== s && Ee() !== s ? e = r = "adjacent" : (ce = e, e = s)) : (ce = e, e = s), e === s && (e = ce, 32 === t.charCodeAt(ce) ? (r = " ", ce++) : (r = s, ge(c)), r !== s && (n = Ee()) !== s ? e = r = "descendant" : (ce = e, e = s)))), de[o] = {
+                nextPos: ce,
                 result: e
               }, e);
             }
-            function Ae() {
+            function _e() {
               var e,
                 r,
                 n,
@@ -42180,38 +42444,38 @@ module.exports = NodeEventGenerator;
                 i,
                 u,
                 l,
-                c = 32 * ie + 5,
-                f = ce[c];
-              if (f) return ie = f.nextPos, f.result;
-              if (e = ie, (r = be()) !== s) {
-                for (n = [], o = ie, (a = xe()) !== s ? (44 === t.charCodeAt(ie) ? (i = ",", ie++) : (i = s, de(m)), i !== s && (u = xe()) !== s && (l = be()) !== s ? o = a = [a, i, u, l] : (ie = o, o = s)) : (ie = o, o = s); o !== s;) n.push(o), o = ie, (a = xe()) !== s ? (44 === t.charCodeAt(ie) ? (i = ",", ie++) : (i = s, de(m)), i !== s && (u = xe()) !== s && (l = be()) !== s ? o = a = [a, i, u, l] : (ie = o, o = s)) : (ie = o, o = s);
-                n !== s ? e = r = x(r, n) : (ie = e, e = s);
-              } else ie = e, e = s;
-              return ce[c] = {
-                nextPos: ie,
+                c = 36 * ce + 5,
+                f = de[c];
+              if (f) return ce = f.nextPos, f.result;
+              if (e = ce, (r = Pe()) !== s) {
+                for (n = [], o = ce, (a = Ee()) !== s ? (44 === t.charCodeAt(ce) ? (i = ",", ce++) : (i = s, ge(m)), i !== s && (u = Ee()) !== s && (l = Pe()) !== s ? o = a = [a, i, u, l] : (ce = o, o = s)) : (ce = o, o = s); o !== s;) n.push(o), o = ce, (a = Ee()) !== s ? (44 === t.charCodeAt(ce) ? (i = ",", ce++) : (i = s, ge(m)), i !== s && (u = Ee()) !== s && (l = Pe()) !== s ? o = a = [a, i, u, l] : (ce = o, o = s)) : (ce = o, o = s);
+                n !== s ? e = r = x(r, n) : (ce = e, e = s);
+              } else ce = e, e = s;
+              return de[c] = {
+                nextPos: ce,
                 result: e
               }, e;
             }
-            function Ee() {
+            function Ce() {
               var e,
                 t,
                 r,
                 n,
                 o,
-                a = 32 * ie + 6,
-                i = ce[a];
-              return i ? (ie = i.nextPos, i.result) : (e = ie, (t = ge()) === s && (t = null), t !== s && (r = be()) !== s ? (o = r, e = t = (n = t) ? {
+                a = 36 * ce + 6,
+                i = de[a];
+              return i ? (ce = i.nextPos, i.result) : (e = ce, (t = Se()) === s && (t = null), t !== s && (r = Pe()) !== s ? (o = r, e = t = (n = t) ? {
                 type: n,
                 left: {
                   type: "exactNode"
                 },
                 right: o
-              } : o) : (ie = e, e = s), ce[a] = {
-                nextPos: ie,
+              } : o) : (ce = e, e = s), de[a] = {
+                nextPos: ce,
                 result: e
               }, e);
             }
-            function be() {
+            function Pe() {
               var e,
                 t,
                 r,
@@ -42219,25 +42483,25 @@ module.exports = NodeEventGenerator;
                 o,
                 a,
                 i,
-                u = 32 * ie + 7,
-                l = ce[u];
-              if (l) return ie = l.nextPos, l.result;
-              if (e = ie, (t = Se()) !== s) {
-                for (r = [], n = ie, (o = ge()) !== s && (a = Se()) !== s ? n = o = [o, a] : (ie = n, n = s); n !== s;) r.push(n), n = ie, (o = ge()) !== s && (a = Se()) !== s ? n = o = [o, a] : (ie = n, n = s);
+                u = 36 * ce + 7,
+                l = de[u];
+              if (l) return ce = l.nextPos, l.result;
+              if (e = ce, (t = we()) !== s) {
+                for (r = [], n = ce, (o = Se()) !== s && (a = we()) !== s ? n = o = [o, a] : (ce = n, n = s); n !== s;) r.push(n), n = ce, (o = Se()) !== s && (a = we()) !== s ? n = o = [o, a] : (ce = n, n = s);
                 r !== s ? (i = t, e = t = r.reduce(function (e, t) {
                   return {
                     type: t[0],
                     left: e,
                     right: t[1]
                   };
-                }, i)) : (ie = e, e = s);
-              } else ie = e, e = s;
-              return ce[u] = {
-                nextPos: ie,
+                }, i)) : (ce = e, e = s);
+              } else ce = e, e = s;
+              return de[u] = {
+                nextPos: ce,
                 result: e
               }, e;
             }
-            function Se() {
+            function we() {
               var e,
                 r,
                 n,
@@ -42245,48 +42509,48 @@ module.exports = NodeEventGenerator;
                 a,
                 i,
                 u,
-                l = 32 * ie + 8,
-                c = ce[l];
-              if (c) return ie = c.nextPos, c.result;
-              if (e = ie, 33 === t.charCodeAt(ie) ? (r = "!", ie++) : (r = s, de(v)), r === s && (r = null), r !== s) {
-                if (n = [], (o = _e()) !== s) for (; o !== s;) n.push(o), o = _e();else n = s;
+                l = 36 * ce + 8,
+                c = de[l];
+              if (c) return ce = c.nextPos, c.result;
+              if (e = ce, 33 === t.charCodeAt(ce) ? (r = "!", ce++) : (r = s, ge(v)), r === s && (r = null), r !== s) {
+                if (n = [], (o = ke()) !== s) for (; o !== s;) n.push(o), o = ke();else n = s;
                 n !== s ? (a = r, u = 1 === (i = n).length ? i[0] : {
                   type: "compound",
                   selectors: i
-                }, a && (u.subject = !0), e = r = u) : (ie = e, e = s);
-              } else ie = e, e = s;
-              return ce[l] = {
-                nextPos: ie,
+                }, a && (u.subject = !0), e = r = u) : (ce = e, e = s);
+              } else ce = e, e = s;
+              return de[l] = {
+                nextPos: ce,
                 result: e
               }, e;
             }
-            function _e() {
+            function ke() {
               var e,
-                r = 32 * ie + 9,
-                n = ce[r];
-              return n ? (ie = n.nextPos, n.result) : ((e = function () {
+                r = 36 * ce + 9,
+                n = de[r];
+              return n ? (ce = n.nextPos, n.result) : ((e = function () {
                 var e,
                   r,
-                  n = 32 * ie + 10,
-                  o = ce[n];
-                return o ? (ie = o.nextPos, o.result) : (42 === t.charCodeAt(ie) ? (r = "*", ie++) : (r = s, de(g)), r !== s && (r = {
+                  n = 36 * ce + 10,
+                  o = de[n];
+                return o ? (ce = o.nextPos, o.result) : (42 === t.charCodeAt(ce) ? (r = "*", ce++) : (r = s, ge(g)), r !== s && (r = {
                   type: "wildcard",
                   value: r
-                }), e = r, ce[n] = {
-                  nextPos: ie,
+                }), e = r, de[n] = {
+                  nextPos: ce,
                   result: e
                 }, e);
               }()) === s && (e = function () {
                 var e,
                   r,
                   n,
-                  o = 32 * ie + 11,
-                  a = ce[o];
-                return a ? (ie = a.nextPos, a.result) : (e = ie, 35 === t.charCodeAt(ie) ? (r = "#", ie++) : (r = s, de(A)), r === s && (r = null), r !== s && (n = ve()) !== s ? e = r = {
+                  o = 36 * ce + 11,
+                  a = de[o];
+                return a ? (ce = a.nextPos, a.result) : (e = ce, 35 === t.charCodeAt(ce) ? (r = "#", ce++) : (r = s, ge(A)), r === s && (r = null), r !== s && (n = be()) !== s ? e = r = {
                   type: "identifier",
                   value: n
-                } : (ie = e, e = s), ce[o] = {
-                  nextPos: ie,
+                } : (ce = e, e = s), de[o] = {
+                  nextPos: ce,
                   result: e
                 }, e);
               }()) === s && (e = function () {
@@ -42294,45 +42558,45 @@ module.exports = NodeEventGenerator;
                   r,
                   n,
                   o,
-                  a = 32 * ie + 12,
-                  i = ce[a];
-                return i ? (ie = i.nextPos, i.result) : (e = ie, 91 === t.charCodeAt(ie) ? (r = "[", ie++) : (r = s, de(E)), r !== s && xe() !== s && (n = function () {
+                  a = 36 * ce + 12,
+                  i = de[a];
+                return i ? (ce = i.nextPos, i.result) : (e = ce, 91 === t.charCodeAt(ce) ? (r = "[", ce++) : (r = s, ge(E)), r !== s && Ee() !== s && (n = function () {
                   var e,
                     r,
                     n,
                     o,
-                    a = 32 * ie + 16,
-                    i = ce[a];
-                  return i ? (ie = i.nextPos, i.result) : (e = ie, (r = Ce()) !== s && xe() !== s && (n = function () {
+                    a = 36 * ce + 16,
+                    i = de[a];
+                  return i ? (ce = i.nextPos, i.result) : (e = ce, (r = De()) !== s && Ee() !== s && (n = function () {
                     var e,
                       r,
                       n,
-                      o = 32 * ie + 14,
-                      a = ce[o];
-                    return a ? (ie = a.nextPos, a.result) : (e = ie, 33 === t.charCodeAt(ie) ? (r = "!", ie++) : (r = s, de(v)), r === s && (r = null), r !== s ? (61 === t.charCodeAt(ie) ? (n = "=", ie++) : (n = s, de(C)), n !== s ? (r = w(r), e = r) : (ie = e, e = s)) : (ie = e, e = s), ce[o] = {
-                      nextPos: ie,
+                      o = 36 * ce + 14,
+                      a = de[o];
+                    return a ? (ce = a.nextPos, a.result) : (e = ce, 33 === t.charCodeAt(ce) ? (r = "!", ce++) : (r = s, ge(v)), r === s && (r = null), r !== s ? (61 === t.charCodeAt(ce) ? (n = "=", ce++) : (n = s, ge(C)), n !== s ? (r = P(r), e = r) : (ce = e, e = s)) : (ce = e, e = s), de[o] = {
+                      nextPos: ce,
                       result: e
                     }, e);
-                  }()) !== s && xe() !== s ? ((o = function () {
+                  }()) !== s && Ee() !== s ? ((o = function () {
                     var e,
                       r,
                       n,
                       o,
                       a,
-                      i = 32 * ie + 20,
-                      u = ce[i];
-                    if (u) return ie = u.nextPos, u.result;
-                    if (e = ie, "type(" === t.substr(ie, 5) ? (r = "type(", ie += 5) : (r = s, de(q)), r !== s) {
-                      if (xe() !== s) {
-                        if (n = [], V.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(G)), o !== s) for (; o !== s;) n.push(o), V.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(G));else n = s;
-                        n !== s && (o = xe()) !== s ? (41 === t.charCodeAt(ie) ? (a = ")", ie++) : (a = s, de(z)), a !== s ? (r = {
+                      i = 36 * ce + 20,
+                      u = de[i];
+                    if (u) return ce = u.nextPos, u.result;
+                    if (e = ce, "type(" === t.substr(ce, 5) ? (r = "type(", ce += 5) : (r = s, ge(q)), r !== s) {
+                      if (Ee() !== s) {
+                        if (n = [], V.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(G)), o !== s) for (; o !== s;) n.push(o), V.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(G));else n = s;
+                        n !== s && (o = Ee()) !== s ? (41 === t.charCodeAt(ce) ? (a = ")", ce++) : (a = s, ge(z)), a !== s ? (r = {
                           type: "type",
                           value: n.join("")
-                        }, e = r) : (ie = e, e = s)) : (ie = e, e = s);
-                      } else ie = e, e = s;
-                    } else ie = e, e = s;
-                    return ce[i] = {
-                      nextPos: ie,
+                        }, e = r) : (ce = e, e = s)) : (ce = e, e = s);
+                      } else ce = e, e = s;
+                    } else ce = e, e = s;
+                    return de[i] = {
+                      nextPos: ce,
                       result: e
                     }, e;
                   }()) === s && (o = function () {
@@ -42342,61 +42606,61 @@ module.exports = NodeEventGenerator;
                       o,
                       a,
                       i,
-                      u = 32 * ie + 22,
-                      l = ce[u];
-                    if (l) return ie = l.nextPos, l.result;
-                    if (e = ie, 47 === t.charCodeAt(ie) ? (r = "/", ie++) : (r = s, de($)), r !== s) {
-                      if (n = [], J.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(Q)), o !== s) for (; o !== s;) n.push(o), J.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(Q));else n = s;
-                      n !== s ? (47 === t.charCodeAt(ie) ? (o = "/", ie++) : (o = s, de($)), o !== s ? ((a = function () {
+                      u = 36 * ce + 22,
+                      l = de[u];
+                    if (l) return ce = l.nextPos, l.result;
+                    if (e = ce, 47 === t.charCodeAt(ce) ? (r = "/", ce++) : (r = s, ge($)), r !== s) {
+                      if (n = [], (o = Ie()) === s && (o = je()) === s && (o = Te()), o !== s) for (; o !== s;) n.push(o), (o = Ie()) === s && (o = je()) === s && (o = Te());else n = s;
+                      n !== s ? (47 === t.charCodeAt(ce) ? (o = "/", ce++) : (o = s, ge($)), o !== s ? ((a = function () {
                         var e,
                           r,
-                          n = 32 * ie + 21,
-                          o = ce[n];
-                        if (o) return ie = o.nextPos, o.result;
-                        if (e = [], H.test(t.charAt(ie)) ? (r = t.charAt(ie), ie++) : (r = s, de(Y)), r !== s) for (; r !== s;) e.push(r), H.test(t.charAt(ie)) ? (r = t.charAt(ie), ie++) : (r = s, de(Y));else e = s;
-                        return ce[n] = {
-                          nextPos: ie,
+                          n = 36 * ce + 21,
+                          o = de[n];
+                        if (o) return ce = o.nextPos, o.result;
+                        if (e = [], H.test(t.charAt(ce)) ? (r = t.charAt(ce), ce++) : (r = s, ge(Y)), r !== s) for (; r !== s;) e.push(r), H.test(t.charAt(ce)) ? (r = t.charAt(ce), ce++) : (r = s, ge(Y));else e = s;
+                        return de[n] = {
+                          nextPos: ce,
                           result: e
                         }, e;
                       }()) === s && (a = null), a !== s ? (i = a, r = {
                         type: "regexp",
                         value: new RegExp(n.join(""), i ? i.join("") : "")
-                      }, e = r) : (ie = e, e = s)) : (ie = e, e = s)) : (ie = e, e = s);
-                    } else ie = e, e = s;
-                    return ce[u] = {
-                      nextPos: ie,
+                      }, e = r) : (ce = e, e = s)) : (ce = e, e = s)) : (ce = e, e = s);
+                    } else ce = e, e = s;
+                    return de[u] = {
+                      nextPos: ce,
                       result: e
                     }, e;
-                  }()), o !== s ? (r = I(r, n, o), e = r) : (ie = e, e = s)) : (ie = e, e = s), e === s && (e = ie, (r = Ce()) !== s && xe() !== s && (n = function () {
+                  }()), o !== s ? (r = I(r, n, o), e = r) : (ce = e, e = s)) : (ce = e, e = s), e === s && (e = ce, (r = De()) !== s && Ee() !== s && (n = function () {
                     var e,
                       r,
                       n,
-                      o = 32 * ie + 13,
-                      a = ce[o];
-                    return a ? (ie = a.nextPos, a.result) : (e = ie, S.test(t.charAt(ie)) ? (r = t.charAt(ie), ie++) : (r = s, de(_)), r === s && (r = null), r !== s ? (61 === t.charCodeAt(ie) ? (n = "=", ie++) : (n = s, de(C)), n !== s ? (r = w(r), e = r) : (ie = e, e = s)) : (ie = e, e = s), e === s && (P.test(t.charAt(ie)) ? (e = t.charAt(ie), ie++) : (e = s, de(k))), ce[o] = {
-                      nextPos: ie,
+                      o = 36 * ce + 13,
+                      a = de[o];
+                    return a ? (ce = a.nextPos, a.result) : (e = ce, S.test(t.charAt(ce)) ? (r = t.charAt(ce), ce++) : (r = s, ge(_)), r === s && (r = null), r !== s ? (61 === t.charCodeAt(ce) ? (n = "=", ce++) : (n = s, ge(C)), n !== s ? (r = P(r), e = r) : (ce = e, e = s)) : (ce = e, e = s), e === s && (w.test(t.charAt(ce)) ? (e = t.charAt(ce), ce++) : (e = s, ge(k))), de[o] = {
+                      nextPos: ce,
                       result: e
                     }, e);
-                  }()) !== s && xe() !== s ? ((o = function () {
+                  }()) !== s && Ee() !== s ? ((o = function () {
                     var e,
                       r,
                       n,
                       o,
                       a,
                       i,
-                      u = 32 * ie + 17,
-                      l = ce[u];
-                    if (l) return ie = l.nextPos, l.result;
-                    if (e = ie, 34 === t.charCodeAt(ie) ? (r = '"', ie++) : (r = s, de(j)), r !== s) {
-                      for (n = [], T.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(F)), o === s && (o = ie, 92 === t.charCodeAt(ie) ? (a = "\\", ie++) : (a = s, de(R)), a !== s ? (t.length > ie ? (i = t.charAt(ie), ie++) : (i = s, de(O)), i !== s ? (a = L(a, i), o = a) : (ie = o, o = s)) : (ie = o, o = s)); o !== s;) n.push(o), T.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(F)), o === s && (o = ie, 92 === t.charCodeAt(ie) ? (a = "\\", ie++) : (a = s, de(R)), a !== s ? (t.length > ie ? (i = t.charAt(ie), ie++) : (i = s, de(O)), i !== s ? (a = L(a, i), o = a) : (ie = o, o = s)) : (ie = o, o = s));
-                      n !== s ? (34 === t.charCodeAt(ie) ? (o = '"', ie++) : (o = s, de(j)), o !== s ? (r = M(n), e = r) : (ie = e, e = s)) : (ie = e, e = s);
-                    } else ie = e, e = s;
-                    if (e === s) if (e = ie, 39 === t.charCodeAt(ie) ? (r = "'", ie++) : (r = s, de(B)), r !== s) {
-                      for (n = [], U.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(K)), o === s && (o = ie, 92 === t.charCodeAt(ie) ? (a = "\\", ie++) : (a = s, de(R)), a !== s ? (t.length > ie ? (i = t.charAt(ie), ie++) : (i = s, de(O)), i !== s ? (a = L(a, i), o = a) : (ie = o, o = s)) : (ie = o, o = s)); o !== s;) n.push(o), U.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(K)), o === s && (o = ie, 92 === t.charCodeAt(ie) ? (a = "\\", ie++) : (a = s, de(R)), a !== s ? (t.length > ie ? (i = t.charAt(ie), ie++) : (i = s, de(O)), i !== s ? (a = L(a, i), o = a) : (ie = o, o = s)) : (ie = o, o = s));
-                      n !== s ? (39 === t.charCodeAt(ie) ? (o = "'", ie++) : (o = s, de(B)), o !== s ? (r = M(n), e = r) : (ie = e, e = s)) : (ie = e, e = s);
-                    } else ie = e, e = s;
-                    return ce[u] = {
-                      nextPos: ie,
+                      u = 36 * ce + 17,
+                      l = de[u];
+                    if (l) return ce = l.nextPos, l.result;
+                    if (e = ce, 34 === t.charCodeAt(ce) ? (r = '"', ce++) : (r = s, ge(j)), r !== s) {
+                      for (n = [], T.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(F)), o === s && (o = ce, 92 === t.charCodeAt(ce) ? (a = "\\", ce++) : (a = s, ge(R)), a !== s ? (t.length > ce ? (i = t.charAt(ce), ce++) : (i = s, ge(O)), i !== s ? (a = L(a, i), o = a) : (ce = o, o = s)) : (ce = o, o = s)); o !== s;) n.push(o), T.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(F)), o === s && (o = ce, 92 === t.charCodeAt(ce) ? (a = "\\", ce++) : (a = s, ge(R)), a !== s ? (t.length > ce ? (i = t.charAt(ce), ce++) : (i = s, ge(O)), i !== s ? (a = L(a, i), o = a) : (ce = o, o = s)) : (ce = o, o = s));
+                      n !== s ? (34 === t.charCodeAt(ce) ? (o = '"', ce++) : (o = s, ge(j)), o !== s ? (r = M(n), e = r) : (ce = e, e = s)) : (ce = e, e = s);
+                    } else ce = e, e = s;
+                    if (e === s) if (e = ce, 39 === t.charCodeAt(ce) ? (r = "'", ce++) : (r = s, ge(B)), r !== s) {
+                      for (n = [], U.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(K)), o === s && (o = ce, 92 === t.charCodeAt(ce) ? (a = "\\", ce++) : (a = s, ge(R)), a !== s ? (t.length > ce ? (i = t.charAt(ce), ce++) : (i = s, ge(O)), i !== s ? (a = L(a, i), o = a) : (ce = o, o = s)) : (ce = o, o = s)); o !== s;) n.push(o), U.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(K)), o === s && (o = ce, 92 === t.charCodeAt(ce) ? (a = "\\", ce++) : (a = s, ge(R)), a !== s ? (t.length > ce ? (i = t.charAt(ce), ce++) : (i = s, ge(O)), i !== s ? (a = L(a, i), o = a) : (ce = o, o = s)) : (ce = o, o = s));
+                      n !== s ? (39 === t.charCodeAt(ce) ? (o = "'", ce++) : (o = s, ge(B)), o !== s ? (r = M(n), e = r) : (ce = e, e = s)) : (ce = e, e = s);
+                    } else ce = e, e = s;
+                    return de[u] = {
+                      nextPos: ce,
                       result: e
                     }, e;
                   }()) === s && (o = function () {
@@ -42407,42 +42671,42 @@ module.exports = NodeEventGenerator;
                       a,
                       i,
                       u,
-                      l = 32 * ie + 18,
-                      c = ce[l];
-                    if (c) return ie = c.nextPos, c.result;
-                    for (e = ie, r = ie, n = [], N.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(W)); o !== s;) n.push(o), N.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(W));
-                    if (n !== s ? (46 === t.charCodeAt(ie) ? (o = ".", ie++) : (o = s, de(D)), o !== s ? r = n = [n, o] : (ie = r, r = s)) : (ie = r, r = s), r === s && (r = null), r !== s) {
-                      if (n = [], N.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(W)), o !== s) for (; o !== s;) n.push(o), N.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(W));else n = s;
+                      l = 36 * ce + 18,
+                      c = de[l];
+                    if (c) return ce = c.nextPos, c.result;
+                    for (e = ce, r = ce, n = [], N.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(W)); o !== s;) n.push(o), N.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(W));
+                    if (n !== s ? (46 === t.charCodeAt(ce) ? (o = ".", ce++) : (o = s, ge(D)), o !== s ? r = n = [n, o] : (ce = r, r = s)) : (ce = r, r = s), r === s && (r = null), r !== s) {
+                      if (n = [], N.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(W)), o !== s) for (; o !== s;) n.push(o), N.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(W));else n = s;
                       n !== s ? (i = n, u = (a = r) ? [].concat.apply([], a).join("") : "", r = {
                         type: "literal",
                         value: parseFloat(u + i.join(""))
-                      }, e = r) : (ie = e, e = s);
-                    } else ie = e, e = s;
-                    return ce[l] = {
-                      nextPos: ie,
+                      }, e = r) : (ce = e, e = s);
+                    } else ce = e, e = s;
+                    return de[l] = {
+                      nextPos: ce,
                       result: e
                     }, e;
                   }()) === s && (o = function () {
                     var e,
                       t,
-                      r = 32 * ie + 19,
-                      n = ce[r];
-                    return n ? (ie = n.nextPos, n.result) : ((t = ve()) !== s && (t = {
+                      r = 36 * ce + 19,
+                      n = de[r];
+                    return n ? (ce = n.nextPos, n.result) : ((t = be()) !== s && (t = {
                       type: "literal",
                       value: t
-                    }), e = t, ce[r] = {
-                      nextPos: ie,
+                    }), e = t, de[r] = {
+                      nextPos: ce,
                       result: e
                     }, e);
-                  }()), o !== s ? (r = I(r, n, o), e = r) : (ie = e, e = s)) : (ie = e, e = s), e === s && (e = ie, (r = Ce()) !== s && (r = {
+                  }()), o !== s ? (r = I(r, n, o), e = r) : (ce = e, e = s)) : (ce = e, e = s), e === s && (e = ce, (r = De()) !== s && (r = {
                     type: "attribute",
                     name: r
-                  }), e = r)), ce[a] = {
-                    nextPos: ie,
+                  }), e = r)), de[a] = {
+                    nextPos: ce,
                     result: e
                   }, e);
-                }()) !== s && xe() !== s ? (93 === t.charCodeAt(ie) ? (o = "]", ie++) : (o = s, de(b)), o !== s ? e = r = n : (ie = e, e = s)) : (ie = e, e = s), ce[a] = {
-                  nextPos: ie,
+                }()) !== s && Ee() !== s ? (93 === t.charCodeAt(ce) ? (o = "]", ce++) : (o = s, ge(b)), o !== s ? e = r = n : (ce = e, e = s)) : (ce = e, e = s), de[a] = {
+                  nextPos: ce,
                   result: e
                 }, e);
               }()) === s && (e = function () {
@@ -42454,22 +42718,22 @@ module.exports = NodeEventGenerator;
                   i,
                   u,
                   l,
-                  c = 32 * ie + 23,
-                  f = ce[c];
-                if (f) return ie = f.nextPos, f.result;
-                if (e = ie, 46 === t.charCodeAt(ie) ? (r = ".", ie++) : (r = s, de(D)), r !== s) {
-                  if ((n = ve()) !== s) {
-                    for (o = [], a = ie, 46 === t.charCodeAt(ie) ? (i = ".", ie++) : (i = s, de(D)), i !== s && (u = ve()) !== s ? a = i = [i, u] : (ie = a, a = s); a !== s;) o.push(a), a = ie, 46 === t.charCodeAt(ie) ? (i = ".", ie++) : (i = s, de(D)), i !== s && (u = ve()) !== s ? a = i = [i, u] : (ie = a, a = s);
+                  c = 36 * ce + 26,
+                  f = de[c];
+                if (f) return ce = f.nextPos, f.result;
+                if (e = ce, 46 === t.charCodeAt(ce) ? (r = ".", ce++) : (r = s, ge(D)), r !== s) {
+                  if ((n = be()) !== s) {
+                    for (o = [], a = ce, 46 === t.charCodeAt(ce) ? (i = ".", ce++) : (i = s, ge(D)), i !== s && (u = be()) !== s ? a = i = [i, u] : (ce = a, a = s); a !== s;) o.push(a), a = ce, 46 === t.charCodeAt(ce) ? (i = ".", ce++) : (i = s, ge(D)), i !== s && (u = be()) !== s ? a = i = [i, u] : (ce = a, a = s);
                     o !== s ? (l = n, r = {
                       type: "field",
                       name: o.reduce(function (e, t) {
                         return e + t[0] + t[1];
                       }, l)
-                    }, e = r) : (ie = e, e = s);
-                  } else ie = e, e = s;
-                } else ie = e, e = s;
-                return ce[c] = {
-                  nextPos: ie,
+                    }, e = r) : (ce = e, e = s);
+                  } else ce = e, e = s;
+                } else ce = e, e = s;
+                return de[c] = {
+                  nextPos: ce,
                   result: e
                 }, e;
               }()) === s && (e = function () {
@@ -42477,13 +42741,13 @@ module.exports = NodeEventGenerator;
                   r,
                   n,
                   o,
-                  a = 32 * ie + 24,
-                  i = ce[a];
-                return i ? (ie = i.nextPos, i.result) : (e = ie, ":not(" === t.substr(ie, 5) ? (r = ":not(", ie += 5) : (r = s, de(X)), r !== s && xe() !== s && (n = Ae()) !== s && xe() !== s ? (41 === t.charCodeAt(ie) ? (o = ")", ie++) : (o = s, de(z)), o !== s ? e = r = {
+                  a = 36 * ce + 27,
+                  i = de[a];
+                return i ? (ce = i.nextPos, i.result) : (e = ce, ":not(" === t.substr(ce, 5) ? (r = ":not(", ce += 5) : (r = s, ge(ee)), r !== s && Ee() !== s && (n = _e()) !== s && Ee() !== s ? (41 === t.charCodeAt(ce) ? (o = ")", ce++) : (o = s, ge(z)), o !== s ? e = r = {
                   type: "not",
                   selectors: n
-                } : (ie = e, e = s)) : (ie = e, e = s), ce[a] = {
-                  nextPos: ie,
+                } : (ce = e, e = s)) : (ce = e, e = s), de[a] = {
+                  nextPos: ce,
                   result: e
                 }, e);
               }()) === s && (e = function () {
@@ -42491,13 +42755,10 @@ module.exports = NodeEventGenerator;
                   r,
                   n,
                   o,
-                  a = 32 * ie + 25,
-                  i = ce[a];
-                return i ? (ie = i.nextPos, i.result) : (e = ie, ":matches(" === t.substr(ie, 9) ? (r = ":matches(", ie += 9) : (r = s, de(Z)), r !== s && xe() !== s && (n = Ae()) !== s && xe() !== s ? (41 === t.charCodeAt(ie) ? (o = ")", ie++) : (o = s, de(z)), o !== s ? e = r = {
-                  type: "matches",
-                  selectors: n
-                } : (ie = e, e = s)) : (ie = e, e = s), ce[a] = {
-                  nextPos: ie,
+                  a = 36 * ce + 28,
+                  i = de[a];
+                return i ? (ce = i.nextPos, i.result) : (e = ce, ":matches(" === t.substr(ce, 9) ? (r = ":matches(", ce += 9) : (r = s, ge(te)), r !== s && Ee() !== s && (n = _e()) !== s && Ee() !== s ? (41 === t.charCodeAt(ce) ? (o = ")", ce++) : (o = s, ge(z)), o !== s ? (r = re(n), e = r) : (ce = e, e = s)) : (ce = e, e = s), de[a] = {
+                  nextPos: ce,
                   result: e
                 }, e);
               }()) === s && (e = function () {
@@ -42505,9 +42766,20 @@ module.exports = NodeEventGenerator;
                   r,
                   n,
                   o,
-                  a = 32 * ie + 26,
-                  i = ce[a];
-                return i ? (ie = i.nextPos, i.result) : (e = ie, ":has(" === t.substr(ie, 5) ? (r = ":has(", ie += 5) : (r = s, de(ee)), r !== s && xe() !== s && (n = function () {
+                  a = 36 * ce + 29,
+                  i = de[a];
+                return i ? (ce = i.nextPos, i.result) : (e = ce, ":is(" === t.substr(ce, 4) ? (r = ":is(", ce += 4) : (r = s, ge(ne)), r !== s && Ee() !== s && (n = _e()) !== s && Ee() !== s ? (41 === t.charCodeAt(ce) ? (o = ")", ce++) : (o = s, ge(z)), o !== s ? (r = re(n), e = r) : (ce = e, e = s)) : (ce = e, e = s), de[a] = {
+                  nextPos: ce,
+                  result: e
+                }, e);
+              }()) === s && (e = function () {
+                var e,
+                  r,
+                  n,
+                  o,
+                  a = 36 * ce + 30,
+                  i = de[a];
+                return i ? (ce = i.nextPos, i.result) : (e = ce, ":has(" === t.substr(ce, 5) ? (r = ":has(", ce += 5) : (r = s, ge(oe)), r !== s && Ee() !== s && (n = function () {
                   var e,
                     r,
                     n,
@@ -42516,40 +42788,40 @@ module.exports = NodeEventGenerator;
                     i,
                     u,
                     l,
-                    c = 32 * ie + 4,
-                    f = ce[c];
-                  if (f) return ie = f.nextPos, f.result;
-                  if (e = ie, (r = Ee()) !== s) {
-                    for (n = [], o = ie, (a = xe()) !== s ? (44 === t.charCodeAt(ie) ? (i = ",", ie++) : (i = s, de(m)), i !== s && (u = xe()) !== s && (l = Ee()) !== s ? o = a = [a, i, u, l] : (ie = o, o = s)) : (ie = o, o = s); o !== s;) n.push(o), o = ie, (a = xe()) !== s ? (44 === t.charCodeAt(ie) ? (i = ",", ie++) : (i = s, de(m)), i !== s && (u = xe()) !== s && (l = Ee()) !== s ? o = a = [a, i, u, l] : (ie = o, o = s)) : (ie = o, o = s);
-                    n !== s ? e = r = x(r, n) : (ie = e, e = s);
-                  } else ie = e, e = s;
-                  return ce[c] = {
-                    nextPos: ie,
+                    c = 36 * ce + 4,
+                    f = de[c];
+                  if (f) return ce = f.nextPos, f.result;
+                  if (e = ce, (r = Ce()) !== s) {
+                    for (n = [], o = ce, (a = Ee()) !== s ? (44 === t.charCodeAt(ce) ? (i = ",", ce++) : (i = s, ge(m)), i !== s && (u = Ee()) !== s && (l = Ce()) !== s ? o = a = [a, i, u, l] : (ce = o, o = s)) : (ce = o, o = s); o !== s;) n.push(o), o = ce, (a = Ee()) !== s ? (44 === t.charCodeAt(ce) ? (i = ",", ce++) : (i = s, ge(m)), i !== s && (u = Ee()) !== s && (l = Ce()) !== s ? o = a = [a, i, u, l] : (ce = o, o = s)) : (ce = o, o = s);
+                    n !== s ? e = r = x(r, n) : (ce = e, e = s);
+                  } else ce = e, e = s;
+                  return de[c] = {
+                    nextPos: ce,
                     result: e
                   }, e;
-                }()) !== s && xe() !== s ? (41 === t.charCodeAt(ie) ? (o = ")", ie++) : (o = s, de(z)), o !== s ? e = r = {
+                }()) !== s && Ee() !== s ? (41 === t.charCodeAt(ce) ? (o = ")", ce++) : (o = s, ge(z)), o !== s ? e = r = {
                   type: "has",
                   selectors: n
-                } : (ie = e, e = s)) : (ie = e, e = s), ce[a] = {
-                  nextPos: ie,
+                } : (ce = e, e = s)) : (ce = e, e = s), de[a] = {
+                  nextPos: ce,
                   result: e
                 }, e);
               }()) === s && (e = function () {
                 var e,
                   r,
-                  n = 32 * ie + 27,
-                  o = ce[n];
-                return o ? (ie = o.nextPos, o.result) : (":first-child" === t.substr(ie, 12) ? (r = ":first-child", ie += 12) : (r = s, de(te)), r !== s && (r = we(1)), e = r, ce[n] = {
-                  nextPos: ie,
+                  n = 36 * ce + 31,
+                  o = de[n];
+                return o ? (ce = o.nextPos, o.result) : (":first-child" === t.substr(ce, 12) ? (r = ":first-child", ce += 12) : (r = s, ge(ae)), r !== s && (r = Fe(1)), e = r, de[n] = {
+                  nextPos: ce,
                   result: e
                 }, e);
               }()) === s && (e = function () {
                 var e,
                   r,
-                  n = 32 * ie + 28,
-                  o = ce[n];
-                return o ? (ie = o.nextPos, o.result) : (":last-child" === t.substr(ie, 11) ? (r = ":last-child", ie += 11) : (r = s, de(re)), r !== s && (r = Pe(1)), e = r, ce[n] = {
-                  nextPos: ie,
+                  n = 36 * ce + 32,
+                  o = de[n];
+                return o ? (ce = o.nextPos, o.result) : (":last-child" === t.substr(ce, 11) ? (r = ":last-child", ce += 11) : (r = s, ge(ie)), r !== s && (r = Re(1)), e = r, de[n] = {
+                  nextPos: ce,
                   result: e
                 }, e);
               }()) === s && (e = function () {
@@ -42558,17 +42830,17 @@ module.exports = NodeEventGenerator;
                   n,
                   o,
                   a,
-                  i = 32 * ie + 29,
-                  u = ce[i];
-                if (u) return ie = u.nextPos, u.result;
-                if (e = ie, ":nth-child(" === t.substr(ie, 11) ? (r = ":nth-child(", ie += 11) : (r = s, de(ne)), r !== s) {
-                  if (xe() !== s) {
-                    if (n = [], N.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(W)), o !== s) for (; o !== s;) n.push(o), N.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(W));else n = s;
-                    n !== s && (o = xe()) !== s ? (41 === t.charCodeAt(ie) ? (a = ")", ie++) : (a = s, de(z)), a !== s ? (r = we(parseInt(n.join(""), 10)), e = r) : (ie = e, e = s)) : (ie = e, e = s);
-                  } else ie = e, e = s;
-                } else ie = e, e = s;
-                return ce[i] = {
-                  nextPos: ie,
+                  i = 36 * ce + 33,
+                  u = de[i];
+                if (u) return ce = u.nextPos, u.result;
+                if (e = ce, ":nth-child(" === t.substr(ce, 11) ? (r = ":nth-child(", ce += 11) : (r = s, ge(se)), r !== s) {
+                  if (Ee() !== s) {
+                    if (n = [], N.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(W)), o !== s) for (; o !== s;) n.push(o), N.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(W));else n = s;
+                    n !== s && (o = Ee()) !== s ? (41 === t.charCodeAt(ce) ? (a = ")", ce++) : (a = s, ge(z)), a !== s ? (r = Fe(parseInt(n.join(""), 10)), e = r) : (ce = e, e = s)) : (ce = e, e = s);
+                  } else ce = e, e = s;
+                } else ce = e, e = s;
+                return de[i] = {
+                  nextPos: ce,
                   result: e
                 }, e;
               }()) === s && (e = function () {
@@ -42577,38 +42849,38 @@ module.exports = NodeEventGenerator;
                   n,
                   o,
                   a,
-                  i = 32 * ie + 30,
-                  u = ce[i];
-                if (u) return ie = u.nextPos, u.result;
-                if (e = ie, ":nth-last-child(" === t.substr(ie, 16) ? (r = ":nth-last-child(", ie += 16) : (r = s, de(oe)), r !== s) {
-                  if (xe() !== s) {
-                    if (n = [], N.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(W)), o !== s) for (; o !== s;) n.push(o), N.test(t.charAt(ie)) ? (o = t.charAt(ie), ie++) : (o = s, de(W));else n = s;
-                    n !== s && (o = xe()) !== s ? (41 === t.charCodeAt(ie) ? (a = ")", ie++) : (a = s, de(z)), a !== s ? (r = Pe(parseInt(n.join(""), 10)), e = r) : (ie = e, e = s)) : (ie = e, e = s);
-                  } else ie = e, e = s;
-                } else ie = e, e = s;
-                return ce[i] = {
-                  nextPos: ie,
+                  i = 36 * ce + 34,
+                  u = de[i];
+                if (u) return ce = u.nextPos, u.result;
+                if (e = ce, ":nth-last-child(" === t.substr(ce, 16) ? (r = ":nth-last-child(", ce += 16) : (r = s, ge(ue)), r !== s) {
+                  if (Ee() !== s) {
+                    if (n = [], N.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(W)), o !== s) for (; o !== s;) n.push(o), N.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(W));else n = s;
+                    n !== s && (o = Ee()) !== s ? (41 === t.charCodeAt(ce) ? (a = ")", ce++) : (a = s, ge(z)), a !== s ? (r = Re(parseInt(n.join(""), 10)), e = r) : (ce = e, e = s)) : (ce = e, e = s);
+                  } else ce = e, e = s;
+                } else ce = e, e = s;
+                return de[i] = {
+                  nextPos: ce,
                   result: e
                 }, e;
               }()) === s && (e = function () {
                 var e,
                   r,
                   n,
-                  o = 32 * ie + 31,
-                  a = ce[o];
-                return a ? (ie = a.nextPos, a.result) : (e = ie, 58 === t.charCodeAt(ie) ? (r = ":", ie++) : (r = s, de(ae)), r !== s && (n = ve()) !== s ? e = r = {
+                  o = 36 * ce + 35,
+                  a = de[o];
+                return a ? (ce = a.nextPos, a.result) : (e = ce, 58 === t.charCodeAt(ce) ? (r = ":", ce++) : (r = s, ge(le)), r !== s && (n = be()) !== s ? e = r = {
                   type: "class",
                   name: n
-                } : (ie = e, e = s), ce[o] = {
-                  nextPos: ie,
+                } : (ce = e, e = s), de[o] = {
+                  nextPos: ce,
                   result: e
                 }, e);
-              }()), ce[r] = {
-                nextPos: ie,
+              }()), de[r] = {
+                nextPos: ce,
                 result: e
               }, e);
             }
-            function Ce() {
+            function De() {
               var e,
                 r,
                 n,
@@ -42617,19 +42889,60 @@ module.exports = NodeEventGenerator;
                 i,
                 u,
                 l,
-                c = 32 * ie + 15,
-                f = ce[c];
-              if (f) return ie = f.nextPos, f.result;
-              if (e = ie, (r = ve()) !== s) {
-                for (n = [], o = ie, 46 === t.charCodeAt(ie) ? (a = ".", ie++) : (a = s, de(D)), a !== s && (i = ve()) !== s ? o = a = [a, i] : (ie = o, o = s); o !== s;) n.push(o), o = ie, 46 === t.charCodeAt(ie) ? (a = ".", ie++) : (a = s, de(D)), a !== s && (i = ve()) !== s ? o = a = [a, i] : (ie = o, o = s);
-                n !== s ? (u = r, l = n, e = r = [].concat.apply([u], l).join("")) : (ie = e, e = s);
-              } else ie = e, e = s;
-              return ce[c] = {
-                nextPos: ie,
+                c = 36 * ce + 15,
+                f = de[c];
+              if (f) return ce = f.nextPos, f.result;
+              if (e = ce, (r = be()) !== s) {
+                for (n = [], o = ce, 46 === t.charCodeAt(ce) ? (a = ".", ce++) : (a = s, ge(D)), a !== s && (i = be()) !== s ? o = a = [a, i] : (ce = o, o = s); o !== s;) n.push(o), o = ce, 46 === t.charCodeAt(ce) ? (a = ".", ce++) : (a = s, ge(D)), a !== s && (i = be()) !== s ? o = a = [a, i] : (ce = o, o = s);
+                n !== s ? (u = r, l = n, e = r = [].concat.apply([u], l).join("")) : (ce = e, e = s);
+              } else ce = e, e = s;
+              return de[c] = {
+                nextPos: ce,
                 result: e
               }, e;
             }
-            function we(e) {
+            function Ie() {
+              var e,
+                r,
+                n,
+                o,
+                a = 36 * ce + 23,
+                i = de[a];
+              if (i) return ce = i.nextPos, i.result;
+              if (e = ce, 91 === t.charCodeAt(ce) ? (r = "[", ce++) : (r = s, ge(E)), r !== s) {
+                if (n = [], J.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(Q)), o === s && (o = je()), o !== s) for (; o !== s;) n.push(o), J.test(t.charAt(ce)) ? (o = t.charAt(ce), ce++) : (o = s, ge(Q)), o === s && (o = je());else n = s;
+                n !== s ? (93 === t.charCodeAt(ce) ? (o = "]", ce++) : (o = s, ge(b)), o !== s ? e = r = "[" + n.join("") + "]" : (ce = e, e = s)) : (ce = e, e = s);
+              } else ce = e, e = s;
+              return de[a] = {
+                nextPos: ce,
+                result: e
+              }, e;
+            }
+            function je() {
+              var e,
+                r,
+                n,
+                o = 36 * ce + 24,
+                a = de[o];
+              return a ? (ce = a.nextPos, a.result) : (e = ce, 92 === t.charCodeAt(ce) ? (r = "\\", ce++) : (r = s, ge(R)), r !== s ? (t.length > ce ? (n = t.charAt(ce), ce++) : (n = s, ge(O)), n !== s ? e = r = "\\" + n : (ce = e, e = s)) : (ce = e, e = s), de[o] = {
+                nextPos: ce,
+                result: e
+              }, e);
+            }
+            function Te() {
+              var e,
+                r,
+                n,
+                o = 36 * ce + 25,
+                a = de[o];
+              if (a) return ce = a.nextPos, a.result;
+              if (r = [], X.test(t.charAt(ce)) ? (n = t.charAt(ce), ce++) : (n = s, ge(Z)), n !== s) for (; n !== s;) r.push(n), X.test(t.charAt(ce)) ? (n = t.charAt(ce), ce++) : (n = s, ge(Z));else r = s;
+              return r !== s && (r = r.join("")), e = r, de[o] = {
+                nextPos: ce,
+                result: e
+              }, e;
+            }
+            function Fe(e) {
               return {
                 type: "nth-child",
                 index: {
@@ -42638,7 +42951,7 @@ module.exports = NodeEventGenerator;
                 }
               };
             }
-            function Pe(e) {
+            function Re(e) {
               return {
                 type: "nth-last-child",
                 index: {
@@ -42647,10 +42960,10 @@ module.exports = NodeEventGenerator;
                 }
               };
             }
-            if ((n = l()) !== s && ie === t.length) return n;
-            throw n !== s && ie < t.length && de({
+            if ((n = l()) !== s && ce === t.length) return n;
+            throw n !== s && ce < t.length && ge({
               type: "end"
-            }), o = le, a = ue < t.length ? t.charAt(ue) : null, i = ue < t.length ? ye(ue, ue + 1) : ye(ue, ue), new e(e.buildMessage(o, a), o, a, i);
+            }), o = he, a = pe < t.length ? t.charAt(pe) : null, i = pe < t.length ? ve(pe, pe + 1) : ve(pe, pe), new e(e.buildMessage(o, a), o, a, i);
           }
         };
       }());
@@ -42673,24 +42986,24 @@ module.exports = NodeEventGenerator;
     }
     return f(e);
   }
-  function f(t) {
-    switch (t.type) {
+  function f(e) {
+    switch (e.type) {
       case "wildcard":
         return function () {
           return !0;
         };
       case "identifier":
-        var r = t.value.toLowerCase();
-        return function (e, t, n) {
+        var t = e.value.toLowerCase();
+        return function (e, r, n) {
           var o = n && n.nodeTypeKey || "type";
-          return r === e[o].toLowerCase();
+          return t === e[o].toLowerCase();
         };
       case "exactNode":
         return function (e, t) {
           return 0 === t.length;
         };
       case "field":
-        var n = t.name.split(".");
+        var r = e.name.split(".");
         return function (e, t) {
           return function e(t, r, n, o) {
             for (var a = r, i = o; i < n.length; ++i) {
@@ -42703,28 +43016,28 @@ module.exports = NodeEventGenerator;
               a = s;
             }
             return t === a;
-          }(e, t[n.length - 1], n, 0);
+          }(e, t[r.length - 1], r, 0);
         };
       case "matches":
-        var o = t.selectors.map(c);
+        var o = e.selectors.map(c);
         return function (e, t, r) {
           for (var n = 0; n < o.length; ++n) if (o[n](e, t, r)) return !0;
           return !1;
         };
       case "compound":
-        var a = t.selectors.map(c);
+        var a = e.selectors.map(c);
         return function (e, t, r) {
           for (var n = 0; n < a.length; ++n) if (!a[n](e, t, r)) return !1;
           return !0;
         };
       case "not":
-        var s = t.selectors.map(c);
+        var s = e.selectors.map(c);
         return function (e, t, r) {
           for (var n = 0; n < s.length; ++n) if (s[n](e, t, r)) return !1;
           return !0;
         };
       case "has":
-        var l = t.selectors.map(c);
+        var l = e.selectors.map(c);
         return function (e, t, r) {
           var n = !1,
             o = [];
@@ -42741,123 +43054,123 @@ module.exports = NodeEventGenerator;
           }), n;
         };
       case "child":
-        var f = c(t.left),
-          p = c(t.right);
+        var f = c(e.left),
+          p = c(e.right);
         return function (e, t, r) {
           return !!(t.length > 0 && p(e, t, r)) && f(t[0], t.slice(1), r);
         };
       case "descendant":
-        var h = c(t.left),
-          x = c(t.right);
+        var h = c(e.left),
+          x = c(e.right);
         return function (e, t, r) {
           if (x(e, t, r)) for (var n = 0, o = t.length; n < o; ++n) if (h(t[n], t.slice(n + 1), r)) return !0;
           return !1;
         };
       case "attribute":
-        var v = t.name.split(".");
-        switch (t.operator) {
+        var v = e.name.split(".");
+        switch (e.operator) {
           case void 0:
             return function (e) {
               return null != u(e, v);
             };
           case "=":
-            switch (t.value.type) {
+            switch (e.value.type) {
               case "regexp":
-                return function (e) {
-                  var r = u(e, v);
-                  return "string" == typeof r && t.value.value.test(r);
+                return function (t) {
+                  var r = u(t, v);
+                  return "string" == typeof r && e.value.value.test(r);
                 };
               case "literal":
-                var g = "".concat(t.value.value);
+                var g = "".concat(e.value.value);
                 return function (e) {
                   return g === "".concat(u(e, v));
                 };
               case "type":
-                return function (r) {
-                  return t.value.value === e(u(r, v));
+                return function (t) {
+                  return e.value.value === n(u(t, v));
                 };
             }
-            throw new Error("Unknown selector value type: ".concat(t.value.type));
+            throw new Error("Unknown selector value type: ".concat(e.value.type));
           case "!=":
-            switch (t.value.type) {
+            switch (e.value.type) {
               case "regexp":
-                return function (e) {
-                  return !t.value.value.test(u(e, v));
+                return function (t) {
+                  return !e.value.value.test(u(t, v));
                 };
               case "literal":
-                var A = "".concat(t.value.value);
+                var A = "".concat(e.value.value);
                 return function (e) {
                   return A !== "".concat(u(e, v));
                 };
               case "type":
-                return function (r) {
-                  return t.value.value !== e(u(r, v));
+                return function (t) {
+                  return e.value.value !== n(u(t, v));
                 };
             }
-            throw new Error("Unknown selector value type: ".concat(t.value.type));
+            throw new Error("Unknown selector value type: ".concat(e.value.type));
           case "<=":
-            return function (e) {
-              return u(e, v) <= t.value.value;
+            return function (t) {
+              return u(t, v) <= e.value.value;
             };
           case "<":
-            return function (e) {
-              return u(e, v) < t.value.value;
+            return function (t) {
+              return u(t, v) < e.value.value;
             };
           case ">":
-            return function (e) {
-              return u(e, v) > t.value.value;
+            return function (t) {
+              return u(t, v) > e.value.value;
             };
           case ">=":
-            return function (e) {
-              return u(e, v) >= t.value.value;
+            return function (t) {
+              return u(t, v) >= e.value.value;
             };
         }
-        throw new Error("Unknown operator: ".concat(t.operator));
+        throw new Error("Unknown operator: ".concat(e.operator));
       case "sibling":
-        var E = c(t.left),
-          b = c(t.right);
-        return function (e, r, n) {
-          return b(e, r, n) && y(e, E, r, "LEFT_SIDE", n) || t.left.subject && E(e, r, n) && y(e, b, r, "RIGHT_SIDE", n);
+        var E = c(e.left),
+          b = c(e.right);
+        return function (t, r, n) {
+          return b(t, r, n) && d(t, E, r, "LEFT_SIDE", n) || e.left.subject && E(t, r, n) && d(t, b, r, "RIGHT_SIDE", n);
         };
       case "adjacent":
-        var S = c(t.left),
-          _ = c(t.right);
-        return function (e, r, n) {
-          return _(e, r, n) && d(e, S, r, "LEFT_SIDE", n) || t.right.subject && S(e, r, n) && d(e, _, r, "RIGHT_SIDE", n);
+        var S = c(e.left),
+          _ = c(e.right);
+        return function (t, r, n) {
+          return _(t, r, n) && y(t, S, r, "LEFT_SIDE", n) || e.right.subject && S(t, r, n) && y(t, _, r, "RIGHT_SIDE", n);
         };
       case "nth-child":
-        var C = t.index.value,
-          w = c(t.right);
+        var C = e.index.value,
+          P = c(e.right);
         return function (e, t, r) {
-          return w(e, t, r) && m(e, t, C, r);
+          return P(e, t, r) && m(e, t, C, r);
         };
       case "nth-last-child":
-        var P = -t.index.value,
-          k = c(t.right);
+        var w = -e.index.value,
+          k = c(e.right);
         return function (e, t, r) {
-          return k(e, t, r) && m(e, t, P, r);
+          return k(e, t, r) && m(e, t, w, r);
         };
       case "class":
-        var D = t.name.toLowerCase();
-        return function (e, r, n) {
-          if (n && n.matchClass) return n.matchClass(t.name, e, r);
+        var D = e.name.toLowerCase();
+        return function (t, r, n) {
+          if (n && n.matchClass) return n.matchClass(e.name, t, r);
           if (n && n.nodeTypeKey) return !1;
           switch (D) {
             case "statement":
-              if ("Statement" === e.type.slice(-9)) return !0;
+              if ("Statement" === t.type.slice(-9)) return !0;
             case "declaration":
-              return "Declaration" === e.type.slice(-11);
+              return "Declaration" === t.type.slice(-11);
             case "pattern":
-              if ("Pattern" === e.type.slice(-7)) return !0;
+              if ("Pattern" === t.type.slice(-7)) return !0;
             case "expression":
-              return "Expression" === e.type.slice(-10) || "Literal" === e.type.slice(-7) || "Identifier" === e.type && (0 === r.length || "MetaProperty" !== r[0].type) || "MetaProperty" === e.type;
+              return "Expression" === t.type.slice(-10) || "Literal" === t.type.slice(-7) || "Identifier" === t.type && (0 === r.length || "MetaProperty" !== r[0].type) || "MetaProperty" === t.type;
             case "function":
-              return "FunctionDeclaration" === e.type || "FunctionExpression" === e.type || "ArrowFunctionExpression" === e.type;
+              return "FunctionDeclaration" === t.type || "FunctionExpression" === t.type || "ArrowFunctionExpression" === t.type;
           }
-          throw new Error("Unknown class name: ".concat(t.name));
+          throw new Error("Unknown class name: ".concat(e.name));
         };
     }
-    throw new Error("Unknown selector type: ".concat(t.type));
+    throw new Error("Unknown selector type: ".concat(e.type));
   }
   function p(e, t) {
     var r = t && t.nodeTypeKey || "type",
@@ -42866,11 +43179,11 @@ module.exports = NodeEventGenerator;
       return e !== r;
     });
   }
-  function h(t, r) {
-    var n = r && r.nodeTypeKey || "type";
-    return null !== t && "object" === e(t) && "string" == typeof t[n];
+  function h(e, t) {
+    var r = t && t.nodeTypeKey || "type";
+    return null !== e && "object" === n(e) && "string" == typeof e[r];
   }
-  function y(e, r, n, o, a) {
+  function d(e, r, n, o, a) {
     var i = t(n, 1)[0];
     if (!i) return !1;
     for (var s = p(i, a), u = 0; u < s.length; ++u) {
@@ -42879,14 +43192,14 @@ module.exports = NodeEventGenerator;
         var c = l.indexOf(e);
         if (c < 0) continue;
         var f = void 0,
-          y = void 0;
-        "LEFT_SIDE" === o ? (f = 0, y = c) : (f = c + 1, y = l.length);
-        for (var d = f; d < y; ++d) if (h(l[d], a) && r(l[d], n, a)) return !0;
+          d = void 0;
+        "LEFT_SIDE" === o ? (f = 0, d = c) : (f = c + 1, d = l.length);
+        for (var y = f; y < d; ++y) if (h(l[y], a) && r(l[y], n, a)) return !0;
       }
     }
     return !1;
   }
-  function d(e, r, n, o, a) {
+  function y(e, r, n, o, a) {
     var i = t(n, 1)[0];
     if (!i) return !1;
     for (var s = p(i, a), u = 0; u < s.length; ++u) {
@@ -42913,21 +43226,21 @@ module.exports = NodeEventGenerator;
     }
     return !1;
   }
-  function x(t, n, o, a) {
-    if (n) {
+  function x(e, t, o, a) {
+    if (t) {
       var s = [],
-        u = c(n),
-        l = function t(n, o) {
-          if (null == n || "object" != e(n)) return [];
-          null == o && (o = n);
-          for (var a = n.subject ? [o] : [], i = Object.keys(n), s = 0; s < i.length; ++s) {
+        u = c(t),
+        l = function e(t, o) {
+          if (null == t || "object" != n(t)) return [];
+          null == o && (o = t);
+          for (var a = t.subject ? [o] : [], i = Object.keys(t), s = 0; s < i.length; ++s) {
             var u = i[s],
-              l = n[u];
-            a.push.apply(a, r(t(l, "left" === u ? l : o)));
+              l = t[u];
+            a.push.apply(a, r(e(l, "left" === u ? l : o)));
           }
           return a;
-        }(n).map(c);
-      i.traverse(t, {
+        }(t).map(c);
+      i.traverse(e, {
         enter: function (e, t) {
           if (null != t && s.unshift(t), u(e, s, a)) if (l.length) for (var r = 0, n = l.length; r < n; ++r) {
             l[r](e, s, a) && o(e, t, s);
@@ -45572,141 +45885,141 @@ module.exports = {
   "no-loop-func": __webpack_require__(337),
   "no-magic-numbers": __webpack_require__(338),
   "no-misleading-character-class": __webpack_require__(339),
-  "no-mixed-operators": __webpack_require__(346),
-  "no-mixed-requires": __webpack_require__(347),
-  "no-mixed-spaces-and-tabs": __webpack_require__(348),
-  "no-multi-assign": __webpack_require__(349),
-  "no-multi-spaces": __webpack_require__(350),
-  "no-multi-str": __webpack_require__(351),
-  "no-multiple-empty-lines": __webpack_require__(352),
-  "no-native-reassign": __webpack_require__(353),
-  "no-negated-condition": __webpack_require__(354),
-  "no-negated-in-lhs": __webpack_require__(355),
-  "no-nested-ternary": __webpack_require__(356),
-  "no-new": __webpack_require__(357),
-  "no-new-func": __webpack_require__(358),
-  "no-new-object": __webpack_require__(359),
-  "no-new-require": __webpack_require__(360),
-  "no-new-symbol": __webpack_require__(361),
-  "no-new-wrappers": __webpack_require__(362),
-  "no-obj-calls": __webpack_require__(363),
-  "no-octal": __webpack_require__(364),
-  "no-octal-escape": __webpack_require__(365),
-  "no-param-reassign": __webpack_require__(366),
-  "no-path-concat": __webpack_require__(367),
-  "no-plusplus": __webpack_require__(368),
-  "no-process-env": __webpack_require__(369),
-  "no-process-exit": __webpack_require__(370),
-  "no-proto": __webpack_require__(371),
-  "no-prototype-builtins": __webpack_require__(372),
-  "no-redeclare": __webpack_require__(373),
-  "no-regex-spaces": __webpack_require__(374),
-  "no-restricted-globals": __webpack_require__(375),
-  "no-restricted-imports": __webpack_require__(376),
-  "no-restricted-modules": __webpack_require__(378),
-  "no-restricted-properties": __webpack_require__(379),
-  "no-restricted-syntax": __webpack_require__(380),
-  "no-return-assign": __webpack_require__(381),
-  "no-return-await": __webpack_require__(382),
-  "no-script-url": __webpack_require__(383),
-  "no-self-assign": __webpack_require__(384),
-  "no-self-compare": __webpack_require__(385),
-  "no-sequences": __webpack_require__(386),
-  "no-shadow": __webpack_require__(387),
-  "no-shadow-restricted-names": __webpack_require__(388),
-  "no-spaced-func": __webpack_require__(389),
-  "no-sparse-arrays": __webpack_require__(390),
-  "no-sync": __webpack_require__(391),
-  "no-tabs": __webpack_require__(392),
-  "no-template-curly-in-string": __webpack_require__(393),
-  "no-ternary": __webpack_require__(394),
-  "no-this-before-super": __webpack_require__(395),
-  "no-throw-literal": __webpack_require__(396),
-  "no-trailing-spaces": __webpack_require__(397),
-  "no-undef": __webpack_require__(398),
-  "no-undef-init": __webpack_require__(399),
-  "no-undefined": __webpack_require__(400),
-  "no-underscore-dangle": __webpack_require__(401),
-  "no-unexpected-multiline": __webpack_require__(402),
-  "no-unmodified-loop-condition": __webpack_require__(403),
-  "no-unneeded-ternary": __webpack_require__(404),
-  "no-unreachable": __webpack_require__(405),
-  "no-unsafe-finally": __webpack_require__(406),
-  "no-unsafe-negation": __webpack_require__(407),
-  "no-unused-expressions": __webpack_require__(408),
-  "no-unused-labels": __webpack_require__(409),
-  "no-unused-vars": __webpack_require__(410),
-  "no-use-before-define": __webpack_require__(411),
-  "no-useless-call": __webpack_require__(412),
-  "no-useless-catch": __webpack_require__(413),
-  "no-useless-computed-key": __webpack_require__(414),
-  "no-useless-concat": __webpack_require__(415),
-  "no-useless-constructor": __webpack_require__(416),
-  "no-useless-escape": __webpack_require__(417),
-  "no-useless-rename": __webpack_require__(418),
-  "no-useless-return": __webpack_require__(419),
-  "no-var": __webpack_require__(420),
-  "no-void": __webpack_require__(421),
-  "no-warning-comments": __webpack_require__(422),
-  "no-whitespace-before-property": __webpack_require__(423),
-  "no-with": __webpack_require__(424),
-  "nonblock-statement-body-position": __webpack_require__(425),
-  "object-curly-newline": __webpack_require__(426),
-  "object-curly-spacing": __webpack_require__(427),
-  "object-property-newline": __webpack_require__(428),
-  "object-shorthand": __webpack_require__(429),
-  "one-var": __webpack_require__(430),
-  "one-var-declaration-per-line": __webpack_require__(431),
-  "operator-assignment": __webpack_require__(432),
-  "operator-linebreak": __webpack_require__(433),
-  "padded-blocks": __webpack_require__(434),
-  "padding-line-between-statements": __webpack_require__(435),
-  "prefer-arrow-callback": __webpack_require__(436),
-  "prefer-const": __webpack_require__(437),
-  "prefer-destructuring": __webpack_require__(438),
-  "prefer-named-capture-group": __webpack_require__(439),
-  "prefer-numeric-literals": __webpack_require__(440),
-  "prefer-object-spread": __webpack_require__(441),
-  "prefer-promise-reject-errors": __webpack_require__(442),
-  "prefer-reflect": __webpack_require__(443),
-  "prefer-rest-params": __webpack_require__(444),
-  "prefer-spread": __webpack_require__(445),
-  "prefer-template": __webpack_require__(446),
-  "quote-props": __webpack_require__(447),
-  quotes: __webpack_require__(448),
-  radix: __webpack_require__(449),
-  "require-atomic-updates": __webpack_require__(450),
-  "require-await": __webpack_require__(451),
-  "require-jsdoc": __webpack_require__(452),
-  "require-unicode-regexp": __webpack_require__(453),
-  "require-yield": __webpack_require__(454),
-  "rest-spread-spacing": __webpack_require__(455),
-  semi: __webpack_require__(456),
-  "semi-spacing": __webpack_require__(457),
-  "semi-style": __webpack_require__(458),
-  "sort-imports": __webpack_require__(459),
-  "sort-keys": __webpack_require__(460),
-  "sort-vars": __webpack_require__(462),
-  "space-before-blocks": __webpack_require__(463),
-  "space-before-function-paren": __webpack_require__(464),
-  "space-in-parens": __webpack_require__(465),
-  "space-infix-ops": __webpack_require__(466),
-  "space-unary-ops": __webpack_require__(467),
-  "spaced-comment": __webpack_require__(468),
-  strict: __webpack_require__(469),
-  "switch-colon-spacing": __webpack_require__(470),
-  "symbol-description": __webpack_require__(471),
-  "template-curly-spacing": __webpack_require__(472),
-  "template-tag-spacing": __webpack_require__(473),
-  "unicode-bom": __webpack_require__(474),
-  "use-isnan": __webpack_require__(475),
-  "valid-jsdoc": __webpack_require__(476),
-  "valid-typeof": __webpack_require__(481),
-  "vars-on-top": __webpack_require__(482),
-  "wrap-iife": __webpack_require__(483),
-  "wrap-regex": __webpack_require__(484),
-  "yield-star-spacing": __webpack_require__(485),
-  yoda: __webpack_require__(486)
+  "no-mixed-operators": __webpack_require__(352),
+  "no-mixed-requires": __webpack_require__(353),
+  "no-mixed-spaces-and-tabs": __webpack_require__(354),
+  "no-multi-assign": __webpack_require__(355),
+  "no-multi-spaces": __webpack_require__(356),
+  "no-multi-str": __webpack_require__(357),
+  "no-multiple-empty-lines": __webpack_require__(358),
+  "no-native-reassign": __webpack_require__(359),
+  "no-negated-condition": __webpack_require__(360),
+  "no-negated-in-lhs": __webpack_require__(361),
+  "no-nested-ternary": __webpack_require__(362),
+  "no-new": __webpack_require__(363),
+  "no-new-func": __webpack_require__(364),
+  "no-new-object": __webpack_require__(365),
+  "no-new-require": __webpack_require__(366),
+  "no-new-symbol": __webpack_require__(367),
+  "no-new-wrappers": __webpack_require__(368),
+  "no-obj-calls": __webpack_require__(369),
+  "no-octal": __webpack_require__(370),
+  "no-octal-escape": __webpack_require__(371),
+  "no-param-reassign": __webpack_require__(372),
+  "no-path-concat": __webpack_require__(373),
+  "no-plusplus": __webpack_require__(374),
+  "no-process-env": __webpack_require__(375),
+  "no-process-exit": __webpack_require__(376),
+  "no-proto": __webpack_require__(377),
+  "no-prototype-builtins": __webpack_require__(378),
+  "no-redeclare": __webpack_require__(379),
+  "no-regex-spaces": __webpack_require__(380),
+  "no-restricted-globals": __webpack_require__(381),
+  "no-restricted-imports": __webpack_require__(382),
+  "no-restricted-modules": __webpack_require__(384),
+  "no-restricted-properties": __webpack_require__(385),
+  "no-restricted-syntax": __webpack_require__(386),
+  "no-return-assign": __webpack_require__(387),
+  "no-return-await": __webpack_require__(388),
+  "no-script-url": __webpack_require__(389),
+  "no-self-assign": __webpack_require__(390),
+  "no-self-compare": __webpack_require__(391),
+  "no-sequences": __webpack_require__(392),
+  "no-shadow": __webpack_require__(393),
+  "no-shadow-restricted-names": __webpack_require__(394),
+  "no-spaced-func": __webpack_require__(395),
+  "no-sparse-arrays": __webpack_require__(396),
+  "no-sync": __webpack_require__(397),
+  "no-tabs": __webpack_require__(398),
+  "no-template-curly-in-string": __webpack_require__(399),
+  "no-ternary": __webpack_require__(400),
+  "no-this-before-super": __webpack_require__(401),
+  "no-throw-literal": __webpack_require__(402),
+  "no-trailing-spaces": __webpack_require__(403),
+  "no-undef": __webpack_require__(404),
+  "no-undef-init": __webpack_require__(405),
+  "no-undefined": __webpack_require__(406),
+  "no-underscore-dangle": __webpack_require__(407),
+  "no-unexpected-multiline": __webpack_require__(408),
+  "no-unmodified-loop-condition": __webpack_require__(409),
+  "no-unneeded-ternary": __webpack_require__(410),
+  "no-unreachable": __webpack_require__(411),
+  "no-unsafe-finally": __webpack_require__(412),
+  "no-unsafe-negation": __webpack_require__(413),
+  "no-unused-expressions": __webpack_require__(414),
+  "no-unused-labels": __webpack_require__(415),
+  "no-unused-vars": __webpack_require__(416),
+  "no-use-before-define": __webpack_require__(417),
+  "no-useless-call": __webpack_require__(418),
+  "no-useless-catch": __webpack_require__(419),
+  "no-useless-computed-key": __webpack_require__(420),
+  "no-useless-concat": __webpack_require__(421),
+  "no-useless-constructor": __webpack_require__(422),
+  "no-useless-escape": __webpack_require__(423),
+  "no-useless-rename": __webpack_require__(424),
+  "no-useless-return": __webpack_require__(425),
+  "no-var": __webpack_require__(426),
+  "no-void": __webpack_require__(427),
+  "no-warning-comments": __webpack_require__(428),
+  "no-whitespace-before-property": __webpack_require__(429),
+  "no-with": __webpack_require__(430),
+  "nonblock-statement-body-position": __webpack_require__(431),
+  "object-curly-newline": __webpack_require__(432),
+  "object-curly-spacing": __webpack_require__(433),
+  "object-property-newline": __webpack_require__(434),
+  "object-shorthand": __webpack_require__(435),
+  "one-var": __webpack_require__(436),
+  "one-var-declaration-per-line": __webpack_require__(437),
+  "operator-assignment": __webpack_require__(438),
+  "operator-linebreak": __webpack_require__(439),
+  "padded-blocks": __webpack_require__(440),
+  "padding-line-between-statements": __webpack_require__(441),
+  "prefer-arrow-callback": __webpack_require__(442),
+  "prefer-const": __webpack_require__(443),
+  "prefer-destructuring": __webpack_require__(444),
+  "prefer-named-capture-group": __webpack_require__(445),
+  "prefer-numeric-literals": __webpack_require__(446),
+  "prefer-object-spread": __webpack_require__(447),
+  "prefer-promise-reject-errors": __webpack_require__(448),
+  "prefer-reflect": __webpack_require__(449),
+  "prefer-rest-params": __webpack_require__(450),
+  "prefer-spread": __webpack_require__(451),
+  "prefer-template": __webpack_require__(452),
+  "quote-props": __webpack_require__(453),
+  quotes: __webpack_require__(454),
+  radix: __webpack_require__(455),
+  "require-atomic-updates": __webpack_require__(456),
+  "require-await": __webpack_require__(457),
+  "require-jsdoc": __webpack_require__(458),
+  "require-unicode-regexp": __webpack_require__(459),
+  "require-yield": __webpack_require__(460),
+  "rest-spread-spacing": __webpack_require__(461),
+  semi: __webpack_require__(462),
+  "semi-spacing": __webpack_require__(463),
+  "semi-style": __webpack_require__(464),
+  "sort-imports": __webpack_require__(465),
+  "sort-keys": __webpack_require__(466),
+  "sort-vars": __webpack_require__(468),
+  "space-before-blocks": __webpack_require__(469),
+  "space-before-function-paren": __webpack_require__(470),
+  "space-in-parens": __webpack_require__(471),
+  "space-infix-ops": __webpack_require__(472),
+  "space-unary-ops": __webpack_require__(473),
+  "spaced-comment": __webpack_require__(474),
+  strict: __webpack_require__(475),
+  "switch-colon-spacing": __webpack_require__(476),
+  "symbol-description": __webpack_require__(477),
+  "template-curly-spacing": __webpack_require__(478),
+  "template-tag-spacing": __webpack_require__(479),
+  "unicode-bom": __webpack_require__(480),
+  "use-isnan": __webpack_require__(481),
+  "valid-jsdoc": __webpack_require__(482),
+  "valid-typeof": __webpack_require__(487),
+  "vars-on-top": __webpack_require__(488),
+  "wrap-iife": __webpack_require__(489),
+  "wrap-regex": __webpack_require__(490),
+  "yield-star-spacing": __webpack_require__(491),
+  yoda: __webpack_require__(492)
 };
 
 /***/ }),
@@ -53147,9 +53460,7 @@ module.exports = {
      * @private
      */
     function isInsideObjectPattern(node) {
-      let {
-        parent
-      } = node;
+      let parent = node.parent;
       while (parent) {
         if (parent.type === "ObjectPattern") {
           return true;
@@ -53279,10 +53590,9 @@ module.exports = {
  */
 
 
-const {
-  isCommentToken,
-  isNotOpeningParenToken
-} = __webpack_require__(111);
+const _require = __webpack_require__(111),
+  isCommentToken = _require.isCommentToken,
+  isNotOpeningParenToken = _require.isNotOpeningParenToken;
 
 //------------------------------------------------------------------------------
 // Rule Definition
@@ -71915,9 +72225,7 @@ module.exports = {
       const locStart = node.loc.start;
       const locEnd = node.loc.end;
       errors = errors.filter(_ref => {
-        let {
-          loc: errorLoc
-        } = _ref;
+        let errorLoc = _ref.loc;
         if (errorLoc.line >= locStart.line && errorLoc.line <= locEnd.line) {
           if (errorLoc.column >= locStart.column && (errorLoc.column <= locEnd.column || errorLoc.line < locEnd.line)) {
             return false;
@@ -72831,22 +73139,20 @@ module.exports = {
  */
 
 
-const {
-  CALL,
-  CONSTRUCT,
-  ReferenceTracker,
-  getStringIfConstant
-} = __webpack_require__(340);
-const {
-  RegExpParser,
-  visitRegExpAST
-} = __webpack_require__(296);
-const {
-  isCombiningCharacter,
-  isEmojiModifier,
-  isRegionalIndicatorSymbol,
-  isSurrogatePair
-} = __webpack_require__(341);
+var _slicedToArray = __webpack_require__(340);
+const _require = __webpack_require__(346),
+  CALL = _require.CALL,
+  CONSTRUCT = _require.CONSTRUCT,
+  ReferenceTracker = _require.ReferenceTracker,
+  getStringIfConstant = _require.getStringIfConstant;
+const _require2 = __webpack_require__(296),
+  RegExpParser = _require2.RegExpParser,
+  visitRegExpAST = _require2.visitRegExpAST;
+const _require3 = __webpack_require__(347),
+  isCombiningCharacter = _require3.isCombiningCharacter,
+  isEmojiModifier = _require3.isEmojiModifier,
+  isRegionalIndicatorSymbol = _require3.isRegionalIndicatorSymbol,
+  isSurrogatePair = _require3.isSurrogatePair;
 
 //------------------------------------------------------------------------------
 // Helpers
@@ -72980,15 +73286,16 @@ module.exports = {
          * E.g., `new RegExp()`, `RegExp()`, `new window.RegExp()`,
          *       `const {RegExp: a} = window; new a()`, etc...
          */
-        for (const {
-          node
-        } of tracker.iterateGlobalReferences({
+        for (const _ref of tracker.iterateGlobalReferences({
           RegExp: {
             [CALL]: true,
             [CONSTRUCT]: true
           }
         })) {
-          const [patternNode, flagsNode] = node.arguments;
+          const node = _ref.node;
+          const _node$arguments = _slicedToArray(node.arguments, 2),
+            patternNode = _node$arguments[0],
+            flagsNode = _node$arguments[1];
           const pattern = getStringIfConstant(patternNode, scope);
           const flags = getStringIfConstant(flagsNode, scope);
           if (typeof pattern === "string") {
@@ -73002,6 +73309,95 @@ module.exports = {
 
 /***/ }),
 /* 340 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayWithHoles = __webpack_require__(341);
+var iterableToArrayLimit = __webpack_require__(342);
+var unsupportedIterableToArray = __webpack_require__(343);
+var nonIterableRest = __webpack_require__(345);
+function _slicedToArray(r, e) {
+  return arrayWithHoles(r) || iterableToArrayLimit(r, e) || unsupportedIterableToArray(r, e) || nonIterableRest();
+}
+module.exports = _slicedToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 341 */
+/***/ ((module) => {
+
+function _arrayWithHoles(r) {
+  if (Array.isArray(r)) return r;
+}
+module.exports = _arrayWithHoles, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 342 */
+/***/ ((module) => {
+
+function _iterableToArrayLimit(r, l) {
+  var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (null != t) {
+    var e,
+      n,
+      i,
+      u,
+      a = [],
+      f = !0,
+      o = !1;
+    try {
+      if (i = (t = t.call(r)).next, 0 === l) {
+        if (Object(t) !== t) return;
+        f = !1;
+      } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0);
+    } catch (r) {
+      o = !0, n = r;
+    } finally {
+      try {
+        if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return;
+      } finally {
+        if (o) throw n;
+      }
+    }
+    return a;
+  }
+}
+module.exports = _iterableToArrayLimit, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 343 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayLikeToArray = __webpack_require__(344);
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return arrayLikeToArray(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? arrayLikeToArray(r, a) : void 0;
+  }
+}
+module.exports = _unsupportedIterableToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 344 */
+/***/ ((module) => {
+
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
+}
+module.exports = _arrayLikeToArray, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 345 */
+/***/ ((module) => {
+
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+module.exports = _nonIterableRest, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+/* 346 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -73754,18 +74150,14 @@ const typeConversionBinaryOps = Object.freeze(new Set(["==", "!=", "<", "<=", ">
 const typeConversionUnaryOps = Object.freeze(new Set(["-", "+", "!", "~"]));
 const visitor = Object.freeze(Object.assign(Object.create(null), {
   $visit(node, options, visitorKeys) {
-    const {
-      type
-    } = node;
+    const type = node.type;
     if (typeof this[type] === "function") {
       return this[type](node, options, visitorKeys);
     }
     return this.$visitChildren(node, options, visitorKeys);
   },
   $visitChildren(node, options, visitorKeys) {
-    const {
-      type
-    } = node;
+    const type = node.type;
     for (const key of visitorKeys[type] || evk.getKeys(node)) {
       const value = node[key];
       if (Array.isArray(value)) {
@@ -73856,10 +74248,11 @@ const visitor = Object.freeze(Object.assign(Object.create(null), {
  * @returns {boolean} `true` if the node has a certain side effect.
  */
 function hasSideEffect(node, sourceCode) {
-  let {
-    considerGetters = false,
-    considerImplicitTypeConversion = false
-  } = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  let _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+    _ref$considerGetters = _ref.considerGetters,
+    considerGetters = _ref$considerGetters === void 0 ? false : _ref$considerGetters,
+    _ref$considerImplicit = _ref.considerImplicitTypeConversion,
+    considerImplicitTypeConversion = _ref$considerImplicit === void 0 ? false : _ref$considerImplicit;
   return visitor.$visit(node, {
     considerGetters,
     considerImplicitTypeConversion
@@ -74053,9 +74446,9 @@ class PatternMatcher {
    * @param {{escaped:boolean}} options The options.
    */
   constructor(pattern) {
-    let {
-      escaped = false
-    } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    let _ref2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+      _ref2$escaped = _ref2.escaped,
+      escaped = _ref2$escaped === void 0 ? false : _ref2$escaped;
     if (!(pattern instanceof RegExp)) {
       throw new TypeError("'pattern' should be a RegExp instance.");
     }
@@ -74074,10 +74467,9 @@ class PatternMatcher {
    * @returns {IterableIterator<RegExpExecArray>} The iterator which iterate the matched information.
    */
   *execAll(str) {
-    const {
-      pattern,
-      escaped
-    } = internal.get(this);
+    const _internal$get = internal.get(this),
+      pattern = _internal$get.pattern,
+      escaped = _internal$get.escaped;
     let match = null;
     let lastIndex = 0;
     pattern.lastIndex = 0;
@@ -74164,10 +74556,11 @@ class ReferenceTracker {
    * @param {string[]} [options.globalObjectNames=["global","self","window"]] The variable names for Global Object.
    */
   constructor(globalScope) {
-    let {
-      mode = "strict",
-      globalObjectNames = ["global", "self", "window"]
-    } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    let _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+      _ref3$mode = _ref3.mode,
+      mode = _ref3$mode === void 0 ? "strict" : _ref3$mode,
+      _ref3$globalObjectNam = _ref3.globalObjectNames,
+      globalObjectNames = _ref3$globalObjectNam === void 0 ? ["global", "self", "window"] : _ref3$globalObjectNam;
     this.variableStack = [];
     this.globalScope = globalScope;
     this.mode = mode;
@@ -74205,9 +74598,8 @@ class ReferenceTracker {
    * @returns {IterableIterator<{node:Node,path:string[],type:symbol,info:any}>} The iterator to iterate references.
    */
   *iterateCjsReferences(traceMap) {
-    for (const {
-      node
-    } of this.iterateGlobalReferences(requireCall)) {
+    for (const _ref4 of this.iterateGlobalReferences(requireCall)) {
+      const node = _ref4.node;
       const key = getStringIfConstant(node.arguments[0]);
       if (key == null || !has(traceMap, key)) {
         continue;
@@ -74578,7 +74970,7 @@ exports.isParenthesized = isParenthesized;
 exports.isSemicolonToken = isSemicolonToken;
 
 /***/ }),
-/* 341 */
+/* 347 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -74588,14 +74980,14 @@ exports.isSemicolonToken = isSemicolonToken;
 
 
 module.exports = {
-  isCombiningCharacter: __webpack_require__(342),
-  isEmojiModifier: __webpack_require__(343),
-  isRegionalIndicatorSymbol: __webpack_require__(344),
-  isSurrogatePair: __webpack_require__(345)
+  isCombiningCharacter: __webpack_require__(348),
+  isEmojiModifier: __webpack_require__(349),
+  isRegionalIndicatorSymbol: __webpack_require__(350),
+  isSurrogatePair: __webpack_require__(351)
 };
 
 /***/ }),
-/* 342 */
+/* 348 */
 /***/ ((module) => {
 
 "use strict";
@@ -74614,7 +75006,7 @@ module.exports = function isCombiningCharacter(c) {
 };
 
 /***/ }),
-/* 343 */
+/* 349 */
 /***/ ((module) => {
 
 "use strict";
@@ -74633,7 +75025,7 @@ module.exports = function isEmojiModifier(code) {
 };
 
 /***/ }),
-/* 344 */
+/* 350 */
 /***/ ((module) => {
 
 "use strict";
@@ -74652,7 +75044,7 @@ module.exports = function isRegionalIndicatorSymbol(code) {
 };
 
 /***/ }),
-/* 345 */
+/* 351 */
 /***/ ((module) => {
 
 "use strict";
@@ -74672,7 +75064,7 @@ module.exports = function isSurrogatePair(lead, tail) {
 };
 
 /***/ }),
-/* 346 */
+/* 352 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -74860,7 +75252,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 347 */
+/* 353 */
 /***/ ((module) => {
 
 "use strict";
@@ -75041,7 +75433,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 348 */
+/* 354 */
 /***/ ((module) => {
 
 "use strict";
@@ -75176,7 +75568,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 349 */
+/* 355 */
 /***/ ((module) => {
 
 "use strict";
@@ -75220,7 +75612,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 350 */
+/* 356 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -75342,7 +75734,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 351 */
+/* 357 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -75402,7 +75794,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 352 */
+/* 358 */
 /***/ ((module) => {
 
 "use strict";
@@ -75548,7 +75940,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 353 */
+/* 359 */
 /***/ ((module) => {
 
 "use strict";
@@ -75635,7 +76027,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 354 */
+/* 360 */
 /***/ ((module) => {
 
 "use strict";
@@ -75724,7 +76116,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 355 */
+/* 361 */
 /***/ ((module) => {
 
 "use strict";
@@ -75767,7 +76159,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 356 */
+/* 362 */
 /***/ ((module) => {
 
 "use strict";
@@ -75807,7 +76199,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 357 */
+/* 363 */
 /***/ ((module) => {
 
 "use strict";
@@ -75846,7 +76238,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 358 */
+/* 364 */
 /***/ ((module) => {
 
 "use strict";
@@ -75896,7 +76288,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 359 */
+/* 365 */
 /***/ ((module) => {
 
 "use strict";
@@ -75936,7 +76328,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 360 */
+/* 366 */
 /***/ ((module) => {
 
 "use strict";
@@ -75976,7 +76368,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 361 */
+/* 367 */
 /***/ ((module) => {
 
 "use strict";
@@ -76023,7 +76415,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 362 */
+/* 368 */
 /***/ ((module) => {
 
 "use strict";
@@ -76067,7 +76459,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 363 */
+/* 369 */
 /***/ ((module) => {
 
 "use strict";
@@ -76113,7 +76505,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 364 */
+/* 370 */
 /***/ ((module) => {
 
 "use strict";
@@ -76153,7 +76545,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 365 */
+/* 371 */
 /***/ ((module) => {
 
 "use strict";
@@ -76205,7 +76597,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 366 */
+/* 372 */
 /***/ ((module) => {
 
 "use strict";
@@ -76384,7 +76776,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 367 */
+/* 373 */
 /***/ ((module) => {
 
 "use strict";
@@ -76431,7 +76823,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 368 */
+/* 374 */
 /***/ ((module) => {
 
 "use strict";
@@ -76490,7 +76882,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 369 */
+/* 375 */
 /***/ ((module) => {
 
 "use strict";
@@ -76531,7 +76923,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 370 */
+/* 376 */
 /***/ ((module) => {
 
 "use strict";
@@ -76572,7 +76964,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 371 */
+/* 377 */
 /***/ ((module) => {
 
 "use strict";
@@ -76612,7 +77004,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 372 */
+/* 378 */
 /***/ ((module) => {
 
 "use strict";
@@ -76667,7 +77059,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 373 */
+/* 379 */
 /***/ ((module) => {
 
 "use strict";
@@ -76775,7 +77167,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 374 */
+/* 380 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -76887,7 +77279,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 375 */
+/* 381 */
 /***/ ((module) => {
 
 "use strict";
@@ -77005,7 +77397,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 376 */
+/* 382 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -77025,7 +77417,7 @@ const CUSTOM_MESSAGE_TEMPLATE = "'{{importSource}}' import is restricted from be
 // Rule Definition
 //------------------------------------------------------------------------------
 
-const ignore = __webpack_require__(377);
+const ignore = __webpack_require__(383);
 const arrayOfStrings = {
   type: "array",
   items: {
@@ -77269,7 +77661,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 377 */
+/* 383 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /* provided dependency */ var process = __webpack_require__(6);
@@ -77502,9 +77894,9 @@ const createRule = (pattern, ignorecase) => {
 };
 class IgnoreBase {
   constructor() {
-    let {
-      ignorecase = true
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    let _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      _ref$ignorecase = _ref.ignorecase,
+      ignorecase = _ref$ignorecase === void 0 ? true : _ref$ignorecase;
     this._rules = [];
     this._ignorecase = ignorecase;
     define(this, KEY_IGNORE, true);
@@ -77614,7 +78006,7 @@ typeof process !== 'undefined' && (process.env && process.env.IGNORE_TEST_WIN32 
 module.exports = options => new IgnoreBase(options);
 
 /***/ }),
-/* 378 */
+/* 384 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -77634,7 +78026,7 @@ const CUSTOM_MESSAGE_TEMPLATE = "'{{moduleName}}' module is restricted from bein
 // Rule Definition
 //------------------------------------------------------------------------------
 
-const ignore = __webpack_require__(377);
+const ignore = __webpack_require__(383);
 const arrayOfStrings = {
   type: "array",
   items: {
@@ -77783,7 +78175,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 379 */
+/* 385 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -77954,7 +78346,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 380 */
+/* 386 */
 /***/ ((module) => {
 
 "use strict";
@@ -78021,7 +78413,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 381 */
+/* 387 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -78094,7 +78486,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 382 */
+/* 388 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -78190,7 +78582,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 383 */
+/* 389 */
 /***/ ((module) => {
 
 "use strict";
@@ -78235,7 +78627,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 384 */
+/* 390 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -78249,6 +78641,7 @@ module.exports = {
 //------------------------------------------------------------------------------
 // Requirements
 //------------------------------------------------------------------------------
+var _slicedToArray = __webpack_require__(340);
 const astUtils = __webpack_require__(111);
 
 //------------------------------------------------------------------------------
@@ -78379,9 +78772,11 @@ module.exports = {
   },
   create(context) {
     const sourceCode = context.getSourceCode();
-    const [{
-      props = true
-    } = {}] = context.options;
+    const _context$options = _slicedToArray(context.options, 1),
+      _context$options$ = _context$options[0],
+      _context$options$2 = _context$options$ === void 0 ? {} : _context$options$,
+      _context$options$2$pr = _context$options$2.props,
+      props = _context$options$2$pr === void 0 ? true : _context$options$2$pr;
 
     /**
      * Reports a given node as self assignments.
@@ -78409,7 +78804,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 385 */
+/* 391 */
 /***/ ((module) => {
 
 "use strict";
@@ -78464,7 +78859,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 386 */
+/* 392 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -78575,7 +78970,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 387 */
+/* 393 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -78742,7 +79137,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 388 */
+/* 394 */
 /***/ ((module) => {
 
 "use strict";
@@ -78799,7 +79194,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 389 */
+/* 395 */
 /***/ ((module) => {
 
 "use strict";
@@ -78868,7 +79263,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 390 */
+/* 396 */
 /***/ ((module) => {
 
 "use strict";
@@ -78912,7 +79307,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 391 */
+/* 397 */
 /***/ ((module) => {
 
 "use strict";
@@ -78965,7 +79360,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 392 */
+/* 398 */
 /***/ ((module) => {
 
 "use strict";
@@ -79033,7 +79428,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 393 */
+/* 399 */
 /***/ ((module) => {
 
 "use strict";
@@ -79073,7 +79468,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 394 */
+/* 400 */
 /***/ ((module) => {
 
 "use strict";
@@ -79111,7 +79506,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 395 */
+/* 401 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -79376,7 +79771,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 396 */
+/* 402 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -79426,7 +79821,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 397 */
+/* 403 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -79581,7 +79976,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 398 */
+/* 404 */
 /***/ ((module) => {
 
 "use strict";
@@ -79656,7 +80051,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 399 */
+/* 405 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -79719,7 +80114,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 400 */
+/* 406 */
 /***/ ((module) => {
 
 "use strict";
@@ -79789,7 +80184,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 401 */
+/* 407 */
 /***/ ((module) => {
 
 "use strict";
@@ -79986,7 +80381,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 402 */
+/* 408 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -80088,7 +80483,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 403 */
+/* 409 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -80420,7 +80815,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 404 */
+/* 410 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -80564,7 +80959,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 405 */
+/* 411 */
 /***/ ((module) => {
 
 "use strict";
@@ -80767,7 +81162,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 406 */
+/* 412 */
 /***/ ((module) => {
 
 "use strict";
@@ -80871,7 +81266,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 407 */
+/* 413 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -80956,7 +81351,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 408 */
+/* 414 */
 /***/ ((module) => {
 
 "use strict";
@@ -81080,7 +81475,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 409 */
+/* 415 */
 /***/ ((module) => {
 
 "use strict";
@@ -81190,7 +81585,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 410 */
+/* 416 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -81395,10 +81790,8 @@ module.exports = {
     function getFunctionDefinitions(variable) {
       const functionDefinitions = [];
       variable.defs.forEach(def => {
-        const {
-          type,
-          node
-        } = def;
+        const type = def.type,
+          node = def.node;
 
         // FunctionDeclarations
         if (type === "FunctionName") {
@@ -81759,7 +82152,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 411 */
+/* 417 */
 /***/ ((module) => {
 
 "use strict";
@@ -81979,7 +82372,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 412 */
+/* 418 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -82059,7 +82452,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 413 */
+/* 419 */
 /***/ ((module) => {
 
 "use strict";
@@ -82106,7 +82499,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 414 */
+/* 420 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -82177,7 +82570,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 415 */
+/* 421 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -82281,7 +82674,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 416 */
+/* 422 */
 /***/ ((module) => {
 
 "use strict";
@@ -82435,7 +82828,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 417 */
+/* 423 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -82656,7 +83049,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 418 */
+/* 424 */
 /***/ ((module) => {
 
 "use strict";
@@ -82803,7 +83196,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 419 */
+/* 425 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -83072,7 +83465,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 420 */
+/* 426 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -83372,7 +83765,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 421 */
+/* 427 */
 /***/ ((module) => {
 
 "use strict";
@@ -83415,7 +83808,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 422 */
+/* 428 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -83563,7 +83956,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 423 */
+/* 429 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -83657,7 +84050,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 424 */
+/* 430 */
 /***/ ((module) => {
 
 "use strict";
@@ -83695,7 +84088,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 425 */
+/* 431 */
 /***/ ((module) => {
 
 "use strict";
@@ -83808,7 +84201,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 426 */
+/* 432 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -84071,7 +84464,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 427 */
+/* 433 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -84344,7 +84737,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 428 */
+/* 434 */
 /***/ ((module) => {
 
 "use strict";
@@ -84427,7 +84820,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 429 */
+/* 435 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -84850,7 +85243,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 430 */
+/* 436 */
 /***/ ((module) => {
 
 "use strict";
@@ -85366,7 +85759,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 431 */
+/* 437 */
 /***/ ((module) => {
 
 "use strict";
@@ -85449,7 +85842,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 432 */
+/* 438 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -85646,7 +86039,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 433 */
+/* 439 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -85880,7 +86273,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 434 */
+/* 440 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -86157,7 +86550,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 435 */
+/* 441 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -86730,7 +87123,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 436 */
+/* 442 */
 /***/ ((module) => {
 
 "use strict";
@@ -87010,7 +87403,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 437 */
+/* 443 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -87416,7 +87809,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 438 */
+/* 444 */
 /***/ ((module) => {
 
 "use strict";
@@ -87671,7 +88064,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 439 */
+/* 445 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -87685,12 +88078,11 @@ module.exports = {
 //------------------------------------------------------------------------------
 // Requirements
 //------------------------------------------------------------------------------
-const {
-  CALL,
-  CONSTRUCT,
-  ReferenceTracker,
-  getStringIfConstant
-} = __webpack_require__(340);
+const _require = __webpack_require__(346),
+  CALL = _require.CALL,
+  CONSTRUCT = _require.CONSTRUCT,
+  ReferenceTracker = _require.ReferenceTracker,
+  getStringIfConstant = _require.getStringIfConstant;
 const regexpp = __webpack_require__(296);
 
 //------------------------------------------------------------------------------
@@ -87774,9 +88166,8 @@ module.exports = {
             [CONSTRUCT]: true
           }
         };
-        for (const {
-          node
-        } of tracker.iterateGlobalReferences(traceMap)) {
+        for (const _ref of tracker.iterateGlobalReferences(traceMap)) {
+          const node = _ref.node;
           const regex = getStringIfConstant(node.arguments[0]);
           const flags = getStringIfConstant(node.arguments[1]);
           if (regex) {
@@ -87789,7 +88180,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 440 */
+/* 446 */
 /***/ ((module) => {
 
 "use strict";
@@ -87892,7 +88283,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 441 */
+/* 447 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -87904,16 +88295,14 @@ module.exports = {
 
 
 
-const {
-  CALL,
-  ReferenceTracker
-} = __webpack_require__(340);
-const {
-  isCommaToken,
-  isOpeningParenToken,
-  isClosingParenToken,
-  isParenthesised
-} = __webpack_require__(111);
+const _require = __webpack_require__(346),
+  CALL = _require.CALL,
+  ReferenceTracker = _require.ReferenceTracker;
+const _require2 = __webpack_require__(111),
+  isCommaToken = _require2.isCommaToken,
+  isOpeningParenToken = _require2.isOpeningParenToken,
+  isClosingParenToken = _require2.isClosingParenToken,
+  isParenthesised = _require2.isParenthesised;
 const ANY_SPACE = /\s/u;
 
 /**
@@ -88124,9 +88513,8 @@ module.exports = {
         };
 
         // Iterate all calls of `Object.assign` (only of the global variable `Object`).
-        for (const {
-          node
-        } of tracker.iterateGlobalReferences(trackMap)) {
+        for (const _ref of tracker.iterateGlobalReferences(trackMap)) {
+          const node = _ref.node;
           if (node.arguments.length >= 1 && node.arguments[0].type === "ObjectExpression" && !hasArraySpread(node)) {
             const messageId = node.arguments.length === 1 ? "useLiteralMessage" : "useSpreadMessage";
             const fix = defineFixer(node, sourceCode);
@@ -88143,7 +88531,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 442 */
+/* 448 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -88261,7 +88649,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 443 */
+/* 449 */
 /***/ ((module) => {
 
 "use strict";
@@ -88365,7 +88753,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 444 */
+/* 450 */
 /***/ ((module) => {
 
 "use strict";
@@ -88468,7 +88856,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 445 */
+/* 451 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -88546,7 +88934,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 446 */
+/* 452 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -88812,7 +89200,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 447 */
+/* 453 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -89094,7 +89482,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 448 */
+/* 454 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -89376,7 +89764,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 449 */
+/* 455 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -89536,7 +89924,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 450 */
+/* 456 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -89655,10 +90043,11 @@ module.exports = {
     const alreadyReportedAssignments = new WeakSet();
     class AssignmentTrackerState {
       constructor() {
-        let {
-          openAssignmentsWithoutReads = new Set(),
-          openAssignmentsWithReads = new Set()
-        } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        let _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+          _ref$openAssignmentsW = _ref.openAssignmentsWithoutReads,
+          openAssignmentsWithoutReads = _ref$openAssignmentsW === void 0 ? new Set() : _ref$openAssignmentsW,
+          _ref$openAssignmentsW2 = _ref.openAssignmentsWithReads,
+          openAssignmentsWithReads = _ref$openAssignmentsW2 === void 0 ? new Set() : _ref$openAssignmentsW2;
         this.openAssignmentsWithoutReads = openAssignmentsWithoutReads;
         this.openAssignmentsWithReads = openAssignmentsWithReads;
       }
@@ -89711,19 +90100,18 @@ module.exports = {
      * @returns {void}
      */
     function findOutdatedReads(codePathSegment, surroundingFunction) {
-      let {
-        stateBySegmentStart = new WeakMap(),
-        stateBySegmentEnd = new WeakMap()
-      } = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      let _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+        _ref2$stateBySegmentS = _ref2.stateBySegmentStart,
+        stateBySegmentStart = _ref2$stateBySegmentS === void 0 ? new WeakMap() : _ref2$stateBySegmentS,
+        _ref2$stateBySegmentE = _ref2.stateBySegmentEnd,
+        stateBySegmentEnd = _ref2$stateBySegmentE === void 0 ? new WeakMap() : _ref2$stateBySegmentE;
       if (!stateBySegmentStart.has(codePathSegment)) {
         stateBySegmentStart.set(codePathSegment, new AssignmentTrackerState());
       }
       const currentState = stateBySegmentStart.get(codePathSegment).copy();
-      expressionsByCodePathSegment.get(codePathSegment).forEach(_ref => {
-        let {
-          entering,
-          node
-        } = _ref;
+      expressionsByCodePathSegment.get(codePathSegment).forEach(_ref3 => {
+        let entering = _ref3.entering,
+          node = _ref3.node;
         if (node.type === "AssignmentExpression") {
           if (entering) {
             currentState.enterAssignment(node);
@@ -89807,7 +90195,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 451 */
+/* 457 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -89908,7 +90296,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 452 */
+/* 458 */
 /***/ ((module) => {
 
 "use strict";
@@ -90023,7 +90411,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 453 */
+/* 459 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -90037,12 +90425,11 @@ module.exports = {
 //------------------------------------------------------------------------------
 // Requirements
 //------------------------------------------------------------------------------
-const {
-  CALL,
-  CONSTRUCT,
-  ReferenceTracker,
-  getStringIfConstant
-} = __webpack_require__(340);
+const _require = __webpack_require__(346),
+  CALL = _require.CALL,
+  CONSTRUCT = _require.CONSTRUCT,
+  ReferenceTracker = _require.ReferenceTracker,
+  getStringIfConstant = _require.getStringIfConstant;
 
 //------------------------------------------------------------------------------
 // Rule Definition
@@ -90082,9 +90469,8 @@ module.exports = {
             [CONSTRUCT]: true
           }
         };
-        for (const {
-          node
-        } of tracker.iterateGlobalReferences(trackMap)) {
+        for (const _ref of tracker.iterateGlobalReferences(trackMap)) {
+          const node = _ref.node;
           const flagsNode = node.arguments[1];
           const flags = getStringIfConstant(flagsNode, scope);
           if (!flagsNode || typeof flags === "string" && !flags.includes("u")) {
@@ -90100,7 +90486,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 454 */
+/* 460 */
 /***/ ((module) => {
 
 "use strict";
@@ -90174,7 +90560,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 455 */
+/* 461 */
 /***/ ((module) => {
 
 "use strict";
@@ -90289,7 +90675,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 456 */
+/* 462 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -90569,7 +90955,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 457 */
+/* 463 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -90767,7 +91153,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 458 */
+/* 464 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -90898,7 +91284,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 459 */
+/* 465 */
 /***/ ((module) => {
 
 "use strict";
@@ -91086,7 +91472,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 460 */
+/* 466 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -91101,7 +91487,7 @@ module.exports = {
 // Requirements
 //------------------------------------------------------------------------------
 const astUtils = __webpack_require__(111),
-  naturalCompare = __webpack_require__(461);
+  naturalCompare = __webpack_require__(467);
 
 //------------------------------------------------------------------------------
 // Helpers
@@ -91243,7 +91629,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 461 */
+/* 467 */
 /***/ ((module) => {
 
 /*
@@ -91292,7 +91678,7 @@ try {
 }
 
 /***/ }),
-/* 462 */
+/* 468 */
 /***/ ((module) => {
 
 "use strict";
@@ -91378,7 +91764,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 463 */
+/* 469 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -91527,7 +91913,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 464 */
+/* 470 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -91655,7 +92041,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 465 */
+/* 471 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -91905,7 +92291,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 466 */
+/* 472 */
 /***/ ((module) => {
 
 "use strict";
@@ -92056,7 +92442,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 467 */
+/* 473 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -92368,7 +92754,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 468 */
+/* 474 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -92718,7 +93104,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 469 */
+/* 475 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -93001,7 +93387,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 470 */
+/* 476 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -93138,7 +93524,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 471 */
+/* 477 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -93207,7 +93593,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 472 */
+/* 478 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -93314,7 +93700,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 473 */
+/* 479 */
 /***/ ((module) => {
 
 "use strict";
@@ -93393,7 +93779,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 474 */
+/* 480 */
 /***/ ((module) => {
 
 "use strict";
@@ -93462,7 +93848,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 475 */
+/* 481 */
 /***/ ((module) => {
 
 "use strict";
@@ -93505,7 +93891,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 476 */
+/* 482 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -93518,7 +93904,7 @@ module.exports = {
 //------------------------------------------------------------------------------
 // Requirements
 //------------------------------------------------------------------------------
-const doctrine = __webpack_require__(477);
+const doctrine = __webpack_require__(483);
 
 //------------------------------------------------------------------------------
 // Rule Definition
@@ -94004,7 +94390,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 477 */
+/* 483 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /*
@@ -94019,8 +94405,8 @@ module.exports = {
 
   var typed, utility, jsdoc, esutils, hasOwnProperty;
   esutils = __webpack_require__(112);
-  typed = __webpack_require__(478);
-  utility = __webpack_require__(479);
+  typed = __webpack_require__(484);
+  utility = __webpack_require__(485);
   function sliceSource(source, index, last) {
     return source.slice(index, last);
   }
@@ -94799,7 +95185,7 @@ module.exports = {
 /* vim: set sw=4 ts=4 et tw=80 : */
 
 /***/ }),
-/* 478 */
+/* 484 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /*
@@ -94816,7 +95202,7 @@ module.exports = {
 
   var Syntax, Token, source, length, index, previous, token, value, esutils, utility, rangeOffset, addRange;
   esutils = __webpack_require__(112);
-  utility = __webpack_require__(479);
+  utility = __webpack_require__(485);
   Syntax = {
     NullableLiteral: 'NullableLiteral',
     AllLiteral: 'AllLiteral',
@@ -96010,7 +96396,7 @@ module.exports = {
 /* vim: set sw=4 ts=4 et tw=80 : */
 
 /***/ }),
-/* 479 */
+/* 485 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /*
@@ -96022,7 +96408,7 @@ module.exports = {
   'use strict';
 
   var VERSION;
-  VERSION = (__webpack_require__(480).version);
+  VERSION = (__webpack_require__(486).version);
   exports.VERSION = VERSION;
   function DoctrineError(message) {
     this.name = 'DoctrineError';
@@ -96045,14 +96431,14 @@ module.exports = {
 /* vim: set sw=4 ts=4 et tw=80 : */
 
 /***/ }),
-/* 480 */
+/* 486 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = JSON.parse('{"name":"doctrine","description":"JSDoc parser","homepage":"https://github.com/eslint/doctrine","main":"lib/doctrine.js","version":"3.0.0","engines":{"node":">=6.0.0"},"directories":{"lib":"./lib"},"files":["lib"],"maintainers":[{"name":"Nicholas C. Zakas","email":"nicholas+npm@nczconsulting.com","web":"https://www.nczonline.net"},{"name":"Yusuke Suzuki","email":"utatane.tea@gmail.com","web":"https://github.com/Constellation"}],"repository":"eslint/doctrine","devDependencies":{"coveralls":"^3.0.1","dateformat":"^1.0.11","eslint":"^1.10.3","eslint-release":"^1.0.0","linefix":"^0.1.1","mocha":"^3.4.2","npm-license":"^0.3.1","nyc":"^10.3.2","semver":"^5.0.3","shelljs":"^0.5.3","shelljs-nodecli":"^0.1.1","should":"^5.0.1"},"license":"Apache-2.0","scripts":{"pretest":"npm run lint","test":"nyc mocha","coveralls":"nyc report --reporter=text-lcov | coveralls","lint":"eslint lib/","generate-release":"eslint-generate-release","generate-alpharelease":"eslint-generate-prerelease alpha","generate-betarelease":"eslint-generate-prerelease beta","generate-rcrelease":"eslint-generate-prerelease rc","publish-release":"eslint-publish-release"},"dependencies":{"esutils":"^2.0.2"}}');
 
 /***/ }),
-/* 481 */
+/* 487 */
 /***/ ((module) => {
 
 "use strict";
@@ -96135,7 +96521,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 482 */
+/* 488 */
 /***/ ((module) => {
 
 "use strict";
@@ -96272,7 +96658,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 483 */
+/* 489 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -96404,7 +96790,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 484 */
+/* 490 */
 /***/ ((module) => {
 
 "use strict";
@@ -96458,7 +96844,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 485 */
+/* 491 */
 /***/ ((module) => {
 
 "use strict";
@@ -96590,7 +96976,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 486 */
+/* 492 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -96859,7 +97245,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 487 */
+/* 493 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -96980,7 +97366,7 @@ module.exports = function () {
 }();
 
 /***/ }),
-/* 488 */
+/* 494 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -96995,7 +97381,8 @@ module.exports = function () {
 //------------------------------------------------------------------------------
 // Requirements
 //------------------------------------------------------------------------------
-const levn = __webpack_require__(489),
+var _slicedToArray = __webpack_require__(340);
+const levn = __webpack_require__(495),
   ConfigOps = __webpack_require__(116);
 const debug = __webpack_require__(106)("eslint:config-comment-parser");
 
@@ -97027,7 +97414,11 @@ module.exports = class ConfigCommentParser {
       }
 
       // value defaults to null (if not provided), e.g: "foo" => ["foo", null]
-      const [key, value = null] = name.split(":");
+      const _name$split = name.split(":"),
+        _name$split2 = _slicedToArray(_name$split, 2),
+        key = _name$split2[0],
+        _name$split2$ = _name$split2[1],
+        value = _name$split2$ === void 0 ? null : _name$split2$;
       items[key] = {
         value,
         comment
@@ -97115,15 +97506,15 @@ module.exports = class ConfigCommentParser {
 };
 
 /***/ }),
-/* 489 */
+/* 495 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by LiveScript 1.4.0
 (function () {
   var parseString, cast, parseType, VERSION, parsedTypeParse, parse;
-  parseString = __webpack_require__(490);
-  cast = __webpack_require__(497);
-  parseType = (__webpack_require__(498).parseType);
+  parseString = __webpack_require__(496);
+  cast = __webpack_require__(503);
+  parseType = (__webpack_require__(504).parseType);
   VERSION = '0.3.0';
   parsedTypeParse = function (parsedType, string, options) {
     options == null && (options = {});
@@ -97142,13 +97533,13 @@ module.exports = class ConfigCommentParser {
 }).call(this);
 
 /***/ }),
-/* 490 */
+/* 496 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by LiveScript 1.4.0
 (function () {
   var reject, special, tokenRegex;
-  reject = (__webpack_require__(491).reject);
+  reject = (__webpack_require__(497).reject);
   function consumeOp(tokens, op) {
     if (tokens[0] === op) {
       return tokens.shift();
@@ -97256,7 +97647,7 @@ module.exports = class ConfigCommentParser {
 }).call(this);
 
 /***/ }),
-/* 491 */
+/* 497 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 // Generated by LiveScript 1.4.0
@@ -97270,11 +97661,11 @@ var Func,
   replicate,
   prelude,
   toString$ = {}.toString;
-Func = __webpack_require__(492);
-List = __webpack_require__(493);
-Obj = __webpack_require__(494);
-Str = __webpack_require__(495);
-Num = __webpack_require__(496);
+Func = __webpack_require__(498);
+List = __webpack_require__(499);
+Obj = __webpack_require__(500);
+Str = __webpack_require__(501);
+Num = __webpack_require__(502);
 id = function (x) {
   return x;
 };
@@ -97447,7 +97838,7 @@ function curry$(f, bound) {
 }
 
 /***/ }),
-/* 492 */
+/* 498 */
 /***/ ((module) => {
 
 // Generated by LiveScript 1.4.0
@@ -97523,7 +97914,7 @@ function curry$(f, bound) {
 }
 
 /***/ }),
-/* 493 */
+/* 499 */
 /***/ ((module) => {
 
 // Generated by LiveScript 1.4.0
@@ -98338,7 +98729,7 @@ function not$(x) {
 }
 
 /***/ }),
-/* 494 */
+/* 500 */
 /***/ ((module) => {
 
 // Generated by LiveScript 1.4.0
@@ -98515,7 +98906,7 @@ function curry$(f, bound) {
 }
 
 /***/ }),
-/* 495 */
+/* 501 */
 /***/ ((module) => {
 
 // Generated by LiveScript 1.4.0
@@ -98608,7 +98999,7 @@ function curry$(f, bound) {
 }
 
 /***/ }),
-/* 496 */
+/* 502 */
 /***/ ((module) => {
 
 // Generated by LiveScript 1.4.0
@@ -98741,7 +99132,7 @@ function curry$(f, bound) {
 }
 
 /***/ }),
-/* 497 */
+/* 503 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by LiveScript 1.4.0
@@ -98749,7 +99140,7 @@ function curry$(f, bound) {
   var parsedTypeCheck,
     types,
     toString$ = {}.toString;
-  parsedTypeCheck = (__webpack_require__(498).parsedTypeCheck);
+  parsedTypeCheck = (__webpack_require__(504).parsedTypeCheck);
   types = {
     '*': function (value, options) {
       switch (toString$.call(value).slice(8, -1)) {
@@ -99048,15 +99439,15 @@ function curry$(f, bound) {
 }).call(this);
 
 /***/ }),
-/* 498 */
+/* 504 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by LiveScript 1.4.0
 (function () {
   var VERSION, parseType, parsedTypeCheck, typeCheck;
   VERSION = '0.3.2';
-  parseType = __webpack_require__(499);
-  parsedTypeCheck = __webpack_require__(500);
+  parseType = __webpack_require__(505);
+  parsedTypeCheck = __webpack_require__(506);
   typeCheck = function (type, input, options) {
     return parsedTypeCheck(parseType(type), input, options);
   };
@@ -99069,7 +99460,7 @@ function curry$(f, bound) {
 }).call(this);
 
 /***/ }),
-/* 499 */
+/* 505 */
 /***/ (function(module) {
 
 // Generated by LiveScript 1.4.0
@@ -99267,7 +99658,7 @@ function curry$(f, bound) {
 }).call(this);
 
 /***/ }),
-/* 500 */
+/* 506 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by LiveScript 1.4.0
@@ -99280,7 +99671,7 @@ function curry$(f, bound) {
     defaultType,
     customTypes,
     toString$ = {}.toString;
-  ref$ = __webpack_require__(491), any = ref$.any, all = ref$.all, isItNaN = ref$.isItNaN;
+  ref$ = __webpack_require__(497), any = ref$.any, all = ref$.all, isItNaN = ref$.isItNaN;
   types = {
     Number: {
       typeOf: 'Number',
@@ -99405,14 +99796,14 @@ function curry$(f, bound) {
 }).call(this);
 
 /***/ }),
-/* 501 */
+/* 507 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = JSON.parse('{"name":"eslint","version":"5.16.0","author":"Nicholas C. Zakas <nicholas+npm@nczconsulting.com>","description":"An AST-based pattern checker for JavaScript.","bin":{"eslint":"./bin/eslint.js"},"main":"./lib/api.js","scripts":{"test":"node Makefile.js test","lint":"node Makefile.js lint","fuzz":"node Makefile.js fuzz","generate-release":"node Makefile.js generateRelease","generate-alpharelease":"node Makefile.js generatePrerelease -- alpha","generate-betarelease":"node Makefile.js generatePrerelease -- beta","generate-rcrelease":"node Makefile.js generatePrerelease -- rc","publish-release":"node Makefile.js publishRelease","docs":"node Makefile.js docs","gensite":"node Makefile.js gensite","webpack":"node Makefile.js webpack","perf":"node Makefile.js perf","profile":"beefy tests/bench/bench.js --open -- -t brfs -t ./tests/bench/xform-rules.js -r espree","coveralls":"cat ./coverage/lcov.info | coveralls"},"files":["LICENSE","README.md","bin","conf","lib","messages"],"repository":"eslint/eslint","homepage":"https://eslint.org","bugs":"https://github.com/eslint/eslint/issues/","dependencies":{"@babel/code-frame":"^7.0.0","ajv":"^6.9.1","chalk":"^2.1.0","cross-spawn":"^6.0.5","debug":"^4.0.1","doctrine":"^3.0.0","eslint-scope":"^4.0.3","eslint-utils":"^1.3.1","eslint-visitor-keys":"^1.0.0","espree":"^5.0.1","esquery":"^1.0.1","esutils":"^2.0.2","file-entry-cache":"^5.0.1","functional-red-black-tree":"^1.0.1","glob":"^7.1.2","globals":"^11.7.0","ignore":"^4.0.6","import-fresh":"^3.0.0","imurmurhash":"^0.1.4","inquirer":"^6.2.2","js-yaml":"^3.13.0","json-stable-stringify-without-jsonify":"^1.0.1","levn":"^0.3.0","lodash":"^4.17.11","minimatch":"^3.0.4","mkdirp":"^0.5.1","natural-compare":"^1.4.0","optionator":"^0.8.2","path-is-inside":"^1.0.2","progress":"^2.0.0","regexpp":"^2.0.1","semver":"^5.5.1","strip-ansi":"^4.0.0","strip-json-comments":"^2.0.1","table":"^5.2.3","text-table":"^0.2.0"},"devDependencies":{"@babel/core":"^7.2.2","@babel/polyfill":"^7.2.5","@babel/preset-env":"^7.3.1","babel-loader":"^8.0.5","beefy":"^2.1.8","brfs":"^2.0.0","chai":"^4.0.1","cheerio":"^0.22.0","common-tags":"^1.8.0","coveralls":"^3.0.1","dateformat":"^3.0.3","ejs":"^2.6.1","eslint-config-eslint":"file:packages/eslint-config-eslint","eslint-plugin-eslint-plugin":"^2.0.1","eslint-plugin-internal-rules":"file:tools/internal-rules","eslint-plugin-node":"^8.0.0","eslint-release":"^1.2.0","eslump":"^2.0.0","esprima":"^4.0.1","jsdoc":"^3.5.5","karma":"^3.1.4","karma-chrome-launcher":"^2.2.0","karma-mocha":"^1.3.0","karma-mocha-reporter":"^2.2.3","karma-webpack":"^4.0.0-rc.6","leche":"^2.2.3","load-perf":"^0.2.0","markdownlint":"^0.12.0","mocha":"^5.0.5","mock-fs":"^4.8.0","npm-license":"^0.3.3","nyc":"^13.3.0","proxyquire":"^2.0.1","puppeteer":"^1.12.2","shelljs":"^0.8.2","sinon":"^3.3.0","temp":"^0.9.0","through":"^2.3.8","webpack":"^4.29.3","webpack-cli":"^3.2.3"},"keywords":["ast","lint","javascript","ecmascript","espree"],"license":"MIT","engines":{"node":"^6.14.0 || ^8.10.0 || >=9.10.0"}}');
 
 /***/ }),
-/* 502 */
+/* 508 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -99561,7 +99952,7 @@ SourceCodeFixer.applyFixes = function (sourceText, messages, shouldFix) {
 module.exports = SourceCodeFixer;
 
 /***/ }),
-/* 503 */
+/* 509 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -99683,7 +100074,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var eslint_lib_linter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var eslint_lib_linter__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(eslint_lib_linter__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var eslint_conf_eslint_recommended__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(503);
+/* harmony import */ var eslint_conf_eslint_recommended__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(509);
 /* harmony import */ var eslint_conf_eslint_recommended__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(eslint_conf_eslint_recommended__WEBPACK_IMPORTED_MODULE_1__);
 
 

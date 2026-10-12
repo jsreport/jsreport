@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-authentication",
-  "version": "4.3.3",
+  "version": "4.3.4",
   "description": "jsreport extension adding user authentication",
   "keywords": [
     "jsreport",
@@ -41,8 +41,8 @@
     "password-hash": "1.2.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.11.2",
-    "@jsreport/jsreport-express": "4.3.4",
+    "@jsreport/jsreport-core": "4.11.3",
+    "@jsreport/jsreport-express": "4.3.5",
     "@jsreport/studio-dev": "4.1.1",
     "express": "4.22.3",
     "lodash.clonedeep": "4.5.0",

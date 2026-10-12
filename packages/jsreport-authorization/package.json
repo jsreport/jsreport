@@ -34,10 +34,10 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.3.3",
-    "@jsreport/jsreport-core": "4.11.2",
-    "@jsreport/jsreport-express": "4.3.4",
-    "@jsreport/jsreport-fs-store": "4.2.1",
+    "@jsreport/jsreport-authentication": "4.3.4",
+    "@jsreport/jsreport-core": "4.11.3",
+    "@jsreport/jsreport-express": "4.3.5",
+    "@jsreport/jsreport-fs-store": "4.2.2",
     "@jsreport/studio-dev": "4.1.1",
     "mocha": "11.7.5",
     "ncp": "2.0.0",

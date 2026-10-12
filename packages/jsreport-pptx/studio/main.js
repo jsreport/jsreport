@@ -37,11 +37,10 @@ class PptxProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     this.removeInvalidReferences();
   }
   removeInvalidReferences() {
-    const {
-      entity,
-      entities,
-      onChange
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      entities = _this$props.entities,
+      onChange = _this$props.onChange;
     if (!entity.pptx) {
       return;
     }
@@ -64,10 +63,9 @@ class PptxProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     return 'pptx asset: ' + foundItems[0].name;
   }
   render() {
-    const {
-      entity,
-      onChange
-    } = this.props;
+    const _this$props2 = this.props,
+      entity = _this$props2.entity,
+      onChange = _this$props2.onChange;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
       className: "properties-section"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {

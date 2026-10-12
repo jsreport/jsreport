@@ -48,11 +48,10 @@ class XlsxTemplateProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Componen
     this.removeInvalidXlsxTemplateReferences();
   }
   removeInvalidXlsxTemplateReferences() {
-    const {
-      entity,
-      entities,
-      onChange
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      entities = _this$props.entities,
+      onChange = _this$props.onChange;
     if (!entity.xlsx) {
       return;
     }
@@ -81,10 +80,9 @@ class XlsxTemplateProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Componen
     return newValue;
   }
   render() {
-    const {
-      entity,
-      onChange
-    } = this.props;
+    const _this$props2 = this.props,
+      entity = _this$props2.entity,
+      onChange = _this$props2.onChange;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
       className: "properties-section"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {

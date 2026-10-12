@@ -7,6 +7,9 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.8.2
+- update moment to fix audit
+
 ### 4.8.1
 - update deps to fix audit
 - update charts to work on handlebars execution
