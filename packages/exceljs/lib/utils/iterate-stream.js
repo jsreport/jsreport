@@ -1,6 +1,12 @@
+const HIGH_WATER_MARK = 64;
+const LOW_WATER_MARK = 16;
+
 module.exports = async function* iterateStream(stream) {
   const contents = [];
-  stream.on('data', data => contents.push(data));
+  stream.on('data', data => {
+    contents.push(data);
+    if (contents.length >= HIGH_WATER_MARK) stream.pause();
+  });
 
   let resolveStreamEndedPromise;
   const streamEndedPromise = new Promise(resolve => (resolveStreamEndedPromise = resolve));
@@ -23,8 +29,9 @@ module.exports = async function* iterateStream(stream) {
       // eslint-disable-next-line no-await-in-loop
       await Promise.race([once(stream, 'data'), streamEndedPromise]);
     } else {
-      stream.pause();
       const data = contents.shift();
+      // Pausing before each yield can lose ZIP entries when Unzipper emits end.
+      if (contents.length <= LOW_WATER_MARK) stream.resume();
       yield data;
     }
     if (error) throw error;

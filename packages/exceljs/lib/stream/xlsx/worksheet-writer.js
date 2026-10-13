@@ -825,7 +825,7 @@ class WorksheetWriter {
   }
 
   _writeBackground() {
-    let background = this.getBackgroundImageId();
+    let background = this._media.find(m => m.type === 'background');
 
     if (background) {
       if (background.imageId !== undefined) {

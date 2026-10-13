@@ -175,7 +175,8 @@ module.exports = {
         }
       });
 
-      wb.read(filename, {entries: 'emit', worksheets: 'emit'});
+      wb.on('error', reject);
+      wb.read(filename, {entries: 'emit', worksheets: 'emit'}).catch(reject);
     });
   },
 };

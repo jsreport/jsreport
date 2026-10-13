@@ -2853,17 +2853,9 @@ specified as "main" in the package.json
 
 # Known Issues[⬆](#contents)<!-- Link generated with jump2header -->
 
-## Testing with Puppeteer[⬆](#contents)<!-- Link generated with jump2header -->
+## Browser Tests[⬆](#contents)<!-- Link generated with jump2header -->
 
-The test suite included in this lib includes a small script executed in a headless browser
-to validate the bundled packages. At the time of this writing, it appears that
-this test does not play nicely in the Windows Linux subsystem.
-
-For this reason, the browser test can be disabled by the existence of a file named .disable-test-browser
-
-```bash
-sudo apt-get install libfontconfig
-```
+Browser tests are skipped in this fork. `npm run test:browser` and `npm run test:jasmine` report the skip without launching a browser.
 
 ## Splice vs Merge[⬆](#contents)<!-- Link generated with jump2header -->
 

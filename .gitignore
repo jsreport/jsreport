@@ -108,6 +108,7 @@ launch.env
 # TernJS port file
 .tern-port
 data
+!packages/exceljs/spec/**/data
 logs
 .DS_Store
 node_modules
