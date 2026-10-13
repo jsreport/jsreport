@@ -23,7 +23,7 @@
   "dependencies": {
     "@xmldom/xmldom": "0.8.15",
     "archiver": "7.0.1",
-    "axios": "1.19.0",
+    "axios": "1.20.0",
     "form-data": "4.0.6",
     "get-stream": "5.1.0",
     "node.extend.without.arrays": "1.1.6",
