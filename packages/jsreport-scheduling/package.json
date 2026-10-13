@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "cron-parser": "5.0.1",
-    "moment": "2.29.4"
+    "moment": "2.31.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "4.3.3",

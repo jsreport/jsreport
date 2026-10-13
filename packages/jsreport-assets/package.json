@@ -49,7 +49,7 @@
     "@jsreport/studio-dev": "4.1.1",
     "binary-extensions": "1.12.0",
     "mocha": "11.7.5",
-    "moment": "2.29.4",
+    "moment": "2.31.0",
     "should": "13.2.3",
     "standard": "16.0.4",
     "supertest": "3.3.0"

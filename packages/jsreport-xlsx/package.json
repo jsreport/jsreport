@@ -36,7 +36,7 @@
     "lodash": "4.18.1",
     "merge2": "1.3.0",
     "mkdirp": "0.5.5",
-    "moment": "2.29.4",
+    "moment": "2.31.0",
     "nanoid": "3.3.18",
     "node.extend.without.arrays": "1.1.6",
     "semaphore-async-await": "1.5.1",
