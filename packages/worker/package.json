@@ -41,7 +41,7 @@
     "bluebird": "3.7.2",
     "camelcase": "6.2.0",
     "debug": "4.4.3",
-    "handlebars": "4.7.9",
+    "handlebars": "4.7.10",
     "koa": "2.13.1",
     "koa-bodyparser": "4.3.0",
     "listener-collection": "2.1.0",

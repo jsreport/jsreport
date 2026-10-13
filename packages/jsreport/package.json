@@ -76,7 +76,7 @@
     "@jsreport/jsreport-text": "4.1.0",
     "@jsreport/jsreport-version-control": "4.2.3",
     "@jsreport/jsreport-xlsx": "4.8.1",
-    "handlebars": "4.7.9",
+    "handlebars": "4.7.10",
     "puppeteer": "25.4.0",
     "semver": "7.5.4"
   },

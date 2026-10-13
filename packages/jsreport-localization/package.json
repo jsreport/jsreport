@@ -32,7 +32,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "handlebars": "4.7.9",
+    "handlebars": "4.7.10",
     "lodash.get": "4.4.2",
     "@jsreport/jsreport-assets": "4.3.3",
     "@jsreport/jsreport-core": "4.11.2",
