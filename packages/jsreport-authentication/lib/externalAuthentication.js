@@ -1,4 +1,6 @@
 
+const { errors: openidErrors } = require('openid-client')
+
 module.exports.shouldDelegateTokenAuth = (definition) => {
   const options = definition.options
 
@@ -150,7 +152,12 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
     } catch (introspectError) {
       tokenErr = introspectError
 
-      if (introspectError.code === 'ETIMEDOUT' || introspectError.code === 'ESOCKETTIMEDOUT') {
+      const isRequestTimeout = (
+        introspectError instanceof openidErrors.RPError &&
+        introspectError.message.startsWith('outgoing request timed out after')
+      )
+
+      if (isRequestTimeout || introspectError.code === 'ETIMEDOUT' || introspectError.code === 'ESOCKETTIMEDOUT') {
         logger.error(
           'Timeout Error in authorization server request, no response was sent after ' +
           authorizationServerAuth.timeout +
