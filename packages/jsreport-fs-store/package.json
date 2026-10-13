@@ -31,7 +31,7 @@
   "dependencies": {
     "@jsreport/mingo": "2.4.2",
     "@jsreport/serializator": "1.1.0",
-    "chokidar": "3.5.3",
+    "chokidar": "4.0.3",
     "lockfile": "1.0.4",
     "lodash.debounce": "4.0.8",
     "lodash.omit": "4.5.0",

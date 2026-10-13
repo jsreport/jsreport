@@ -957,9 +957,9 @@
     tslib "^2.2.0"
 
 "@azure/identity@^4.2.1":
-  version "4.13.3"
-  resolved "https://registry.yarnpkg.com/@azure/identity/-/identity-4.13.3.tgz#f7781be089dc6231e17ae1454b9a1e91bc797b81"
-  integrity sha512-zGQPtqvXPgSA8yfV2CkIQ1qirqk0p9AIVpC5uEkdXQYcKl07QHvyaGYRnZOk0AsQUmxNb4wfkcwY5di8Z5xa9A==
+  version "4.14.0"
+  resolved "https://registry.yarnpkg.com/@azure/identity/-/identity-4.14.0.tgz#2ab480fc79070036f5c9f7d82f3060db366576f0"
+  integrity sha512-8utCLdTZn14CiAe0HW4JbtzUMsc0mdDwnjUvStFMrR4IxQP8S2eL9zVAdplpfORVJGYmidZElpeXRYjJQ4UyUw==
   dependencies:
     "@azure/abort-controller" "^2.0.0"
     "@azure/core-auth" "^1.9.0"
@@ -971,7 +971,7 @@
     "@azure/logger" "^1.0.0"
     "@azure/msal-browser" "^5.5.0"
     "@azure/msal-node" "^6.0.0"
-    open "^10.1.0"
+    open "^11.0.0"
     tslib "^2.2.0"
 
 "@azure/keyvault-common@^2.1.0":
@@ -1021,9 +1021,9 @@
     "@azure/msal-common" "14.16.1"
 
 "@azure/msal-browser@^5.5.0":
-  version "5.25.0"
-  resolved "https://registry.yarnpkg.com/@azure/msal-browser/-/msal-browser-5.25.0.tgz#269a4796dc29bfe726c94f13dd608b0aca518032"
-  integrity sha512-7GyXzDUrdLG5zPDCYJbQdJqbl9a2U9SWUSC4lxr7cXjkBq6diTfWcJsi0UjdGWlqy+EevQg9dSC4g3s3BEp19g==
+  version "5.25.1"
+  resolved "https://registry.yarnpkg.com/@azure/msal-browser/-/msal-browser-5.25.1.tgz#8e1422ab2999c9388f08acb1ae2326954c33f1f7"
+  integrity sha512-NDW2/bz2Pz71EJAlhSw+jg1kpRIWtrzj0gCzcHuG1u7iLvSOHpUc5lICkDA9x0bbeityxTneiunSBluvS+/y4w==
   dependencies:
     "@azure/msal-common" "16.14.2"
 
@@ -3261,9 +3261,9 @@
     tslib "^2.6.2"
 
 "@smithy/core@^3.33.2", "@smithy/core@^3.33.3", "@smithy/core@^3.35.0", "@smithy/core@^3.35.2", "@smithy/core@^3.7.0":
-  version "3.35.2"
-  resolved "https://registry.yarnpkg.com/@smithy/core/-/core-3.35.2.tgz#6c45b08ba0cb68f610d764d0b0bafb258268670e"
-  integrity sha512-ejTukBuP/Pg3t9N8Ux+0zKsXeHWm7p6W3HbXFOyltKasSxZwCFmvTut7kBdZSCF3m9y1bXXyVu6p2xuMFcsTyQ==
+  version "3.36.0"
+  resolved "https://registry.yarnpkg.com/@smithy/core/-/core-3.36.0.tgz#6294ed0f0a0daf4167ac917970b2ac789b8b68d4"
+  integrity sha512-3hJiwG1F5t1SoXqp/yOCmYXziyx7ZVqF63S5W6YU201e/qwVaHPex+E/3vvyY9a3ORq/b+BydeNZpP2saQ9X2g==
   dependencies:
     "@smithy/types" "^4.19.0"
     tslib "^2.6.2"
@@ -6055,9 +6055,9 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001464, caniuse-lite@^1.0.30001810, caniuse-lite@^1.0.30001813:
-  version "1.0.30001815"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001815.tgz#7cf8faa82c998b06873a113e9d3d9544f2022ac0"
-  integrity sha512-uDybUEyfgbyJJ93J1vikTylBX31AkdVYeVPeffMQpf8XN7hSfr0oZOn4VFOIMNvtU5+rHvC5Udg2TgtJKHm23Q==
+  version "1.0.30001816"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001816.tgz#80567cffb179fd8a1702816bc80de8efc9784021"
+  integrity sha512-+8Yx7BXCoqk6IF8yTicjfUR6D/ldJzdlsodlEOiOSPmhK844WIgk67/zIQaGAOxNkZyyvBlrRFnLvqKIoqbAFw==
 
 capture-stack-trace@^1.0.0:
   version "1.0.2"
@@ -6253,20 +6253,12 @@ cheerio@^1.0.0-rc.12:
     undici "^7.19.0"
     whatwg-mimetype "^4.0.0"
 
-chokidar@3.5.3:
-  version "3.5.3"
-  resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-3.5.3.tgz#1cf37c8707b932bd1af1ae22c0432e2acd1903bd"
-  integrity sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==
+chokidar@4.0.3, chokidar@^4.0.1:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-4.0.3.tgz#7be37a4c03c9aee1ecfe862a4a23b2c70c205d30"
+  integrity sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==
   dependencies:
-    anymatch "~3.1.2"
-    braces "~3.0.2"
-    glob-parent "~5.1.2"
-    is-binary-path "~2.1.0"
-    is-glob "~4.0.1"
-    normalize-path "~3.0.0"
-    readdirp "~3.6.0"
-  optionalDependencies:
-    fsevents "~2.3.2"
+    readdirp "^4.0.1"
 
 chokidar@^2.1.1:
   version "2.1.8"
@@ -6301,13 +6293,6 @@ chokidar@^3.6.0:
     readdirp "~3.6.0"
   optionalDependencies:
     fsevents "~2.3.2"
-
-chokidar@^4.0.1:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-4.0.3.tgz#7be37a4c03c9aee1ecfe862a4a23b2c70c205d30"
-  integrity sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==
-  dependencies:
-    readdirp "^4.0.1"
 
 chownr@^1.1.1, chownr@^1.1.2, chownr@^1.1.4:
   version "1.1.4"
@@ -7742,7 +7727,7 @@ default-browser-id@^5.0.0:
   resolved "https://registry.yarnpkg.com/default-browser-id/-/default-browser-id-5.0.1.tgz#f7a7ccb8f5104bf8e0f71ba3b1ccfa5eafdb21e8"
   integrity sha512-x1VCxdX4t+8wVfd1so/9w+vQ4vx7lKd2Qp5tDRutErwmR85OgmfX7RlLRMWafRMY7hbEiXIbudNrjOAPa/hL8Q==
 
-default-browser@^5.2.1:
+default-browser@^5.5.1:
   version "5.5.1"
   resolved "https://registry.yarnpkg.com/default-browser/-/default-browser-5.5.1.tgz#1790affc52680fbb11e17cab2752d69aa2a37d2c"
   integrity sha512-m1pAzaJgZ/gssEqlOhJkPJp8Xly7QyW6xcrkUa2KKcDeDSEMP7X8xipU3snUcfisTQx0w1AGae+9UtJSfVnXGw==
@@ -8340,9 +8325,9 @@ electron-html-to@2.6.1:
     which "1.2.9"
 
 electron-to-chromium@^1.5.439:
-  version "1.5.452"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.452.tgz#eb404201969cefcaaf8c5ee82b1a1bbb19cd7b8b"
-  integrity sha512-cVvk1YBSj6571VmV6hdJTqj94Y79xSu8cj6Y9t6ae4Y4431z8/7EJFvu3rVp90xhfuv9BpPKUmaLfTo4+FOGBg==
+  version "1.5.454"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.454.tgz#7f6f6cd1c855e1f7fb55fc17798e92e6ea08cb04"
+  integrity sha512-NqD5GhkXnxJpDQVCmmpc546qjH6kei2VI9m45CTF+sQU7bcS7YeVt7ba0cnjueMH1AXGRu/driZUP9iYVSv7vg==
 
 electron-workers@1.10.3:
   version "1.10.3"
@@ -12028,6 +12013,11 @@ is-gzip@^1.0.0:
   resolved "https://registry.yarnpkg.com/is-gzip/-/is-gzip-1.0.0.tgz#6ca8b07b99c77998025900e555ced8ed80879a83"
   integrity sha512-rcfALRIb1YewtnksfRIHGcIY93QnK8BIQ/2c9yDYcG/Y6+vRoJuTWBmmSEbyLLYtXm7q35pHOHbZFQBaLrhlWQ==
 
+is-in-ssh@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/is-in-ssh/-/is-in-ssh-1.0.0.tgz#8eb73c1cabba77748d389588eeea132a63057622"
+  integrity sha512-jYa6Q9rH90kR1vKB6NM7qqd1mge3Fx4Dhw5TVlK1MUBqhEOuCagrEHMevNuCcbECmXZ0ThXkRm+Ymr51HwEPAw==
+
 is-inside-container@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/is-inside-container/-/is-inside-container-1.0.0.tgz#e81fba699662eb31dbdaf26766a61d4814717ea4"
@@ -15199,15 +15189,17 @@ only@~0.0.2:
   resolved "https://registry.yarnpkg.com/only/-/only-0.0.2.tgz#2afde84d03e50b9a8edc444e30610a70295edfb4"
   integrity sha512-Fvw+Jemq5fjjyWz6CpKx6w9s7xxqo3+JCyM0WXWeCSOboZ8ABkyvP8ID4CZuChA/wxSx+XSJmdOm8rGVyJ1hdQ==
 
-open@^10.1.0:
-  version "10.2.0"
-  resolved "https://registry.yarnpkg.com/open/-/open-10.2.0.tgz#b9d855be007620e80b6fb05fac98141fe62db73c"
-  integrity sha512-YgBpdJHPyQ2UE5x+hlSXcnejzAvD0b22U2OuAP+8OnlJT+PjWPxtgmGqKKc+RgTM63U9gN0YzrYc71R2WT/hTA==
+open@^11.0.0:
+  version "11.0.4"
+  resolved "https://registry.yarnpkg.com/open/-/open-11.0.4.tgz#10d20dfdb558c71e5149b2d789ad6995caf697ca"
+  integrity sha512-++Zlftm0kVLPmzC06t6epuWmcRMDbI4z5P3NNX979WA/k23+NtSOynEGzsVfZwguKw2mi5umVgnBlJQMwRz4Pg==
   dependencies:
-    default-browser "^5.2.1"
+    default-browser "^5.5.1"
     define-lazy-prop "^3.0.0"
+    is-in-ssh "^1.0.0"
     is-inside-container "^1.0.0"
-    wsl-utils "^0.1.0"
+    powershell-utils "^0.2.1"
+    wsl-utils "^1.0.0"
 
 open@^8.0.0:
   version "8.4.2"
@@ -16597,6 +16589,11 @@ postgres-interval@^1.1.0:
   integrity sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==
   dependencies:
     xtend "^4.0.0"
+
+powershell-utils@^0.2.0, powershell-utils@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/powershell-utils/-/powershell-utils-0.2.1.tgz#0853016f5b3c12d52b9571c8fe8059677d9ddbe2"
+  integrity sha512-C+y9x90UElAddDZmV4qOx9W53B61PO7cIqWz2dQsWlwswuq4mr8NEwytdGKboYbQlGZ3awrkTeNvcZiZNHnQ8A==
 
 prebuild-install@7.1.1:
   version "7.1.1"
@@ -19602,9 +19599,9 @@ strnum@^2.1.0, strnum@^2.4.2:
     anynum "^1.0.1"
 
 strtok3@^10.3.4:
-  version "10.4.1"
-  resolved "https://registry.yarnpkg.com/strtok3/-/strtok3-10.4.1.tgz#e6b59b4e44b918ccd8164bbed1384eed340c1519"
-  integrity sha512-MeSp4vHXiZRXM9K0rSWqTvXMU+YzmGICc5+briMVK+RY8qQ1GRTffFYVpK6cSgV/ueImFIEh3uCJJD3xBh1TaQ==
+  version "10.5.0"
+  resolved "https://registry.yarnpkg.com/strtok3/-/strtok3-10.5.0.tgz#fcc4387817fb2f0a12ee03ae1c3c54490fd180c6"
+  integrity sha512-PgAsgIuizbZN/r4+g4UNvbVCTpJWdoIdI71kIWwKmdIH0vJ0q7ylMVGU8PWj2s9O98y4MtFWiDTIrtNukZMMgQ==
   dependencies:
     "@tokenizer/token" "^0.3.0"
 
@@ -21064,9 +21061,9 @@ watchify@^3.6.1:
     xtend "^4.0.0"
 
 watchpack@^2.4.0, watchpack@^2.5.2:
-  version "2.5.2"
-  resolved "https://registry.yarnpkg.com/watchpack/-/watchpack-2.5.2.tgz#e12e82d84674266fc1c6dbfe38891b92ff0522ec"
-  integrity sha512-6i/00NBjP4yGPs+caKSyRfpTF/8Torsu0MOW3mMzIbhgISFder8i7xbqgHlLMwJrdiN8ndBV3UA1/AfzPSr+jg==
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/watchpack/-/watchpack-2.6.1.tgz#fda5ef91ab74cdba7e9105e0bd2b03268b6818aa"
+  integrity sha512-8mk/LnXpQAiM2xKZhTkxikwly5GhL2Z+DWiLTkMa/E1Nfv9zURhHgiFyWvM4BWqW+LjIgL2AIS7JntEUx6v3vQ==
   dependencies:
     graceful-fs "^4.1.2"
 
@@ -21575,12 +21572,13 @@ ws@~8.21.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.21.3.tgz#660b4faddb6a3e575c86e078126919961f4de4fc"
   integrity sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==
 
-wsl-utils@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/wsl-utils/-/wsl-utils-0.1.0.tgz#8783d4df671d4d50365be2ee4c71917a0557baab"
-  integrity sha512-h3Fbisa2nKGPxCpm89Hk33lBLsnaGBvctQopaBSOW/uIs6FTe1ATyAnKFJrzVs9vpGdsTe73WF3V4lIsk4Gacw==
+wsl-utils@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/wsl-utils/-/wsl-utils-1.0.1.tgz#7caaa5a713e5ed1b625e7ee95e505c53c2e41c80"
+  integrity sha512-c16PKLIRxBYpR3jSWsdS7SFp0COm5SOQdiFjY818dYFHJbMGuLBszpF07LBWmOS1uzrHa9VGdynsEgoeKy0oOQ==
   dependencies:
     is-wsl "^3.1.0"
+    powershell-utils "^0.2.0"
 
 xdg-basedir@^4.0.0:
   version "4.0.0"

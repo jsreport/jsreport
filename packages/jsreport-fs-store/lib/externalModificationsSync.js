@@ -1,3 +1,4 @@
+const path = require('path')
 const nfs = require('fs/promises')
 const chokidar = require('chokidar')
 const debounce = require('lodash.debounce')
@@ -29,7 +30,14 @@ module.exports = ({
       })
     }, 800)
 
-    const ignored = ['**/fs.journal', '**/fs.version', '**/fs.lock', '**/~*', '**/.git/**', '**/.tran', '**/.DS_Store']
+    const ignoredNames = ['fs.journal', 'fs.version', 'fs.lock', '.git', '.tran', '.DS_Store']
+
+    const ignored = [
+      (filePath) => {
+        const name = path.basename(filePath)
+        return ignoredNames.includes(name) || name.startsWith('~')
+      }
+    ]
 
     if (blobStorageDirectory && blobStorageDirectory.startsWith(dataDirectory)) {
       ignored.push(blobStorageDirectory.replace(/\\/g, '/'))
@@ -39,6 +47,7 @@ module.exports = ({
       ignorePermissionErrors: true,
       ignoreInitial: true,
       usePolling: true,
+      atomic: false,
       ignored
     })
 
