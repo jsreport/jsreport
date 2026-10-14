@@ -54,7 +54,7 @@
     "chalk": "2.4.2",
     "cliui": "7.0.4",
     "inquirer": "8.2.7",
-    "ip-address": "10.4.0",
+    "ip-address": "10.7.4",
     "is-absolute-url": "2.1.0",
     "is-promise": "2.1.0",
     "liftoff": "5.0.1",
