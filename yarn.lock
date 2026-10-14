@@ -9824,7 +9824,7 @@ findup-sync@^4.0.0:
     micromatch "^4.0.2"
     resolve-dir "^1.0.1"
 
-findup-sync@^5.0.0, findup-sync@~5.0.0:
+findup-sync@~5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/findup-sync/-/findup-sync-5.0.0.tgz#54380ad965a7edca00cc8f63113559aadc541bd2"
   integrity sha512-MzwXju70AuyflbgeOhzvQWAvvQdo1XL0A9bVvlXsYcFEBM87WR4OakL4OfZq+QRmr+duJubio+UtNQCPsVESzQ==
@@ -9845,17 +9845,6 @@ fined@^1.2.0:
     object.pick "^1.2.0"
     parse-filepath "^1.0.1"
 
-fined@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/fined/-/fined-2.0.0.tgz#6846563ed96879ce6de6c85c715c42250f8d8089"
-  integrity sha512-OFRzsL6ZMHz5s0JrsEr+TpdGNCtrVtnuG3x1yzGNiQHT0yaDnXAj8V/lWcpJVrnoDpcwXcASxAZYbuXda2Y82A==
-  dependencies:
-    expand-tilde "^2.0.2"
-    is-plain-object "^5.0.0"
-    object.defaults "^1.1.0"
-    object.pick "^1.3.0"
-    parse-filepath "^1.0.2"
-
 first-chunk-stream@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/first-chunk-stream/-/first-chunk-stream-1.0.0.tgz#59bfb50cd905f60d7c394cd3d9acaab4e6ad934e"
@@ -9865,11 +9854,6 @@ flagged-respawn@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/flagged-respawn/-/flagged-respawn-1.0.1.tgz#e7de6f1279ddd9ca9aac8a5971d618606b3aab41"
   integrity sha512-lNaHNVymajmk0OJMBn8fVUAU1BtDeKIqKoVhk4xAALB57aALg6b4W0MfJ/cUE0g9YBXy5XhSlPIpYIJ7HaY/3Q==
-
-flagged-respawn@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/flagged-respawn/-/flagged-respawn-2.0.0.tgz#abf39719dcfe1ac06c86c9466081c541c682987b"
-  integrity sha512-Gq/a6YCi8zexmGHMuJwahTGzXlAZAOsbCVKduWXC6TlLCjjFRlExMJc4GC2NYPYZ0r/brw9P7CpRgQmlPVeOoA==
 
 flat-cache@^2.0.1:
   version "2.0.1"
@@ -12147,11 +12131,6 @@ is-plain-object@^2.0.3, is-plain-object@^2.0.4:
   dependencies:
     isobject "^3.0.1"
 
-is-plain-object@^5.0.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/is-plain-object/-/is-plain-object-5.1.0.tgz#22ed7b5e856bb57966348e5b9468dada42be87f4"
-  integrity sha512-bUi/yjmtKYcRVUtWRGr0UA6xEFh2I6zWUwMrUXB3s7bmYCaZ8a+0ZsTRkrawh/mzlSD1Y0Ph8bp/U+TvBpWDNw==
-
 is-posix-bracket@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/is-posix-bracket/-/is-posix-bracket-0.1.1.tgz#3334dc79774368e92f016e6fbc0a88f5cd6e6bc4"
@@ -13117,19 +13096,6 @@ lie@~3.3.0:
   integrity sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==
   dependencies:
     immediate "~3.0.5"
-
-liftoff@5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/liftoff/-/liftoff-5.0.1.tgz#e2329e7f1e19e98c8dba71185f2078e6dbbc5c1f"
-  integrity sha512-wwLXMbuxSF8gMvubFcFRp56lkFV69twvbU5vDPbaw+Q+/rF8j0HKjGbIdlSi+LuJm9jf7k9PB+nTxnsLMPcv2Q==
-  dependencies:
-    extend "^3.0.2"
-    findup-sync "^5.0.0"
-    fined "^2.0.0"
-    flagged-respawn "^2.0.0"
-    is-plain-object "^5.0.0"
-    rechoir "^0.8.0"
-    resolve "^1.20.0"
 
 liftup@~3.0.1:
   version "3.0.1"
@@ -15604,7 +15570,7 @@ parse-css-sides@3.0.1:
   dependencies:
     css-list-helpers "^2.0.0"
 
-parse-filepath@^1.0.1, parse-filepath@^1.0.2:
+parse-filepath@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/parse-filepath/-/parse-filepath-1.0.2.tgz#a632127f53aaf3d15876f5872f3ffac763d6c891"
   integrity sha512-FwdRXKCohSVeXqwtYonZTXtbGJKrn+HNyWDYVcp5yuJlesTwNH4rsmRZ+GrKAPJ5bLpRxESMeS+Rl0VCHRvB2Q==
@@ -17540,13 +17506,6 @@ rechoir@^0.7.0:
   integrity sha512-/njmZ8s1wVeR6pjTZ+0nCnv8SpZNRMT2D1RLOJQESlYFDBvwpTA4KWJpZ+sBJ4+vhjILRcK7JIFdGCdxEAAitg==
   dependencies:
     resolve "^1.9.0"
-
-rechoir@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/rechoir/-/rechoir-0.8.0.tgz#49f866e0d32146142da3ad8f0eff352b3215ff22"
-  integrity sha512-/vxpCXddiX8NGfGO/mTafwjq4aFa/71pvamip0++IQk3zG8cbCj0fifNPrjjF1XMXUne91jL9OoxmdykoEtifQ==
-  dependencies:
-    resolve "^1.20.0"
 
 redent@^1.0.0:
   version "1.0.0"

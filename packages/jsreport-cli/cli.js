@@ -17,7 +17,6 @@ if (!semver.satisfies(process.versions.node, cliPackageJson.engines.node)) {
 }
 
 const path = require('path')
-const Liftoff = require('liftoff')
 const commander = require('./lib/commander')
 const { printError } = require('./lib/utils/error')
 const help = require('./lib/commands/help')
@@ -26,23 +25,28 @@ const repair = require('./lib/commands/repair')
 const configure = require('./lib/commands/configure')
 const render = require('./lib/commands/render')
 
-const cli = new Liftoff({
-  processTitle: 'jsreport',
-  moduleName: '@jsreport/jsreport-cli',
-  configName: '.jsreport'
-})
+process.title = 'jsreport'
 
-cli.prepare({}, (env) => {
-  cli.execute(env, initCLI)
-})
+initCLI()
 
-function initCLI (env) {
+function initCLI () {
   const isCLIDev = process.env.JSREPORT_CLI_DEV === 'enabled'
   const args = process.argv.slice(2)
   const cwd = process.cwd()
+  let localModulePath
   let localCommander
 
-  if (!isCLIDev && !env.modulePath) {
+  if (!isCLIDev) {
+    try {
+      localModulePath = require.resolve('@jsreport/jsreport-cli', { paths: [cwd] })
+    } catch (err) {
+      if (err.code !== 'MODULE_NOT_FOUND') {
+        throw err
+      }
+    }
+  }
+
+  if (!isCLIDev && !localModulePath) {
     // if no local installation is found,
     // try to detect if some global command was specified
     const globalCliHandler = commander(cwd, {
@@ -59,13 +63,13 @@ function initCLI (env) {
       if (!info.handled) {
         if (info.mainCommand != null) {
           console.error('"' + info.mainCommand + '" command not found')
-          console.error('Local jsreport-cli not found in:', env.cwd)
+          console.error('Local jsreport-cli not found in:', cwd)
           console.error('Try installing jsreport-cli or jsreport package to have more commands available')
 
           return process.exit(1)
         }
 
-        console.error('Local jsreport-cli not found in:', env.cwd)
+        console.error('Local jsreport-cli not found in:', cwd)
         console.error('Try installing jsreport-cli or jsreport package')
 
         return process.exit(1)
@@ -77,14 +81,17 @@ function initCLI (env) {
     if (isCLIDev) {
       localCommander = require(path.join(cwd, 'lib/commander'))(cwd, { cliName: 'jsreport' })
     } else {
+      const localModuleDirectory = path.dirname(localModulePath)
+      const localModulePackage = require(path.join(localModuleDirectory, 'package.json'))
+
       // Check for semver difference between global cli and local installation
-      if (semver.gt(cliPackageJson.version, env.modulePackage.version)) {
+      if (semver.gt(cliPackageJson.version, localModulePackage.version)) {
         console.log('Warning: jsreport-cli version mismatch:')
         console.log('Global jsreport-cli is', cliPackageJson.version)
-        console.log('Local jsreport-cli is', env.modulePackage.version)
+        console.log('Local jsreport-cli is', localModulePackage.version)
       }
 
-      localCommander = require(path.join(path.dirname(env.modulePath), 'lib/commander'))(cwd, {
+      localCommander = require(path.join(localModuleDirectory, 'lib/commander'))(cwd, {
         cliName: 'jsreport'
       })
     }
