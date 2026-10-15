@@ -74,7 +74,7 @@ if (extraneousDeps.length > 0) {
       shell: true
     })
 
-    if (yarnBuildError || yarnBuildStatus === 1) {
+    if (yarnBuildError || yarnBuildStatus !== 0) {
       console.error('Command failed to run')
 
       if (yarnBuildError) {
@@ -96,7 +96,7 @@ if (extraneousDeps.length > 0) {
       stdio: 'inherit'
     })
 
-    if (yarnTestError || yarnTestStatus === 1) {
+    if (yarnTestError || yarnTestStatus !== 0) {
       console.error('Command failed to run')
 
       if (yarnTestError) {
