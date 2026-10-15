@@ -1,23 +1,23 @@
-FROM jsreport/jsreport:4.14.1-full
+FROM jsreport/jsreport:4.14.2-full
 EXPOSE 5488
 ARG TARGETPLATFORM
 ARG UID=2500
 ARG GID=2500
 
 USER root
-RUN npm install jsreport@4.14.2
+RUN npm install jsreport@4.14.3
 
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.1.0 \
     @jsreport/jsreport-pug@5.1.0 \
     @jsreport/jsreport-aws-s3-storage@4.2.0 \
     @jsreport/jsreport-azure-storage@4.2.0 \
-    @jsreport/jsreport-docxtemplater@4.2.3 \
+    @jsreport/jsreport-docxtemplater@4.2.4 \
     @jsreport/jsreport-mssql-store@4.2.3 \
     @jsreport/jsreport-postgres-store@4.3.3 \
-    @jsreport/jsreport-mongodb-store@4.2.0 \
+    @jsreport/jsreport-mongodb-store@4.2.1 \
     @jsreport/jsreport-office-password@4.2.0 \
     @jsreport/jsreport-html-to-text@4.3.0 \
-    @jsreport/jsreport-html-embedded-in-docx@4.2.3 \
+    @jsreport/jsreport-html-embedded-in-docx@4.2.4 \
     @jsreport/jsreport-fs-store-aws-s3-persistence@4.2.2 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@4.2.0 \
     @jsreport/jsreport-unoconv@4.2.1 \
