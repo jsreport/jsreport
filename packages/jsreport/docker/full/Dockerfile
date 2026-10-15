@@ -5,7 +5,7 @@ ARG UID=2500
 ARG GID=2500
 
 USER root
-RUN npm install jsreport@4.14.3
+RUN npm install jsreport@4.14.4
 
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.1.0 \
     @jsreport/jsreport-pug@5.1.0 \

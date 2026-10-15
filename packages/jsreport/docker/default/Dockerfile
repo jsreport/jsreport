@@ -16,7 +16,7 @@ RUN apk update --no-cache && \
 
 RUN rm -rf /var/cache/apk/* /tmp/*
 
-RUN npm install jsreport@4.14.3
+RUN npm install jsreport@4.14.4
 RUN npm cache clean -f && rm -rf /tmp/*
 
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
