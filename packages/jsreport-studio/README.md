@@ -18,6 +18,9 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.4.7
+- fix browser error when loading studio (babel helper `helpers/slicedToArray` being undefined)
+
 ### 4.4.6
 - get back to use `image-size` because audit issues are solved
 - declare `/studio/assets` as an explicit public route
