@@ -7,6 +7,9 @@ See https://jsreport.net/learn/docker-workers
 
 ## Changelog
 
+### 4.0.6
+- update axios, express to fix audit
+
 ### 4.0.5
 - fix handleRemoteHttpResponse function signature
 
