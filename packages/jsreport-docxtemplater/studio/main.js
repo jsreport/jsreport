@@ -23,11 +23,10 @@ class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     this.removeInvalidReferences();
   }
   removeInvalidReferences() {
-    const {
-      entity,
-      entities,
-      onChange
-    } = this.props;
+    const _this$props = this.props,
+      entity = _this$props.entity,
+      entities = _this$props.entities,
+      onChange = _this$props.onChange;
     if (!entity.docxtemplater) {
       return;
     }
@@ -50,11 +49,10 @@ class Properties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     return 'docxtemplater asset: ' + foundItems[0].name;
   }
   render() {
-    const {
-      entity,
-      entities,
-      onChange
-    } = this.props;
+    const _this$props2 = this.props,
+      entity = _this$props2.entity,
+      entities = _this$props2.entities,
+      onChange = _this$props2.onChange;
     const assets = Properties.selectAssets(entities);
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "properties-section"
