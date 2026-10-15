@@ -9,6 +9,7 @@ export default {
   'helpers/extends': require('@babel/runtime-corejs3/helpers/extends'),
   'helpers/possibleConstructorReturn': require('@babel/runtime-corejs3/helpers/possibleConstructorReturn'),
   'helpers/inherits': require('@babel/runtime-corejs3/helpers/inherits'),
+  'helpers/slicedToArray': require('@babel/runtime-corejs3/helpers/slicedToArray'),
   'regenerator/index': require('@babel/runtime-corejs3/regenerator/index'),
   'helpers/regeneratorRuntime': require('@babel/runtime-corejs3/helpers/regeneratorRuntime')
 }
