@@ -97,6 +97,7 @@ if (lastCommit == null || lastCommit === '') {
 const targetPkg = args[2]
 
 if (targetPkg != null && targetPkg !== '') {
+  const extensionsChanged = getExtensionsChangedForCommits(firstCommit, lastCommit)
   const packagesInWorkspace = getPackagesInWorkspace()
 
   if (!packagesInWorkspace.has(targetPkg)) {
@@ -212,9 +213,30 @@ if (targetPkg != null && targetPkg !== '') {
       npmVersionInRegistry = npmVersionStdout.replaceAll('\n', '')
     }
 
-    console.log(`\ncommit changes: ${commits.length}\n`)
-    console.log('--(commits sorted from latest to oldest)--')
-    console.log(commits.join('\n'))
+    const changesInDependenciesOfTargetPkg = new Set()
+
+    const currentRelatedPackages = getPackagesIn(path.join(process.cwd(), `packages/${targetPkgFoldername}`), packagesInWorkspace, {
+      target: ['dependencies'],
+      includePackagesNotInWorkspace: false
+    })
+
+    for (const rPkg of currentRelatedPackages) {
+      if (extensionsChanged.has(rPkg)) {
+        changesInDependenciesOfTargetPkg.add(rPkg)
+      }
+    }
+
+    if (commits.length > 0) {
+      console.log(`\ncommit changes: ${commits.length}\n`)
+      console.log('--(commits sorted from latest to oldest)--')
+      console.log(commits.join('\n'))
+    } else {
+      console.log('\nno commit changes affecting this extension directly\n')
+    }
+
+    if (changesInDependenciesOfTargetPkg.size > 0) {
+      console.log(`\nDependencies of ${targetPkg} were changed:\n${[...changesInDependenciesOfTargetPkg].map((pkg) => `  - ${pkg}`).join('\n')}\nMake sure to review changes on those dependencies and decide what to do!!\n`)
+    }
 
     console.log(`\nCurrent version of ${targetPkg}: ${packageJSON.version} (local), ${npmVersionInRegistry ?? '<not published>'} (npm)`)
 
@@ -242,6 +264,66 @@ if (targetPkg != null && targetPkg !== '') {
     console.log(`- node scripts/publish.js ${targetPkg} <version>`)
   }
 } else {
+  const extensionsChanged = getExtensionsChangedForCommits(firstCommit, lastCommit)
+  const packagesInWorkspace = getPackagesInWorkspace()
+
+  // inspect if there are any packages in workspace that depend on the changed packages, if so then
+  // add the package to the list of changed packages
+  for (const [packageName, packageFolder] of [...packagesInWorkspace.entries()]) {
+    const currentRelatedPackages = getPackagesIn(path.join(process.cwd(), `packages/${packageFolder}`), packagesInWorkspace, {
+      target: ['dependencies'],
+      includePackagesNotInWorkspace: false
+    })
+
+    for (const rPkg of currentRelatedPackages) {
+      if (extensionsChanged.has(rPkg)) {
+        extensionsChanged.add(packageName)
+      }
+    }
+  }
+
+  const extensions = getExtensionsInOrder([...extensionsChanged])
+
+  if (extensions.length === 0) {
+    console.log('no packages were changed')
+  } else {
+    console.log(`\ndetected changed packages: ${extensions.length}`)
+
+    const jsreportPackages = getPackagesIn(path.join(process.cwd(), 'packages/jsreport'), packagesInWorkspace)
+
+    const packagesRelevantForJsreportRelease = []
+    const otherPackages = []
+
+    for (const extension of extensions) {
+      if (jsreportPackages.includes(extension) || extension === 'jsreport') {
+        packagesRelevantForJsreportRelease.push(extension)
+      } else {
+        otherPackages.push(extension)
+      }
+    }
+
+    if (packagesRelevantForJsreportRelease.length > 0) {
+      const jsreportPackageJSON = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'packages/jsreport/package.json'), 'utf8'))
+      const jsreportDeps = Object.keys(jsreportPackageJSON.dependencies)
+
+      console.log('\nRelevant packages for jsreport release: (* means that it is official dependency of jsreport)')
+      console.log(packagesRelevantForJsreportRelease.map((p) => `- ${p}${jsreportDeps.includes(p) ? ' *' : ''}`).join('\n'))
+    }
+
+    if (otherPackages.length > 0) {
+      console.log('\nOther packages:')
+      console.log(otherPackages.map((p) => `- ${p}`).join('\n'))
+    }
+
+    if (packagesRelevantForJsreportRelease.length > 0) {
+      console.log(`\nYou can run the audit check for packages by running: node scripts/audit.js ${packagesRelevantForJsreportRelease.join(' ')}`)
+    }
+
+    console.log(`\nYou can get details about the commit changes of each package by running: node scripts/changed.js ${firstCommit} ${lastCommit} ${extensions[0]}`)
+  }
+}
+
+function getExtensionsChangedForCommits (firstCommit, lastCommit) {
   const commands = ['git', 'diff', '--name-only', lastCommit, firstCommit]
 
   console.log(`running ${commands.join(' ')}`)
@@ -266,88 +348,33 @@ if (targetPkg != null && targetPkg !== '') {
       console.log(stderr.toString())
     }
 
-    process.exit(1)
-  } else {
-    const filesChanged = stdout.toString().split('\n').filter(x => x)
-    const extensionsChanged = new Set()
+    return process.exit(1)
+  }
 
-    for (const fileChanged of filesChanged) {
-      const parts = fileChanged.split(/\\|\//)
+  const filesChanged = stdout.toString().split('\n').filter(x => x)
+  const extensionsChanged = new Set()
 
-      if (parts[0] !== 'packages' || parts[1] == null) {
-        continue
-      }
+  for (const fileChanged of filesChanged) {
+    const parts = fileChanged.split(/\\|\//)
 
-      const pkgFolderName = parts.slice(0, 2).join('/')
-
-      const targetFile = path.join(process.cwd(), pkgFolderName, 'package.json')
-
-      try {
-        const pkg = JSON.parse(fs.readFileSync(targetFile, 'utf8'))
-        extensionsChanged.add(pkg.name)
-      } catch (err) {
-        console.error(`invalid package.json found at ${targetFile}`)
-        throw err
-      }
+    if (parts[0] !== 'packages' || parts[1] == null) {
+      continue
     }
 
-    const packagesInWorkspace = getPackagesInWorkspace()
+    const pkgFolderName = parts.slice(0, 2).join('/')
 
-    // inspect if there are any packages in workspace that depend on the changed packages, if so then
-    // add the package to the list of changed packages
-    for (const [packageName, packageFolder] of [...packagesInWorkspace.entries()]) {
-      const currentRelatedPackages = getPackagesIn(path.join(process.cwd(), `packages/${packageFolder}`), packagesInWorkspace, {
-        target: ['dependencies'],
-        includePackagesNotInWorkspace: false
-      })
+    const targetFile = path.join(process.cwd(), pkgFolderName, 'package.json')
 
-      for (const rPkg of currentRelatedPackages) {
-        if (extensionsChanged.has(rPkg)) {
-          extensionsChanged.add(packageName)
-        }
-      }
-    }
-
-    const extensions = getExtensionsInOrder([...extensionsChanged])
-
-    if (extensions.length === 0) {
-      console.log('no packages were changed')
-    } else {
-      console.log(`\ndetected changed packages: ${extensions.length}`)
-
-      const jsreportPackages = getPackagesIn(path.join(process.cwd(), 'packages/jsreport'), packagesInWorkspace)
-
-      const packagesRelevantForJsreportRelease = []
-      const otherPackages = []
-
-      for (const extension of extensions) {
-        if (jsreportPackages.includes(extension) || extension === 'jsreport') {
-          packagesRelevantForJsreportRelease.push(extension)
-        } else {
-          otherPackages.push(extension)
-        }
-      }
-
-      if (packagesRelevantForJsreportRelease.length > 0) {
-        const jsreportPackageJSON = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'packages/jsreport/package.json'), 'utf8'))
-        const jsreportDeps = Object.keys(jsreportPackageJSON.dependencies)
-
-        console.log('\nRelevant packages for jsreport release: (* means that it is official dependency of jsreport)')
-        console.log(packagesRelevantForJsreportRelease.map((p) => `- ${p}${jsreportDeps.includes(p) ? ' *' : ''}`).join('\n'))
-      }
-
-      if (otherPackages.length > 0) {
-        console.log('\nOther packages:')
-        console.log(otherPackages.map((p) => `- ${p}`).join('\n'))
-      }
-
-      if (packagesRelevantForJsreportRelease.length > 0) {
-        console.log(`\nYou can run the audit check for packages by running: node scripts/audit.js ${packagesRelevantForJsreportRelease.join(' ')}`)
-      }
-
-      console.log(`\nYou can get details about the commit changes of each package by running: node scripts/changed.js ${firstCommit} ${lastCommit} ${extensions[0]}`)
+    try {
+      const pkg = JSON.parse(fs.readFileSync(targetFile, 'utf8'))
+      extensionsChanged.add(pkg.name)
+    } catch (err) {
+      console.error(`invalid package.json found at ${targetFile}`)
+      throw err
     }
   }
+
+  return extensionsChanged
 }
 
 function getPackagesIn (pkgPath, packagesInWorkspace, _options, stop = false) {
