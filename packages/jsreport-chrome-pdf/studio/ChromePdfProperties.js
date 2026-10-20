@@ -111,6 +111,15 @@ class ChromePdfProperties extends Component {
           />
         </div>
         <div className='form-group'>
+          <label title='Chrome generates a tagged (accessible) pdf by default. Unselect to disable it, which produces significantly smaller files and allows bigger reports to be rendered.'>tagged pdf</label>
+          <input
+            type='checkbox'
+            title='Chrome generates a tagged (accessible) pdf by default. Unselect to disable it, which produces significantly smaller files and allows bigger reports to be rendered.'
+            checked={chrome.tagged == null || chrome.tagged === true}
+            onChange={(v) => changeChrome(this.props, { tagged: v.target.checked })}
+          />
+        </div>
+        <div className='form-group'>
           <label>landscape</label>
           <input
             type='checkbox'

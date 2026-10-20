@@ -114,6 +114,17 @@ class ChromePdfProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       })
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
+      title: "Chrome generates a tagged (accessible) pdf by default. Unselect to disable it, which produces significantly smaller files and allows bigger reports to be rendered."
+    }, "tagged pdf"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      title: "Chrome generates a tagged (accessible) pdf by default. Unselect to disable it, which produces significantly smaller files and allows bigger reports to be rendered.",
+      checked: chrome.tagged == null || chrome.tagged === true,
+      onChange: v => changeChrome(this.props, {
+        tagged: v.target.checked
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "landscape"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
       type: "checkbox",
       checked: chrome.landscape === true,

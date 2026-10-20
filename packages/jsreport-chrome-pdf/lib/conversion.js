@@ -393,6 +393,7 @@ module.exports = async ({ reporter, getBrowser, pageSource, strategy, timeout, r
 
     removePropertyIfEmpty(optionsToUse, 'scale')
     removePropertyIfEmpty(optionsToUse, 'pageRanges')
+    removePropertyIfEmpty(optionsToUse, 'tagged')
     removePropertyIfEmpty(optionsToUse, 'format')
     removePropertyIfEmpty(optionsToUse, 'width')
     removePropertyIfEmpty(optionsToUse, 'height')

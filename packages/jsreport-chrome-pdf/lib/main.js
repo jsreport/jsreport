@@ -107,6 +107,7 @@ module.exports = function (reporter, definition) {
     scale: { type: 'Edm.Decimal', schema: { type: 'null' } },
     displayHeaderFooter: { type: 'Edm.Boolean' },
     printBackground: { type: 'Edm.Boolean' },
+    tagged: { type: 'Edm.Boolean', schema: { type: 'null' } },
     landscape: { type: 'Edm.Boolean' },
     pageRanges: { type: 'Edm.String' },
     format: { type: 'Edm.String' },
