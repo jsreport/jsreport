@@ -487,15 +487,16 @@ describe('render', () => {
 describe('render with workers.maxQueueSize', () => {
   let reporter
 
-  beforeEach(() => {
-    reporter = core({ discover: false, workers: { numberOfWorkers: 1, maxQueueSize: 0 } })
+  const init = (maxQueueSize) => {
+    reporter = core({ discover: false, workers: { numberOfWorkers: 1, maxQueueSize } })
     reporter.use(core.tests.listeners())
     return reporter.init()
-  })
+  }
 
-  afterEach(() => {
+  afterEach(async () => {
     if (reporter) {
-      return reporter.close()
+      await reporter.close()
+      reporter = null
     }
   })
 
@@ -520,6 +521,7 @@ describe('render with workers.maxQueueSize', () => {
   }
 
   it('should reject with 429 when queue is full and rejectWhenQueueFull is set', async () => {
+    await init(0)
     const { first } = await occupyWorker()
 
     await reporter.render(renderReq(), { rejectWhenQueueFull: true }).should.be.rejectedWith({ statusCode: 429, code: 'WORKER_QUEUE_FULL' })
@@ -527,9 +529,20 @@ describe('render with workers.maxQueueSize', () => {
   })
 
   it('should queue when rejectWhenQueueFull is not set', async () => {
+    await init(0)
     const { first } = await occupyWorker()
 
     const res = await reporter.render(renderReq())
+    res.content.toString().should.be.eql('foo')
+    await first
+  })
+
+  it('should not limit the queue when maxQueueSize is null', async () => {
+    await init(null)
+    reporter.options.workers.should.have.property('maxQueueSize', null)
+    const { first } = await occupyWorker()
+
+    const res = await reporter.render(renderReq(), { rejectWhenQueueFull: true })
     res.content.toString().should.be.eql('foo')
     await first
   })

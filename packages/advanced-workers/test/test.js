@@ -302,6 +302,25 @@ describe('advanced workers', () => {
     await (await queued).release()
   })
 
+  it('should not count queued allocations without rejectWhenQueueFull toward maxQueueSize', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'simple.js'),
+      numberOfWorkers: 1,
+      maxQueueSize: 1
+    })
+
+    await workers.init()
+    const worker = await workers.allocate()
+    const queuedNotCounted = workers.allocate()
+    const queuedCounted = workers.allocate({}, { rejectWhenQueueFull: true })
+
+    await workers.allocate({}, { rejectWhenQueueFull: true }).should.be.rejectedWith({ code: 'WORKER_QUEUE_FULL' })
+
+    await worker.release()
+    await (await queuedNotCounted).release()
+    await (await queuedCounted).release()
+  })
+
   it('should queue without limit when maxQueueSize is not set', async () => {
     workers = Workers({ }, {
       workerModule: path.join(__dirname, 'workers', 'simple.js'),

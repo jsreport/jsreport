@@ -30,7 +30,7 @@ module.exports = (app, reporter, exposedOptions) => {
 
   reporter.extensionsManager.extensions.forEach((e) => app.use('/extension/' + e.name, serveStatic(e.directory, { maxAge: oneMonth })))
 
-  function httpRender (renderRequestContent, req, res, stream, next) {
+  function httpRender (renderRequestContent, req, res, stream, next, renderOptions = {}) {
     res.setHeader('X-XSS-Protection', 0)
 
     const renderRequest = typeof renderRequestContent === 'string'
@@ -80,7 +80,7 @@ module.exports = (app, reporter, exposedOptions) => {
       req.socket.removeListener('close', onReqClose)
     }
 
-    reporter.render(renderRequest, { abortEmitter, onReqReady, rejectWhenQueueFull: true }).then((renderResponse) => {
+    reporter.render(renderRequest, { abortEmitter, onReqReady, rejectWhenQueueFull: renderOptions.rejectWhenQueueFull === true }).then((renderResponse) => {
       cleanupAfterRender()
 
       return Promise.all([renderResponse.output.getStream(), renderResponse.output.getSize()]).then(([resStream, resSize]) => ({
@@ -126,12 +126,12 @@ module.exports = (app, reporter, exposedOptions) => {
     })
   }
 
-  reporter.express.streamRender = (renderRequest, req, res, next) => {
-    return httpRender(renderRequest, req, res, true, next)
+  reporter.express.streamRender = (renderRequest, req, res, next, renderOptions) => {
+    return httpRender(renderRequest, req, res, true, next, renderOptions)
   }
 
-  reporter.express.render = (renderRequest, req, res, next) => {
-    return httpRender(renderRequest, req, res, false, next)
+  reporter.express.render = (renderRequest, req, res, next, renderOptions) => {
+    return httpRender(renderRequest, req, res, false, next, renderOptions)
   }
 
   /**
@@ -143,12 +143,15 @@ module.exports = (app, reporter, exposedOptions) => {
    * Main entry point for invoking report rendering
    */
   app.post('/api/report/:name?', (req, res, next) => {
+    // only this endpoint is subject to workers.maxQueueSize
+    const renderOptions = { rejectWhenQueueFull: true }
+
     const executeRender = () => {
       if (req.query.profilerMode === 'standard' || req.query.profilerMode === 'full') {
-        reporter.express.streamRender(req.body, req, res, next)
+        reporter.express.streamRender(req.body, req, res, next, renderOptions)
       } else {
         // support for browser client sending renderRequestContent in form element
-        reporter.express.render(req.body.renderRequestContent || req.body, req, res, next)
+        reporter.express.render(req.body.renderRequestContent || req.body, req, res, next, renderOptions)
       }
     }
 

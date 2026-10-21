@@ -540,6 +540,78 @@ describe('express with disabled cors', () => {
   })
 })
 
+describe('express with workers.maxQueueSize', () => {
+  let jsreport
+
+  beforeEach(async () => {
+    jsreport = JsReport({ workers: { numberOfWorkers: 1, maxQueueSize: 0 } })
+      .use(require('../')())
+
+    await jsreport.init()
+    await jsreport.documentStore.collection('templates').insert({
+      name: 'foo',
+      shortid: 'foo',
+      content: 'foo',
+      engine: 'none',
+      recipe: 'html'
+    })
+  })
+
+  afterEach(() => jsreport && jsreport.close())
+
+  const occupyWorker = async () => {
+    let started
+    let release
+    const workerBusy = new Promise((resolve) => { started = resolve })
+    const blocker = new Promise((resolve) => { release = resolve })
+    jsreport.beforeRenderListeners.add('test', async (req) => {
+      if (req.template.content === 'slow') {
+        started()
+        await blocker
+      }
+    })
+    const first = jsreport.render({ template: { content: 'slow', engine: 'none', recipe: 'html' } })
+    await workerBusy
+    return { first, release }
+  }
+
+  it('/api/report should return 429 when all workers are busy and the queue is full', async () => {
+    const { first, release } = await occupyWorker()
+
+    await supertest(jsreport.express.app)
+      .post('/api/report')
+      .send({ template: { content: 'hello', engine: 'none', recipe: 'html' } })
+      .expect(429)
+      .expect((res) => res.body.message.should.match(/Too many requests/))
+
+    release()
+    await first
+  })
+
+  it('/templates/:shortid should queue instead of returning 429', async () => {
+    const { first, release } = await occupyWorker()
+
+    let responded = false
+    const templateRender = supertest(jsreport.express.app)
+      .get('/templates/foo')
+      .then((res) => {
+        responded = true
+        return res
+      })
+
+    const queuedOrResponded = () => responded || jsreport._workersManager.pool.tasksQueue.length > 0
+    while (!queuedOrResponded()) {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    }
+    release()
+
+    const res = await templateRender
+    res.status.should.be.eql(200)
+    res.text.should.be.eql('foo')
+    await first
+  })
+})
+
 describe('express with low reportTimeout', () => {
   let jsreport
 

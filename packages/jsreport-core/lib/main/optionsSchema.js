@@ -118,9 +118,9 @@ module.exports.getRootSchemaOptions = () => ({
           default: '30s'
         },
         maxQueueSize: {
-          type: 'number',
+          type: ['number', 'null'],
           minimum: 0,
-          description: 'Maximum number of HTTP render requests waiting for a free worker. When reached, new requests are rejected with 429. 0 means reject as soon as all workers are busy. When not set, the queue is unlimited.'
+          description: 'Maximum number of POST /api/report requests waiting for a free worker. When reached, new POST /api/report requests are rejected with 429. Other renders (e.g. /templates/:shortid, scheduling) are neither counted nor rejected. 0 means reject as soon as all workers are busy. When not set or null, the queue is unlimited.'
         },
         resourceLimits: {
           type: 'object',
