@@ -575,7 +575,9 @@ class MainReporter extends Reporter {
     const worker = options.worker
       ? options.worker
       : await this._workersManager.allocate(req, {
-        timeout
+        timeout,
+        // standalone worker actions (studio search, version control, component preview) are not renders
+        countInQueueLimit: false
       })
 
     const handleAbortSignal = () => {
