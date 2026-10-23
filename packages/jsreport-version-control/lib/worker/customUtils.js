@@ -166,6 +166,7 @@ function deepEqual (x, y, isRootCall = true) {
 
 module.exports.deepGet = deepGet
 module.exports.deepSet = deepSet
+module.exports.deepHasOwnProperty = deepHasOwnProperty
 module.exports.deepDelete = deepDelete
 module.exports.serialize = serialize
 module.exports.parse = parse
