@@ -30,7 +30,7 @@
     "test": "mocha \"./test/*.spec.js\" --timeout 10000 --exit && standard"
   },
   "dependencies": {
-    "body-parser": "1.20.8",
+    "body-parser": "1.20.9",
     "client-sessions": "0.8.0",
     "ejs": "3.1.10",
     "openid-client": "5.7.1",
