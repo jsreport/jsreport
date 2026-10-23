@@ -47,7 +47,7 @@
     "listener-collection": "2.1.0",
     "lodash.omit": "4.5.0",
     "nconf": "0.12.0",
-    "puppeteer": "25.4.0"
+    "puppeteer": "25.16.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-docker-workers": "4.0.6",

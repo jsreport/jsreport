@@ -1,11 +1,85 @@
-FROM jsreport/jsreport:4.14.2-full
+FROM ubuntu:noble
 EXPOSE 5488
+USER root
 ARG TARGETPLATFORM
 ARG UID=2500
 ARG GID=2500
 
-USER root
-RUN npm install jsreport@4.14.4
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y gosu adduser; \
+    rm -rf /var/lib/apt/lists/*; \
+    # verify that the binary works
+    gosu nobody true
+
+RUN groupadd -g "${GID}" jsreport && adduser --disabled-password --uid "${UID}" --gid "${GID}" --gecos "" jsreport
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends apt-transport-https apt-utils build-essential software-properties-common wget gnupg bzip2 git curl && \
+    apt update && apt install -y libgbm-dev libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libappindicator3-1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libnss3 lsb-release xdg-utils && \
+    # adding custom ppa repository to get access to custom version of chromium for macOS Apple Silicon hardware
+    # this ppa has builds available for architectures amd64, arm64 (which we care because we produce arm64 builds)
+    # the default puppeteer download does not work for arm, because there is no arm version for chromium
+    # https://github.com/puppeteer/puppeteer/issues/7740
+    add-apt-repository --no-update -y ppa:xtradeb/apps && \
+    apt-get -o Acquire::Retries=5 update --error-on=any && \
+    # this condition is useful when the registry contain different latest versions
+    # per architecture, if the versions match then just use the same version number on both paths
+    if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    apt-get -o Acquire::Retries=5 install -y chromium=156.0.8078.47-1xtradeb1.2404.1 chromium-common=156.0.8078.47-1xtradeb1.2404.1; \
+    elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    apt-get -o Acquire::Retries=5 install -y chromium=156.0.8078.47-1xtradeb1.2404.1 chromium-common=156.0.8078.47-1xtradeb1.2404.1; \
+    fi && \
+    test -x /usr/bin/chromium && \
+    /usr/bin/chromium --version && \
+    # fonts for chrome
+    apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
+    # unoconv
+    apt-get -y install unoconv && \
+    # libreoffice
+    apt-get -y install default-jre libreoffice-java-common && \
+    apt install -y python3-setuptools
+
+# cleanup
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
+    rm -rf /src/*.deb && \
+    rm -rf /var/cache/apk/* /tmp/*
+
+RUN mkdir -p /app/.puppeteer-cache
+
+# we need to create the volume and give it expected owner
+# before the VOLUME step in order for the volume to be created with non-root user
+RUN mkdir /jsreport
+RUN chown jsreport:jsreport /jsreport
+RUN chmod g+s /jsreport
+
+VOLUME ["/jsreport"]
+
+# node
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+RUN apt-get install -y nodejs
+
+WORKDIR /app
+ENV PUPPETEER_CACHE_DIR=/app/.puppeteer-cache
+
+# ====== COMMENT THIS WHEN CHECKING trivy audit ======
+RUN npm i -g @jsreport/jsreport-cli
+RUN jsreport init
+# =====================================================
+
+# ====== UNCOMMENT THIS WHEN CHECKING trivy audit ======
+# trivy checks should be done with this image default/Dockerfile,
+# because it does not add the whole yarn workspace
+# (which makes it report vulnerabilities for other packages in the workspace that are not relevant here)
+# (we need to build with latest package.json in workspace)
+# COPY ./packages/jsreport/server.js server.js
+# COPY ./packages/jsreport/index.js index.js
+# COPY ./packages/jsreport/package.json package.json
+# COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json
+# RUN npm install
+# =====================================================
 
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.1.0 \
     @jsreport/jsreport-pug@5.1.0 \
@@ -38,3 +112,7 @@ RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
 USER jsreport:jsreport
+
+ENV chrome_launchOptions_internalInitialArgs=--no-sandbox,--disable-dev-shm-usage
+
+CMD ["bash", "run.sh"]

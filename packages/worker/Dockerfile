@@ -1,4 +1,4 @@
-FROM ubuntu:noble
+FROM ubuntu:26.04
 EXPOSE 2000
 ARG TARGETPLATFORM
 
@@ -17,11 +17,13 @@ RUN apt-get update && \
 
 # adding custom ppa repository to get access to latest chromium, which we only care to install
 # becase we want it to install its system dependencies
-RUN add-apt-repository ppa:xtradeb/apps && \
-    apt-get update && \
-    apt install -y chromium && \
-    # fonts for chrome
-    apt install -y xfonts-base xfonts-75dpi fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst
+# makes the build fail if the browser is missing. A sustained PPA outage will still prevent a successful build
+RUN add-apt-repository --no-update -y ppa:xtradeb/apps && \
+    apt-get -o Acquire::Retries=5 update --error-on=any && \
+    apt-get -o Acquire::Retries=5 install -y chromium chromium-common && \
+    test -x /usr/bin/chromium && \
+    /usr/bin/chromium --version && \
+    apt-get install -y xfonts-base xfonts-75dpi fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst
 
 # cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
@@ -34,7 +36,7 @@ RUN rm -rf /tmp/*
 USER jsreport:jsreport
 
 ENV NVM_DIR=/home/jsreport/.nvm
-ENV NODE_VERSION=24.22.0
+ENV NODE_VERSION=24.22.1
 
 # node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && \
