@@ -9,6 +9,9 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 4.2.4
+- fix regression for applying patches of updated documents
+
 ### 4.2.3
 - ignore patches for entitySets that no longer exists
 

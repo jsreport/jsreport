@@ -85,9 +85,7 @@ const renderChange = c => {
   })), /*#__PURE__*/React.createElement("td", null, c.path), /*#__PURE__*/React.createElement("td", null, c.entitySet)));
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_ref => {
-  let {
-    changes
-  } = _ref;
+  let changes = _ref.changes;
   return /*#__PURE__*/React.createElement("table", {
     className: "table"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {

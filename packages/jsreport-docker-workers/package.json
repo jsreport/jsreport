@@ -25,10 +25,10 @@
     "lodash.omit": "4.5.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.3.4",
-    "@jsreport/jsreport-chrome-pdf": "4.4.2",
+    "@jsreport/jsreport-authentication": "4.3.5",
+    "@jsreport/jsreport-chrome-pdf": "4.5.0",
     "@jsreport/jsreport-core": "4.11.3",
-    "@jsreport/jsreport-express": "4.3.5",
+    "@jsreport/jsreport-express": "4.3.6",
     "@jsreport/jsreport-fs-store": "4.2.2",
     "@jsreport/jsreport-handlebars": "4.1.2",
     "@jsreport/jsreport-scripts": "4.3.0",

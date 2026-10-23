@@ -7,6 +7,9 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.3.6
+- update body-parser, multer to fix audit
+
 ### 4.3.5
 - update multer to fix audit
 

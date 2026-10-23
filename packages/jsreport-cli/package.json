@@ -69,9 +69,9 @@
     "yargs": "17.3.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.3.4",
+    "@jsreport/jsreport-authentication": "4.3.5",
     "@jsreport/jsreport-core": "4.11.3",
-    "@jsreport/jsreport-express": "4.3.5",
+    "@jsreport/jsreport-express": "4.3.6",
     "@jsreport/jsreport-fs-store": "4.2.2",
     "@jsreport/jsreport-handlebars": "4.1.2",
     "cross-env": "7.0.3",

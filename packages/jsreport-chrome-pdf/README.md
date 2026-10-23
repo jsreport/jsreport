@@ -29,6 +29,9 @@ chrome-image
 
 ## Changelog
 
+### 4.5.0
+- add `chrome.tagged` option to disable generating tagged (accesible) PDFs, producing significantly smaller files and allowing larger reports to be rendered
+
 ### 4.4.2
 - fix chrome URL local file access bypass when trustUserCode is disabled
 - ensure kill of Chrome browsers when a worker closes
