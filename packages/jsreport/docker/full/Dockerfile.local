@@ -23,15 +23,17 @@ RUN apt-get update && \
     # this ppa has builds available for architectures amd64, arm64 (which we care because we produce arm64 builds)
     # the default puppeteer download does not work for arm, because there is no arm version for chromium
     # https://github.com/puppeteer/puppeteer/issues/7740
-    add-apt-repository ppa:xtradeb/apps && \
-    apt-get update && \
+    add-apt-repository --no-update -y ppa:xtradeb/apps && \
+    apt-get -o Acquire::Retries=5 update --error-on=any && \
     # this condition is useful when the registry contain different latest versions
     # per architecture, if the versions match then just use the same version number on both paths
     if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    apt install -y chromium=151.0.7922.71-1xtradeb1.2404.1; \
+    apt-get -o Acquire::Retries=5 install -y chromium=156.0.8078.47-1xtradeb1.2404.1 chromium-common=156.0.8078.47-1xtradeb1.2404.1; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    apt install -y chromium=151.0.7922.71-1xtradeb1.2404.1; \
+    apt-get -o Acquire::Retries=5 install -y chromium=156.0.8078.47-1xtradeb1.2404.1 chromium-common=156.0.8078.47-1xtradeb1.2404.1; \
     fi && \
+    test -x /usr/bin/chromium && \
+    /usr/bin/chromium --version && \
     # fonts for chrome
     apt install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst && \
     # unoconv
