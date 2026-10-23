@@ -484,6 +484,122 @@ describe('render', () => {
   })
 })
 
+describe('render with workers.maxQueueSize', () => {
+  let reporter
+
+  const init = (maxQueueSize) => {
+    reporter = core({ discover: false, workers: { numberOfWorkers: 1, maxQueueSize } })
+    reporter.use(core.tests.listeners())
+    return reporter.init()
+  }
+
+  afterEach(async () => {
+    if (reporter) {
+      await reporter.close()
+      reporter = null
+    }
+  })
+
+  const renderReq = () => ({
+    template: {
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html'
+    }
+  })
+
+  const occupyWorker = async () => {
+    let started
+    let release
+    const workerBusy = new Promise((resolve) => { started = resolve })
+    const blocker = new Promise((resolve) => { release = resolve })
+    reporter.tests.beforeRenderListeners.add('test', async (req) => {
+      if (req.template.content === 'slow') {
+        started()
+        await blocker
+      }
+    })
+    const first = reporter.render({ template: { engine: 'none', content: 'slow', recipe: 'html' } })
+    await workerBusy
+    return { first, release }
+  }
+
+  const waitForQueueLength = async (length) => {
+    for (let i = 0; i < 100 && reporter._workersManager.pool.tasksQueue.length < length; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
+    reporter._workersManager.pool.tasksQueue.length.should.be.eql(length)
+  }
+
+  it('should reject with 429 when queue is full and rejectWhenQueueFull is set', async () => {
+    await init(0)
+    const { first, release } = await occupyWorker()
+
+    await reporter.render(renderReq(), { rejectWhenQueueFull: true }).should.be.rejectedWith({ statusCode: 429, code: 'WORKER_QUEUE_FULL' })
+    release()
+    await first
+  })
+
+  it('should queue when rejectWhenQueueFull is not set', async () => {
+    await init(0)
+    const { first, release } = await occupyWorker()
+
+    const queued = reporter.render(renderReq())
+    await waitForQueueLength(1)
+    release()
+
+    const res = await queued
+    res.content.toString().should.be.eql('foo')
+    await first
+  })
+
+  it('should count queued renders without rejectWhenQueueFull toward maxQueueSize', async () => {
+    await init(1)
+    const { first, release } = await occupyWorker()
+
+    const queued = reporter.render(renderReq())
+    await waitForQueueLength(1)
+
+    await reporter.render(renderReq(), { rejectWhenQueueFull: true }).should.be.rejectedWith({ statusCode: 429, code: 'WORKER_QUEUE_FULL' })
+    release()
+
+    const res = await queued
+    res.content.toString().should.be.eql('foo')
+    await first
+  })
+
+  it('should not count queued worker actions toward maxQueueSize', async () => {
+    await init(1)
+    const { first, release } = await occupyWorker()
+
+    const action = reporter.executeWorkerAction('not-existing', {}, {}, { context: {} })
+    await waitForQueueLength(1)
+
+    const queued = reporter.render(renderReq(), { rejectWhenQueueFull: true })
+    await waitForQueueLength(2)
+    release()
+
+    await action.should.be.rejectedWith(/not registered/)
+    const res = await queued
+    res.content.toString().should.be.eql('foo')
+    await first
+  })
+
+  it('should not limit the queue when maxQueueSize is null', async () => {
+    await init(null)
+    reporter.options.workers.should.have.property('maxQueueSize', null)
+    const { first, release } = await occupyWorker()
+
+    const queued = reporter.render(renderReq(), { rejectWhenQueueFull: true })
+    await waitForQueueLength(1)
+    release()
+
+    const res = await queued
+    res.content.toString().should.be.eql('foo')
+    await first
+  })
+})
+
 describe('render (single timeout)', () => {
   timeoutTests()
 })

@@ -117,6 +117,11 @@ module.exports.getRootSchemaOptions = () => ({
           description: 'Timeout for initializing a worker thread. This should be increased only when running at very slow HW environment.',
           default: '30s'
         },
+        maxQueueSize: {
+          type: ['number', 'null'],
+          minimum: 0,
+          description: 'Maximum number of renders waiting for a free worker before new POST /api/report requests are rejected with 429. All waiting renders are counted, but only POST /api/report is rejected; other renders (e.g. /templates/:shortid, scheduling) are always queued. 0 means reject as soon as all workers are busy. When not set or null, the queue is unlimited.'
+        },
         resourceLimits: {
           type: 'object',
           description: 'Limits for the individual workers. See https://nodejs.org/api/worker_threads.html#worker_threads_worker_resourcelimits',
