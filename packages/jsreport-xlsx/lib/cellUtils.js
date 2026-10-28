@@ -126,7 +126,8 @@ function generateNewCellRefFrom (parsedCellRef, { columnLetter, rowNumber }, ful
 }
 
 function evaluateCellRefsFromExpression (valueExpr, replacer) {
-  const cellRefs = []
+  const refParts = []
+  let cellRefPosition = 0
 
   const newValueExpr = valueExpr.replace(getRangeOrMultiCellRefExpressionRegexp(), (...args) => {
     const [, _startingCellRef, endingCellRef] = args
@@ -161,21 +162,49 @@ function evaluateCellRefsFromExpression (valueExpr, replacer) {
 
     const cellsRefsUpdated = []
 
-    for (let cellRefPosition = 0; cellRefPosition < cellsRefsToUpdate.length; cellRefPosition++) {
-      const cellRefToUpdate = cellsRefsToUpdate[cellRefPosition]
+    for (const cellRefToUpdate of cellsRefsToUpdate) {
       cellRefToUpdate.localRef = `${cellRefToUpdate.parsed.letter}${cellRefToUpdate.parsed.rowNumber}`
       const newCellRef = replacer != null ? replacer(cellRefToUpdate, cellRefPosition) : cellRefToUpdate.ref
+      cellRefPosition++
       cellsRefsUpdated.push(newCellRef)
-      cellRefs.push({ ...cellRefToUpdate, newRef: newCellRef })
+      refParts.push({ ...cellRefToUpdate, newRef: newCellRef })
+    }
+
+    // like Excel, a range with an invalid end is an invalid ref as a whole
+    if (isRange && cellsRefsUpdated.includes('#REF!')) {
+      return '#REF!'
     }
 
     return cellsRefsUpdated.join(':')
   })
 
   return {
-    cellRefs,
+    refParts,
     newValue: newValueExpr
   }
+}
+
+function moveRangeTo (rangeRef, { columnLetter, rowNumber }) {
+  const { newValue } = evaluateCellRefsFromExpression(rangeRef, (cellRefInfo) => {
+    const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
+
+    if (!isRange) {
+      throw new Error(`cell ref expected to be a range. value: "${rangeRef}"`)
+    }
+
+    const columnIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.columnNumber - cellRefInfo.parsedRangeStart.columnNumber : 0
+    const [newColumnLetter] = getColumnFor(columnLetter, columnIncrement)
+
+    const rowIncrement = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+    const newRowNumber = rowNumber + rowIncrement
+
+    return generateNewCellRefFrom(cellRefInfo.parsed, {
+      columnLetter: newColumnLetter,
+      rowNumber: newRowNumber
+    })
+  })
+
+  return newValue
 }
 
 function getFontSizeFromStyle (_styleId, styleInfo, cache) {
@@ -243,5 +272,6 @@ module.exports.parseCellRef = parseCellRef
 module.exports.getColumnFor = getColumnFor
 module.exports.generateNewCellRefFrom = generateNewCellRefFrom
 module.exports.evaluateCellRefsFromExpression = evaluateCellRefsFromExpression
+module.exports.moveRangeTo = moveRangeTo
 module.exports.getFontSizeFromStyle = getFontSizeFromStyle
 module.exports.getPixelWidthOfValue = getPixelWidthOfValue

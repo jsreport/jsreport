@@ -21,6 +21,9 @@ function createPartCollection (idAttrs, itemsStore) {
       }
 
       itemsStore.upsertItem(baseKey, key, data)
+    },
+    delete (_key) {
+      return itemsStore.removeItem(idAttrs.getValue(_key))
     }
   }
 }

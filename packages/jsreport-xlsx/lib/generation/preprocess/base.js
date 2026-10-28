@@ -57,6 +57,29 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
     }
   })
 
+  const workbookRelsFile = files.find(f => f.path === 'xl/_rels/workbook.xml.rels')
+  const workbookRelsContentManagers = createContentCollectionManager()
+
+  sharedData.fileDataMap.set(workbookRelsFile.path, {
+    contentManagers: workbookRelsContentManagers
+  })
+
+  workbookRelsContentManagers.set('Relationships', {
+    prepare: () => {
+      const elements = Array.from(workbookRelsFile.doc.documentElement.childNodes)
+
+      return {
+        parts: {
+          Relationship: {
+            type: 'simpleCollection',
+            idAttrs: ['Id']
+          }
+        },
+        elements
+      }
+    }
+  })
+
   addEndCallback(() => {
     const contentCallForTypes = getDataHelperCall('renderContent', { name: 'Types' }, { isBlock: false })
 
@@ -69,6 +92,17 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
 
     contentTypesFile.doc.documentElement.appendChild(
       processOpeningTag(contentTypesFile.doc, false, contentCallForTypes)
+    )
+
+    const contentCallForWorkbookRels = getDataHelperCall('renderContent', { name: 'Relationships' }, { isBlock: false })
+
+    workbookRelsFile.doc.replaceChild(
+      workbookRelsFile.doc.documentElement.cloneNode(),
+      workbookRelsFile.doc.documentElement
+    )
+
+    workbookRelsFile.doc.documentElement.appendChild(
+      processOpeningTag(workbookRelsFile.doc, false, contentCallForWorkbookRels)
     )
   })
 }

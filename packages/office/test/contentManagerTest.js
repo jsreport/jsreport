@@ -68,6 +68,45 @@ describe('contentManager', () => {
     should(output).be.eql('<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="test" ContentType="foo"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/><Override PartName="test" ContentType="foo"/>')
   })
 
+  it('delete existing and new elements of a simple collection part', () => {
+    const doc = new DOMParser().parseFromString(`
+      <Types><Override PartName="/xl/workbook.xml" ContentType="foo"/><Override PartName="/xl/calcChain.xml" ContentType="bar"/></Types>
+    `)
+
+    const testCollection = createContentCollectionManager()
+
+    testCollection.set('Types', {
+      prepare: () => {
+        const elements = Array.from(doc.documentElement.childNodes)
+
+        return {
+          parts: {
+            Override: {
+              type: 'simpleCollection',
+              idAttrs: ['PartName']
+            }
+          },
+          elements
+        }
+      }
+    })
+
+    const overridePart = testCollection.get('Types').parts.get('Override')
+
+    overridePart.set('/xl/test.xml', { attributes: new Map([['ContentType', 'baz']]) })
+    overridePart.set('/xl/test2.xml', { attributes: new Map([['ContentType', 'qux']]) })
+
+    should(overridePart.delete('/xl/calcChain.xml')).be.True()
+    should(overridePart.delete('/xl/test.xml')).be.True()
+    should(overridePart.delete('/xl/missing.xml')).be.False()
+
+    should(overridePart.has('/xl/calcChain.xml')).be.False()
+
+    const output = testCollection.get('Types').render()
+
+    should(output).be.eql('<Override PartName="/xl/workbook.xml" ContentType="foo"/><Override PartName="/xl/test2.xml" ContentType="qux"/>')
+  })
+
   it('new elements for one part with multiple id attributes', () => {
     const doc = new DOMParser().parseFromString(`
       <cols><col min="1" max="1" width="40.796875" style="4" customWidth="1"/><col min="2" max="2" width="8.796875" style="4" customWidth="1"/><col min="3" max="3" width="13.796875" style="4" customWidth="1"/></cols>

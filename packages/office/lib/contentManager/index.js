@@ -431,6 +431,23 @@ function createPartCollection (partDef, baseItems) {
     }
   }
 
+  const removeItem = (id) => {
+    const item = items.get(id)
+
+    if (item == null) {
+      return false
+    }
+
+    items.delete(id)
+    newItemsIds.delete(id)
+
+    if (item.baseId != null) {
+      baseToItemsIds.get(item.baseId)?.delete(id)
+    }
+
+    return true
+  }
+
   const partCollection = {
     get type () {
       return partDef.type
@@ -478,7 +495,8 @@ function createPartCollection (partDef, baseItems) {
     {
       baseItems,
       items,
-      upsertItem
+      upsertItem,
+      removeItem
     }
   )
 

@@ -4,11 +4,10 @@ const should = require('should')
 const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
 const jsreport = require('@jsreport/jsreport-core')
-const { getDocumentsFromXlsxBuf, parseSheetFromXlsxBuf } = require('../utils')
+const { createRender } = require('../utils')
 const { nodeListToArray, findChildNode } = require('../../lib/utils')
 
 const xlsxDirPath = path.join(__dirname, '../xlsx')
-const outputPath = path.join(__dirname, '../../out.xlsx')
 
 describe('xlsx generation - charts', () => {
   let reporter
@@ -32,23 +31,12 @@ describe('xlsx generation - charts', () => {
     }
   })
 
+  const render = createRender(() => reporter)
+
+  // #region basic features
+
   it('existing chart should not be modified if xlsxChart helper is not used', async () => {
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-no-dynamic.xlsx'))
-          }
-        }
-      },
-      data: {}
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    const { documents: [doc] } = await render('chart-no-dynamic', {}, { files: ['xl/charts/chart1.xml'] })
 
     const chartTitleTextEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('c:tx')[0]
 
@@ -104,27 +92,12 @@ describe('xlsx generation - charts', () => {
       data: [6, 1, 8, 4]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -155,27 +128,12 @@ describe('xlsx generation - charts', () => {
       data: [6, 5, 4]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-data-series.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('chart-data-series', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -199,27 +157,12 @@ describe('xlsx generation - charts', () => {
       data: [2, 3, 5]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-data-series.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('chart-data-series', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -240,27 +183,12 @@ describe('xlsx generation - charts', () => {
       data: []
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-data-series.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('chart-data-series', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -273,6 +201,74 @@ describe('xlsx generation - charts', () => {
       nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).should.have.length(0)
     })
   })
+
+  // #endregion basic features
+
+  // #region errors
+
+  it('chart error message when no data', async () => {
+    return reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(xlsxDirPath, 'chart-error-data.xlsx'))
+            }
+          }
+        },
+        data: {
+          chartData: null
+        }
+      })
+      .should.be.rejectedWith(/requires data parameter to be set/)
+  })
+
+  it('chart error message when no data.labels', async () => {
+    return reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(xlsxDirPath, 'chart-error-data.xlsx'))
+            }
+          }
+        },
+        data: {
+          chartData: {}
+        }
+      })
+      .should.be.rejectedWith(/requires data parameter with labels to be set/)
+  })
+
+  it('chart error message when no data.datasets', async () => {
+    return reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(xlsxDirPath, 'chart-error-data.xlsx'))
+            }
+          }
+        },
+        data: {
+          chartData: {
+            labels: ['Jan', 'Feb', 'March'],
+            datasets: null
+          }
+        }
+      })
+      .should.be.rejectedWith(/requires data parameter with datasets to be set/)
+  })
+
+  // #endregion errors
+
+  // #region options
 
   it('chart should allow axis configuration for display', async () => {
     const labels = ['Jan', 'Feb', 'March']
@@ -288,34 +284,19 @@ describe('xlsx generation - charts', () => {
       data: [8, 2, 4]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-options-axis.xlsx'))
-          }
-        }
+    const { documents: [doc] } = await render('chart-options-axis', {
+      chartData: {
+        labels,
+        datasets
       },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        },
-        chartOptions: {
-          scales: {
-            xAxes: [{
-              display: false
-            }]
-          }
+      chartOptions: {
+        scales: {
+          xAxes: [{
+            display: false
+          }]
         }
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -351,36 +332,21 @@ describe('xlsx generation - charts', () => {
 
     const minConfig = 2
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-options-axis.xlsx'))
-          }
-        }
+    const { documents: [doc] } = await render('chart-options-axis', {
+      chartData: {
+        labels,
+        datasets
       },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        },
-        chartOptions: {
-          scales: {
-            yAxes: [{
-              ticks: {
-                min: minConfig
-              }
-            }]
-          }
+      chartOptions: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              min: minConfig
+            }
+          }]
         }
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -417,36 +383,21 @@ describe('xlsx generation - charts', () => {
 
     const maxConfig = 12
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-options-axis.xlsx'))
-          }
-        }
+    const { documents: [doc] } = await render('chart-options-axis', {
+      chartData: {
+        labels,
+        datasets
       },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        },
-        chartOptions: {
-          scales: {
-            yAxes: [{
-              ticks: {
-                max: maxConfig
-              }
-            }]
-          }
+      chartOptions: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              max: maxConfig
+            }
+          }]
         }
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -484,37 +435,22 @@ describe('xlsx generation - charts', () => {
     const minConfig = 2
     const maxConfig = 12
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-options-axis.xlsx'))
-          }
-        }
+    const { documents: [doc] } = await render('chart-options-axis', {
+      chartData: {
+        labels,
+        datasets
       },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        },
-        chartOptions: {
-          scales: {
-            yAxes: [{
-              ticks: {
-                min: minConfig,
-                max: maxConfig
-              }
-            }]
-          }
+      chartOptions: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              min: minConfig,
+              max: maxConfig
+            }
+          }]
         }
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -553,36 +489,21 @@ describe('xlsx generation - charts', () => {
 
     const stepSizeConfig = 3
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-options-axis.xlsx'))
-          }
-        }
+    const { documents: [doc] } = await render('chart-options-axis', {
+      chartData: {
+        labels,
+        datasets
       },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        },
-        chartOptions: {
-          scales: {
-            yAxes: [{
-              ticks: {
-                stepSize: stepSizeConfig
-              }
-            }]
-          }
+      chartOptions: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              stepSize: stepSizeConfig
+            }
+          }]
         }
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -614,27 +535,12 @@ describe('xlsx generation - charts', () => {
       }, 'C1']
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'basic-scatter-chart-datalabels.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('basic-scatter-chart-datalabels', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -655,6 +561,58 @@ describe('xlsx generation - charts', () => {
     })
   })
 
+  it('chart should keep style defined in serie', async () => {
+    const labels = ['Q1', 'Q2', 'Q3', 'Q4']
+    const datasets = [{
+      label: 'Apples',
+      data: [100, 50, 10, 70]
+    }, {
+      label: 'Oranges',
+      data: [20, 30, 20, 40]
+    }]
+
+    const { documents: [doc] } = await render('chart-serie-style', {
+      chartData: {
+        labels,
+        datasets
+      }
+    }, { files: ['xl/charts/chart1.xml'] })
+
+    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+    dataElements.forEach((dataEl, idx) => {
+      should(dataEl.getElementsByTagName('c:spPr')[0]).be.not.undefined()
+    })
+  })
+
+  it('chart should keep number format defined in serie', async () => {
+    const labels = ['Q1', 'Q2', 'Q3', 'Q4']
+    const datasets = [{
+      label: 'Apples',
+      data: [10000.0, 50000.45, 10000.45, 70000.546]
+    }, {
+      label: 'Oranges',
+      data: [20000.3, 30000.2, 20000.4, 40000.4]
+    }]
+
+    const { documents: [doc] } = await render('chart-serie-number-format', {
+      chartData: {
+        labels,
+        datasets
+      }
+    }, { files: ['xl/charts/chart1.xml'] })
+
+    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+    dataElements.forEach((dataEl, idx) => {
+      should(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:formatCode')[0].textContent).be.eql('#,##0.0')
+    })
+  })
+
+  // #endregion options
+
+  // #region template variants
+
   it('chart without style, color xml files', async () => {
     const labels = ['Q1', 'Q2', 'Q3', 'Q4']
     const datasets = [{
@@ -665,27 +623,12 @@ describe('xlsx generation - charts', () => {
       data: [20, 30, 20, 40]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-with-no-style-colors-xml-files.xlsx'))
-          }
-        }
-      },
-      data: {
-        fruits: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('chart-with-no-style-colors-xml-files', {
+      fruits: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -706,27 +649,12 @@ describe('xlsx generation - charts', () => {
       data: [2, 3, 5]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-with-title.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('chart-with-title', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
 
@@ -744,33 +672,51 @@ describe('xlsx generation - charts', () => {
     }]
     const chartTitle = 'CUSTOM CHART'
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-with-dynamic-title.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartTitle,
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('chart-with-dynamic-title', {
+      chartTitle,
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
 
     chartTitleEl.textContent.should.be.eql(chartTitle)
   })
+
+  it('chart with multiple definition on single drawing', async () => {
+    const labels = ['Jan', 'Feb', 'March', 'Apr']
+
+    const datasets = [{
+      label: 'Ser1',
+      data: [4, 5, 1, 2]
+    }, {
+      label: 'Ser2',
+      data: [2, 3, 5, 6]
+    }]
+
+    const { documents: [chart1Doc, chart2Doc] } = await render('chart-multiple-in-single-drawing', {
+      chartData1: {
+        labels,
+        datasets
+      }
+    }, { files: ['xl/charts/chart1.xml', 'xl/charts/chart2.xml'] })
+
+    for (const doc of [chart1Doc, chart2Doc]) {
+      const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+      dataElements.forEach((dataEl, idx) => {
+        dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(datasets[idx].label)
+        nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(labels)
+        nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(datasets[idx].data)
+      })
+    }
+  })
+
+  // #endregion template variants
+
+  // #region chart types
 
   it('scatter chart', async () => {
     const labels = [
@@ -792,27 +738,12 @@ describe('xlsx generation - charts', () => {
       ]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'scatter-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('scatter-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -845,27 +776,12 @@ describe('xlsx generation - charts', () => {
       ]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'bubble-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('bubble-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -914,27 +830,12 @@ describe('xlsx generation - charts', () => {
       ]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'stock-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('stock-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -969,27 +870,12 @@ describe('xlsx generation - charts', () => {
       data: [6, 5, 4]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'combo-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('combo-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
+    }, { files: ['xl/charts/chart1.xml'] })
 
     const barChart = doc.getElementsByTagName('c:barChart')[0]
     const lineChart = doc.getElementsByTagName('c:lineChart')[0]
@@ -1043,27 +929,12 @@ describe('xlsx generation - charts', () => {
       ]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'waterfall-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('waterfall-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
+    }, { files: ['xl/charts/chartEx1.xml'] })
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1120,27 +991,12 @@ describe('xlsx generation - charts', () => {
       ]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'funnel-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('funnel-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
+    }, { files: ['xl/charts/chartEx1.xml'] })
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1223,27 +1079,12 @@ describe('xlsx generation - charts', () => {
       ]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'treemap-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('treemap-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
+    }, { files: ['xl/charts/chartEx1.xml'] })
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1328,27 +1169,12 @@ describe('xlsx generation - charts', () => {
       ]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'sunburst-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('sunburst-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
+    }, { files: ['xl/charts/chartEx1.xml'] })
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1424,27 +1250,12 @@ describe('xlsx generation - charts', () => {
       ]
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'clusteredColumn-chart.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
+    const { documents: [doc] } = await render('clusteredColumn-chart', {
+      chartData: {
+        labels,
+        datasets
       }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
+    }, { files: ['xl/charts/chartEx1.xml'] })
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1471,188 +1282,9 @@ describe('xlsx generation - charts', () => {
     })
   })
 
-  it('chart with multiple definition on single drawing', async () => {
-    const labels = ['Jan', 'Feb', 'March', 'Apr']
+  // #endregion chart types
 
-    const datasets = [{
-      label: 'Ser1',
-      data: [4, 5, 1, 2]
-    }, {
-      label: 'Ser2',
-      data: [2, 3, 5, 6]
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            // the duplicated charts in this sample can be reproduced by copy and pasting the chart
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-multiple-in-single-drawing.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData1: {
-          labels,
-          datasets
-        }
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [chart1Doc, chart2Doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml', 'xl/charts/chart2.xml'])
-
-    for (const doc of [chart1Doc, chart2Doc]) {
-      const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
-
-      dataElements.forEach((dataEl, idx) => {
-        dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(datasets[idx].label)
-        nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(labels)
-        nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(datasets[idx].data)
-      })
-    }
-  })
-
-  it('chart error message when no data', async () => {
-    return reporter
-      .render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'xlsx',
-          xlsx: {
-            templateAsset: {
-              content: fs.readFileSync(path.join(xlsxDirPath, 'chart-error-data.xlsx'))
-            }
-          }
-        },
-        data: {
-          chartData: null
-        }
-      })
-      .should.be.rejectedWith(/requires data parameter to be set/)
-  })
-
-  it('chart error message when no data.labels', async () => {
-    return reporter
-      .render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'xlsx',
-          xlsx: {
-            templateAsset: {
-              content: fs.readFileSync(path.join(xlsxDirPath, 'chart-error-data.xlsx'))
-            }
-          }
-        },
-        data: {
-          chartData: {}
-        }
-      })
-      .should.be.rejectedWith(/requires data parameter with labels to be set/)
-  })
-
-  it('chart error message when no data.datasets', async () => {
-    return reporter
-      .render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'xlsx',
-          xlsx: {
-            templateAsset: {
-              content: fs.readFileSync(path.join(xlsxDirPath, 'chart-error-data.xlsx'))
-            }
-          }
-        },
-        data: {
-          chartData: {
-            labels: ['Jan', 'Feb', 'March'],
-            datasets: null
-          }
-        }
-      })
-      .should.be.rejectedWith(/requires data parameter with datasets to be set/)
-  })
-
-  it('chart should keep style defined in serie', async () => {
-    const labels = ['Q1', 'Q2', 'Q3', 'Q4']
-    const datasets = [{
-      label: 'Apples',
-      data: [100, 50, 10, 70]
-    }, {
-      label: 'Oranges',
-      data: [20, 30, 20, 40]
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-serie-style.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
-
-    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
-
-    dataElements.forEach((dataEl, idx) => {
-      should(dataEl.getElementsByTagName('c:spPr')[0]).be.not.undefined()
-    })
-  })
-
-  it('chart should keep number format defined in serie', async () => {
-    const labels = ['Q1', 'Q2', 'Q3', 'Q4']
-    const datasets = [{
-      label: 'Apples',
-      data: [10000.0, 50000.45, 10000.45, 70000.546]
-    }, {
-      label: 'Oranges',
-      data: [20000.3, 30000.2, 20000.4, 40000.4]
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-serie-number-format.xlsx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-
-    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
-
-    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
-
-    dataElements.forEach((dataEl, idx) => {
-      should(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:formatCode')[0].textContent).be.eql('#,##0.0')
-    })
-  })
+  // #region charts with data from loops
 
   it('chart with source configured to table generated by loop (xlsxChart helper not used)', async () => {
     const data = [{
@@ -1669,26 +1301,9 @@ describe('xlsx generation - charts', () => {
       serie2: 29
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'chart-with-dynamic-table-as-source.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        data
-      }
+    const { sheet } = await render('chart-with-dynamic-table-as-source', {
+      data
     })
-
-    fs.writeFileSync(outputPath, result.content)
-    const { workbook } = await parseSheetFromXlsxBuf(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.C22.v).be.eql(data[0].category)
     should(sheet.D22.v).be.eql(data[0].serie1)
@@ -1722,26 +1337,9 @@ describe('xlsx generation - charts', () => {
       value: 33
     }]
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'chartex-with-dynamic-table-as-source.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        data
-      }
+    const { sheet } = await render('chartex-with-dynamic-table-as-source', {
+      data
     })
-
-    fs.writeFileSync(outputPath, result.content)
-    const { workbook } = await parseSheetFromXlsxBuf(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.C22.v).be.eql(data[0].category)
     should(sheet.D22.v).be.eql(data[0].value)
@@ -1756,4 +1354,6 @@ describe('xlsx generation - charts', () => {
     should(sheet.C27.v).be.eql(data[5].category)
     should(sheet.D27.v).be.eql(data[5].value)
   })
+
+  // #endregion charts with data from loops
 })
