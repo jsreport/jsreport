@@ -254,6 +254,7 @@ class MainReporter extends Reporter {
       const workersManagerSystemOptions = {
         initTimeout: this.options.workers.initTimeout,
         numberOfWorkers: this.options.workers.numberOfWorkers,
+        maxQueueSize: this.options.workers.maxQueueSize,
         workerModule: path.join(__dirname, '../worker', 'workerHandler.js'),
         resourceLimits: this.options.workers.resourceLimits
       }
@@ -345,6 +346,11 @@ class MainReporter extends Reporter {
       err.weak = true
     }
 
+    if (err.code === 'WORKER_QUEUE_FULL') {
+      err.statusCode = 429
+      err.weak = true
+    }
+
     if (!err.logged) {
       const logFn = err.weak ? this.logger.warn : this.logger.error
       const errorMessage = this.createError('Report render failed', { original: err }).message
@@ -396,7 +402,8 @@ class MainReporter extends Reporter {
       }
 
       worker = await this._workersManager.allocate(req, {
-        timeout: req.context.reportTimeoutCountAfterWorkerAllocated ? 0 : this.getReportTimeout(req)
+        timeout: req.context.reportTimeoutCountAfterWorkerAllocated ? 0 : this.getReportTimeout(req),
+        rejectWhenQueueFull: options.rejectWhenQueueFull === true
       })
 
       req.context.workerAllocatedTimestamp = new Date().getTime()
@@ -568,7 +575,9 @@ class MainReporter extends Reporter {
     const worker = options.worker
       ? options.worker
       : await this._workersManager.allocate(req, {
-        timeout
+        timeout,
+        // standalone worker actions (studio search, version control, component preview) are not renders
+        countInQueueLimit: false
       })
 
     const handleAbortSignal = () => {

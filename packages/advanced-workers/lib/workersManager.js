@@ -8,7 +8,8 @@ module.exports = (userOptions, {
   workerModule,
   numberOfWorkers,
   resourceLimits,
-  initTimeout
+  initTimeout,
+  maxQueueSize
 }) => {
   function createWorker (id) {
     const worker = new Worker(path.join(__dirname, 'workerHandler.js'), {
@@ -33,7 +34,8 @@ module.exports = (userOptions, {
       this.pool = pool({
         createWorker: (id) => createWorker(id),
         numberOfWorkers,
-        initTimeout
+        initTimeout,
+        maxQueueSize
       })
       return this.pool.init()
     },
