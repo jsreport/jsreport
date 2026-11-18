@@ -1,12 +1,10 @@
 const path = require('path')
 const fs = require('fs')
 const should = require('should')
-const { DOMParser } = require('@xmldom/xmldom')
 const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
 const jsreport = require('@jsreport/jsreport-core')
-const { decompress } = require('@jsreport/office')
-const xlsx = require('xlsx')
+const { getDocumentsFromXlsxBuf, parseSheetFromXlsxBuf } = require('../utils')
 const { nodeListToArray, findChildNode } = require('../../lib/utils')
 
 const xlsxDirPath = path.join(__dirname, '../xlsx')
@@ -50,11 +48,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const chartTitleTextEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('c:tx')[0]
 
@@ -130,11 +124,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -185,11 +175,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -233,11 +219,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -278,11 +260,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -337,11 +315,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -406,11 +380,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -476,11 +446,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -548,11 +514,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -620,11 +582,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
@@ -676,11 +634,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -731,11 +685,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -776,11 +726,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
 
@@ -819,11 +765,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
 
@@ -870,11 +812,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -927,11 +865,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -1000,11 +934,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -1059,11 +989,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const barChart = doc.getElementsByTagName('c:barChart')[0]
     const lineChart = doc.getElementsByTagName('c:lineChart')[0]
@@ -1137,11 +1063,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chartEx1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1218,11 +1140,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chartEx1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1325,11 +1243,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chartEx1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1434,11 +1348,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chartEx1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1534,11 +1444,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chartEx1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1597,15 +1503,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const chart1Doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
-
-    const chart2Doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart2.xml').data.toString()
-    )
+    const [chart1Doc, chart2Doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml', 'xl/charts/chart2.xml'])
 
     for (const doc of [chart1Doc, chart2Doc]) {
       const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -1708,11 +1606,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -1751,11 +1645,7 @@ describe('xlsx generation - charts', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
-    )
+    const [doc] = await getDocumentsFromXlsxBuf(result.content, ['xl/charts/chart1.xml'])
 
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
@@ -1797,7 +1687,7 @@ describe('xlsx generation - charts', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.C22.v).be.eql(data[0].category)
@@ -1850,7 +1740,7 @@ describe('xlsx generation - charts', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.C22.v).be.eql(data[0].category)

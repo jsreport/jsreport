@@ -1,11 +1,8 @@
 const path = require('path')
 const fs = require('fs')
 const should = require('should')
-const { DOMParser } = require('@xmldom/xmldom')
 const jsreport = require('@jsreport/jsreport-core')
-const { decompress } = require('@jsreport/office')
-const xlsx = require('xlsx')
-const { getDocumentsFromXlsxBuf, mergeCellExists } = require('../utils')
+const { getDocumentsFromXlsxBuf, parseSheetFromXlsxBuf, mergeCellExists } = require('../utils')
 const { nodeListToArray } = require('../../lib/utils')
 const { getColumnFor } = require('../../lib/cellUtils')
 
@@ -64,8 +61,8 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const { sheet: templateSheet } = parseSheetFromXlsxBuf(result.content)
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet: templateSheet } = await parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(templateSheet['!ref']).be.ok()
     should(templateSheet['!ref']).be.eql(sheet['!ref'])
@@ -97,8 +94,8 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet: templateSheet } = parseSheetFromXlsxBuf(templateBuf)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet: templateSheet } = await parseSheetFromXlsxBuf(templateBuf)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       should(templateSheet['!ref']).be.ok()
       should(templateSheet['!ref']).be.eql(sheet['!ref'])
@@ -177,8 +174,8 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet: templateSheet } = parseSheetFromXlsxBuf(templateBuf)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet: templateSheet } = await parseSheetFromXlsxBuf(templateBuf)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       should(templateSheet['!ref']).be.ok()
       should(templateSheet['!ref']).be.not.eql(sheet['!ref'])
@@ -301,10 +298,10 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+      const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
       const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E5')
@@ -480,7 +477,7 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const { sheet } = parseSheetFromXlsxBuf(result.content)
+        const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
         should(sheet['!ref']).be.eql('C2:E5')
 
@@ -537,7 +534,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E3')
@@ -639,8 +636,8 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet: templateSheet } = parseSheetFromXlsxBuf(templateBuf)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet: templateSheet } = await parseSheetFromXlsxBuf(templateBuf)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       should(templateSheet['!ref']).be.ok()
       should(templateSheet['!ref']).be.not.eql(sheet['!ref'])
@@ -762,7 +759,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B2:D7')
@@ -874,7 +871,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B2:E5')
@@ -970,7 +967,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B2:E5')
@@ -1074,7 +1071,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E5')
@@ -1199,7 +1196,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:F5')
@@ -1341,7 +1338,7 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const { sheet } = parseSheetFromXlsxBuf(result.content)
+        const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
         should(sheet['!ref']).be.eql('C2:F5')
 
@@ -1443,7 +1440,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E14')
@@ -1706,7 +1703,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E19')
@@ -1982,7 +1979,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:E5')
@@ -2131,7 +2128,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:F5')
@@ -2291,7 +2288,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E5')
@@ -2439,7 +2436,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E5')
@@ -2597,7 +2594,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:E5')
@@ -2764,7 +2761,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:F5')
@@ -3000,7 +2997,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B2:E19')
@@ -3267,7 +3264,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql(`C2:E${3 + (items.length - 1)}`)
@@ -3324,7 +3321,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B1:G7')
@@ -3386,7 +3383,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B1:G5')
@@ -3462,7 +3459,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B1:G5')
@@ -3548,7 +3545,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:F5')
@@ -3658,7 +3655,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:H5')
@@ -3788,7 +3785,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B1:G7')
@@ -3908,7 +3905,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B1:G5')
@@ -4000,7 +3997,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('B1:G5')
@@ -4106,7 +4103,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:H5')
@@ -4278,7 +4275,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E5')
@@ -4450,7 +4447,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:H5')
@@ -4663,7 +4660,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
       should(sheet.B2.v).be.eql('')
@@ -4734,7 +4731,7 @@ describe('xlsx generation - loops', () => {
         })
 
         fs.writeFileSync(outputPath, result.content)
-        const { sheet } = parseSheetFromXlsxBuf(result.content)
+        const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
         should(sheet['!ref']).be.eql('B2:B16')
 
@@ -4810,7 +4807,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { workbook, sheet } = parseSheetFromXlsxBuf(result.content)
+      const { workbook, sheet } = await parseSheetFromXlsxBuf(result.content)
 
       should(workbook.Workbook.CalcPr.fullCalcOnLoad).be.eql('1')
 
@@ -4898,7 +4895,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:D13')
@@ -4961,7 +4958,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E11')
@@ -5029,7 +5026,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E11')
@@ -5105,9 +5102,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -5117,9 +5112,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -5199,7 +5192,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E11')
@@ -5263,7 +5256,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E9')
@@ -5322,7 +5315,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E9')
@@ -5388,9 +5381,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -5400,9 +5391,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -5481,7 +5470,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E11')
@@ -5545,7 +5534,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E9')
@@ -5604,7 +5593,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:E9')
@@ -5670,9 +5659,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -5682,9 +5669,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -5769,7 +5754,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet, sheet2 } = parseSheetFromXlsxBuf(result.content, [0, 1])
+      const { sheet, sheet2 } = await parseSheetFromXlsxBuf(result.content, [0, 1])
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I5')
@@ -5963,7 +5948,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:I5')
@@ -6057,7 +6042,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:I3')
@@ -6133,7 +6118,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:I3')
@@ -6221,9 +6206,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -6233,9 +6216,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -6317,9 +6298,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -6329,9 +6308,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -6401,7 +6378,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet, sheet2 } = parseSheetFromXlsxBuf(result.content, [0, 1])
+      const { sheet, sheet2 } = await parseSheetFromXlsxBuf(result.content, [0, 1])
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I5')
@@ -6595,7 +6572,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:I5')
@@ -6689,7 +6666,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:I3')
@@ -6765,7 +6742,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:I3')
@@ -6853,9 +6830,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -6865,9 +6840,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -6949,9 +6922,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -6961,9 +6932,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -7033,7 +7002,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I5')
@@ -7145,7 +7114,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I5')
@@ -7239,7 +7208,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I3')
@@ -7322,7 +7291,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I3')
@@ -7417,9 +7386,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -7429,9 +7396,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -7504,7 +7469,7 @@ describe('xlsx generation - loops', () => {
 
         fs.writeFileSync(outputPath, result.content)
 
-        const { sheet } = parseSheetFromXlsxBuf(result.content)
+        const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
         should(sheet['!ref']).be.eql('B2:B28')
 
@@ -7574,9 +7539,7 @@ describe('xlsx generation - loops', () => {
 
         fs.writeFileSync(outputPath, result.content)
 
-        const { workbook } = parseSheetFromXlsxBuf(result.content)
-        const files = await decompress()(result.content)
-
+        const { workbook } = await parseSheetFromXlsxBuf(result.content)
         const normalizePath = (filePath) => {
           if (filePath.startsWith('/')) {
             return filePath.slice(1)
@@ -7585,9 +7548,7 @@ describe('xlsx generation - loops', () => {
           return filePath
         }
 
-        const calcChainDoc = new DOMParser().parseFromString(
-          files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-        )
+        const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
         const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -7646,7 +7607,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:J5')
@@ -7749,7 +7710,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:J3')
@@ -7823,7 +7784,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:J3')
@@ -7909,9 +7870,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -7921,9 +7880,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -8002,7 +7959,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I5')
@@ -8096,7 +8053,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I3')
@@ -8166,7 +8123,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I3')
@@ -8248,9 +8205,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -8260,9 +8215,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -8332,7 +8285,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:D13')
@@ -8446,7 +8399,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I11')
@@ -8540,7 +8493,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:I11')
@@ -8646,9 +8599,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { workbook } = parseSheetFromXlsxBuf(result.content)
-
-      const files = await decompress()(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
 
       const normalizePath = (filePath) => {
         if (filePath.startsWith('/')) {
@@ -8658,9 +8609,7 @@ describe('xlsx generation - loops', () => {
         return filePath
       }
 
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
+      const [calcChainDoc] = await getDocumentsFromXlsxBuf(result.content, [normalizePath(workbook.Directory.calcchain)])
 
       const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
 
@@ -8736,7 +8685,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:E5')
@@ -8857,7 +8806,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:E5')
@@ -8979,7 +8928,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:E5')
@@ -9121,7 +9070,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:D13')
@@ -9215,7 +9164,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:D14')
@@ -9309,7 +9258,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:D14')
@@ -9412,7 +9361,7 @@ describe('xlsx generation - loops', () => {
       })
 
       fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
+      const { workbook } = await parseSheetFromXlsxBuf(result.content)
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
       if (mode === 'row') {
@@ -9498,7 +9447,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C1:D14')
@@ -9619,7 +9568,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:D15')
@@ -9732,7 +9681,7 @@ describe('xlsx generation - loops', () => {
 
         fs.writeFileSync(outputPath, result.content)
 
-        const { sheet } = parseSheetFromXlsxBuf(result.content)
+        const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
         should(sheet['!ref']).be.eql('B2:D25')
 
@@ -9795,7 +9744,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet, sheet2, sheet3, sheet4 } = parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
+      const { sheet, sheet2, sheet3, sheet4 } = await parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:C4')
@@ -9994,7 +9943,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet, sheet2, sheet3, sheet4 } = parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
+      const { sheet, sheet2, sheet3, sheet4 } = await parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:C4')
@@ -10196,7 +10145,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet, sheet2, sheet3, sheet4 } = parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
+      const { sheet, sheet2, sheet3, sheet4 } = await parseSheetFromXlsxBuf(result.content, [0, 1, 2, 3])
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A2:C4')
@@ -10439,7 +10388,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:V5')
@@ -10945,7 +10894,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:F5')
@@ -11088,7 +11037,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('C2:F5')
@@ -11209,7 +11158,7 @@ describe('xlsx generation - loops', () => {
 
       fs.writeFileSync(outputPath, result.content)
 
-      const { sheet } = parseSheetFromXlsxBuf(result.content)
+      const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
       if (mode === 'row') {
         should(sheet['!ref']).be.eql('A1:F6')
@@ -11314,10 +11263,10 @@ describe('xlsx generation - loops', () => {
 
         fs.writeFileSync(outputPath, result.content)
 
-        const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+        const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
         const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
 
-        const { sheet } = parseSheetFromXlsxBuf(result.content)
+        const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
         should(sheet['!ref']).be.eql('C2:E5')
 
@@ -11388,7 +11337,7 @@ describe('xlsx generation - loops', () => {
 
         fs.writeFileSync(outputPath, result.content)
 
-        const { sheet } = parseSheetFromXlsxBuf(result.content)
+        const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
         should(sheet['!ref']).be.eql('C2:E5')
 
@@ -11483,7 +11432,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B14')
 
@@ -11590,7 +11539,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B42')
 
@@ -11697,7 +11646,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B16')
 
@@ -11812,7 +11761,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B14')
 
@@ -11919,7 +11868,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B3:F9')
 
@@ -12307,7 +12256,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B57')
 
@@ -12456,7 +12405,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B51')
 
@@ -12613,7 +12562,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B57')
 
@@ -12802,7 +12751,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B150')
 
@@ -13105,7 +13054,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('A2:A110')
 
@@ -13370,7 +13319,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B3:L13')
 
@@ -13549,7 +13498,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B1:G16')
 
@@ -13636,7 +13585,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B14')
 
@@ -13750,7 +13699,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B49')
 
@@ -13885,7 +13834,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:D19')
 
@@ -13995,7 +13944,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:D22')
 
@@ -14108,7 +14057,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:D28')
 
@@ -14224,7 +14173,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B1:D28')
 
@@ -14342,7 +14291,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:D31')
 
@@ -14461,7 +14410,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:C20')
 
@@ -14574,7 +14523,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:C20')
 
@@ -14694,7 +14643,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B14')
 
@@ -14822,7 +14771,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B56')
 
@@ -14985,7 +14934,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B14')
 
@@ -15120,7 +15069,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B14')
 
@@ -15248,7 +15197,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('A1:B14')
 
@@ -15376,7 +15325,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:D19')
 
@@ -15507,7 +15456,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B14')
 
@@ -15642,7 +15591,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B2:B14')
 
@@ -15731,9 +15680,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
-
-    const files = await decompress()(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('C2:E5')
 
@@ -15747,9 +15694,7 @@ describe('xlsx generation - loops', () => {
     should(sheet.D5.v).be.eql(items[2].lastname)
     should(sheet.E5.v).be.eql(items[2].age)
 
-    const tableDoc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/tables/table1.xml').data.toString()
-    )
+    const [tableDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/tables/table1.xml'])
 
     const tableRef = tableDoc.documentElement.getAttribute('ref')
     const autoFilterRef = tableDoc.getElementsByTagName('autoFilter')[0]?.getAttribute('ref')
@@ -15795,9 +15740,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
-
-    const files = await decompress()(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('C2:E5')
 
@@ -15811,9 +15754,7 @@ describe('xlsx generation - loops', () => {
     should(sheet.D5.v).be.eql(items[2].lastname)
     should(sheet.E5.v).be.eql(items[2].age)
 
-    const tableDoc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/tables/table1.xml').data.toString()
-    )
+    const [tableDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/tables/table1.xml'])
 
     const tableRef = tableDoc.documentElement.getAttribute('ref')
     const autoFilterRef = tableDoc.getElementsByTagName('autoFilter')[0]?.getAttribute('ref')
@@ -15888,7 +15829,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('B3:B14')
 
@@ -15926,8 +15867,7 @@ describe('xlsx generation - loops', () => {
       [
         '[Content_Types].xml', 'xl/tables/table1.xml', 'xl/tables/table2.xml',
         'xl/worksheets/sheet1.xml', 'xl/worksheets/_rels/sheet1.xml.rels'
-      ],
-      { strict: true }
+      ]
     )
 
     should(Array.from(contentTypesDoc.getElementsByTagName('Override')).find((el) => (
@@ -16033,7 +15973,7 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const { sheet } = parseSheetFromXlsxBuf(result.content)
+    const { sheet } = await parseSheetFromXlsxBuf(result.content)
 
     should(sheet['!ref']).be.eql('A1:H26')
 
@@ -16105,17 +16045,9 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
+    const [vmlDrawingDoc, commentsDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/drawings/vmlDrawing1.vml', 'xl/comments1.xml'])
 
-    const vmlDrawingDoc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/drawings/vmlDrawing1.vml').data.toString()
-    )
-
-    const commentsDoc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/comments1.xml').data.toString()
-    )
-
-    const { sheet } = parseSheetFromXlsxBuf(result.content, 0, {
+    const { sheet } = await parseSheetFromXlsxBuf(result.content, 0, {
       cellStyles: true
     })
 
@@ -16200,17 +16132,9 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const files = await decompress()(result.content)
+    const [vmlDrawingDoc, commentsDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/drawings/vmlDrawing1.vml', 'xl/comments1.xml'])
 
-    const vmlDrawingDoc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/drawings/vmlDrawing1.vml').data.toString()
-    )
-
-    const commentsDoc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'xl/comments1.xml').data.toString()
-    )
-
-    const { sheet } = parseSheetFromXlsxBuf(result.content, 0, {
+    const { sheet } = await parseSheetFromXlsxBuf(result.content, 0, {
       cellStyles: true
     })
 
@@ -16271,54 +16195,12 @@ describe('xlsx generation - loops', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet['!ref']).be.eql('A1:V4228')
   })
 })
-
-function parseSheetFromXlsxBuf (xlsxBuf, _sheetNameOrIdx, parseOpts) {
-  const workbook = xlsx.read(xlsxBuf, parseOpts)
-  let sheet
-  let refType
-  const sheetNameOrIdx = _sheetNameOrIdx ?? 0
-
-  const output = { workbook }
-  const target = []
-
-  if (!Array.isArray(sheetNameOrIdx)) {
-    target.push(sheetNameOrIdx)
-  } else {
-    target.push(...sheetNameOrIdx)
-  }
-
-  for (let idx = 0; idx < target.length; idx++) {
-    const nameOrIdx = target[idx]
-
-    if (typeof nameOrIdx === 'number') {
-      refType = 'index'
-      sheet = workbook.Sheets[workbook.SheetNames[nameOrIdx]]
-    } else {
-      refType = 'name'
-      sheet = workbook.Sheets[nameOrIdx]
-    }
-
-    if (sheet == null) {
-      throw new Error(`Sheet not found for ${refType} "${nameOrIdx}"`)
-    }
-
-    let targetName = 'sheet'
-
-    if (idx > 0) {
-      targetName += idx + 1
-    }
-
-    output[targetName] = sheet
-  }
-
-  return output
-}
 
 function getTargetXlsxFilename (_mode, name) {
   let filename

@@ -274,13 +274,9 @@ const __xlsxD = (function () {
         originalRowNumber.toString()
       )
 
-      let cellRefs = []
-
-      if (baseRowItem.parts.has('c')) {
-        cellRefs = [
-          ...baseRowItem.parts.get('c')?.keys()
-        ].map((cellRef) => parseCellRef(cellRef).letter)
-      }
+      const cellRefs = [
+        ...baseRowItem.parts.get('c').keys()
+      ].map((cellRef) => parseCellRef(cellRef).letter)
 
       options.fn({
         rowNumber: originalRowNumber,

@@ -107,9 +107,7 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
       })
 
       localContentManagers.set('Relationships', {
-        prepare: (ctx) => {
-          ctx.data.lastElForPart = new Map()
-
+        prepare: () => {
           return {
             parts: {
               Relationship: {
@@ -118,20 +116,6 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
               }
             },
             elements: childrenEls
-          }
-        },
-        onInit: (elements, ctx) => {
-          const relationshipEls = elements.filter((el) => el.nodeName === 'Relationship')
-
-          ctx.data.lastElForPart.set('Relationship', relationshipEls.at(-1))
-
-          if (relationshipEls.length === 0) {
-            ctx.addSlot('Relationship')
-          }
-        },
-        onElementPart: (el, ctx) => {
-          if (ctx.data.lastElForPart.get(el.nodeName) === el) {
-            ctx.addSlot(el.nodeName)
           }
         }
       })
@@ -148,10 +132,8 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
 
     if (isAutofitConfigured) {
       sheetContentManagers.set('cols', {
-        prepare: (ctx) => {
+        prepare: () => {
           const elements = Array.from(colsEl?.childNodes ?? [])
-
-          ctx.data.lastElForPart = new Map()
 
           return {
             parts: {
@@ -161,20 +143,6 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
               }
             },
             elements
-          }
-        },
-        onInit: (elements, ctx) => {
-          const colEls = elements.filter((el) => el.nodeName === 'col')
-
-          ctx.data.lastElForPart.set('col', colEls.at(-1))
-
-          if (colEls.length === 0) {
-            ctx.addSlot('col')
-          }
-        },
-        onElementPart: (el, ctx) => {
-          if (ctx.data.lastElForPart.get(el.nodeName) === el) {
-            ctx.addSlot(el.nodeName)
           }
         }
       })
@@ -272,10 +240,8 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
       let tablePartEls = []
 
       sheetContentManagers.set('tableParts', {
-        prepare: (ctx) => {
+        prepare: () => {
           const elements = Array.from(tablePartsEl.childNodes)
-
-          ctx.data.lastElForPart = new Map()
 
           return {
             parts: {
@@ -287,19 +253,8 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
             elements
           }
         },
-        onInit: (elements, ctx) => {
+        onInit: (elements) => {
           tablePartEls = elements.filter((el) => el.nodeName === 'tablePart')
-
-          ctx.data.lastElForPart.set('tablePart', tablePartEls.at(-1))
-
-          if (tablePartEls.length === 0) {
-            ctx.addSlot('tablePart')
-          }
-        },
-        onElementPart: (el, ctx) => {
-          if (ctx.data.lastElForPart.get(el.nodeName) === el) {
-            ctx.addSlot(el.nodeName)
-          }
         }
       })
 
@@ -447,10 +402,14 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
             row: {
               type: 'instanceCollection',
               idAttrs: ['r'],
+              // we render rows and cells in the order they were generated,
+              // which is the order expected in sheetData
+              placement: 'sequence',
               parts: {
                 c: {
                   type: 'instanceCollection',
-                  idAttrs: ['r']
+                  idAttrs: ['r'],
+                  placement: 'sequence'
                 }
               }
             }

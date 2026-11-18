@@ -2,8 +2,7 @@ const path = require('path')
 const fs = require('fs')
 const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
-const xlsx = require('xlsx')
-const { getDocumentsFromXlsxBuf, mergeCellExists } = require('../utils')
+const { getDocumentsFromXlsxBuf, parseSheetFromXlsxBuf, mergeCellExists } = require('../utils')
 const { nodeListToArray } = require('../../lib/utils')
 
 const xlsxDirPath = path.join(__dirname, '../xlsx')
@@ -50,7 +49,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
   })
@@ -75,7 +74,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
   })
@@ -116,7 +115,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[2]]
     should(sheet.E4.t).be.eql('e')
     should(sheet.E4.w).be.eql('#DIV/0!')
@@ -144,7 +143,7 @@ describe('xlsx generation - base', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet['!ref']).be.eql('A6:J26')
@@ -155,7 +154,7 @@ describe('xlsx generation - base', () => {
       path.join(xlsxDirPath, 'preserve-merge-cells-for-empty-row.xlsx')
     )
 
-    const [sheetTemplateDoc] = await getDocumentsFromXlsxBuf(templateBuf, ['xl/worksheets/sheet1.xml'], { strict: true })
+    const [sheetTemplateDoc] = await getDocumentsFromXlsxBuf(templateBuf, ['xl/worksheets/sheet1.xml'])
 
     const existingMergeCellRefs = nodeListToArray(
       sheetTemplateDoc.getElementsByTagName('mergeCells')[0].childNodes
@@ -180,9 +179,9 @@ describe('xlsx generation - base', () => {
 
     // if this call pass with strict parsing it means the document is well formed,
     // contains invalid characters in xml correctly escaped
-    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     for (const mergeCellRef of existingMergeCellRefs) {
@@ -197,7 +196,7 @@ describe('xlsx generation - base', () => {
       path.join(xlsxDirPath, 'preserve-shared-formulas.xlsx')
     )
 
-    const [sheetTemplateDoc] = await getDocumentsFromXlsxBuf(templateBuf, ['xl/worksheets/sheet1.xml'], { strict: true })
+    const [sheetTemplateDoc] = await getDocumentsFromXlsxBuf(templateBuf, ['xl/worksheets/sheet1.xml'])
 
     const getSharedFormulas = (doc) => (
       nodeListToArray(
@@ -230,7 +229,7 @@ describe('xlsx generation - base', () => {
 
     // if this call pass with strict parsing it means the document is well formed,
     // contains invalid characters in xml correctly escaped
-    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
 
     const outputSharedFormulas = getSharedFormulas(sheetDoc)
 
@@ -261,7 +260,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
   })
@@ -288,7 +287,7 @@ describe('xlsx generation - base', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
 
     const cellEls = nodeListToArray(sheetDoc.getElementsByTagName('c'))
 
@@ -299,7 +298,7 @@ describe('xlsx generation - base', () => {
     should(emptyCells[0].hasChildNodes()).be.False()
     should(emptyCells[1].hasChildNodes()).be.False()
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('TESTABC123 CURR MONTH REPORT')
     should(sheet.A2).be.not.ok()
@@ -326,7 +325,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John developer')
     should(sheet.A2.v).be.eql('Another lines John developer with Wick as lastname')
@@ -355,7 +354,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql(data.string)
     should(sheet.A1.t).be.eql('s')
@@ -388,7 +387,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql(data.string)
     should(sheet.A1.t).be.eql('s')
@@ -429,7 +428,7 @@ describe('xlsx generation - base', () => {
     should(cellEls[1].toString()).containEql('Boris&amp;Junior')
     should(cellEls[1].toString()).containEql('Matos&amp;Morillo')
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world Boris&Junior developer')
     should(sheet.A2.v).be.eql('Another lines Boris&Junior developer with Matos&Morillo as lastname')
@@ -455,11 +454,11 @@ describe('xlsx generation - base', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
 
-    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
     const cellEls = sheetDoc.getElementsByTagName('c')
 
     should(cellEls.length).be.eql(1)
@@ -490,11 +489,11 @@ describe('xlsx generation - base', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
 
-    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
     const cellEls = sheetDoc.getElementsByTagName('c')
 
     should(cellEls.length).be.eql(1)
@@ -555,7 +554,7 @@ describe('xlsx generation - base', () => {
     should(cellEls.length).be.eql(1)
     should(cellEls[0].toString()).containEql('Boris&amp;Junior')
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world Boris&Junior')
   })
@@ -582,7 +581,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Passed in String')
     should(sheet.A2.v).be.eql('Passed in String')
@@ -612,7 +611,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
   })
@@ -641,7 +640,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('More than 2 users')
   })
@@ -672,7 +671,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A2.t).be.eql('n')
     should(sheet.A2.v).be.eql(3)
@@ -704,7 +703,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A2.t).be.eql('s')
     should(sheet.A2.v).be.eql('Value of 3')
@@ -730,7 +729,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.B2.v).be.eql('')
@@ -757,7 +756,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
   })
@@ -781,7 +780,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A1.v).be.eql('Hello world John')
   })
@@ -810,7 +809,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     // test boolean, number and standard string types
@@ -839,7 +838,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
     const sheet3 = workbook.Sheets[workbook.SheetNames[2]]
@@ -874,7 +873,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.A2.v).be.eql(20)
     should(sheet.B2.f).be.eql('A2+B!A1')
@@ -901,7 +900,7 @@ describe('xlsx generation - base', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
     should(sheet.B2.f).be.eql("'Raw Data'!$B$2")
     should(sheet.A9.f).be.eql('RawData!$A$15')
@@ -927,9 +926,9 @@ describe('xlsx generation - base', () => {
 
     // if this call pass with strict parsing it means the document is well formed,
     // contains invalid characters in xml correctly escaped
-    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.B4.f).be.eql('B2 & " " & B3')
@@ -955,9 +954,9 @@ describe('xlsx generation - base', () => {
 
     // if this call pass with strict parsing it means the document is well formed,
     // contains invalid characters in xml correctly escaped
-    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.B2.f).be.eql('B3 & " " & B4')
@@ -983,9 +982,9 @@ describe('xlsx generation - base', () => {
 
     // if this call pass with strict parsing it means the document is well formed,
     // contains invalid characters in xml correctly escaped
-    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'], { strict: true })
+    await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.A1.v).be.eql('col1')
@@ -1030,7 +1029,7 @@ describe('xlsx generation - base', () => {
 
     fs.writeFileSync('out.xlsx', result.content)
 
-    const workbook = xlsx.read(result.content)
+    const { workbook } = await parseSheetFromXlsxBuf(result.content)
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     should(sheet.A1.v).be.eql('hello form helper')

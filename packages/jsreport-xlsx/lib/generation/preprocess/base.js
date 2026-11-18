@@ -38,10 +38,8 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
   })
 
   contentTypesContentManagers.set('Types', {
-    prepare: (ctx) => {
+    prepare: () => {
       const elements = Array.from(contentTypesFile.doc.documentElement.childNodes)
-
-      ctx.data.lastElForPart = new Map()
 
       return {
         parts: {
@@ -55,38 +53,6 @@ module.exports = ({ files, sharedData, addEndCallback }) => {
           }
         },
         elements
-      }
-    },
-    onInit: (elements, ctx) => {
-      const defaultEls = []
-      const overrideEls = []
-
-      for (const element of elements) {
-        if (element.nodeName === 'Default') {
-          defaultEls.push(element)
-        } else if (element.nodeName === 'Override') {
-          overrideEls.push(element)
-        }
-      }
-
-      ctx.data.lastElForPart.set('Default', defaultEls.at(-1))
-      ctx.data.lastElForPart.set('Override', overrideEls.at(-1))
-
-      if (defaultEls.length > 0 && overrideEls.length > 0) {
-        return
-      }
-
-      if (defaultEls.length === 0) {
-        ctx.addSlot('Default')
-      }
-
-      if (overrideEls.length === 0) {
-        ctx.addSlot('Override')
-      }
-    },
-    onElementPart: (el, ctx) => {
-      if (ctx.data.lastElForPart.get(el.nodeName) === el) {
-        ctx.addSlot(el.nodeName)
       }
     }
   })

@@ -11,10 +11,11 @@ module.exports = function createElementsReplacer (getElements, opts) {
     const elementDataMap = new WeakMap()
     let activeOrder = topLevelOrder
 
-    const addSlot = (slotName) => {
+    // the slot data is passed to onSlot when rendering
+    const addSlot = (slotName, slotData) => {
       const idx = itemsRegistry.length
       activeOrder.push(idx)
-      itemsRegistry.push({ slot: slotName })
+      itemsRegistry.push({ slot: slotName, data: slotData })
     }
 
     const ctxData = {}
@@ -42,7 +43,8 @@ module.exports = function createElementsReplacer (getElements, opts) {
       }
 
       const idx = itemsRegistry.length
-      activeOrder.push(idx)
+      const elementOrder = activeOrder
+      elementOrder.push(idx)
       itemsRegistry.push(elementData)
       elementDataMap.set(el, elementData)
 
@@ -53,6 +55,21 @@ module.exports = function createElementsReplacer (getElements, opts) {
           parentEl,
           registryIdx: idx,
           addSlot,
+          // adds a slot at the start of the children of the current element,
+          // the children are walked after this, so they are going to be placed after the slot
+          addChildSlot: (slotName, slotData) => {
+            if (elementData.children == null) {
+              elementData.children = []
+            }
+
+            elementData.children.push(itemsRegistry.length)
+            itemsRegistry.push({ slot: slotName, data: slotData })
+          },
+          // removes the element from its position, so it is not rendered there.
+          // the element can still be rendered from a slot by returning its registry index
+          detach: () => {
+            elementOrder.splice(elementOrder.lastIndexOf(idx), 1)
+          },
           addMatch: (matchData) => {
             itemsMatches.set(idx, matchData)
           },
@@ -111,7 +128,13 @@ module.exports = function createElementsReplacer (getElements, opts) {
             createElement = false
 
             if (renderOpts.onSlot) {
-              itemChildren = renderOpts.onSlot(ctx, currentItem.slot)
+              const slotResult = renderOpts.onSlot(ctx, currentItem.slot, currentItem.data)
+
+              if (slotResult != null) {
+                // slot items can produce new elements, extend any base item (by its registry index)
+                // or render a base item as it is (by returning directly its registry index)
+                itemChildren = normalizeOutputItems(slotResult, itemChildrenCtx)
+              }
             }
           } else {
             fromMainBase = true
@@ -159,19 +182,7 @@ module.exports = function createElementsReplacer (getElements, opts) {
                 createElement = false
                 // replace { extend: "true" } entries for the original item index, so we can reuse the
                 // original item when it gets processed
-                itemChildren = matchResult.map(({ ctx, ...restOfMatch }) => {
-                  const normalizedMatch = restOfMatch
-
-                  if (normalizedMatch.extend === true) {
-                    normalizedMatch.extend = item
-                  }
-
-                  if (ctx != null) {
-                    itemChildrenCtx.set(normalizedMatch, ctx)
-                  }
-
-                  return normalizedMatch
-                })
+                itemChildren = normalizeOutputItems(matchResult, itemChildrenCtx, item)
               }
             }
           }
@@ -241,6 +252,31 @@ module.exports = function createElementsReplacer (getElements, opts) {
       return parts.join('')
     }
   }
+}
+
+function normalizeOutputItems (outputItems, itemsCtx, matchedItemIdx) {
+  return outputItems.map((outputItem) => {
+    // registry index of a base item, it is rendered as it is
+    if (typeof outputItem === 'number') {
+      return outputItem
+    }
+
+    const { ctx, ...normalizedItem } = outputItem
+
+    if (normalizedItem.extend === true) {
+      if (matchedItemIdx == null) {
+        throw new Error('"extend: true" is only supported for items returned from a match')
+      }
+
+      normalizedItem.extend = matchedItemIdx
+    }
+
+    if (ctx != null) {
+      itemsCtx.set(normalizedItem, ctx)
+    }
+
+    return normalizedItem
+  })
 }
 
 function createTextRegistry () {
