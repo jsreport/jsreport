@@ -1,57 +1,92 @@
 const { serialize, parse, infiniteRetry, retry } = require('./customUtils')
 
-function collectDocsInHierarchy (folder, store, singlelLevel = false) {
+function collectDocsInHierarchy (folder, documents) {
   const entities = [folder]
-  function _collectDocsInHierarchy (folder, store) {
-    for (const es in store.documents) {
-      for (const doc of store.documents[es]) {
+  function _collectDocsInHierarchy (folder) {
+    for (const es in documents) {
+      for (const doc of documents[es]) {
         if (doc.folder && doc.folder.shortid === folder.shortid) {
           entities.push(doc)
-          if (doc.$entitySet === 'folders' && singlelLevel === false) {
-            _collectDocsInHierarchy(doc, store)
+          if (doc.$entitySet === 'folders') {
+            _collectDocsInHierarchy(doc)
           }
         }
       }
     }
   }
-  _collectDocsInHierarchy(folder, store)
+  _collectDocsInHierarchy(folder)
   return entities
 }
 
-module.exports = ({ persistence, fs, logger, commitedStore }) => {
+module.exports = ({ persistence, fs, logger, commitedStore, onRecovery }) => {
   return {
-    recover: () => {
+    recover: (workingDocuments) => {
       return infiniteRetry(async () => {
         if (await fs.exists('tran.journal')) {
           const journalContent = await fs.readFile('tran.journal')
-          const lines = journalContent.toString().split('\n').slice().reverse()
+          const entries = []
 
-          for (const line of lines) {
+          for (const line of journalContent.toString().split('\n')) {
             if (line.trim().length === 0) {
               continue
             }
 
-            let parsedLine
             try {
-              parsedLine = parse(line)
+              entries.push(parse(line))
             } catch (e) {
               logger.warn(`Data corruption in the transaction journal file, skipping entry ${line}`, e)
               continue
             }
+          }
 
-            switch (parsedLine.operation) {
+          const folderHints = [
+            ...((workingDocuments || commitedStore.documents).folders || []),
+            ...entries.flatMap(entry => [entry.doc, entry.originalDoc].filter(doc => doc && doc.$entitySet === 'folders'))
+          ]
+          const folders = new Map(folderHints.map(folder => [folder.shortid, folder]))
+
+          // Another pod may have replaced the journal before rollback acquired the lock.
+          // Refresh folder paths even when a working copy is available, without loading partial entities.
+          for (const folder of await persistence.loadFolders(folderHints)) {
+            folders.set(folder.shortid, folder)
+          }
+          // Journal entries describe folder versions at the time of the interrupted writes.
+          // Keep removed folders too, as their descendants may still need them to resolve paths.
+          for (const entry of entries) {
+            if (entry.doc.$entitySet === 'folders') {
+              folders.set(entry.doc.shortid, entry.doc)
+            }
+          }
+
+          for (const entry of entries.reverse()) {
+            const documents = { folders: [...folders.values()] }
+            switch (entry.operation) {
               case 'insert':
-                await persistence.remove(parsedLine.doc, commitedStore.documents)
+                await persistence.remove(entry.doc, documents)
+                if (entry.doc.$entitySet === 'folders') {
+                  folders.delete(entry.doc.shortid)
+                }
                 break
               case 'update':
-                await persistence.remove(parsedLine.doc, commitedStore.documents)
-                await persistence.insert(parsedLine.originalDoc, commitedStore.documents)
+                if (entry.doc.$entitySet === 'folders') {
+                  // Restore folder metadata without removing its child directories.
+                  await persistence.update(entry.originalDoc, entry.doc, documents)
+                  folders.set(entry.originalDoc.shortid, entry.originalDoc)
+                } else {
+                  await persistence.remove(entry.doc, documents)
+                  await persistence.insert(entry.originalDoc, documents)
+                }
                 break
               case 'remove':
-                await persistence.insert(parsedLine.doc, commitedStore.documents)
+                await persistence.insert(entry.doc, documents)
+                if (entry.doc.$entitySet === 'folders') {
+                  folders.set(entry.doc.shortid, entry.doc)
+                }
                 break
             }
           }
+          // Keep the journal until memory and the cluster notification are consistent too.
+          await onRecovery()
           return fs.remove('tran.journal')
         }
       }, (e, delay) => {
@@ -68,9 +103,9 @@ module.exports = ({ persistence, fs, logger, commitedStore }) => {
 
       return retry(() => fs.appendFile('tran.journal', contentToWrite))
     },
-    update: async (doc, originalDoc) => {
+    update: async (doc, originalDoc, documents) => {
       if (doc.$entitySet === 'folders' && (doc.folder?.shortid !== originalDoc.folder?.shortid || doc.name !== originalDoc.name)) {
-        const updatingDocs = collectDocsInHierarchy(originalDoc, commitedStore, true)
+        const updatingDocs = collectDocsInHierarchy(originalDoc, documents)
         updatingDocs.reverse()
         for (const updatingDoc of updatingDocs) {
           const content = {
@@ -101,9 +136,9 @@ module.exports = ({ persistence, fs, logger, commitedStore }) => {
         await retry(() => fs.appendFile('tran.journal', contentToWrite))
       }
     },
-    remove: async (doc) => {
+    remove: async (doc, documents) => {
       if (doc.$entitySet === 'folders') {
-        const removingDocs = collectDocsInHierarchy(doc, commitedStore)
+        const removingDocs = collectDocsInHierarchy(doc, documents)
         removingDocs.reverse()
 
         let lines = ''

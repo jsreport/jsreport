@@ -265,6 +265,215 @@ describe('provider', () => {
       dirs.filter(d => d === 'tc').should.have.length(0)
     })
 
+    it('should recover a nested entity after a committed transaction creates its parent folder', async () => {
+      const req = Request({})
+      await store.beginTransaction(req)
+      await store.collection('folders').insert({ name: 'parent', shortid: 'parent' }, req)
+      await store.commitTransaction(req)
+
+      // Fail immediately if recovery retries instead of letting the test hang.
+      sinon.stub(store.options.logger, 'error').callsFake((message, error) => { throw error })
+
+      fs.appendFileSync(path.join(tmpData, 'tran.journal'), serialize({
+        operation: 'remove',
+        doc: { name: 'recovered', $entitySet: 'templates', folder: { shortid: 'parent' } }
+      }, false) + '\n')
+
+      await store.collection('templates').insert({ name: 'trigger recovery' })
+
+      fs.existsSync(path.join(tmpData, 'parent', 'recovered', 'config.json')).should.be.true()
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+    })
+
+    describe('folder recovery', () => {
+      function failOnRecoveryError () {
+        sinon.stub(store.options.logger, 'error').callsFake((message, error) => {
+          if (message.startsWith('Rollback crashed')) throw error
+        })
+      }
+
+      function failInsert () {
+        const originalInsert = store.provider.persistence.insert
+        sinon.stub(store.provider.persistence, 'insert').callsFake((doc, documents) => {
+          if (doc.name === 'failure') throw new Error('insert interrupted')
+          return originalInsert(doc, documents)
+        })
+      }
+
+      async function restartStore () {
+        await store.provider.close()
+        store = createDefaultStore()
+        addCommonTypes(store)
+        failOnRecoveryError()
+        store.registerProvider(Provider({
+          dataDirectory: tmpData,
+          blobStorageDirectory,
+          persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
+          logger: store.options.logger,
+          resolveFileExtension: store.resolveFileExtension.bind(store),
+          createError: m => new Error(m)
+        }))
+        store.addFileExtensionResolver(() => resolveFileExtension())
+        await store.init()
+      }
+
+      async function insertSubtree () {
+        await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
+        await store.collection('folders').insert({ name: 'fb', shortid: 'fb', folder: { shortid: 'fa' } })
+        await store.collection('templates').insert({ name: 't', content: 'original', folder: { shortid: 'fb' } })
+      }
+
+      beforeEach(() => {
+        resolveFileExtension = () => 'html'
+        failOnRecoveryError()
+      })
+
+      it('should use the commit working copy to roll back newly created folders', async () => {
+        failInsert()
+        const req = Request({})
+        await store.beginTransaction(req)
+        await store.collection('folders').insert({ name: 'fa', shortid: 'fa' }, req)
+        await store.collection('folders').insert({ name: 'fb', shortid: 'fb', folder: { shortid: 'fa' } }, req)
+        await store.collection('templates').insert({ name: 't', content: 'new', folder: { shortid: 'fb' } }, req)
+        await store.collection('templates').insert({ name: 'failure' }, req)
+        await store.commitTransaction(req).should.be.rejectedWith(/insert interrupted/)
+        await store.rollbackTransaction(req)
+
+        fs.existsSync(path.join(tmpData, 'fa')).should.be.false()
+        fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+      })
+
+      it('should update folder paths while undoing a failed transaction rename', async () => {
+        await insertSubtree()
+        failInsert()
+        const req = Request({})
+        await store.beginTransaction(req)
+        await store.collection('folders').update({ shortid: 'fa' }, { $set: { name: 'renamed' } }, req)
+        await store.collection('templates').update({ name: 't' }, { $set: { content: 'changed' } }, req)
+        await store.collection('templates').insert({ name: 'failure' }, req)
+        await store.commitTransaction(req).should.be.rejectedWith(/insert interrupted/)
+        await store.rollbackTransaction(req)
+
+        fs.readFileSync(path.join(tmpData, 'fa', 'fb', 't', 'content.html')).toString().should.be.eql('original')
+        fs.existsSync(path.join(tmpData, 'renamed')).should.be.false()
+        fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+      })
+
+      it('should roll back a move into a newly created folder', async () => {
+        await insertSubtree()
+        failInsert()
+        const req = Request({})
+        await store.beginTransaction(req)
+        await store.collection('folders').insert({ name: 'target', shortid: 'target' }, req)
+        await store.collection('folders').update({ shortid: 'fb' }, { $set: { folder: { shortid: 'target' } } }, req)
+        await store.collection('templates').update({ name: 't' }, { $set: { content: 'changed' } }, req)
+        await store.collection('templates').insert({ name: 'failure' }, req)
+        await store.commitTransaction(req).should.be.rejectedWith(/insert interrupted/)
+        await store.rollbackTransaction(req)
+
+        fs.readFileSync(path.join(tmpData, 'fa', 'fb', 't', 'content.html')).toString().should.be.eql('original')
+        fs.existsSync(path.join(tmpData, 'target')).should.be.false()
+        fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+      })
+
+      it('should recover a move into a newly created folder after restart', async () => {
+        await insertSubtree()
+        failInsert()
+        const req = Request({})
+        await store.beginTransaction(req)
+        await store.collection('folders').insert({ name: 'target', shortid: 'target' }, req)
+        await store.collection('folders').update({ shortid: 'fb' }, { $set: { folder: { shortid: 'target' } } }, req)
+        await store.collection('templates').update({ name: 't' }, { $set: { content: 'changed' } }, req)
+        await store.collection('templates').insert({ name: 'failure' }, req)
+        await store.commitTransaction(req).should.be.rejectedWith(/insert interrupted/)
+        await restartStore()
+
+        const template = await store.collection('templates').findOne({ name: 't' })
+        template.content.should.be.eql('original')
+        template.folder.shortid.should.be.eql('fb')
+        fs.existsSync(path.join(tmpData, 'target')).should.be.false()
+        fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+      })
+
+      it('should roll back newly created nested folders after restart', async () => {
+        failInsert()
+        const req = Request({})
+        await store.beginTransaction(req)
+        await store.collection('folders').insert({ name: 'fa', shortid: 'fa' }, req)
+        await store.collection('folders').insert({ name: 'fb', shortid: 'fb', folder: { shortid: 'fa' } }, req)
+        await store.collection('templates').insert({ name: 't', content: 'new', folder: { shortid: 'fb' } }, req)
+        await store.collection('templates').insert({ name: 'failure' }, req)
+        await store.commitTransaction(req).should.be.rejectedWith(/insert interrupted/)
+        await restartStore()
+
+        const folders = await store.collection('folders').find({})
+        folders.should.have.length(0)
+        fs.existsSync(path.join(tmpData, 'fa')).should.be.false()
+        fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+      })
+
+      it('should restore deleted folders beneath a surviving parent after restart', async () => {
+        await insertSubtree()
+        failInsert()
+        const req = Request({})
+        await store.beginTransaction(req)
+        await store.collection('folders').remove({ shortid: 'fb' }, req)
+        await store.collection('templates').insert({ name: 'failure' }, req)
+        await store.commitTransaction(req).should.be.rejectedWith(/insert interrupted/)
+        await restartStore()
+
+        const template = await store.collection('templates').findOne({ name: 't' })
+        template.content.should.be.eql('original')
+        template.folder.shortid.should.be.eql('fb')
+        fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+      })
+
+      it('should recover a partially written template before loading data after restart', async () => {
+        await insertSubtree()
+        const originalUpdate = store.provider.persistence.update
+        sinon.stub(store.provider.persistence, 'update').callsFake(async (...args) => {
+          await originalUpdate(...args)
+          fs.writeFileSync(path.join(tmpData, 'fa', 'fb', 't', 'config.json'), '{')
+          throw new Error('update interrupted')
+        })
+        const req = Request({})
+        await store.beginTransaction(req)
+        await store.collection('templates').update({ name: 't' }, { $set: { content: 'changed' } }, req)
+        await store.commitTransaction(req).should.be.rejectedWith(/update interrupted/)
+        await restartStore()
+
+        const template = await store.collection('templates').findOne({ name: 't' })
+        template.content.should.be.eql('original')
+        fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+      })
+
+      it('should reconstruct a renamed folder with partially written metadata after restart', async () => {
+        await insertSubtree()
+        const originalUpdate = store.provider.persistence.update
+        sinon.stub(store.provider.persistence, 'update').callsFake(async (doc, originalDoc, documents) => {
+          await originalUpdate(doc, originalDoc, documents)
+          if (doc.$entitySet === 'folders' && doc.name === originalDoc.name) {
+            fs.writeFileSync(path.join(tmpData, 'renamed', 'config.json'), '{')
+            throw new Error('update interrupted')
+          }
+        })
+        const req = Request({})
+        await store.beginTransaction(req)
+        await store.collection('folders').update({ shortid: 'fa' }, { $set: { name: 'renamed' } }, req)
+        await store.collection('templates').update({ name: 't' }, { $set: { content: 'changed' } }, req)
+        await store.collection('folders').update({ shortid: 'fa' }, { $set: { creationDate: new Date(0) } }, req)
+        await store.commitTransaction(req).should.be.rejectedWith(/update interrupted/)
+        await restartStore()
+
+        const template = await store.collection('templates').findOne({ name: 't' })
+        template.content.should.be.eql('original')
+        fs.existsSync(path.join(tmpData, 'fa', 'fb', 't', 'config.json')).should.be.true()
+        fs.existsSync(path.join(tmpData, 'renamed')).should.be.false()
+        fs.existsSync(path.join(tmpData, 'fb')).should.be.false()
+        fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+      })
+    })
+
     it('commit should properly handle folder updates', async () => {
       await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
       await store.collection('templates').insert({ name: 't', folder: { shortid: 'fa' } })
@@ -448,6 +657,32 @@ describe('provider', () => {
         should(fs.readdirSync(path.join(tmpData, 'fa')).find(d => d === 'fx')).not.be.ok()
         fs.readdirSync(path.join(tmpData, 'fa', 'fb', 't')).find(d => d === 'config.json').should.be.ok()
       }
+    })
+
+    it('should preserve descendants when recovering a failed folder metadata update', async () => {
+      resolveFileExtension = () => 'html'
+      await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
+      await store.collection('folders').insert({ name: 'fb', shortid: 'fb', folder: { shortid: 'fa' } })
+      await store.collection('templates').insert({ name: 't', content: 'original', folder: { shortid: 'fb' } })
+      const originalFolder = await store.collection('folders').findOne({ shortid: 'fa' })
+
+      // Stop a broken recovery immediately instead of retrying indefinitely.
+      sinon.stub(store.options.logger, 'error').callsFake((message, error) => { throw error })
+      const originalUpdate = store.provider.persistence.update
+      sinon.stub(store.provider.persistence, 'update').callsFake(originalUpdate)
+        .onFirstCall().callsFake(async (...args) => {
+          await originalUpdate(...args)
+          throw new Error('folder update interrupted')
+        })
+
+      await store.collection('folders').update({ shortid: 'fa' }, { $set: { creationDate: new Date(0) } })
+        .should.be.rejectedWith(/folder update interrupted/)
+
+      const restoredFolder = parse(fs.readFileSync(path.join(tmpData, 'fa', 'config.json')).toString())
+      restoredFolder.creationDate.should.be.eql(originalFolder.creationDate)
+      fs.existsSync(path.join(tmpData, 'fa', 'fb', 'config.json')).should.be.true()
+      fs.readFileSync(path.join(tmpData, 'fa', 'fb', 't', 'content.html')).toString().should.be.eql('original')
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
     })
 
     it('recovering folder remove and fail in the middle', async () => {
@@ -1049,6 +1284,157 @@ describe('cluster', () => {
       name: 'a'
     })
     doc.name.should.be.eql('a')
+  })
+
+  describe('recovery synchronization', () => {
+    beforeEach(async () => {
+      // Verify synchronization itself, without the external-editor watcher recovering first.
+      await store1.provider.externalModificationsSync.close()
+      await store2.provider.externalModificationsSync.close()
+      sinon.stub(store2.options.logger, 'error').callsFake((message, error) => {
+        if (message.startsWith('Rollback crashed')) throw error
+      })
+    })
+
+    async function createSubtree () {
+      const req = Request({})
+      await store1.beginTransaction(req)
+      await store1.collection('folders').insert({ name: 'fa', shortid: 'fa' }, req)
+      await store1.collection('folders').insert({ name: 'fb', shortid: 'fb', folder: { shortid: 'fa' } }, req)
+      await store1.collection('templates').insert({ name: 't', content: 'original', folder: { shortid: 'fb' } }, req)
+      await store1.commitTransaction(req)
+    }
+
+    async function interruptDeletion () {
+      const originalInsert = store1.provider.persistence.insert
+      sinon.stub(store1.provider.persistence, 'insert').callsFake((doc, documents) => {
+        if (doc.name === 'failure') throw new Error('insert interrupted')
+        return originalInsert(doc, documents)
+      })
+      const req = Request({})
+      await store1.beginTransaction(req)
+      await store1.collection('folders').remove({ shortid: 'fb' }, req)
+      await store1.collection('templates').insert({ name: 'failure' }, req)
+      await store1.commitTransaction(req).should.be.rejectedWith(/insert interrupted/)
+      return req
+    }
+
+    it('should recover before synchronization loads partially modified files', async () => {
+      await createSubtree()
+      await interruptDeletion()
+      const originalLoad = store2.provider.persistence.load
+      sinon.stub(store2.provider.persistence, 'load').callsFake(() => {
+        fs.existsSync(path.join(tmpData, 'fa', 'fb', 't', 'config.json')).should.be.true()
+        return originalLoad()
+      })
+
+      await store2.provider.sync()
+
+      const template = await store2.collection('templates').findOne({ name: 't' })
+      template.content.should.be.eql('original')
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+    })
+
+    it('should refresh recovered memory before executing a subsequent write', async () => {
+      await createSubtree()
+      await interruptDeletion()
+
+      await store2.collection('templates').insert({ name: 'subsequent write' })
+
+      const template = await store2.collection('templates').findOne({ name: 't' })
+      should.exists(template)
+      template.content.should.be.eql('original')
+      await store2.provider.sync()
+      const subsequent = await store2.collection('templates').findOne({ name: 'subsequent write' })
+      should.exists(subsequent)
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+    })
+
+    it('should notify another server after rollback restores the files', async () => {
+      await createSubtree()
+      await store2.provider.sync()
+      const req = await interruptDeletion()
+      // Simulate a server that already loaded the interrupted filesystem state.
+      await store2.provider.reload()
+      const missing = await store2.collection('templates').findOne({ name: 't' })
+      should(missing).be.null()
+
+      await store1.rollbackTransaction(req)
+      await store2.provider.sync()
+
+      const restored = await store2.collection('templates').findOne({ name: 't' })
+      should.exists(restored)
+      restored.content.should.be.eql('original')
+    })
+
+    it('should use current folder paths when delayed rollback encounters another server journal', async () => {
+      await createSubtree()
+      sinon.stub(store1.options.logger, 'error').callsFake((message, error) => {
+        if (message.startsWith('Rollback crashed')) throw error
+      })
+      const insert1 = store1.provider.persistence.insert
+      sinon.stub(store1.provider.persistence, 'insert').callsFake((doc, documents) => {
+        if (doc.name === 'failure') throw new Error('insert interrupted')
+        return insert1(doc, documents)
+      })
+      const firstReq = Request({})
+      await store1.beginTransaction(firstReq)
+      await store1.collection('templates').insert({ name: 'failure' }, firstReq)
+      await store1.commitTransaction(firstReq).should.be.rejectedWith(/insert interrupted/)
+
+      await store2.provider.sync()
+      await store2.collection('folders').update({ shortid: 'fa' }, { $set: { name: 'renamed' } })
+      const insert2 = store2.provider.persistence.insert
+      sinon.stub(store2.provider.persistence, 'insert').callsFake((doc, documents) => {
+        if (doc.name === 'failure') throw new Error('insert interrupted')
+        return insert2(doc, documents)
+      })
+      const secondReq = Request({})
+      await store2.beginTransaction(secondReq)
+      await store2.collection('templates').remove({ name: 't' }, secondReq)
+      await store2.collection('templates').insert({ name: 'failure' }, secondReq)
+      await store2.commitTransaction(secondReq).should.be.rejectedWith(/insert interrupted/)
+
+      // The first caller resumes with an older working copy, but the journal now belongs to store2.
+      await store1.rollbackTransaction(firstReq)
+
+      fs.existsSync(path.join(tmpData, 'renamed', 'fb', 't', 'config.json')).should.be.true()
+      fs.existsSync(path.join(tmpData, 'fa')).should.be.false()
+      await store2.provider.sync()
+      const restored = await store2.collection('templates').findOne({ name: 't' })
+      restored.content.should.be.eql('original')
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+    })
+
+    it('should retain the recovery journal if reloading recovered memory fails', async () => {
+      await createSubtree()
+      await interruptDeletion()
+      const load = sinon.stub(store2.provider.persistence, 'load').rejects(new Error('reload interrupted'))
+
+      await store2.provider.sync().should.be.rejectedWith(/reload interrupted/)
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.true()
+
+      load.restore()
+      await store2.provider.sync()
+      const restored = await store2.collection('templates').findOne({ name: 't' })
+      restored.content.should.be.eql('original')
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+    })
+
+    it('should retain the recovery journal if publishing the reload notification fails', async () => {
+      await createSubtree()
+      await interruptDeletion()
+      const publish = sinon.stub(store2.provider.journal, 'commit').rejects(new Error('publication interrupted'))
+
+      await store2.provider.sync().should.be.rejectedWith(/publication interrupted/)
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.true()
+
+      publish.restore()
+      await store2.provider.sync()
+      const restored = await store2.collection('templates').findOne({ name: 't' })
+      restored.content.should.be.eql('original')
+      fs.existsSync(path.join(tmpData, 'tran.journal')).should.be.false()
+    })
   })
 
   it('journal should be cleaned from old entries', async () => {

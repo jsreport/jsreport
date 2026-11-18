@@ -7,7 +7,8 @@ module.exports = ({
   getCurrentStore,
   queue,
   reload,
-  logger
+  logger,
+  recover
 }) => {
   async function loadVersion () {
     const fileExists = await fs.exists('fs.version')
@@ -78,6 +79,8 @@ module.exports = ({
     },
 
     async sync () {
+      // The caller holds the filesystem lock. Recover before reading potentially partial data.
+      await recover()
       const currentVersion = await loadVersion()
 
       if (this.lastSync.getTime() + MAX_JOURNAL_ITEM_AGE < new Date().getTime()) {

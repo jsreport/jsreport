@@ -86,7 +86,11 @@ module.exports = ({
         persistence: this.persistence,
         fs: this.fs,
         logger,
-        documentsModel: this.documentsModel
+        documentsModel: this.documentsModel,
+        onRecovery: async () => {
+          await this.reload()
+          await this.journal.commit()
+        }
       })
 
       this.journal = Journal({
@@ -94,7 +98,8 @@ module.exports = ({
         getCurrentStore: this.transaction.getCurrentStore.bind(this.transaction),
         reload: this.reload.bind(this),
         logger,
-        queue: this.queue
+        queue: this.queue,
+        recover: () => this.transaction.init()
       })
       this.transaction.journal = this.journal
 

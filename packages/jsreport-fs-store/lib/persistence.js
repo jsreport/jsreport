@@ -132,6 +132,47 @@ async function load (fs, directory, model, documents, { dataDirectory, blobStora
   return documents
 }
 
+async function loadFolders (fs, directory, folders, folderHints, parentFolder, options) {
+  const entries = await fs.readdir(directory)
+
+  if (directory) {
+    let folder
+    if (entries.includes('config.json')) {
+      const content = await fs.readFile(fs.path.join(directory, 'config.json'))
+      try {
+        folder = parse(content.toString())
+      } catch (e) {
+        // An interrupted write may leave invalid metadata; try the journal's folder definitions.
+      }
+    }
+    if (!folder || !folder.$entitySet) {
+      folder = folderHints.find(doc => doc.name === fs.path.basename(directory) && doc.folder?.shortid === parentFolder?.shortid)
+    }
+    if (!folder || folder.$entitySet !== 'folders') {
+      return folders
+    }
+
+    folder = { ...folder, name: fs.path.basename(directory) }
+    if (parentFolder) {
+      folder.folder = { shortid: parentFolder.shortid }
+    } else {
+      delete folder.folder
+    }
+    folders.push(folder)
+    parentFolder = folder
+  }
+
+  await pMap(entries, async name => {
+    const entryPath = fs.path.join(directory, name)
+    const stat = await fs.stat(entryPath)
+    if (!stat.isDirectory()) return
+    if (options.blobStorageDirectory && options.blobStorageDirectory.startsWith(options.dataDirectory) && name === path.basename(options.blobStorageDirectory)) return
+    await loadFolders(fs, entryPath, folders, folderHints, parentFolder, options)
+  }, { concurrency: options.loadConcurrency })
+
+  return folders
+}
+
 async function persistToPath (fs, resolveFileExtension, model, docPath, doc, originalDoc, documents) {
   if (!(await fs.exists(docPath))) {
     await fs.mkdir(docPath)
@@ -330,5 +371,6 @@ module.exports = ({ fs, documentsModel, corruptAlertThreshold, resolveFileExtens
     await loadFlatDocuments(fs, documentsModel, documents, corruptAlertThreshold)
     return documents
   },
+  loadFolders: (folderHints = []) => loadFolders(fs, '', [], folderHints, null, { dataDirectory, blobStorageDirectory, loadConcurrency }),
   compact: (documents) => compactFlatFiles(fs, documentsModel, documents, corruptAlertThreshold)
 })

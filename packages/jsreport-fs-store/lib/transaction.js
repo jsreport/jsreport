@@ -2,19 +2,15 @@ const { lock } = require('./customUtils')
 const Store = require('./store')
 const TransactionJournal = require('./transactionJournal')
 
-module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
-  let commitedStore = Store({}, {
+module.exports = ({ queue, persistence, fs, logger, documentsModel, onRecovery }) => {
+  const commitedStore = Store({}, {
     documentsModel
   })
 
-  const transactionJournal = TransactionJournal({ fs, logger, persistence, commitedStore })
+  const transactionJournal = TransactionJournal({ fs, logger, persistence, commitedStore, onRecovery })
 
   const createPersistenceWithJournal = (transactional) => ({
     insert: async (doc, documents) => {
-      if (!transactional) {
-        await transactionJournal.recover()
-      }
-
       await transactionJournal.insert(doc)
 
       try {
@@ -30,11 +26,7 @@ module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
       }
     },
     update: async (doc, originalDoc, documents) => {
-      if (!transactional) {
-        await transactionJournal.recover()
-      }
-
-      await transactionJournal.update(doc, originalDoc)
+      await transactionJournal.update(doc, originalDoc, documents)
 
       try {
         await persistence.update(doc, originalDoc, documents)
@@ -49,11 +41,7 @@ module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
       }
     },
     remove: async (doc, documents) => {
-      if (!transactional) {
-        await transactionJournal.recover()
-      }
-
-      await transactionJournal.remove(doc)
+      await transactionJournal.remove(doc, documents)
 
       try {
         await persistence.remove(doc, documents)
@@ -86,11 +74,14 @@ module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
     },
 
     begin () {
-      return queue.push(() => lock(fs, () => ({
-        store: commitedStore.clone(),
-        operations: [],
-        beginTime: Date.now()
-      })))
+      return queue.push(() => lock(fs, async () => {
+        await this.journal.sync()
+        return {
+          store: commitedStore.clone(),
+          operations: [],
+          beginTime: Date.now()
+        }
+      }))
     },
 
     async operation (opts, fn) {
@@ -122,7 +113,10 @@ module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
     async commit (transaction) {
       return queue.push(() => lock(fs, async () => {
         try {
+          await this.journal.sync()
           const storeClone = commitedStore.clone()
+          // Retain the partially applied hierarchy for rollback if commit fails.
+          transaction.commitStore = storeClone
 
           // eslint-disable-next-line no-unused-vars
           for (const op of transaction.operations) {
@@ -133,7 +127,7 @@ module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
           for (const entitySet in storeClone.documents) {
             // eslint-disable-next-line no-unused-vars
             for (const transactionEntity of storeClone.documents[entitySet]) {
-              const commitedEntity = commitedStore.documents[entitySet].find(e => e._id)
+              const commitedEntity = commitedStore.documents[entitySet].find(e => e._id === transactionEntity._id)
               if (commitedEntity &&
                 transactionEntity.$$etag !== commitedEntity.$$etag &&
                 commitedEntity.$$etag > transaction.beginTime
@@ -143,7 +137,7 @@ module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
             }
           }
 
-          commitedStore = storeClone
+          commitedStore.replace(storeClone.documents)
           await transactionJournal.clean()
           await this.journal.commit()
         } catch (e) {
@@ -153,8 +147,8 @@ module.exports = ({ queue, persistence, fs, logger, documentsModel }) => {
       }))
     },
 
-    async rollback () {
-      return queue.push(() => lock(fs, () => transactionJournal.recover()))
+    async rollback (transaction) {
+      return queue.push(() => lock(fs, () => transactionJournal.recover(transaction?.commitStore?.documents)))
     },
 
     close () {
