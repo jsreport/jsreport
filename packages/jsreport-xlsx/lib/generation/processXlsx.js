@@ -6,6 +6,7 @@ const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const preprocess = require('./preprocess/preprocess')
 const postprocess = require('./postprocess/postprocess')
 const { createIdCollectionManager } = require('./idManager')
+const { createFileChanges } = require('./fileChanges')
 const { parseXML, contentIsXML, isWorksheetFile, getStyleFile, serializeXmlAsHandlebarsSafeOutput } = require('../utils')
 const generationUtils = require('../generationUtils')
 const cellUtils = require('../cellUtils')
@@ -52,6 +53,7 @@ module.exports = (reporter) => async (inputs, req) => {
     }
 
     const evalId = generateRandomId()
+    const [fileChanges, applyFileChanges] = createFileChanges(files)
 
     const sharedData = {
       get evalId () {
@@ -65,7 +67,8 @@ module.exports = (reporter) => async (inputs, req) => {
       // the current metadata about the files in the base template xlsx
       fileDataMap: new Map(),
       changes: {
-        files: new Map()
+        // the changes to the files of the xlsx (additions, removals)
+        files: fileChanges
       },
       helpers: {
         parseXML,
@@ -85,6 +88,10 @@ module.exports = (reporter) => async (inputs, req) => {
         return options[configName]
       }
     }
+
+    // the style file is resolved before preprocess because the workbook relationships are
+    // replaced with the call that renders them
+    const styleFilePath = getStyleFile(files)?.path
 
     await preprocess(files, sharedData)
 
@@ -123,7 +130,7 @@ module.exports = (reporter) => async (inputs, req) => {
       entitySet: 'templates'
     }, req)
 
-    const filesToEvaluate = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)))
+    const filesToEvaluate = ensureOrderOfFiles(files.filter(f => contentIsXML(f.data)), styleFilePath)
     const xmlTemplateParts = []
     const filesToRender = []
 
@@ -132,6 +139,11 @@ module.exports = (reporter) => async (inputs, req) => {
       // it contains handlebars tags that we dont care to process, because we extract the tags
       // from its text during preprocess
       if (f.path === 'xl/sharedStrings.xml') {
+        continue
+      }
+
+      // the file is going to be removed, no need to render it
+      if (!sharedData.changes.files.exists(f.path)) {
         continue
       }
 
@@ -237,13 +249,8 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }
 
-    // add any new files added directly through the sharedData.changes.files api
-    for (const [filePath, bufContent] of sharedData.changes.files) {
-      files.push({
-        path: filePath,
-        data: bufContent
-      })
-    }
+    // apply the changes to the files requested through the sharedData.changes.files api
+    applyFileChanges()
 
     await postprocess(files, sharedData)
 
@@ -280,7 +287,7 @@ module.exports = (reporter) => async (inputs, req) => {
   }
 }
 
-function ensureOrderOfFiles (files) {
+function ensureOrderOfFiles (files, styleFilePath) {
   // we want to ensure a specific order of files for the render processing,
   // 1. ensure style file comes as the first
   // 2. ensure calcChain.xml comes after sheet files (we just put it at the end of everything)
@@ -291,11 +298,10 @@ function ensureOrderOfFiles (files) {
 
   const skipIndexesSet = new Set()
 
-  const styleFile = getStyleFile(files)
   let styleIdx = -1
 
-  if (styleFile != null) {
-    styleIdx = files.findIndex((file) => file.path === styleFile.path)
+  if (styleFilePath != null) {
+    styleIdx = files.findIndex((file) => file.path === styleFilePath)
   }
 
   for (const idx of [styleIdx, calcChainIdx]) {
