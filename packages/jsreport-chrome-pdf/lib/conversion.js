@@ -1,7 +1,7 @@
 const get = require('lodash.get')
 const hasOwn = require('has-own-deep')
 
-module.exports = async ({ reporter, getBrowser, pageSource, strategy, timeout, req, imageExecution, allowLocalFilesAccess, useEvaluateInsteadOfEvaluateOnNewDocument, options }) => {
+module.exports = async ({ reporter, getBrowser, getPage = (browser) => browser.newPage(), pageSource, strategy, timeout, req, imageExecution, allowLocalFilesAccess, useEvaluateInsteadOfEvaluateOnNewDocument, options }) => {
   const optionsToUse = Object.assign({}, options)
   optionsToUse.timeout = timeout
 
@@ -60,7 +60,7 @@ module.exports = async ({ reporter, getBrowser, pageSource, strategy, timeout, r
 
     reporter.logger.debug(`Converting with chrome ${chromeVersion} using ${strategy} strategy`, req)
 
-    const page = await browser.newPage()
+    const page = await getPage(browser)
 
     if (executionInfo.error) {
       return

@@ -167,7 +167,7 @@ describe('chrome close', () => {
 
     function createStrategy (strategy, options) {
       return strategy({
-        reporter: { getReportTimeout: () => 1000 },
+        reporter: { getReportTimeout: () => 1000, logger: { warn: () => {} } },
         puppeteer: { launch: (launchOptions) => launchImpl(launchOptions) },
         options
       })
@@ -278,6 +278,48 @@ describe('chrome close', () => {
 
         browsers.should.have.length(1)
         browsers[0].proc.signals.should.be.eql(['SIGKILL'])
+      })
+
+      it('should reject queued and new renders when the worker closes during context cleanup', async () => {
+        let contextCloseStarted
+        const contextClosing = new Promise((resolve) => { contextCloseStarted = resolve })
+        let failClose
+
+        conversionImpl = async ({ getBrowser, getPage }) => {
+          const browser = await getBrowser()
+          browser.createBrowserContext = async () => ({
+            newPage: async () => {},
+            close: async () => {
+              if (browser === browsers[0]) {
+                await new Promise((resolve, reject) => {
+                  failClose = () => reject(new Error('Target closed'))
+                  contextCloseStarted()
+                })
+              }
+            }
+          })
+          await getPage(browser)
+          return output()
+        }
+
+        const execute = createStrategy(chromePoolStrategy, { numberOfWorkers: 1 })
+        const firstRender = render(execute)
+        await contextClosing
+        const queuedRender = render(execute)
+        await new Promise(setImmediate)
+
+        const shutdown = execute.kill()
+        const results = Promise.allSettled([queuedRender, render(execute)])
+        await shutdown
+        failClose()
+        await firstRender
+
+        browsers.should.have.length(1)
+        browsers[0].proc.signals.should.be.eql(['SIGKILL'])
+        for (const result of await results) {
+          result.status.should.be.eql('rejected')
+          result.reason.message.should.match(/Chrome pool is closing/)
+        }
       })
 
       it('should not keep a slot busy when the browser launch fails', async () => {

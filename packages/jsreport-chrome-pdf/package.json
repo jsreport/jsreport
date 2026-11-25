@@ -42,7 +42,7 @@
     "standard": "16.0.4"
   },
   "peerDependencies": {
-    "puppeteer": ">=21.1.x"
+    "puppeteer": ">=22.0.0"
   },
   "engines": {
     "node": ">=22.18"

@@ -2,11 +2,14 @@ const conversion = require('./conversion')
 const preparePageSource = require('./preparePageSource')
 const { killBrowser } = require('./killBrowser')
 
+const closingErrorMessage = 'Chrome pool is closing'
+
 module.exports = ({ reporter, puppeteer, options }) => {
   const pool = []
   const tasksQueue = []
   const { numberOfWorkers } = options
   let closing = false
+  const isClosing = () => closing
 
   if (numberOfWorkers < 1) {
     throw new Error('"numberOfWorkers" must be a number greater or equal than 1')
@@ -14,7 +17,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
 
   const execute = async ({ strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess, onOutput, res }) => {
     let browserInfo
-    let page
+    let browserContext
     let releaseBrowser
     let crashError = false
     let timeoutError = false
@@ -31,7 +34,8 @@ module.exports = ({ reporter, puppeteer, options }) => {
             tasksQueue,
             {
               numberOfWorkers,
-              launchOptions
+              launchOptions,
+              isClosing
             }
           )
 
@@ -39,6 +43,10 @@ module.exports = ({ reporter, puppeteer, options }) => {
           releaseBrowser = allocation.releaseBrowser
 
           return browserInfo.instance
+        },
+        getPage: async (browser) => {
+          browserContext = await browser.createBrowserContext()
+          return browserContext.newPage()
         },
         pageSource,
         strategy,
@@ -48,8 +56,6 @@ module.exports = ({ reporter, puppeteer, options }) => {
         imageExecution,
         options: conversionOptions
       })
-
-      page = result.page
 
       const output = {
         type: result.type,
@@ -71,24 +77,35 @@ module.exports = ({ reporter, puppeteer, options }) => {
 
       throw err
     } finally {
-      if (releaseBrowser) {
-        releaseBrowser()
-      }
-
       if ((crashError || timeoutError) && browserInfo) {
-        recycleBrowser(puppeteer, browserInfo, launchOptions, { isClosing: () => closing }).catch(() => {}).then(() => {
+        recycleBrowser(puppeteer, browserInfo, launchOptions, { isClosing }).catch(() => {}).then(() => {
           tryFlushTasksQueue(puppeteer, pool, tasksQueue)
         })
-      } else if (page && !page.isClosed()) {
-        await page.close()
+      } else {
+        try {
+          if (browserContext) {
+            await browserContext.close()
+          }
+        } catch (error) {
+          releaseBrowser = null
+          reporter.logger.warn(`Unable to close the Chrome browser context: ${error.message}`, req)
+          await recycleBrowser(puppeteer, browserInfo, launchOptions, { isClosing }).catch(() => {})
+        } finally {
+          if (releaseBrowser) {
+            releaseBrowser()
+          }
+          tryFlushTasksQueue(puppeteer, pool, tasksQueue)
+        }
       }
-
-      tryFlushTasksQueue(puppeteer, pool, tasksQueue)
     }
   }
 
   execute.kill = async () => {
     closing = true
+
+    for (const task of tasksQueue.splice(0)) {
+      task.reject(new Error(closingErrorMessage))
+    }
 
     await Promise.all(pool.map(async (browserInfo) => {
       if (browserInfo.recycling) {
@@ -119,7 +136,12 @@ async function createBrowser (puppeteer, browserInfo, launchOptions) {
 }
 
 async function allocateBrowser (puppeteer, pool, tasksQueue, options) {
-  const { numberOfWorkers, launchOptions } = options
+  const { numberOfWorkers, launchOptions, isClosing } = options
+
+  if (isClosing()) {
+    throw new Error(closingErrorMessage)
+  }
+
   let browserInfo
 
   if (pool.length < numberOfWorkers) {
