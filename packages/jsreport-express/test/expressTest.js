@@ -540,6 +540,93 @@ describe('express with disabled cors', () => {
   })
 })
 
+describe('express with workers.maxQueueSize', () => {
+  let jsreport
+
+  beforeEach(async () => {
+    jsreport = JsReport({ workers: { numberOfWorkers: 1, maxQueueSize: 1 } })
+      .use(require('../')())
+
+    await jsreport.init()
+    await jsreport.documentStore.collection('templates').insert({
+      name: 'foo',
+      shortid: 'foo',
+      content: 'foo',
+      engine: 'none',
+      recipe: 'html'
+    })
+  })
+
+  afterEach(() => jsreport && jsreport.close())
+
+  const occupyWorker = async () => {
+    let started
+    let release
+    const workerBusy = new Promise((resolve) => { started = resolve })
+    const blocker = new Promise((resolve) => { release = resolve })
+    jsreport.beforeRenderListeners.add('test', async (req) => {
+      if (req.template.content === 'slow') {
+        started()
+        await blocker
+      }
+    })
+    const first = jsreport.render({ template: { content: 'slow', engine: 'none', recipe: 'html' } })
+    await workerBusy
+    return { first, release }
+  }
+
+  const waitForQueueLength = async (length) => {
+    for (let i = 0; i < 100 && jsreport._workersManager.pool.tasksQueue.length < length; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
+    jsreport._workersManager.pool.tasksQueue.length.should.be.eql(length)
+  }
+
+  const postReport = () => supertest(jsreport.express.app)
+    .post('/api/report')
+    .send({ template: { content: 'hello', engine: 'none', recipe: 'html' } })
+    .then((res) => res)
+
+  const getTemplate = () => supertest(jsreport.express.app)
+    .get('/templates/foo')
+    .then((res) => res)
+
+  it('/api/report should return 429 when all workers are busy and the queue is full', async () => {
+    const { first, release } = await occupyWorker()
+
+    const queued = postReport()
+    await waitForQueueLength(1)
+
+    const rejected = await postReport()
+    rejected.status.should.be.eql(429)
+    rejected.body.message.should.match(/Too many requests/)
+
+    release()
+    ;(await queued).status.should.be.eql(200)
+    await first
+  })
+
+  it('/templates/:shortid should count in the queue but never get 429', async () => {
+    const { first, release } = await occupyWorker()
+
+    const templateRender = getTemplate()
+    await waitForQueueLength(1)
+
+    const rejected = await postReport()
+    rejected.status.should.be.eql(429)
+
+    const overflowTemplateRender = getTemplate()
+    await waitForQueueLength(2)
+    release()
+
+    for (const res of [await templateRender, await overflowTemplateRender]) {
+      res.status.should.be.eql(200)
+      res.text.should.be.eql('foo')
+    }
+    await first
+  })
+})
+
 describe('express with low reportTimeout', () => {
   let jsreport
 
