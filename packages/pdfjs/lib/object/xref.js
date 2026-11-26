@@ -116,44 +116,69 @@ module.exports = class PDFXref {
 
     xref.trailer = obj.properties
 
-    const index = obj.properties.get('Index')
-    const start = index ? index[0] : 0
+    // /Index is an array of pairs [first1 count1 first2 count2 ...], one pair per sub-section,
+    // the object numbers between sub-sections may have gaps (ISO 32000-1 7.5.8.2)
+    const ids = getXrefStreamIds(obj.properties.get('Index') || [0, obj.properties.get('Size')])
+    // a zero in /W means the field is not present in the stream and its default value is used,
+    // the type field defaults to 1 and the generation number of type 1 entries defaults to 0 (ISO 32000-1 7.5.8.2, Table 17 and 18)
     const w = obj.properties.get('W')
-    const typeSize = w[0] || 1
-    const offsetSize = w[1] || 2
-    const genSize = w[2] || 1
+    const typeSize = w[0]
+    const offsetSize = w[1]
+    const genSize = w[2]
     const len = stream.length / (typeSize + offsetSize + genSize)
     let pos = 0
     for (let i = 0; i < len; ++i) {
-      const type = readUint(stream, pos, typeSize)
+      const type = typeSize > 0 ? readUint(stream, pos, typeSize) : 1
       pos += typeSize
       const offset = readUint(stream, pos, offsetSize)
       pos += offsetSize
+      const field3 = readUint(stream, pos, genSize)
+      pos += genSize
       switch (type) {
-        case 0: // free
-          pos += genSize
-          continue // skip type 0 entries (free entries)
         case 1: // normal
-          xref.add(start + i, {
+          xref.add(getXrefStreamId(ids, i), {
             offset
           })
-          pos += genSize
           break
         case 2: // compressed
-          xref.add(start + i, {
+          xref.add(getXrefStreamId(ids, i), {
             compressed: true,
             id: offset,
-            ix: readUint(stream, pos, genSize)
+            ix: field3
           })
-          pos += genSize
           break
         default:
+          // type 0 entries are free objects, any other type shall be interpreted
+          // as a reference to the null object (ISO 32000-1 7.5.8.3), so they are skipped
           continue
       }
     }
 
     return xref
   }
+}
+
+function getXrefStreamIds (ranges) {
+  const ids = []
+
+  for (let r = 0; r + 1 < ranges.length; r += 2) {
+    for (let k = 0; k < ranges[r + 1]; ++k) {
+      ids.push(ranges[r] + k)
+    }
+  }
+
+  return ids
+}
+
+// a malformed stream can contain more entries than declared in /Index (or /Size),
+// in that case we keep numbering the extra entries sequentially after the last declared object,
+// which is the same as the previous behaviour for a single range
+function getXrefStreamId (ids, i) {
+  if (i < ids.length) {
+    return ids[i]
+  }
+
+  return ids.length > 0 ? ids[ids.length - 1] + 1 + (i - ids.length) : i
 }
 
 function readUint (src, pos, size) {

@@ -737,6 +737,177 @@ describe('pdf utils', () => {
     parsedPdf.pages.should.have.length(2)
   })
 
+  // the fixtures use cross reference stream with multiple /Index ranges (ISO 32000-1 7.5.8.2) and catalog/pages
+  // compressed in an object stream after the gaps, they were generated with packages/pdfjs/test/xrefStreamPdf.js
+  // - xref-stream-index-ranges.pdf: 1 page, /Index [0 3 4 5]
+  // - xref-stream-index-ranges-multipage.pdf: 3 pages (MediaBox widths 601, 602, 603), /Index [0 3 4 5 10 4]
+  // pdf-utils runs as the first afterRender listener, so the fixture needs to be the recipe output,
+  // the test recipe is registered in the worker and returns the fixture selected by template content
+  const xrefStreamPdfData = () => ({
+    xrefStreamPdfs: {
+      'xref-stream': fs.readFileSync(path.join(__dirname, 'xref-stream-index-ranges.pdf')).toString('base64'),
+      'xref-stream-multipage': fs.readFileSync(path.join(__dirname, 'xref-stream-index-ranges-multipage.pdf')).toString('base64')
+    }
+  })
+
+  const registerXrefStreamPdfRecipe = () => {
+    jsreport.tests.beforeRenderEval((req, res, { reporter }) => {
+      if (reporter.extensionsManager.recipes.find((r) => r.name === 'xref-stream-pdf') != null) {
+        return
+      }
+
+      reporter.extensionsManager.recipes.push({
+        name: 'xref-stream-pdf',
+        execute: async (req, res) => {
+          res.meta.contentType = 'application/pdf'
+          res.meta.fileExtension = 'pdf'
+          await res.output.update(Buffer.from(req.data.xrefStreamPdfs[req.template.content], 'base64'))
+        }
+      })
+    })
+  }
+
+  const getPageWidths = (pdfBuffer) => new External(pdfBuffer).pages.map((page) => {
+    const pageObj = page.object || page
+    return pageObj.properties.get('MediaBox')[2]
+  })
+
+  it('pdfSign should sign pdf with cross reference stream with multiple /Index ranges', async () => {
+    registerXrefStreamPdfRecipe()
+
+    const result = await jsreport.render({
+      data: xrefStreamPdfData(),
+      template: {
+        content: 'xref-stream',
+        engine: 'none',
+        recipe: 'xref-stream-pdf',
+        pdfSign: {
+          certificateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'certificate.p12')),
+            password: 'node-signpdf'
+          }
+        }
+      }
+    })
+
+    const resultStr = result.content.toString('latin1')
+    resultStr.should.containEql('/ByteRange')
+    resultStr.should.containEql('/Sig')
+
+    const { signature, signedData } = extractSignature(result.content)
+    signature.should.be.of.type('string')
+    signedData.should.be.instanceOf(Buffer)
+
+    getPageWidths(result.content).should.be.eql([601])
+  })
+
+  it('pdfSign should sign multi page pdf with cross reference stream with multiple /Index ranges', async () => {
+    registerXrefStreamPdfRecipe()
+
+    const result = await jsreport.render({
+      data: xrefStreamPdfData(),
+      template: {
+        content: 'xref-stream-multipage',
+        engine: 'none',
+        recipe: 'xref-stream-pdf',
+        pdfSign: {
+          certificateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'certificate.p12')),
+            password: 'node-signpdf'
+          }
+        }
+      }
+    })
+
+    const resultStr = result.content.toString('latin1')
+    resultStr.should.containEql('/ByteRange')
+    resultStr.should.containEql('/Sig')
+
+    const { signature, signedData } = extractSignature(result.content)
+    signature.should.be.of.type('string')
+    signedData.should.be.instanceOf(Buffer)
+
+    getPageWidths(result.content).should.be.eql([601, 602, 603])
+  })
+
+  it('should be able to append multi page pdf with cross reference stream with multiple /Index ranges', async () => {
+    registerXrefStreamPdfRecipe()
+
+    const result = await jsreport.render({
+      data: xrefStreamPdfData(),
+      template: {
+        content: 'xref-stream-multipage',
+        engine: 'none',
+        recipe: 'xref-stream-pdf',
+        pdfOperations: [{
+          type: 'append',
+          template: {
+            content: 'xref-stream-multipage',
+            engine: 'none',
+            recipe: 'xref-stream-pdf'
+          }
+        }]
+      }
+    })
+
+    getPageWidths(result.content).should.be.eql([601, 602, 603, 601, 602, 603])
+  })
+
+  it('should be able to prepend pdf with cross reference stream with multiple /Index ranges', async () => {
+    registerXrefStreamPdfRecipe()
+
+    const result = await jsreport.render({
+      data: xrefStreamPdfData(),
+      template: {
+        content: 'xref-stream-multipage',
+        engine: 'none',
+        recipe: 'xref-stream-pdf',
+        pdfOperations: [{
+          type: 'prepend',
+          template: {
+            content: 'xref-stream',
+            engine: 'none',
+            recipe: 'xref-stream-pdf'
+          }
+        }]
+      }
+    })
+
+    getPageWidths(result.content).should.be.eql([601, 601, 602, 603])
+  })
+
+  it('should be able to merge multi page pdf with cross reference stream with multiple /Index ranges', async () => {
+    registerXrefStreamPdfRecipe()
+
+    const result = await jsreport.render({
+      data: xrefStreamPdfData(),
+      template: {
+        content: 'xref-stream-multipage',
+        engine: 'none',
+        recipe: 'xref-stream-pdf',
+        pdfOperations: [{
+          type: 'merge',
+          mergeWholeDocument: true,
+          template: {
+            content: 'xref-stream-multipage',
+            engine: 'none',
+            recipe: 'xref-stream-pdf'
+          }
+        }]
+      }
+    })
+
+    getPageWidths(result.content).should.be.eql([601, 602, 603])
+
+    // the fixture pages have empty resources, every merged page gets the merged page as xobject
+    for (const page of new External(result.content).pages) {
+      const pageObj = page.object || page
+      const xobjects = pageObj.properties.get('Resources').get('XObject')
+      should(xobjects).not.be.undefined()
+      xobjects.length.should.be.greaterThan(0)
+    }
+  })
+
   it('should be able to add meta to pdf with empty font name', async () => {
     jsreport.afterRenderListeners.insert(0, 'test', (req, res) => {
       if (req.template.content === 'main') {
