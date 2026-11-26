@@ -794,7 +794,7 @@ function docxRemove (options) {
     throw new Error('docxRemove helper parameter t must be a string')
   }
 
-  const validTargets = ['paragraph', 'row', 'table']
+  const validTargets = ['paragraph', 'row', 'column', 'table']
 
   if (!validTargets.includes(target)) {
     throw new Error(`docxRemove helper parameter t has invalid value "${target}", it must be one of these values: ${validTargets.map((t) => `"${t}"`).join(', ')}`)
