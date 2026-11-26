@@ -1,6 +1,7 @@
 const { Document, External } = require('../')
 const fs = require('fs')
 const { validate } = require('./util')
+const createXrefStreamPdf = require('./xrefStreamPdf')
 const path = require('path')
 const zlib = require('zlib')
 const { createHash } = require('crypto')
@@ -1015,6 +1016,156 @@ describe('pdfjs', () => {
     catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
   })
 
+  it('handle cross reference streams with multiple /Index ranges', async () => {
+    // /Index [0 3 4 5], object 3 is missing, catalog and pages are compressed in an object stream after the gap
+    const pdfBuffer = createXrefStreamPdf()
+    pdfBuffer.toString('latin1').should.containEql('/Index [0 3 4 5]')
+
+    const external = new External(pdfBuffer)
+    external.pages.should.have.length(1)
+    external.catalog.properties.get('Type').name.should.be.eql('Catalog')
+
+    const document = new Document()
+    document.append(new External(pdfBuffer))
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
+  it('handle cross reference streams with single /Index range', async () => {
+    const pdfBuffer = createXrefStreamPdf({ gaps: [] })
+    pdfBuffer.toString('latin1').should.containEql('/Index [0 8]')
+
+    const external = new External(pdfBuffer)
+    external.pages.should.have.length(1)
+
+    const document = new Document()
+    document.append(new External(pdfBuffer))
+    const buffer = await document.asBuffer()
+    const { catalog } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
+  it('handle cross reference streams without /Index', async () => {
+    const pdfBuffer = createXrefStreamPdf({ gaps: [], omitIndex: true })
+    pdfBuffer.toString('latin1').should.not.containEql('/Index')
+
+    const external = new External(pdfBuffer)
+    external.pages.should.have.length(1)
+
+    const document = new Document()
+    document.append(new External(pdfBuffer))
+    const buffer = await document.asBuffer()
+    const { catalog } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
+  it('handle cross reference streams with multiple /Index ranges and multiple pages', async () => {
+    // /Index [0 3 4 5 10 4], objects 3 and 9 are missing, the last page is compressed in an object stream
+    const pdfBuffer = createXrefStreamPdf(createXrefStreamPdf.multiPageOptions)
+    pdfBuffer.toString('latin1').should.containEql('/Index [0 3 4 5 10 4]')
+
+    const external = new External(pdfBuffer)
+    external.pages.should.have.length(3)
+    getPageWidths(external.pages).should.be.eql([601, 602, 603])
+
+    const document = new Document()
+    document.append(new External(pdfBuffer))
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog } = await validate(buffer)
+    getPageWidths(catalog.properties.get('Pages').object.properties.get('Kids')).should.be.eql([601, 602, 603])
+  })
+
+  it('handle cross reference streams with multiple /Index ranges when appending specific pages', async () => {
+    const pdfBuffer = createXrefStreamPdf(createXrefStreamPdf.multiPageOptions)
+
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main.pdf'))))
+    // the last page is stored in the object stream (type 2 xref entry)
+    document.append(new External(pdfBuffer), { pageIndexes: [0, 2] })
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog, texts } = await validate(buffer)
+    const kids = catalog.properties.get('Pages').object.properties.get('Kids')
+    kids.should.have.length(3)
+    texts[0].should.be.eql('main')
+    getPageWidths(kids.slice(1)).should.be.eql([601, 603])
+  })
+
+  it('handle cross reference streams with multiple /Index ranges when appending multiple documents', async () => {
+    const pdfBuffer = createXrefStreamPdf(createXrefStreamPdf.multiPageOptions)
+
+    const document = new Document()
+    document.append(new External(pdfBuffer))
+    document.append(new External(fs.readFileSync(path.join(__dirname, '3pages.pdf'))))
+    document.append(new External(pdfBuffer))
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog, texts } = await validate(buffer)
+    const kids = catalog.properties.get('Pages').object.properties.get('Kids')
+    kids.should.have.length(9)
+    texts.slice(3, 6).should.be.eql(['Page 1', 'Page 2', 'Page 3'])
+    getPageWidths(kids.slice(0, 3)).should.be.eql([601, 602, 603])
+    getPageWidths(kids.slice(6)).should.be.eql([601, 602, 603])
+  })
+
+  it('handle cross reference streams with multiple /Index ranges when merging into multiple pages', async () => {
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, '3pages.pdf'))))
+    document.merge(new External(createXrefStreamPdf(createXrefStreamPdf.multiPageOptions)))
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog, texts } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(3)
+    texts.should.be.eql(['Page 1', 'Page 2', 'Page 3'])
+  })
+
+  it('handle cross reference streams with single /Index range and multiple pages', async () => {
+    const pdfBuffer = createXrefStreamPdf({ ...createXrefStreamPdf.multiPageOptions, gaps: [] })
+    pdfBuffer.toString('latin1').should.containEql('/Index [0 12]')
+
+    const external = new External(pdfBuffer)
+    getPageWidths(external.pages).should.be.eql([601, 602, 603])
+
+    const document = new Document()
+    document.append(new External(pdfBuffer))
+    const buffer = await document.asBuffer()
+    const { catalog } = await validate(buffer)
+    getPageWidths(catalog.properties.get('Pages').object.properties.get('Kids')).should.be.eql([601, 602, 603])
+  })
+
+  it('handle cross reference streams with zero width generation field in /W', async () => {
+    // W [1 4 0], the generation field is not present and defaults to 0 (ISO 32000-1 7.5.8.2)
+    const pdfBuffer = createXrefStreamPdf({ pageCount: 2, useObjStm: false, w: [1, 4, 0] })
+    pdfBuffer.toString('latin1').should.containEql('/Index [0 3 4 6] /W [1 4 0]')
+
+    const external = new External(pdfBuffer)
+    getPageWidths(external.pages).should.be.eql([601, 602])
+
+    const document = new Document()
+    document.append(new External(pdfBuffer))
+    const buffer = await document.asBuffer()
+    const { catalog } = await validate(buffer)
+    getPageWidths(catalog.properties.get('Pages').object.properties.get('Kids')).should.be.eql([601, 602])
+  })
+
+  it('handle cross reference streams with zero width type field in /W', async () => {
+    // W [0 4 0], the type field is not present and defaults to type 1 (ISO 32000-1 7.5.8.2)
+    const pdfBuffer = createXrefStreamPdf({ pageCount: 2, useObjStm: false, w: [0, 4, 0] })
+    pdfBuffer.toString('latin1').should.containEql('/Index [1 2 4 6] /W [0 4 0]')
+
+    const external = new External(pdfBuffer)
+    getPageWidths(external.pages).should.be.eql([601, 602])
+
+    const document = new Document()
+    document.append(new External(pdfBuffer))
+    const buffer = await document.asBuffer()
+    const { catalog } = await validate(buffer)
+    getPageWidths(catalog.properties.get('Pages').object.properties.get('Kids')).should.be.eql([601, 602])
+  })
+
   it('pdf/A basic', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
@@ -1305,3 +1456,10 @@ describe('pdfjs', () => {
     metadata.should.containEql('\u017dlu\u0165ou\u010dk\u00fd &amp; &lt;report&gt;')
   })
 })
+
+function getPageWidths (pages) {
+  return pages.map((page) => {
+    const pageObj = page.object || page
+    return pageObj.properties.get('MediaBox')[2]
+  })
+}
