@@ -29,6 +29,9 @@ chrome-image
 
 ## Changelog
 
+### 4.5.1
+-  isolate pooled chromes with a new browser context
+
 ### 4.5.0
 - add `chrome.tagged` option to disable generating tagged (accesible) PDFs, producing significantly smaller files and allowing larger reports to be rendered
 
