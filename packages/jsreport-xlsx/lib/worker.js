@@ -1,10 +1,12 @@
 const fs = require('fs').promises
 const path = require('path')
+const { deflateSync } = require('zlib')
 
 module.exports = (reporter, definition) => {
-  reporter.options.sandbox.modules.push({
-    alias: 'fsproxy.js',
-    path: path.join(__dirname, '../lib/fsproxy.js')
+  reporter.extendProxy((proxy) => {
+    proxy.xlsx = {
+      compressXml: (xml) => deflateSync(xml)
+    }
   })
 
   reporter.options.sandbox.modules.push({
@@ -58,7 +60,6 @@ module.exports = (reporter, definition) => {
       req.template.content = ''
 
       req.data.$xlsxModuleDirname = path.join(__dirname, '../')
-      req.data.$tempAutoCleanupDirectory = reporter.options.tempAutoCleanupDirectory
       req.data.$addBufferSize = definition.options.addBufferSize || 50000000
       req.data.$escapeAmp = definition.options.escapeAmp
       req.data.$numberOfParsedAddIterations = definition.options.numberOfParsedAddIterations == null ? 50 : definition.options.numberOfParsedAddIterations

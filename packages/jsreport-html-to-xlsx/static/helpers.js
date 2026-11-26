@@ -2,7 +2,12 @@
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
 ;(function (global) {
-  const tmpHandler = global.tmpHandler || require('tmpHandler.js')
+  const jsreport = require('jsreport-proxy')
+
+  function writeRowsToTempFile (chunks) {
+    const { filename } = jsreport.writeTempFileSync((uuid) => `${uuid}.html`, chunks.join(''))
+    return filename
+  }
 
   function jsrenderHandlebarsCompatibility (fn) {
     return function () {
@@ -32,7 +37,7 @@
   }
 
   function eachRows (data, options) {
-    const maxRows = 1000
+    const maxRows = 2000
     let totalRows = 0
     let rowsCount = 0
     const files = []
@@ -66,8 +71,7 @@
         totalRows++
 
         if (rowsCount === maxRows) {
-          const tempFile = tmpHandler.write(this.ctx.root.$tempAutoCleanupDirectory, chunks.join(''))
-          files.push(tmpHandler.basename(tempFile))
+          files.push(writeRowsToTempFile(chunks))
           rowsCount = 0
           chunks = []
         }
@@ -85,11 +89,11 @@
     }
 
     if (chunks.length > 0) {
-      const tempFile = tmpHandler.write(this.ctx.root.$tempAutoCleanupDirectory, chunks.join(''))
-      files.push(tmpHandler.basename(tempFile))
+      files.push(writeRowsToTempFile(chunks))
     }
 
-    result = `<tr id=${tmpHandler.generateTmpId()} data-rows-placeholder data-total-rows="${totalRows}" data-files="${files.join(',')}" />`
+    const id = files.length > 0 ? ` id="html-to-xlsx-rows-${files[0]}"` : ''
+    result = `<tr${id} data-rows-placeholder data-total-rows="${totalRows}" data-files="${files.join(',')}" />`
 
     if (Handlebars) {
       return new Handlebars.SafeString(result)

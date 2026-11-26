@@ -23,11 +23,6 @@ module.exports = (reporter, definition) => {
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
-  reporter.options.sandbox.modules.push({
-    alias: 'tmpHandler.js',
-    path: path.join(__dirname, './tmpHandler.js')
-  })
-
   reporter.closeListeners.add('html-to-xlsx', () => require('./htmlToXlsxProcess').kill())
 
   let htmlToXlsxHelpers
@@ -46,7 +41,6 @@ module.exports = (reporter, definition) => {
     }
 
     req.data = req.data || {}
-    req.data.$tempAutoCleanupDirectory = reporter.options.tempAutoCleanupDirectory
     req.data.$writeToFiles = ['cheerio', 'chrome'].includes((req.template.htmlToXlsx || {}).htmlEngine)
   })
 }

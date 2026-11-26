@@ -3,7 +3,6 @@
 /* *global __rootDirectory */
 const __xlsx = (function () {
   const contextMap = new Map()
-  const fsproxy = globalThis.fsproxy || require('fsproxy.js')
   const jsreport = require('jsreport-proxy')
 
   // we need to serialize into string, to ensure all the async helpers results in the output are properly extracted
@@ -183,7 +182,8 @@ const __xlsx = (function () {
   }
 
   function flush (buf, root) {
-    root.$files.push(fsproxy.write(root.$tempAutoCleanupDirectory, buf.data))
+    const { filename } = jsreport.writeTempFileSync((uuid) => `${uuid}.xml`, jsreport.xlsx.compressXml(buf.data))
+    root.$files.push(filename)
     buf.collection.push({ $$: root.$files.length - 1 })
     buf.data = ''
   }

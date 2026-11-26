@@ -93,7 +93,8 @@ module.exports = async (reporter, definition, req, res) => {
         }
 
         xmlStream.add(stringToStream(xml.substring(0, separatorIndex)))
-        xmlStream.add(fs.createReadStream($files[xmlAndFiles.files.shift()]).pipe(zlib.createInflate()))
+        const { stream: compressedXml } = reporter.readTempFileStream($files[xmlAndFiles.files.shift()])
+        xmlStream.add(compressedXml.pipe(zlib.createInflate()))
         xml = xml.substring(separatorIndex + '&&'.length)
       }
 
