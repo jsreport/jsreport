@@ -621,6 +621,61 @@ describe('docx remove', () => {
     should(doc.documentElement.toString()).not.containEql('docxRemove')
   })
 
+  it('remove - multiple columns in same table', async () => {
+    const doc = await renderColumnTemplate('remove-column-multiple.docx', { removeQty: true, removeDiscount: true, products })
+    const info = getTableInfo(doc)
+
+    should(info.gridColWidths).be.eql([9350])
+
+    should(info.rows.map((row) => row.map((cell) => cell.text))).be.eql([
+      ['Name'],
+      ['Apple'],
+      ['Orange']
+    ])
+
+    assertCellWidthsMatchGrid(info)
+
+    should(doc.documentElement.toString()).not.containEql('docxRemove')
+  })
+
+  it('remove - only one of multiple columns in same table', async () => {
+    const doc = await renderColumnTemplate('remove-column-multiple.docx', { removeQty: true, removeDiscount: false, products })
+    const info = getTableInfo(doc)
+
+    should(info.gridColWidths.length).be.equal(2)
+    should(info.gridColWidths.reduce((acc, w) => acc + w, 0)).be.equal(9350)
+
+    should(info.rows.map((row) => row.map((cell) => cell.text))).be.eql([
+      ['Name', 'Discount'],
+      ['Apple', '10%'],
+      ['Orange', '5%']
+    ])
+
+    assertCellWidthsMatchGrid(info)
+
+    should(doc.documentElement.toString()).not.containEql('docxRemove')
+  })
+
+  it('remove - column when call is in merged cell should keep the merged cell', async () => {
+    const doc = await renderColumnTemplate('remove-column-merged-call.docx', { remove: true })
+    const info = getTableInfo(doc)
+
+    should(info.gridColWidths.length).be.equal(2)
+    should(info.gridColWidths.reduce((acc, w) => acc + w, 0)).be.equal(9350)
+
+    // the column removed is the first grid column the merged cell starts at
+    should(info.rows[0].length).be.equal(1)
+    should(info.rows[0][0].text).be.equal('Products')
+    should(info.rows[0][0].span).be.equal(2)
+    should(info.rows[0][0].width).be.equal(9350)
+
+    should(info.rows[1].map((cell) => cell.text)).be.eql(['Qty', 'Discount'])
+
+    assertCellWidthsMatchGrid(info)
+
+    should(doc.documentElement.toString()).not.containEql('docxRemove')
+  })
+
   it('remove - invalid target should throw', async () => {
     const err = await reporter.render({
       template: {
