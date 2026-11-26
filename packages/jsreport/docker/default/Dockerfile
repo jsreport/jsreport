@@ -38,9 +38,9 @@ RUN addgroup -g "${GID}" -S jsreport && adduser --shell /bin/bash -u "${UID}" -S
 # this condition is useful when the alpine registry contain different latest versions
 # per architecture, if the versions match then just use the same version number on both paths
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="155.0.8059.84-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="158.0.8127.88-r0"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="155.0.8059.84-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="158.0.8127.88-r0"; \
     fi && \
     echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
     echo @edge https://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
@@ -53,9 +53,10 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     harfbuzz@edge \
     harfbuzz-subset@edge \
     ttf-freefont@edge \
+    tini \
     # just for now as we npm install from git
     libcurl@edge=8.23.0-r0 \
-    git@edge=2.56.0-r0 \
+    git@edge=2.56.1-r0 \
     # so user can docker exec -it test /bin/bash
     bash && \
     test -x /usr/lib/chromium/chrome && \
@@ -110,4 +111,5 @@ USER jsreport:jsreport
 ENV chrome_launchOptions_executablePath=/usr/lib/chromium/chrome
 ENV chrome_launchOptions_internalInitialArgs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu
 
+ENTRYPOINT ["/sbin/tini", "-s", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["bash", "run.sh"]
